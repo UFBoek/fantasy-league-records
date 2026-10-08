@@ -1,0 +1,59 @@
+/* v64 phone-first presentation: intentionally independent of desktop styles */
+@media(max-width:699px){
+  html,body{max-width:100%;overflow-x:clip;-webkit-text-size-adjust:100%}
+  .app-shell{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .site-header.app-header{max-width:none;margin:0;padding:10px 13px 8px;position:sticky;top:0;z-index:45;background:rgba(247,246,242,.97);backdrop-filter:blur(16px)}
+  .app-header .brand{min-width:0;width:100%;padding:10px 12px;border-radius:16px;gap:9px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+  .app-header .brand-mark{width:36px;height:36px;flex:0 0 36px;font-size:11px}
+  .app-header .brand-name{font-size:clamp(16px,4.4vw,22px);letter-spacing:-.04em}
+  .app-header .brand-sub{display:block;font-size:9px;letter-spacing:.1em;margin-top:4px}
+  .page-wrap{width:100%;min-width:0;padding:12px 14px 32px}
+  .page-wrap>*{max-width:100%;min-width:0}
+  .hero{padding:22px 0 24px}
+  .hero h1{font-size:clamp(32px,10vw,48px);line-height:1.03;overflow-wrap:anywhere}
+  .hero-copy{font-size:14px;line-height:1.55}
+  .hero-strip{margin-top:18px;grid-template-columns:repeat(2,minmax(0,1fr));border-radius:15px}
+  .hero-stat{padding:14px 11px;min-width:0}
+  .hero-stat .k{font-size:clamp(20px,6vw,29px);overflow-wrap:anywhere}
+  .hero-stat .l{font-size:9px;line-height:1.35}
+  .section{padding:25px 0}
+  .section-head{gap:8px;margin-bottom:13px}
+  .section-title{font-size:clamp(24px,7vw,32px);line-height:1.12}
+  .section-note{font-size:12px;line-height:1.45}
+  .card-grid,.record-list,.compact-record-feature-grid,.record-index-grid,.unified-record-grid,.snapshot-grid,.season-game-grid,.season-card-grid,.compact-streak-records,.mini-arcade-list{grid-template-columns:minmax(0,1fr)!important}
+  .card,.app-tile,.mini-arcade-card{border-radius:17px}
+  .card{padding:16px}
+  .card-value{font-size:clamp(24px,8vw,32px)}
+  .app-menu-shell{padding:14px}
+  .app-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .app-tile{min-width:0;min-height:125px;padding:13px;border-radius:17px}
+  .app-tile-icon{font-size:31px}
+  .app-tile-label{font-size:13px;overflow-wrap:anywhere}
+  .app-menu-title{font-size:clamp(30px,9vw,40px)}
+  .team-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .team-card{min-width:0;padding:13px}
+  .team-card .team-name{font-size:clamp(15px,4.8vw,20px);overflow-wrap:anywhere}
+  .profile-title{font-size:clamp(27px,8vw,37px);overflow-wrap:anywhere}
+  .profile-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:14px}
+  .table-wrap table{min-width:640px}
+  .table-wrap th,.table-wrap td{padding:11px 10px;font-size:12px}
+  .compact-player-book .table-wrap table{min-width:720px!important}
+  .jh-trade-card>.jh-trade-meta{padding:14px 12px}
+  .jh-trade-preview{gap:8px 12px}
+  .jh-trade-preview>span{white-space:normal}
+  .jh-trade-action{margin-left:0}
+  .jh-game-search,.jh-game-row select{min-height:44px;font-size:16px}
+  .jh-game-row{grid-template-columns:minmax(0,1fr) auto}
+  .jh-game-row select{grid-column:1/-1;max-width:100%}
+  .jh-game-actions button{min-height:44px}
+  .mobile-nav.app-dock{display:flex;align-items:stretch;justify-content:flex-start;width:calc(100% - 16px);max-width:none;left:8px;right:8px;bottom:6px;transform:none;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:2px;padding:7px 5px max(7px,env(safe-area-inset-bottom));border-radius:17px;background:rgba(255,255,255,.98)}
+  .mobile-nav.app-dock::-webkit-scrollbar{display:none}
+  .mobile-nav.app-dock a{flex:1 0 62px;min-width:62px;min-height:51px;display:flex;align-items:center;justify-content:center;flex-direction:column;border-radius:10px;font-size:10px;line-height:1.15;padding:4px 2px;color:#5c5a54;white-space:normal;letter-spacing:0}
+  .mobile-nav.app-dock a span{font-size:21px;line-height:1;margin:0 0 5px}
+  .mobile-nav.app-dock a:focus-visible,.mobile-nav.app-dock a[aria-current="page"]{background:#eeeae2;color:#11110f;outline-offset:-2px}
+  .site-footer.app-footer-min{padding:0 14px calc(108px + env(safe-area-inset-bottom))}
+  button,select,input,a{touch-action:manipulation}
+  button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #246747;outline-offset:2px}
+}
+@media(max-width:380px){.app-menu-grid,.team-grid{grid-template-columns:minmax(0,1fr)}.app-header .brand-sub{display:none}}
