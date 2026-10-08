@@ -1,0 +1,166 @@
+/* FIG League v66 — phone-first readability, visual density and accessible stats.
+   This stylesheet is loaded ONLY on screens below 700px; desktop stays untouched. */
+@media (max-width: 699px) {
+  :root { --phone-space:14px; --phone-radius:18px; --phone-ink:#1b2220; }
+  html { scroll-padding-top:78px; }
+  html, body { width:100%; max-width:100%; overflow-x:clip; -webkit-text-size-adjust:100%; }
+  body { line-height:1.45; }
+  .app-shell { min-width:0; padding-bottom:calc(86px + env(safe-area-inset-bottom)); }
+  .app-header.site-header { top:0; padding:9px var(--phone-space) 7px; backdrop-filter:blur(18px); }
+  .app-header .brand { padding:10px 12px; min-height:58px; align-items:center; }
+  .app-header .brand-name { font-size:clamp(15px,4.4vw,21px); line-height:1.03; }
+  .app-header .brand-sub { font-size:9px; letter-spacing:.1em; margin-top:4px; }
+  .page-wrap { min-width:0; width:100%; padding:12px var(--phone-space) 30px; }
+  .page-wrap > *, .section, .control-output, .team-profile-shell, .team-roster-panel { min-width:0; max-width:100%; }
+  .hero { padding:23px 0 25px; }
+  .hero h1 { font-size:clamp(32px,9.5vw,48px); line-height:1.03; letter-spacing:-.05em; max-width:100%; overflow-wrap:anywhere; }
+  .hero-copy { font-size:14px; line-height:1.55; }
+  .hero-strip { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:20px; }
+  .hero-stat { min-width:0; padding:13px 12px; }
+  .hero-stat .k { font-size:clamp(20px,6vw,29px); line-height:1.08; overflow-wrap:anywhere; }
+  .hero-stat .l { font-size:10px; line-height:1.35; letter-spacing:.06em; }
+  .section { padding:25px 0; }
+  .section-head { margin-bottom:15px; gap:8px; align-items:flex-start; }
+  .section-title { font-size:clamp(25px,7.4vw,33px); line-height:1.12; overflow-wrap:anywhere; }
+  .section-note { font-size:12px; text-align:left; line-height:1.4; }
+  .card-grid, .record-list, .record-index-grid, .compact-record-feature-grid,
+  .unified-record-grid, .snapshot-grid, .season-card-grid, .season-game-grid,
+  .mini-arcade-list, .rivalry-grid, .compact-streak-records,
+  .two-col-record-snapshot, .compare-grid { grid-template-columns:minmax(0,1fr)!important; gap:11px; }
+  .card, .app-tile, .mini-arcade-card { border-radius:17px; }
+  .card { padding:16px; }
+  .card-value { font-size:clamp(25px,8vw,33px); }
+  .app-menu-shell { padding:14px; border-radius:19px; }
+  .app-menu-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .app-tile { padding:14px 12px; min-width:0; min-height:124px; border-radius:17px; }
+  .app-tile-icon { font-size:33px; }
+  .app-tile-label { font-size:14px; line-height:1.2; overflow-wrap:anywhere; }
+  .app-menu-title { font-size:clamp(30px,9vw,42px); line-height:1.04; }
+  .team-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .team-card { min-width:0; padding:12px; border-radius:17px; }
+  .team-card .team-name { font-size:clamp(15px,4.5vw,21px); line-height:1.15; overflow-wrap:anywhere; }
+  .team-card-photo { width:70px; height:70px; }
+  .team-profile-shell { border-radius:21px; padding:18px 14px 0; }
+  .team-profile-top { gap:11px; }
+  .team-profile-badge { width:65px; height:65px; flex-shrink:0; }
+  .team-profile-tabs { display:flex; gap:7px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:6px; }
+  .team-profile-tabs::-webkit-scrollbar { display:none; }
+  .team-profile-tabs a, .team-profile-tabs button { flex-shrink:0; white-space:nowrap; min-height:43px; }
+  .team-career-stats, .profile-kpis { grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:9px; }
+  .team-stat-tile { min-width:0; padding:14px 11px; min-height:112px; border-radius:17px; }
+  .team-stat-tile strong { font-size:clamp(22px,8vw,33px)!important; }
+  .profile-main { padding:20px 15px; border-radius:21px; }
+  .profile-title { font-size:clamp(28px,8vw,38px); overflow-wrap:anywhere; }
+  .profile-kpi .v { font-size:clamp(19px,5.5vw,25px); }
+  .profile-side { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  .mini-card { padding:12px; border-radius:15px; }
+  .mini-card .v { font-size:23px; }
+  .roster-panel-title { padding:17px 14px; flex-wrap:wrap; gap:8px; }
+  .roster-panel-title h2 { font-size:24px; }
+  .sleeper-roster-heading { padding:15px 13px 10px; }
+  .sleeper-player-row { grid-template-columns:48px minmax(0,1fr) 42px; padding:11px 12px; gap:9px; min-height:64px; }
+  .sleeper-slot { width:45px; height:38px; border-radius:10px; }
+  .sleeper-player-main b { font-size:14px; }
+  .sleeper-player-main small { font-size:11px; }
+  .sleeper-player-tag { font-size:10px; }
+  /* Dense page controls become app chips, not tiny links. */
+  .pill-row, .tabs, .jh-filters { display:flex; max-width:100%; min-width:0; gap:7px; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:3px 1px 9px; }
+  .pill-row::-webkit-scrollbar, .tabs::-webkit-scrollbar, .jh-filters::-webkit-scrollbar { display:none; }
+  .pill-row .pill, .tabs button, .jh-year { flex:0 0 auto; min-height:42px; padding:10px 13px; font-size:12px; }
+  .control-label { font-size:11px; }
+  .player-book-tools { width:100%; align-items:stretch; flex-direction:column; gap:8px; }
+  .player-book-tools > div { max-width:100%; }
+  .player-record-search, .search, input[type='search'] { width:100%; max-width:100%; min-height:46px; font-size:16px; }
+  .player-week-feature { padding:17px 14px; border-radius:18px; gap:10px; }
+  .player-week-feature h3 { font-size:19px; line-height:1.15; }
+  .player-week-feature-list { text-align:left; line-height:1.6; font-size:11px; }
+  /* Player scoring leaders: horizontal snap-cards keep the actual record book close to the top. */
+  .threshold-grid { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(260px,86%); grid-template-columns:none!important; gap:10px; overflow-x:auto; overflow-y:hidden; max-width:100%; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:1px 2px 13px; }
+  .threshold-grid::-webkit-scrollbar { display:none; }
+  .threshold-panel { padding:14px; border-radius:16px; min-width:0; scroll-snap-align:start; }
+  .threshold-panel .threshold-row:nth-child(n+6) { display:none; }
+  .threshold-panel::after { content:'Tap heading for all leaders  ↗'; display:block; margin-top:13px; padding-top:9px; border-top:1px solid #e3e3de; font-size:10px; color:#676c68; font-weight:800; }
+  .threshold-title { font-size:clamp(15px,5vw,19px); }
+  .threshold-row { padding:9px 0; gap:8px; font-size:13px; min-height:36px; }
+  .threshold-row span { white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; }
+  .threshold-row strong { font-size:15px; }
+  /* The full desktop tables become genuinely readable, sortable mobile stat cards. */
+  .table-wrap.v66-mobile-cards { border:0; padding:0; background:transparent; border-radius:0; overflow:visible; }
+  .v66-mobile-cards table.sortable { display:block; width:100%; min-width:0!important; table-layout:auto; border:0; background:transparent; overflow:visible; }
+  .v66-mobile-cards .sortable thead { display:none; }
+  .v66-mobile-cards .sortable tbody { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; width:100%; }
+  .v66-mobile-cards .sortable tbody tr { display:grid; width:100%; min-width:0; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 12px; padding:13px 14px; border:1px solid #dddcd6; border-radius:17px; background:#fff; box-shadow:0 3px 8px rgba(0,0,0,.025); }
+  .v66-mobile-cards .sortable tbody tr.mobile-hidden { display:none!important; }
+  .v66-mobile-cards .sortable tbody tr.clickable-row { cursor:pointer; }
+  .v66-mobile-cards .sortable tbody td { display:flex; flex-direction:column; justify-content:center; min-width:0; width:auto!important; padding:0!important; border:0!important; background:transparent; text-align:left!important; font-size:clamp(13px,3.8vw,15px)!important; line-height:1.25; font-weight:750; white-space:normal!important; overflow-wrap:anywhere; letter-spacing:0; }
+  .v66-mobile-cards .sortable tbody td::before { display:block; content:attr(data-label); font-family:Inter,system-ui,sans-serif; color:#77786f; font-size:10px; font-weight:850; line-height:1.15; letter-spacing:.07em; text-transform:uppercase; margin-bottom:4px; }
+  .v66-mobile-cards .sortable tbody td.mobile-card-primary { grid-column:1/-1; order:-2; font-size:clamp(16px,4.6vw,19px)!important; font-weight:850; padding-bottom:9px!important; border-bottom:1px solid #ecebe5!important; }
+  .v66-mobile-cards .sortable tbody td.mobile-card-primary::before { margin-bottom:5px; }
+  .v66-mobile-cards .sortable tbody td.mobile-card-primary a { font-weight:850; }
+  .v66-mobile-cards .sortable tbody td a { text-decoration:underline; text-decoration-color:#d3d4cd; text-underline-offset:3px; }
+  .v66-mobile-cards .sortable tbody td .pos { align-self:flex-start; }
+  .v66-mobile-cards .sortable tbody tr:hover,.v66-mobile-cards .sortable tbody tr:nth-child(odd){background:#fff!important;}
+  .v66-mobile-cards .sortable tbody tr td:nth-child(odd){background:transparent!important;}
+  .v66-mobile-cards .sortable tbody td .bomb-count-link { display:inline-block; min-width:32px; }
+  .compact-player-book .v66-mobile-cards .sortable tbody tr { grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px 7px; padding:13px 12px; }
+  .compact-player-book .v66-mobile-cards .sortable tbody td.mobile-card-primary { grid-column:1/-1; }
+  .compact-player-book .v66-mobile-cards .sortable tbody td { font-size:13px!important; }
+  .compact-player-book .v66-mobile-cards .sortable tbody td::before { font-size:9px; letter-spacing:.025em; }
+  .compact-player-book .v66-mobile-cards .sortable tbody td.mobile-card-primary { font-size:18px!important; }
+  .player-book-scroll-tip { display:none!important; }
+  .v66-table-controls { display:grid; grid-template-columns:minmax(0,1fr) 88px; align-items:end; gap:8px; margin:8px 0 12px; }
+  .v66-table-controls label { display:block; min-width:0; font-size:10px; font-weight:900; letter-spacing:.08em; color:#656761; }
+  .v66-table-controls select { display:block; width:100%; min-width:0; margin-top:6px; min-height:46px; padding:8px 11px; border:1px solid #d2d2cc; border-radius:12px; background:#fff; color:#19201c; font:700 14px Inter,sans-serif; }
+  .v66-table-controls .v66-sort-direction { min-height:46px; border:1px solid #d2d2cc; border-radius:12px; background:#f0eee8; color:#242624; font-weight:850; font-size:12px; cursor:pointer; }
+  .v66-table-more { width:100%; min-height:47px; border:1px solid #cccac2; background:#fff; color:#19201c; border-radius:13px; font-weight:850; font-size:13px; margin:13px 0 5px; cursor:pointer; }
+  .v66-results-count { display:block; margin:7px 1px; font-size:11px; color:#686b65; }
+  /* Fallback: genuinely wide, non-sortable data grids still scroll inside a frame. */
+  .table-wrap:not(.v66-mobile-cards) { width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; border-radius:14px; }
+  .table-wrap:not(.v66-mobile-cards) table { min-width:640px; }
+  .draft-board { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  /* Trade screens and roster valuation: avoid squeezed three/four-column clusters. */
+  .jh-archive, .jh-story, .jh-trade-card, .ra-team-overview, .jh-gap-game { max-width:100%; min-width:0; }
+  .jh-header { padding:16px 13px; }
+  .jh-duo { gap:10px; }
+  .jh-portrait { width:61px; height:61px; }
+  .jh-participant { font-size:14px; }
+  .jh-overall { padding:15px 12px; }
+  .jh-overall-grid { grid-template-columns:minmax(0,1fr); }
+  .jh-overview-team { min-width:0; }
+  .jh-trade-card > .jh-trade-meta { padding:14px 12px; }
+  .jh-trade-preview { gap:9px 13px; }
+  .jh-trade-preview > span { white-space:normal; }
+  .jh-trade-columns, .jh-story-flow { grid-template-columns:minmax(0,1fr); }
+  .jh-game-score { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .jh-game-score > div { min-width:0; padding:10px; }
+  .jh-game-score strong { font-size:clamp(20px,6.3vw,26px); overflow-wrap:anywhere; }
+  .jh-gap-game { padding:12px; border-radius:19px; gap:10px; }
+  .jh-gap-pitch { padding:10px 8px; }
+  .jh-gap-pitch > strong { font-size:clamp(38px,12vw,56px); }
+  .jh-gap-pitch h3 { font-size:clamp(23px,7vw,31px); margin-top:7px; }
+  .jh-lineup-game { padding:13px; border-radius:15px; }
+  .jh-game-row { grid-template-columns:minmax(0,1fr) auto; gap:5px 8px; padding:6px 0; }
+  .jh-game-row select { grid-column:1/-1; grid-row:2; font-size:16px; min-height:46px; padding:9px; }
+  .jh-game-search { font-size:16px; min-height:46px; }
+  .jh-game-actions button { min-height:46px; }
+  .jh-gap-teaser { flex-wrap:wrap; padding:13px; }
+  .jh-gap-teaser > strong { margin-left:auto; }
+  .mini-arcade-card { min-height:88px; gap:10px; padding:13px; }
+  .mini-arcade-icon { width:48px; height:48px; flex-basis:48px; }
+  .mobile-nav.app-dock { display:flex; left:8px; right:8px; bottom:6px; width:calc(100% - 16px); max-width:none; transform:none; gap:2px; padding:7px 5px max(7px,env(safe-area-inset-bottom)); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; border-radius:17px; background:rgba(255,255,255,.98); }
+  .mobile-nav.app-dock::-webkit-scrollbar { display:none; }
+  .mobile-nav.app-dock a { flex:1 1 0; min-width:0; min-height:54px; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:5px 2px; font-size:10px; line-height:1.15; white-space:normal; border-radius:11px; letter-spacing:0; }
+  .mobile-nav.app-dock a span { margin:0 0 4px; font-size:21px; }
+  .mobile-nav.app-dock a[aria-current='page'] { color:#111; background:#eaece7; }
+  .mobile-nav.app-dock a[aria-current='page'] span { color:#175e42; }
+  .site-footer.app-footer-min { padding:0 14px calc(108px + env(safe-area-inset-bottom)); }
+  a, button, select { touch-action:manipulation; }
+  a:focus-visible, button:focus-visible, select:focus-visible { outline:2px solid #246747; outline-offset:3px; }
+}
+@media(max-width:370px) {
+  .app-menu-grid { gap:7px; }
+  .app-tile { min-height:110px; padding:10px; }
+  .v66-mobile-cards .sortable tbody tr { padding:12px 11px; }
+  .compact-player-book .v66-mobile-cards .sortable tbody tr { gap:9px 5px; }
+  .compact-player-book .v66-mobile-cards .sortable tbody td { font-size:12px!important; }
+}
