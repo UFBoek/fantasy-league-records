@@ -1,0 +1,281 @@
+[
+  {
+    "record_category": "All-Play Win Percentage",
+    "metric": "all_play_win_pct",
+    "rank": 1,
+    "season": 2026,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 94.44
+  },
+  {
+    "record_category": "All-Play Win Percentage",
+    "metric": "all_play_win_pct",
+    "rank": 2,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 90.48
+  },
+  {
+    "record_category": "All-Play Win Percentage",
+    "metric": "all_play_win_pct",
+    "rank": 3,
+    "season": 2026,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 88.89
+  },
+  {
+    "record_category": "Losses",
+    "metric": "losses",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 10,
+    "owner_name": "Jamest33",
+    "value": 13
+  },
+  {
+    "record_category": "Losses",
+    "metric": "losses",
+    "rank": 2,
+    "season": 2023,
+    "franchise_id": 2,
+    "owner_name": "mattboek21",
+    "value": 11
+  },
+  {
+    "record_category": "Losses",
+    "metric": "losses",
+    "rank": 2,
+    "season": 2023,
+    "franchise_id": 8,
+    "owner_name": "Wincollins2",
+    "value": 11
+  },
+  {
+    "record_category": "Max PF",
+    "metric": "max_pf",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 3572.65
+  },
+  {
+    "record_category": "Max PF",
+    "metric": "max_pf",
+    "rank": 2,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 3427.4
+  },
+  {
+    "record_category": "Max PF",
+    "metric": "max_pf",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 3394.29
+  },
+  {
+    "record_category": "Median Score",
+    "metric": "median_score",
+    "rank": 1,
+    "season": 2026,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 224.355
+  },
+  {
+    "record_category": "Median Score",
+    "metric": "median_score",
+    "rank": 2,
+    "season": 2026,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 223.405
+  },
+  {
+    "record_category": "Median Score",
+    "metric": "median_score",
+    "rank": 3,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 210.42
+  },
+  {
+    "record_category": "Point Differential",
+    "metric": "point_differential",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 802.13
+  },
+  {
+    "record_category": "Point Differential",
+    "metric": "point_differential",
+    "rank": 2,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 673.6
+  },
+  {
+    "record_category": "Point Differential",
+    "metric": "point_differential",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 627.96
+  },
+  {
+    "record_category": "Points For",
+    "metric": "points_for",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 3000.13
+  },
+  {
+    "record_category": "Points For",
+    "metric": "points_for",
+    "rank": 2,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 2933.76
+  },
+  {
+    "record_category": "Points For",
+    "metric": "points_for",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 2867.88
+  },
+  {
+    "record_category": "Weekly High Scores",
+    "metric": "weekly_high_scores",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 7
+  },
+  {
+    "record_category": "Weekly High Scores",
+    "metric": "weekly_high_scores",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 7
+  },
+  {
+    "record_category": "Weekly High Scores",
+    "metric": "weekly_high_scores",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 4
+  },
+  {
+    "record_category": "Weekly Top-3 Finishes",
+    "metric": "weekly_top_3_finishes",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 13
+  },
+  {
+    "record_category": "Weekly Top-3 Finishes",
+    "metric": "weekly_top_3_finishes",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 13
+  },
+  {
+    "record_category": "Weekly Top-3 Finishes",
+    "metric": "weekly_top_3_finishes",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 10
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 12
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 1,
+    "season": 2025,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 12
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 3,
+    "season": 2023,
+    "franchise_id": 10,
+    "owner_name": "Jamest33",
+    "value": 10
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 1,
+    "owner_name": "jackboek1",
+    "value": 10
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 5,
+    "owner_name": "lbracke",
+    "value": 10
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 6,
+    "owner_name": "HaydenM",
+    "value": 10
+  },
+  {
+    "record_category": "Wins",
+    "metric": "wins",
+    "rank": 3,
+    "season": 2024,
+    "franchise_id": 9,
+    "owner_name": "nolanfm13",
+    "value": 10
+  }
+]
