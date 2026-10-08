@@ -3,7 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#11110f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="FIG League" />
+  <link rel="manifest" href="manifest.webmanifest?v=65" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/fig-192.png?v=65" />
+  <link rel="apple-touch-icon" href="assets/icons/fig-192.png?v=65" />
   <title>Fromm is Garbage — League Archive</title>
   <meta name="description" content="Fromm is Garbage dynasty fantasy football league archive, records, standings, drafts, trades and franchise history." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,5 +67,13 @@
     </nav>
   </div>
   <script src="app.js?v=64"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'})
+          .catch((error) => console.warn('FIG app registration:', error));
+      });
+    }
+  </script>
 </body>
 </html>
