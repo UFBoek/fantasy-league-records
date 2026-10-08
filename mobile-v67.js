@@ -17,7 +17,7 @@
   function currentSection(route) {
     if (route === 'team' || route === 'teamseason' || route === 'teams') return 'teams';
     if (route.startsWith('player')) return 'players';
-    if (['standings','playoffs','champions','h2h','dynasty','draft'].includes(route)) return 'standings';
+    if (['standings','playoffs','champions','h2h','dynasty','draft','records','record','singleseasons','streaks','trades','more'].includes(route)) return 'standings';
     return 'home';
   }
   function updateNav() {
