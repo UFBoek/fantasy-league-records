@@ -22,7 +22,7 @@ jobs:
       - name: Stage static website
         run: |
           mkdir -p "$RUNNER_TEMP/league-site"
-          cp index.html app.js styles.css mobile-v64.css "$RUNNER_TEMP/league-site/"
+          cp index.html app.js styles.css mobile-v64.css manifest.webmanifest sw.js "$RUNNER_TEMP/league-site/"
           cp -R data assets resources "$RUNNER_TEMP/league-site/"
           touch "$RUNNER_TEMP/league-site/.nojekyll"
 
