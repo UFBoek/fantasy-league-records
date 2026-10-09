@@ -2,8 +2,10 @@ name: Update league data
 
 on:
   schedule:
-    # Daily at 12:17 UTC (morning in US Eastern time).
+    # Daily fallback plus hourly refreshes on NFL's usual game days.
+    # GitHub-hosted schedules are best-effort; never rely on exact start times.
     - cron: '17 12 * * *'
+    - cron: '23 * * * 0,1,4'
   workflow_dispatch:
   push:
     branches: [main]
@@ -78,6 +80,23 @@ jobs:
 
       - name: Run regression tests against the refreshed data
         run: bash scripts/check_refresh_tests.sh
+
+      - name: Stamp a new published snapshot only when provider data changed
+        shell: bash
+        run: |
+          # The browser polls this tiny manifest, not dozens of historical files.
+          if ! git diff --quiet -- 'data/*.json'; then
+            python - <<'PY'
+          import datetime
+          import json
+          from pathlib import Path
+          now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+          Path("data/refresh_manifest.json").write_text(
+              json.dumps({"updated_at": now}, indent=2) + "\\n",
+              encoding="utf-8",
+          )
+          PY
+          fi
 
       - name: Commit safe JSON changes
         id: commit
