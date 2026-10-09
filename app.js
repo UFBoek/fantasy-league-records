@@ -1284,7 +1284,7 @@ async function specialRecord(kind,viewEnc){
   const headers=[{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'score'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}];
   const makeRow=(x,i)=>({...x,rank:i+1,_sort:{...x._sort,rank:i+1}});
   app.innerHTML=hero('RECORD HISTORY',low?'LOWEST SCORING WEEKS':'HIGHEST SCORING WEEKS',`${viewLabel} • every qualifying team-week ranked ${low?'from lowest to highest':'from highest to lowest'}.`)+
-   section('FULL HISTORY',pagedWeekHistory(headers,rows,makeRow,{label:'team weeks',initialDescending:!low}));
+   section('FULL HISTORY',pagedWeekHistory(headers,rows,makeRow,{label:'team weeks',initialDescending:!low,sortKey:'score'}));
   return;
  }
  if(kind==='seasons'){const data=DATA.standingsSeasons.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').sort((a,b)=>num(b.points_for)-num(a.points_for));const rows=data.map((x,i)=>({rank:i+1,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.points_for),season:x.season,w:x.wins,l:x.losses,avg:money(num(x.points_for)/Math.max(1,num(x.games))),_sort:{rank:i+1,team:displayOwnerName(x.owner_name,x.franchise_id),points:num(x.points_for),season:num(x.season),w:num(x.wins),l:num(x.losses),avg:num(x.points_for)/Math.max(1,num(x.games))}}));app.innerHTML=hero('SEASON RECORD','BEST SCORING SEASONS','Completed 14-game regular seasons ranked by points scored.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'},{label:'SEASON',key:'season'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PPG',key:'avg'}],rows));return}
