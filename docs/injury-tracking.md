@@ -202,3 +202,40 @@ Other cases remain non-major until severity evidence is checked.
 higher-priority leads against game-ending reports and exclude
 fully returned players; user approval of a set of review leads is not
 a substitute for precise event-by-event game-outcome evidence.
+
+## Automatic injury estimates, not a manual review backlog (v2)
+
+Daily structured screening now handles the bulk of the work without someone
+manually investigating every unusual snap count. It has **two** outcomes:
+
+- **Data-backed estimated game exits**: Player actually played >=1 NFL
+  offensive snap in the completed fantasy week; snap share was <=35% of
+  offensive plays **and** <=45% of that player's usual share (based on
+  >=2 other qualifying season games); the *immediately following week*
+  has an Out or Doubtful injury report (excluding rest/illness/personal
+  reasons). These are recorded with `inference_tier: automated_estimate`.
+- **Automatically archived**: Everything else, such as reduced usage
+  without corroborating injury status, a later unrelated report, or
+  a routine coaching rotation. Such leads remain in the machine-readable
+  file for auditing, but do **not** appear in the regular team UI.
+  They get `inference_tier: archived_weak_signal`.
+
+Neither outcome alters the verified event ledger or its official team counts.
+**No combination of snap percentages and postgame designations proves a
+player failed to finish normally.** This system is an automatic *estimate*,
+not event-level verification. The UI labels these as automatic data-backed
+estimates, separate from the official verified event book; confirmed
+season-ending `Major` injuries always require their own corroboration.
+
+The rules for fully recovering and finishing the game still apply to
+official records, and fully recovered cases may be false positives in
+estimated signals. Do not claim this algorithm has verified game exit timing.
+
+With the October 9, 2026 source snapshot, 175 stored machine signals
+were reduced to 20 additional data-backed estimates (after excluding
+already-confirmed injuries), and 146 weak signals were archived.
+Counts may change after the next daily scan.
+
+This replaces the former unconfirmed-leads list. Team and team-season
+pages show verified history and a separate short automated estimate group.
+For authoritative injured-while-started records, use verified incidents.
