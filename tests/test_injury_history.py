@@ -109,11 +109,45 @@ class InjuryHistoryTests(unittest.TestCase):
         self.assertEqual(result["by_franchise"]["6"]["started_in_game_injuries"], 0)
         self.assertEqual(result["by_franchise"]["6"]["rotation_injuries"], 1)
 
-    def test_major_requires_severity_evidence(self):
-        injury = event("major", placed_on_ir=True, subsequent_nfl_games_missed=4,
-                       severity_source_url="https://example.org/ir-confirmation")
+    def test_major_is_season_ending_only_and_exclusive(self):
+        injury = event("major", placed_on_ir=True, season_ending=True,
+                       subsequent_nfl_games_missed=4,
+                       severity_source_url="https://example.org/season-ended")
         result = mod.compute_injuries([injury], self.roster)
-        self.assertEqual(result["by_franchise"]["6"]["major_rotation_injuries"], 1)
+        team = result["by_franchise"]["6"]
+        self.assertEqual(team["injury_events"], 1)
+        self.assertEqual(team["started_in_game_injuries"], 0)
+        self.assertEqual(team["rotation_injuries"], 0)
+        self.assertEqual(team["major_injuries"], 1)
+        self.assertEqual(team["major_rotation_injuries"], 1)
+        self.assertEqual(result["events"][0]["category"], "major")
+        self.assertEqual(result["by_franchise_season"]["6:2026"], team)
+
+    def test_four_missed_games_or_ir_does_not_make_major(self):
+        case = event("not-major", placed_on_ir=True,
+                     subsequent_nfl_games_missed=4,
+                     severity_source_url="https://example.org/ir-confirmation")
+        result = mod.compute_injuries([case], self.roster)
+        team = result["by_franchise"]["6"]
+        self.assertEqual(team["major_injuries"], 0)
+        self.assertEqual(team["started_in_game_injuries"], 1)
+        self.assertEqual(team["rotation_injuries"], 1)
+        self.assertFalse(result["events"][0]["season_ending"])
+
+    def test_season_ending_without_source_not_major(self):
+        case = event("uncited-major", season_ending=True, severity_source_url=None)
+        result = mod.compute_injuries([case], self.roster)
+        self.assertEqual(result["by_franchise"]["6"]["major_injuries"], 0)
+
+    def test_season_ending_benched_rotation_gets_major_only(self):
+        roster = [week(1),week(2),week(3,False),week(4,False)]
+        case = event("bench-major", season_ending=True,
+                     severity_source_url="https://example.org/end")
+        result = mod.compute_injuries([case], roster)
+        self.assertEqual(result["by_franchise"]["6"]["started_in_game_injuries"], 0)
+        self.assertEqual(result["by_franchise"]["6"]["rotation_injuries"], 0)
+        self.assertEqual(result["by_franchise"]["6"]["major_injuries"], 1)
+
 
     def test_no_evidence_cannot_count_major(self):
         injury = event("not-proven", placed_on_ir=True, subsequent_nfl_games_missed=4,
@@ -131,7 +165,7 @@ class InjuryHistoryTests(unittest.TestCase):
         result = mod.compute_injuries([], self.roster)
         self.assertEqual(result["events"], [])
         self.assertFalse(result["is_complete_historical_census"])
-        self.assertEqual(result["schema_version"], 2)
+        self.assertEqual(result["schema_version"], 3)
         self.assertEqual(result["coverage"], "reviewed_events_only")
 
     def test_one_event_does_not_duplicate_categories(self):
