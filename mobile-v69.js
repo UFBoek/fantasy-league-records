@@ -150,7 +150,7 @@
       isActiveStreaks ? [typeIndex,lengthIndex] :
       isStatsBoard ? labels.map((_,i) => i).filter(i =>
         i !== keyIndex && i !== rankIndex &&
-        !/^(PLAYER|TEAM|NAME|OWNER|POS|POSITION|TYPE|STATUS|SEASON|YEAR|WEEK)$/i.test(labels[i]))
+        !/^(PLAYER|TEAM|NAME|OWNER|POS|POSITION|TYPE|STATUS|SEASON|YEAR|WEEK)$/i.test(labels[i])
       ) : labels.map((_,i) => i);
     if (!allowedIndices.length) allowedIndices.push(mainIndex);
     allowedIndices.forEach(index => {
