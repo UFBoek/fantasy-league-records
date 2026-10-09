@@ -85,6 +85,10 @@ jobs:
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/build_trade_lineage.py
 
+      - name: Rebuild reviewed injury history from completed fantasy weeks
+        if: steps.quick.outputs.refresh == 'true'
+        run: python scripts/build_injury_history.py
+
       - name: Refresh RosterAudit dynasty values (keep last good on failure)
         if: steps.quick.outputs.refresh == 'true'
         shell: bash
