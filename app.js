@@ -724,20 +724,64 @@ async function playoffBracket(season){
 
 async function gamesArchive(){
  await load(['allGames','standingsCareer']);navActive('');
- const years=[...new Set(DATA.allGames.map(x=>String(x.season)))].sort((a,b)=>+b-+a);let season='all',team='all';
- const teams=[...DATA.standingsCareer].sort((a,b)=>+a.franchise_id-+b.franchise_id);
- app.innerHTML=hero('LEAGUE ARCHIVE','EVERY GAME','Every completed matchup Sleeper has for this league — regular season, official playoffs and consolation games. Open any matchup for the full weekly rosters.')+`<section class="section"><div class="control-label">SEASON</div>${pills('gameSeason',[{value:'all',label:'ALL'},...years.map(y=>({value:y,label:y}))],season)}<div class="control-label spaced">TEAM</div>${pills('gameTeam',[{value:'all',label:'ALL TEAMS'},...teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}))],team)}<div id="gameArchiveBody" class="control-output"></div></section>`;
- const render=()=>{
-  let gs=[...DATA.allGames];
-  if(season!=='all')gs=gs.filter(x=>String(x.season)===String(season));
-  if(team!=='all')gs=gs.filter(x=>String(x.franchise_1)===String(team)||String(x.franchise_2)===String(team));
-  gs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week||String(a.matchup_id).localeCompare(String(b.matchup_id)));
-  const rows=gs.map(g=>({open:`<a class="btn-lite" href="#/game/${g.season}/${g.week}/${g.matchup_id}">OPEN</a>`,season:g.season,week:g.week,type:g.game_type,t1:ownerLink(g.owner_1,g.franchise_1),s1:money(g.score_1),t2:ownerLink(g.owner_2,g.franchise_2),s2:money(g.score_2),winner:g.winner_franchise_id?ownerLink(g.winner_name,g.winner_franchise_id):'Tie',margin:money(g.margin),_sort:{open:0,season:+g.season,week:+g.week,type:g.game_type,t1:displayOwnerName(g.owner_1,g.franchise_1),s1:num(g.score_1),t2:displayOwnerName(g.owner_2,g.franchise_2),s2:num(g.score_2),winner:displayOwnerName(g.winner_name,g.winner_franchise_id),margin:num(g.margin)}}));
-  $('#gameArchiveBody').innerHTML=sortableTable([{label:'',key:'open'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'t1'},{label:'PTS',key:'s1'},{label:'OPPONENT',key:'t2'},{label:'PTS',key:'s2'},{label:'WINNER',key:'winner'},{label:'MARGIN',key:'margin'}],rows);
+ // Archived games only: this data source does not contain live in-progress weeks.
+ const all=DATA.allGames||[];
+ const years=[...new Set(all.map(g=>String(g.season)))].sort((a,b)=>+b-+a);
+ const teams=[...(DATA.standingsCareer||[])].sort((a,b)=>+a.franchise_id-+b.franchise_id);
+ let season='all',team='all',visible=40;
+ const seasonPills=[{value:'all',label:'ALL SEASONS'},...years.map(y=>({value:y,label:y}))];
+ const teamPills=[{value:'all',label:'ALL TEAMS'},...teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}))];
+ app.innerHTML=hero('LEAGUE ARCHIVE','GAME ARCHIVE','Final scores and starting lineups from every completed league matchup.')+
+   `<section class="section fig-archive-page">
+    <div class="fig-archive-intro"><strong>EVERY GAME. EVERY RIVALRY.</strong><p>Browse final scores from regular-season and postseason matchups, including consolation games. Select a game to see its complete lineup.</p></div>
+    <div class="control-label">SEASON</div>${pills('gameSeason',seasonPills,season)}
+    <div class="control-label spaced">TEAM</div>${pills('gameTeam',teamPills,team)}
+    <div id="gameArchiveBody" class="fig-archive-results"></div>
+   </section>`;
+ const resultRoot=$('#gameArchiveBody');
+ const filtered=()=>{
+  let gs=all;
+  if(season!=='all')gs=gs.filter(g=>String(g.season)===String(season));
+  if(team!=='all')gs=gs.filter(g=>+g.franchise_1===+team||+g.franchise_2===+team);
+  return [...gs].sort((a,b)=>+b.season-+a.season||+b.week-+a.week||+a.matchup_id-+b.matchup_id);
  };
- bindPills('gameSeason',v=>{season=v;render()});bindPills('gameTeam',v=>{team=v;render()});render();
+ const makeCard=g=>{
+  const score1=num(g.score_1),score2=num(g.score_2);
+  const winner=score1===score2?0:score1>score2?+g.franchise_1:+g.franchise_2;
+  const winnerText=winner?displayOwnerName(winner===+g.franchise_1?g.owner_1:g.owner_2,winner):'Tie';
+  const phase=g.game_type==='Regular Season'?'REGULAR SEASON':'POSTSEASON';
+  const teamLine=(id,name,score)=>`<div class="fig-archive-team ${winner===+id?'fig-archive-winner':''}">
+    ${ownerAvatar(id,'fig-archive-avatar')}
+    <span class="fig-archive-name">${esc(displayOwnerName(name,id))}</span>
+    ${winner===+id?'<span class="fig-archive-win-mark" aria-label="Winner">W</span>':''}
+    <strong class="fig-archive-score">${money(score)}</strong>
+   </div>`;
+  return `<a class="fig-archive-game" href="#/game/${encodeURIComponent(g.season)}/${encodeURIComponent(g.week)}/${encodeURIComponent(g.matchup_id)}"
+   aria-label="${esc(displayOwnerName(g.owner_1,g.franchise_1))} ${money(score1)} versus ${esc(displayOwnerName(g.owner_2,g.franchise_2))} ${money(score2)}, ${g.season} week ${g.week}; view lineups">
+   <div class="fig-archive-game-top"><span class="fig-archive-week">${esc(g.season)} <b>WEEK ${esc(g.week)}</b></span><span class="fig-archive-phase">${phase}</span></div>
+   <div class="fig-archive-scoreboard">
+    ${teamLine(g.franchise_1,g.owner_1,score1)}
+    ${teamLine(g.franchise_2,g.owner_2,score2)}
+   </div>
+   <div class="fig-archive-game-bottom"><span class="fig-archive-final">FINAL <b>·</b> ${esc(winnerText)} ${winner?'won by '+money(Math.abs(score1-score2)):'tied'}</span>
+    <span class="fig-archive-open">VIEW LINEUPS →</span>
+   </div>
+  </a>`;
+ };
+ const render=()=>{
+  const gs=filtered();
+  const shown=Math.min(visible,gs.length);
+  resultRoot.innerHTML=`<div class="fig-archive-summary"><div><b>${gs.length.toLocaleString()} MATCHUPS</b><span>Most recent first · completed games only</span></div><span class="fig-archive-final-pill">FINAL SCORES</span></div>
+   <div class="fig-archive-grid">${gs.slice(0,shown).map(makeCard).join('')||'<div class="empty">No completed games match those filters.</div>'}</div>
+   <div class="fig-archive-paging"><span class="fig-archive-count">Showing ${shown.toLocaleString()} of ${gs.length.toLocaleString()} games</span>
+    ${shown<gs.length?'<button class="fig-archive-more" type="button" id="figArchiveMore">SHOW 40 MORE ↓</button>':''}
+   </div>`;
+  $('#figArchiveMore')?.addEventListener('click',()=>{visible+=40;render()});
+ };
+ bindPills('gameSeason',v=>{season=v;visible=40;render()});
+ bindPills('gameTeam',v=>{team=v;visible=40;render()});
+ render();
 }
-
 async function standings(){
  await load(['standingsCareer','standingsSeasons','allPlayCareer','luckSeasons','teamSeasonMaster']);navActive('standings');
  const years=[...new Set(DATA.teamSeasonMaster.map(x=>x.season))].sort((a,b)=>b-a);let season='career',view='actual';
@@ -1304,16 +1348,16 @@ async function minigames(){
 async function more(){
  navActive('');
  const items=[
-  ['▥','Dynasty Values','#/dynasty'],
-  ['▦','Game Archive','#/games'],
-  ['♛','Champions','#/champions'],
-  ['↔','Head-to-Head','#/h2h'],
-  ['★','Team Records','#/records'],
-  ['◌','Player Records','#/players'],
-  ['⚡','Streaks','#/streaks'],
   ['◎','Teams','#/teams'],
+  ['★','Team Records','#/records'],
+  ['⚡','Streaks','#/streaks'],
+  ['◌','Player Records','#/players'],
+  ['↔','Head-to-Head','#/h2h'],
+  ['▥','Dynasty Values','#/dynasty'],
+  ['♛','Champions','#/champions'],
+  ['▤','The Draft','#/draft'],
   ['⇄','Trades','#/trades'],
-  ['▤','The Draft','#/draft']
+  ['▦','Game Archive','#/games']
  ];
  app.innerHTML=hero('LEAGUE ARCHIVE','MORE','Explore league history, live dynasty values and every completed game.')+
  section('EXPLORE',`<div class="team-grid fig-more-grid">${items.map(([icon,label,href])=>`<a class="team-card fig-more-item" href="${href}"><div class="avatar" aria-hidden="true">${icon}</div><div class="team-name">${label}</div><span class="fig-more-open" aria-hidden="true">OPEN →</span></a>`).join('')}</div>`);

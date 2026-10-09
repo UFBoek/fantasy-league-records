@@ -1,3 +1,15 @@
+## v91 — Explore ordering and readable Game Archive scoreboard cards
+
+- **Explore in exact five-row order:** Teams · Team Records / Streaks · Player Records / Head-to-Head · Dynasty Values / Champions · The Draft / Trades · Game Archive. The first pair stays highlighted in soft mint.
+- **Game Archive redesign:** Replace the dense desktop table and its faded, sparse mobile conversion with full-width (phone) / two-column (desktop) matchup cards. Each includes season/week, regular-season or generic postseason label (covers championship and consolation without mislabeling), both manager avatars and names, both final scores, a winner indicator, winning margin and a direct link to the official archive game/lineup page.
+- **Filtering and page size:** Keep season and team pills; 40 latest finished games appear initially, with another 40 each click until exhausted. Changing either filter resets to the first 40 of the filtered result and displays an accurate game count.
+- **Contrast:** Final stylesheet `archive-explore-v91.css` uses dark, high-contrast text on white scoreboard cards. Also overrides legacy phone leaderboard substat/PTS-caption colors that could leave almost-white text on white cards (as shown in the screenshot), without changing their sorting or game data.
+- **No records changes:** Uses existing completed `data/all_games.json`; no in-progress scores and no Sleeper polling modifications.
+- **Checks:** Actual 262-game archive fixture renders 40 then 80 games; season-only, combined season/team filters and filter resets verified; exact 10-tile Explore ordering verified; app/service-worker JS syntax, CSS braces, stage script and cached asset versions passed. Live mobile visual QA still required after publish.
+- **Release:** `app.js?v=91`, `archive-explore-v91.css?v=91` and service-worker `fig-league-shell-v91` versioned and staged for GitHub Pages.
+
+---
+
 ## v90 — H2H-only all-play counts weeks when both rivals played in the playoffs
 
 - Pairwise all-play in **More → Head-to-Head** now compares completed scores from the regular season **and** playoff weeks when *both specific franchises* recorded an official scored playoff game that week. They need not have faced one another. An absent playoff matchup or first-round bye is not counted for that team.
