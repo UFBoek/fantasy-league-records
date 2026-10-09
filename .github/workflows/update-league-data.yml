@@ -92,7 +92,7 @@ jobs:
           from pathlib import Path
           now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
           Path("data/refresh_manifest.json").write_text(
-              json.dumps({"updated_at": now}, indent=2) + "\\n",
+              json.dumps({"updated_at": now}, indent=2) + chr(10),
               encoding="utf-8",
           )
           PY
