@@ -134,9 +134,9 @@ function sortableTable(headers,rows,opts={}){
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
   if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
   const html=`<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
-  return freeze ? frozenTable(heads,rows,id) : html;
+  return freeze ? frozenTable(heads,rows,id,opts) : html;
 }
-function frozenTable(heads, rows, id) {
+function frozenTable(heads, rows, id, opts={}) {
   const firstHeads = heads.slice(0, 2);
   const statHeads = heads.slice(2);
   const route = (location.hash.startsWith('#/') ? location.hash.slice(2) : 'home').split('/')[0];
@@ -147,23 +147,23 @@ function frozenTable(heads, rows, id) {
     const title = String(h.label).trim().toUpperCase();
     return history ? /^(VALUE|LENGTH|POINTS|SCORE|BOMBS|COUNT|TOTAL)$/.test(title) : /^(TYPE|LENGTH)$/.test(title);
   };
-  const buildHead = (h, i) => `<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? '↕' : ''}</span></button></th>`;
+  const buildHead = (h, i) => {const selected=opts.sortState?.column===i;return `<th data-col="${i}" data-key="${esc(h.key)}"${selected?` aria-sort="${opts.sortState.descending?'descending':'ascending'}"`:''}><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? (selected ? (opts.sortState.descending?'↓':'↑') : '↕') : ''}</span></button></th>`;};
   const renderRows = (start, columns) => rows.map((r, i) => {
     const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
     return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td data-key="${esc(h.key)}">${r[h.key] ?? ''}</td>`).join('')}</tr>`;
   }).join('');
-  setTimeout(() => bindFrozenTable(id, heads), 0);
+  setTimeout(() => bindFrozenTable(id, heads, opts), 0);
   return `<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>` +
     `<div class="fig-frozen-grid" data-fig-version="77-frozen" data-page="${esc(route)}">` +
     `<div class="fig-frozen-identity"><table id="${id}_fixed" class="fig-frozen-identity-table" aria-label="Fixed rank and name columns"><thead><tr>${firstHeads.map((h, i) => buildHead(h, i)).join('')}</tr></thead><tbody>${renderRows(0, firstHeads)}</tbody></table></div>` +
     `<div class="table-wrap fig-frozen-stats" data-fig-version="75-frozen" role="region" tabindex="0" aria-label="Scroll sideways for additional statistics"><table id="${id}" class="sortable fig-frozen-stats-table" aria-label="Scrollable statistics"><thead><tr>${statHeads.map((h, i) => buildHead(h, i + 2)).join('')}</tr></thead><tbody>${renderRows(2, statHeads)}</tbody></table></div></div>`;
 }
-function bindFrozenTable(id, heads) {
+function bindFrozenTable(id, heads, opts={}) {
   const right = document.getElementById(id), left = document.getElementById(id + '_fixed');
   if (!right || !left) return;
   const rightBody = right.tBodies[0], leftBody = left.tBodies[0];
   const allHeaders = [...left.querySelectorAll('th'), ...right.querySelectorAll('th')];
-  let activeColumn = -1, descending = true;
+  let activeColumn = opts.sortState?.column ?? -1, descending = opts.sortState?.descending ?? true;
   const sortValue = (tr, col) => {
     const key = heads[col].key;
     let parsed;
@@ -177,6 +177,8 @@ function bindFrozenTable(id, heads) {
       const col = Number(th.dataset.col);
       descending = activeColumn !== col || !descending;
       activeColumn = col;
+      if(opts.sortState) { opts.sortState.column=col; opts.sortState.descending=descending; }
+      if(typeof opts.onSort === 'function') { opts.onSort(heads[col]?.key, descending); return; }
       const field = heads[col]?.key || '';
       const textual = /^(team|player|owner|holder|type|pos|status)$/i.test(field);
       const ordered = [...rightBody.rows].sort((a, b) => {
@@ -209,6 +211,53 @@ function bindFrozenTable(id, heads) {
   };
   leftBody.addEventListener('click', openRow);
   rightBody.addEventListener('click', openRow);
+}
+
+/* Render at most 100 historical performances at first, with opt-in
+   increments of 100. Changing points sort applies to ALL archived performances,
+   not only the first visible page. Frozen identity/stat panes stay synchronized. */
+function pagedWeekHistory(headers, sortedRows, makeRow, opts={}) {
+ const pageSize=100, id=`fig_history_${++tableCounter}`;
+ const firstDescending=opts.initialDescending!==false;
+ let descending=firstDescending, shown=Math.min(pageSize,sortedRows.length);
+ const sortState={column:headers.findIndex(h=>h.key===(opts.sortKey||'points')),descending:firstDescending};
+ let ordered=sortedRows;
+ const label=opts.label||'performances';
+ const tableMarkup=()=>{
+  const rows=ordered.slice(0,shown).map((record,i)=>makeRow(record,descending===firstDescending?i:sortedRows.length-1-i));
+  const t=sortableTable(headers,rows,{sortState,onSort:(key,d)=>{
+    if(key!=='points'&&key!=='score')return;
+    descending=d;
+    ordered=descending===firstDescending?sortedRows:[...sortedRows].reverse();
+    shown=Math.min(pageSize,ordered.length);
+    update();
+  }});
+  const remaining=ordered.length-shown;
+  return t+`<div class="fig-history-paging">
+   <p class="fig-history-count" role="status" aria-live="polite">Showing ${shown.toLocaleString()} of ${ordered.length.toLocaleString()} ${esc(label)}</p>
+   ${remaining>0?`<button type="button" class="fig-history-more" data-fig-more>SHOW 100 MORE <span aria-hidden="true">↓</span></button><span class="fig-history-remaining">${remaining.toLocaleString()} remaining</span>`:'<span class="fig-history-complete">All entries shown</span>'}
+  </div>`;
+ };
+ const update=()=>{
+  const root=document.getElementById(id);
+  if(!root)return;
+  const previousScroll=root.querySelector('.fig-frozen-stats')?.scrollLeft??0;
+  root.innerHTML=tableMarkup();
+  const rightPane=root.querySelector('.fig-frozen-stats');
+  if(rightPane)rightPane.scrollLeft=previousScroll;
+  root.querySelector('[data-fig-more]')?.addEventListener('click',()=>{
+    shown=Math.min(shown+pageSize,ordered.length);
+    update();
+  });
+ };
+ setTimeout(()=>{
+  const root=document.getElementById(id);
+  root?.querySelector('[data-fig-more]')?.addEventListener('click',()=>{
+    shown=Math.min(shown+pageSize,ordered.length);
+    update();
+  });
+ },0);
+ return `<div class="fig-history-list" id="${id}">${tableMarkup()}</div>`;
 }
 
 function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return;
@@ -1228,7 +1277,18 @@ async function specialRecord(kind,viewEnc){
  const viewGames=DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':true);
  const viewLabel=view==='All-Time Combined'?'ALL-TIME':view.toUpperCase();
  if(kind==='teamweeks'||kind==='teamweeks-low'){
-  const rows=[];viewGames.forEach(g=>{rows.push({team:ownerLink(g.owner_1,g.franchise_1),score:money(g.score_1),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_1,g.franchise_1),score:num(g.score_1),season:num(g.season),week:num(g.week),type:g.game_type}});rows.push({team:ownerLink(g.owner_2,g.franchise_2),score:money(g.score_2),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_2,g.franchise_2),score:num(g.score_2),season:num(g.season),week:num(g.week),type:g.game_type}})});rows.sort((a,b)=>kind==='teamweeks-low'?a._sort.score-b._sort.score:b._sort.score-a._sort.score);app.innerHTML=hero('RECORD HISTORY',kind==='teamweeks-low'?'LOWEST SCORING WEEKS':'HIGHEST SCORING WEEKS',`${viewLabel} • every qualifying team-week ranked ${kind==='teamweeks-low'?'from lowest to highest':'from highest to lowest'}.`)+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'score'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}],rows.map((x,i)=>({...x,rank:i+1,_sort:{...x._sort,rank:i+1}}))));return
+  const rows=[];
+  viewGames.forEach(g=>{
+    rows.push({team:ownerLink(g.owner_1,g.franchise_1),score:money(g.score_1),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_1,g.franchise_1),score:num(g.score_1),season:num(g.season),week:num(g.week),type:g.game_type}});
+    rows.push({team:ownerLink(g.owner_2,g.franchise_2),score:money(g.score_2),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_2,g.franchise_2),score:num(g.score_2),season:num(g.season),week:num(g.week),type:g.game_type}});
+  });
+  const low=kind==='teamweeks-low';
+  rows.sort((a,b)=>low?a._sort.score-b._sort.score:b._sort.score-a._sort.score);
+  const headers=[{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'score'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}];
+  const makeRow=(x,i)=>({...x,rank:i+1,_sort:{...x._sort,rank:i+1}});
+  app.innerHTML=hero('RECORD HISTORY',low?'LOWEST SCORING WEEKS':'HIGHEST SCORING WEEKS',`${viewLabel} • every qualifying team-week ranked ${low?'from lowest to highest':'from highest to lowest'}.`)+
+   section('FULL HISTORY',pagedWeekHistory(headers,rows,makeRow,{label:'team weeks',initialDescending:!low,sortKey:'score'}));
+  return;
  }
  if(kind==='seasons'){const data=DATA.standingsSeasons.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').sort((a,b)=>num(b.points_for)-num(a.points_for));const rows=data.map((x,i)=>({rank:i+1,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.points_for),season:x.season,w:x.wins,l:x.losses,avg:money(num(x.points_for)/Math.max(1,num(x.games))),_sort:{rank:i+1,team:displayOwnerName(x.owner_name,x.franchise_id),points:num(x.points_for),season:num(x.season),w:num(x.wins),l:num(x.losses),avg:num(x.points_for)/Math.max(1,num(x.games))}}));app.innerHTML=hero('SEASON RECORD','BEST SCORING SEASONS','Completed 14-game regular seasons ranked by points scored.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'},{label:'SEASON',key:'season'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PPG',key:'avg'}],rows));return}
  const perf=[];viewGames.forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});const metric=kind==='highscores'?'high':'top3',title=kind==='highscores'?'WEEKLY HIGH SCORES':'TOP-3 WEEKLY SCORES';const ranked=Object.values(out).sort((a,b)=>b[metric]-a[metric]);const counts={};ranked.forEach(x=>counts[String(x[metric])]=(counts[String(x[metric])]||0)+1);let prev=null,rank=0;const rows=ranked.map((x,i)=>{if(prev===null||x[metric]!==prev)rank=i+1;prev=x[metric];return{rank:tiedRankLabel(rank,counts[String(x[metric])]>1),team:ownerLink(x.owner,x.id),value:x[metric],_href:`#/breakdown/weekly/${encodeURIComponent(kind)}/${encodeURIComponent(view)}/${x.id}`,_sort:{rank,team:displayOwnerName(x.owner,x.id),value:x[metric]}}});app.innerHTML=hero('WEEKLY PERFORMANCE RECORD',title,`${viewLabel} • qualifying weeks only.`)+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'COUNT',key:'value'}],rows));
@@ -1336,7 +1396,20 @@ async function breakdown(kind,...parts){
 }
 
 async function playerWeeks(){
- await load(['playerLog']);navActive('players');const data=[...DATA.playerLog].sort((a,b)=>num(b.starter_points)-num(a.starter_points));const rows=data.map((x,i)=>({rank:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${x.position}</span>`,points:money(x.starter_points),team:`<a class="fig-playerweeks-team-photo" href="#/team/${+x.franchise_id}" aria-label="Open ${esc(displayOwnerName(x.owner_name,x.franchise_id))} team profile" title="${esc(displayOwnerName(x.owner_name,x.franchise_id))}">${ownerAvatar(x.franchise_id,'fig-playerweeks-avatar')}</a>`,season:x.season,week:x.week,type:x.game_type,_sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}}));app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}],rows));
+ await load(['playerLog']);navActive('players');
+ const data=[...(DATA.playerLog||[])].sort((a,b)=>num(b.starter_points)-num(a.starter_points));
+ const headers=[{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}];
+ const makeRow=(x,i)=>({
+  rank: i+1,
+  player:playerLink(x.player_id,x.player_name),
+  pos:`<span class="pos">${esc(x.position)}</span>`,
+  points:money(x.starter_points),
+  team:`<a class="fig-playerweeks-team-photo" href="#/team/${+x.franchise_id}" aria-label="Open ${esc(displayOwnerName(x.owner_name,x.franchise_id))} team profile" title="${esc(displayOwnerName(x.owner_name,x.franchise_id))}">${ownerAvatar(x.franchise_id,'fig-playerweeks-avatar')}</a>`,
+  season:x.season,week:x.week,type:x.game_type,
+  _sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}
+ });
+ app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+
+  section('FULL HISTORY',pagedWeekHistory(headers,data,makeRow,{label:'player weeks'}));
 }
 
 async function rivalryDetail(a,b){

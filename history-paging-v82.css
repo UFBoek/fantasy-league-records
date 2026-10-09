@@ -1,0 +1,32 @@
+/* v82: Incremental history loading avoids thousands of phone table rows. */
+.page-wrap .fig-history-list {min-width:0;max-width:100%;}
+.page-wrap .fig-history-paging {
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  column-gap:14px;row-gap:9px;
+  padding:19px 10px 24px;
+  border:1px solid #dededc;border-radius:0 0 20px 20px;
+  background:#f0f0f0;color:#434b47;
+  font:750 12px/1.35 Inter,system-ui,sans-serif;
+}
+.page-wrap .fig-history-count {
+  flex-basis:100%;margin:0;
+  color:#3b4640!important;text-align:center!important;
+  font-weight:800!important;font-variant-numeric:tabular-nums;
+}
+.page-wrap .fig-history-more {
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  appearance:none;border:0;border-radius:20px;
+  padding:13px 19px;min-height:44px;
+  background:#252726;color:#fff;
+  font:900 12px/1.25 Inter,system-ui,sans-serif;
+  letter-spacing:.035em;cursor:pointer;
+}
+.page-wrap .fig-history-more:hover {background:#196f5b;}
+.page-wrap .fig-history-more:focus-visible {outline:3px solid #0a9374;outline-offset:3px;}
+.page-wrap .fig-history-more span {color:#96e3c6;}
+.page-wrap .fig-history-remaining {font-weight:700;color:#606d66;}
+.page-wrap .fig-history-complete {font-weight:850;color:#197a60;}
+@media(max-width:699px){
+ .page-wrap .fig-history-paging {padding:17px 8px 22px;gap:8px;}
+ .page-wrap .fig-history-more {padding:12px 20px;}
+}
