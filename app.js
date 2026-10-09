@@ -1542,22 +1542,67 @@ async function teamSeason(teamId,year){
 }
 async function gameDetail(season,week,matchup){
  await load(['allGames','weeklyRosters']);navActive('');
- const matchupEq=(a,b)=>{const an=Number(a),bn=Number(b);if(Number.isFinite(an)&&Number.isFinite(bn))return an===bn;return String(a??'').replace(/\.0+$/,'')===String(b??'').replace(/\.0+$/,'')};
- const g=DATA.allGames.find(x=>String(x.season)===String(season)&&String(x.week)===String(week)&&matchupEq(x.matchup_id,matchup));
+ const sameId=(a,b)=>{
+  const an=Number(a),bn=Number(b);
+  return Number.isFinite(an)&&Number.isFinite(bn)?an===bn:String(a??'').replace(/\\.0+$/,'')===String(b??'').replace(/\\.0+$/,'');
+ };
+ const g=(DATA.allGames||[]).find(x=>String(x.season)===String(season)&&String(x.week)===String(week)&&sameId(x.matchup_id,matchup));
  if(!g){app.innerHTML='<div class="empty">Game not found.</div>';return}
- const full=id=>DATA.weeklyRosters.filter(x=>String(x.season)===String(season)&&String(x.week)===String(week)&&+x.franchise_id===+id);
- const slotLabeler=(rows)=>{
-   const counts={QB:0,RB:0,WR:0,TE:0,FLEX:0,SUPER_FLEX:0};
-   const order={QB:1,RB:2,WR:3,TE:4,FLEX:5,SUPER_FLEX:6};
-   return rows.filter(x=>x.starter_status==='Starter').sort((a,b)=>(order[a.lineup_slot]||99)-(order[b.lineup_slot]||99)).map(x=>{counts[x.lineup_slot]=(counts[x.lineup_slot]||0)+1;let label=x.lineup_slot;if(x.lineup_slot==='RB')label=`RB${counts.RB}`;else if(x.lineup_slot==='WR')label=`WR${counts.WR}`;else if(x.lineup_slot==='FLEX')label=`FLEX${counts.FLEX}`;else if(x.lineup_slot==='SUPER_FLEX')label='SUPERFLEX';return {...x,_slot:label}})
+ const roster=id=>(DATA.weeklyRosters||[]).filter(x=>String(x.season)===String(season)&&String(x.week)===String(week)&&+x.franchise_id===+id);
+ const starters=rows=>{
+  const counts={},order={QB:1,RB:2,WR:3,TE:4,FLEX:5,SUPER_FLEX:6,K:7,DEF:8};
+  return rows.filter(x=>x.starter_status==='Starter').sort((a,b)=>(order[a.lineup_slot]||99)-(order[b.lineup_slot]||99)||String(a.player_name).localeCompare(String(b.player_name)))
+   .map(x=>{const slot=String(x.lineup_slot||x.position||'FLEX').toUpperCase();
+    counts[slot]=(counts[slot]||0)+1;
+    const label=slot==='RB'||slot==='WR'||slot==='TE'||slot==='FLEX'||slot==='QB'&&counts[slot]>1?slot+(counts[slot]):slot==='SUPER_FLEX'?'SFLX':slot;
+    return {...x,_slot:label};
+   });
  };
- const side=(id,owner,score)=>{
-   const rows=full(id),starters=slotLabeler(rows),bench=rows.filter(x=>x.starter_status!=='Starter').sort((a,b)=>String(a.position).localeCompare(String(b.position))||num(b.fantasy_points)-num(a.fantasy_points));
-   return `<div class="game-side"><div class="game-side-head"><div><div class="eyebrow">FULL GAME ROSTER</div><h2>${ownerName(owner,id)}</h2></div><div class="game-score">${money(score)}</div></div><div class="lineup-subhead">STARTERS</div>${starters.map(x=>`<a class="lineup-row" href="#/player/${x.player_id}"><span class="slot">${esc(x._slot)}</span>${playerHeadshot(x.player_id,x.player_name)}<span><b>${esc(x.player_name)}</b><small>${esc(x.position)}</small></span><strong>${money(x.fantasy_points)}</strong></a>`).join('')}<div class="lineup-subhead bench-head">BENCH</div>${bench.map(x=>`<a class="lineup-row bench-row" href="#/player/${x.player_id}"><span class="slot">BN</span>${playerHeadshot(x.player_id,x.player_name)}<span><b>${esc(x.player_name)}</b><small>${esc(x.position)}</small></span><strong>${money(x.fantasy_points)}</strong></a>`).join('')}</div>`;
+ const left=roster(g.franchise_1),right=roster(g.franchise_2),a=starters(left),b=starters(right);
+ const bench=rows=>rows.filter(x=>x.starter_status!=='Starter').sort((a,b)=>num(b.fantasy_points)-num(a.fantasy_points)||String(a.position).localeCompare(String(b.position)));
+ const benA=bench(left),benB=bench(right);
+ const slotOrder=slot=>{
+  const x=String(slot).replace(/\d+$/,'');
+  const rank={QB:1,RB:2,WR:3,TE:4,FLEX:5,SFLX:6,K:7,DEF:8};
+  return (rank[x]||99)*100+(Number(String(slot).match(/\d+$/)?.[0])||0);
  };
- app.innerHTML=hero(`${season} • WEEK ${week}`,`${ownerName(g.owner_1,g.franchise_1)} ${money(g.score_1)} – ${money(g.score_2)} ${ownerName(g.owner_2,g.franchise_2)}`,`${g.game_type} • ${ownerName(g.winner_name,g.winner_franchise_id)} won by ${money(g.margin)}`)+`<section class="section"><div class="game-detail-grid">${side(g.franchise_1,g.owner_1,g.score_1)}${side(g.franchise_2,g.owner_2,g.score_2)}</div></section>`;
+ const slots=[...new Set([...a,...b].map(x=>x._slot))].sort((x,y)=>slotOrder(x)-slotOrder(y)||x.localeCompare(y));
+ const fmtPlayer=(x,side='left')=>{
+  if(!x)return '<div class="fig-lineup-empty">—</div>';
+  const pts=Number(x.fantasy_points||0);
+  return `<a href="#/player/${encodeURIComponent(x.player_id)}" class="fig-lineup-player fig-lineup-${side}">
+    ${playerHeadshot(x.player_id,x.player_name,'fig-lineup-headshot')}
+    <span class="fig-lineup-player-info"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||x.lineup_slot||'')}</small></span>
+    <strong class="fig-lineup-points">${money(pts)}</strong>
+   </a>`;
+ };
+ const lineups=slots.map(slot=>`<div class="fig-lineup-pair">
+  ${fmtPlayer(a.find(x=>x._slot===slot),'left')}
+  <span class="fig-lineup-slot">${esc(slot)}</span>
+  ${fmtPlayer(b.find(x=>x._slot===slot),'right')}
+ </div>`).join('');
+ const benchColumn=(rows,id)=>`<div class="fig-lineup-bench-team">
+  <div class="fig-lineup-bench-team-title">${ownerAvatar(id,'fig-lineup-bench-avatar')}<span>${esc(displayOwnerName('',id))} · ${rows.length}</span></div>
+  ${rows.map(x=>`<div class="fig-lineup-bench-entry"><span class="fig-lineup-bench-slot">${esc(x.lineup_slot||'BN')}</span>${fmtPlayer(x)}</div>`).join('')||'<div class="fig-lineup-bench-empty">No bench players recorded</div>'}
+ </div>`;
+ const margin=Math.abs(num(g.score_1)-num(g.score_2));
+ const winner=num(g.score_1)===num(g.score_2)?'TIE':esc(displayOwnerName(g.winner_name,g.winner_franchise_id))+' WON BY '+money(margin);
+ app.innerHTML=hero(`${esc(season)} · WEEK ${esc(week)}`,'MATCHUP LINEUPS',`${esc(g.game_type)} · FINAL · ${winner}`)+
+  `<section class="section fig-lineup-page">
+   <div class="fig-lineup-scoreboard">
+     <a href="#/team/${g.franchise_1}" class="fig-lineup-team">${ownerAvatar(g.franchise_1,'fig-lineup-owner-avatar')}<span>${esc(displayOwnerName(g.owner_1,g.franchise_1))}</span><strong>${money(g.score_1)}</strong></a>
+     <span class="fig-lineup-final">FINAL</span>
+     <a href="#/team/${g.franchise_2}" class="fig-lineup-team">${ownerAvatar(g.franchise_2,'fig-lineup-owner-avatar')}<span>${esc(displayOwnerName(g.owner_2,g.franchise_2))}</span><strong>${money(g.score_2)}</strong></a>
+   </div>
+   <div class="fig-lineup-section-head"><h2>STARTING LINEUPS</h2><span>PLAYER vs PLAYER · BY SLOT</span></div>
+   <div class="fig-lineup-comparison">
+    <div class="fig-lineup-side-label"><span>${esc(displayOwnerName(g.owner_1,g.franchise_1))}</span><span>POSITION</span><span>${esc(displayOwnerName(g.owner_2,g.franchise_2))}</span></div>
+    ${lineups||'<div class="fig-lineup-bench-empty">Starter details unavailable for this matchup.</div>'}
+   </div>
+   <div class="fig-lineup-section-head fig-lineup-bench-heading"><h2>BENCH & FULL ROSTERS</h2><span>POINTS SHOWN SEPARATELY FROM STARTERS</span></div>
+   <div class="fig-lineup-bench-grid">${benchColumn(benA,g.franchise_1)}${benchColumn(benB,g.franchise_2)}</div>
+  </section>`;
 }
-
 async function singleSeasonRecords(categoryEnc){
  await load(['singleSeasonRecords','teamSeasonMaster','playerLog','standingsCareer']);navActive('records');
  const completeSeasons=new Set(DATA.teamSeasonMaster.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').map(x=>String(x.season)));
