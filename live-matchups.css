@@ -1,0 +1,31 @@
+/* v72: Sleeper's current-week results are ephemeral; never part of official records. */
+.fig-live-panel {
+  background:#101c31;
+  color:#f0f7ff;
+  border:1px solid #30465f;
+  border-radius:16px;
+  padding:18px;
+  margin:16px 0 22px;
+}
+.fig-live-panel .section-head {margin-bottom:10px;}
+.fig-live-panel .section-title {color:#f3f9ff;}
+.fig-live-panel .section-note {color:#a9c1d9;}
+.fig-live-summary {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;color:#b9d5e4;font-size:12px;font-weight:650;}
+.fig-live-badge {display:inline-flex;align-items:center;gap:6px;border:1px solid #317e79;background:#153e44;color:#95efdf;border-radius:100px;padding:5px 10px;font-size:10px;letter-spacing:.035em;font-weight:800;}
+.fig-live-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.fig-live-match {background:#17263f;border:1px solid #334961;border-radius:11px;min-width:0;padding:12px 14px;}
+.fig-live-match-label {color:#a8bfd5;font-size:10px;font-weight:750;letter-spacing:.045em;margin-bottom:10px;}
+.fig-live-side {display:flex;align-items:center;gap:10px;min-width:0;margin:6px 0;}
+.fig-live-side a,.fig-live-side .fig-live-name {color:#eef8ff;min-width:0;flex:1;overflow-wrap:anywhere;font-weight:750;text-decoration:none;}
+.fig-live-side a:hover,.fig-live-side a:focus-visible {color:#70e6d2;text-decoration:underline;}
+.fig-live-score {min-width:70px;text-align:right;font-size:19px;color:#e9f4ff;font-weight:850;font-variant-numeric:tabular-nums;}
+.fig-live-leading .fig-live-score {color:#73edce;}
+.fig-live-empty {padding:18px 14px;background:#17263f;border:1px solid #334961;border-radius:9px;color:#c1d4e8;font-size:13px;}
+.fig-live-footer {font-size:11px;color:#aec4d7;margin-top:12px;line-height:1.5;}
+@media(max-width:699px) {
+  .fig-live-panel {padding:13px 12px;margin:14px 0 18px;border-radius:12px;}
+  .fig-live-grid {grid-template-columns:minmax(0,1fr);gap:9px;}
+  .fig-live-match {padding:11px 12px;}
+  .fig-live-score {font-size:18px;}
+  .fig-live-panel .section-title {font-size:16px;}
+}
