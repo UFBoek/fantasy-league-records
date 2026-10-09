@@ -1033,7 +1033,14 @@ async function injuries(){
  navActive('records');
  const data=DATA.injuryHistory||{},review=DATA.injuryCandidates||{},discovery=DATA.injuryDiscovery||{};
  const events=(data.events||[]).filter(e=>+e.season===2026);
- const totals=data.by_franchise||{};
+ const totals={};
+ for(const e of events){
+  const id=String(e.franchise_id);
+  const t=(totals[id]??={started_in_game_injuries:0,rotation_injuries:0,major_rotation_injuries:0});
+  if(e.started_in_game_injury)t.started_in_game_injuries++;
+  if(e.rotation_injury)t.rotation_injuries++;
+  if(e.rotation_injury&&e.major_injury)t.major_rotation_injuries++;
+ }
  const managers=Array.from({length:10},(_,i)=>i+1).map(id=>{
   const z=totals[String(id)]||{};
   const stat=(val,label)=>'<span class="fig-injury-stat"><b>'+(Number(val)||'—')+'</b><small>'+label+'</small></span>';
@@ -1072,7 +1079,14 @@ async function injuries(){
    if(c.injury_report_detail?.injury)evidence.push('Following injury report: '+c.injury_report_detail.injury);
    return '<div class="fig-injury-history-row"><div class="fig-injury-history-person"><strong>'+esc(c.player_name)+'</strong><small>'+selected+' · W'+esc(c.week)+' · '+esc(owner)+' · '+(c.starter?'STARTED':'ROTATION')+'</small><span>'+esc(evidence.join(' · '))+'</span></div><div class="fig-injury-history-actions"><span class="fig-injury-lead-status">'+(c.priority==='higher'?'HIGHER-PRIORITY LEAD':'REVIEW LEAD')+'</span><a href="'+esc(c.snaps_source_url)+'" target="_blank" rel="noopener noreferrer">Snap data ↗</a><a href="'+esc(c.injury_report_source_url)+'" target="_blank" rel="noopener noreferrer">Injury reports ↗</a></div></div>';
   }).join('');
-  $('#figHistoricalData').innerHTML=top+(list||'<p class="fig-injury-history-note">No matching cases found in the current scan. That does not imply no injuries occurred.</p>')+(rank.length>published.length?'<p class="fig-injury-history-meta">Showing first '+published.length+' matches; refine the player search for more.</p>':'');
+  const verifiedYear=(data.events||[]).filter(e=>String(e.season)===selected);
+  const verifiedHtml='<div class="fig-historical-verified"><h3>VERIFIED '+selected+' INJURIES <small>'+verifiedYear.length+' CHECKED · EARLY COVERAGE</small></h3>'+
+   (verifiedYear.map(e=>{
+    const badges=[e.started_in_game_injury?'STARTER INJURED':'',e.rotation_injury?'ROTATIONAL PLAYER':'',e.major_injury?'MAJOR INJURY':''].filter(Boolean);
+    return '<div class="fig-historical-verified-row"><div><strong>'+esc(e.player_name)+'</strong><small>W'+esc(e.week)+' · '+esc(OWNER_DISPLAY_BY_ID[e.franchise_id]||e.owner_name)+' · '+esc(badges.join(' · '))+'</small><span>'+esc(e.injury_description||'Verified game-ending injury')+'</span></div><div><a target="_blank" rel="noopener noreferrer" href="'+esc(e.game_outcome_source_url)+'">Game exit ↗</a>'+(e.severity_source_url?'<a target="_blank" rel="noopener noreferrer" href="'+esc(e.severity_source_url)+'">Major injury evidence ↗</a>':'')+'</div></div>';
+   }).join('')||'<p class="fig-injury-history-note">None independently confirmed here yet; this is not a zero-injury finding.</p>')+'</div>'+
+   '<h3 class="fig-injury-review-title">AUTOMATED LEADS <small>NOT COUNTED AS INJURIES</small></h3>';
+  $('#figHistoricalData').innerHTML=verifiedHtml+top+(list||'<p class="fig-injury-history-note">No matching cases found in the current scan. That does not imply no injuries occurred.</p>')+(rank.length>published.length?'<p class="fig-injury-history-meta">Showing first '+published.length+' matches; refine the player search for more.</p>':'');
  };
  $('#figInjuryYear').onchange=e=>{selected=e.target.value;renderHistory()};
  $('#figInjurySearch').oninput=e=>{term=e.target.value.trim().toLowerCase();renderHistory()};
