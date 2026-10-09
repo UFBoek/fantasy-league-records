@@ -30,6 +30,16 @@ class LivePlayerLogContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unfinished/future player week"):
             normalize_player_log(rows + [row(player_id="999", week=5)], HISTORY)
 
+    def test_unfinished_week_rejected_even_if_current_leg_advanced(self):
+        settings = [{
+            "season": 2026,
+            "settings_json": '{"leg": 5, "last_scored_leg": 3}',
+        }]
+        self.assertEqual(cutoff_by_season(HISTORY, settings)["2026"], 3)
+        rows = [row(player_id=str(i), week=4) for i in range(1, 102)]
+        with self.assertRaisesRegex(ValueError, "Unfinished/future"):
+            normalize_player_log(rows, HISTORY, settings)
+
     def test_restores_previous_website_fields(self):
         rows = [row(player_id=str(i), week=4) for i in range(1, 102)]
         result = normalize_player_log(rows, HISTORY)
