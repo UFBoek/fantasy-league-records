@@ -54,6 +54,9 @@ jobs:
           fi
           tail -n 35 "$RUNNER_TEMP/fig-sleeper-build.log"
 
+      - name: Prepare verified completed-week player records for website
+        run: python scripts/prepare_player_records.py
+
       - name: Refresh completed rookie-pick audit
         run: python scripts/build_draft_pick_audit.py
 
