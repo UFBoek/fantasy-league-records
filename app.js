@@ -19,7 +19,7 @@ function hero(eyebrow,title,copy,stats=[]){return `<section class="hero"><div cl
 function section(title,body,note=''){return `<section class="section"><div class="section-head"><h2 class="section-title">${title}</h2>${note?`<div class="section-note">${note}</div>`:''}</div>${body}</section>`}
 function cards(items){return `<div class="card-grid">${items.map((x,i)=>`<div class="card ${i===0?'dark':''}"><div class="card-label">${x.label}</div><div class="card-value">${x.value}</div><div class="card-sub">${x.sub||''}</div></div>`).join('')}</div>`}
 function ownerBadges(id){return `${+id===JACK_ID?'<span class="identity-badge commish" title="Commissioner">C</span>':''}`}
-function ownerName(name,id){return `${esc(displayOwnerName(name,id))}${ownerBadges(id)}`}
+function ownerName(name,id){const photo=OWNER_AVATAR_BY_ID[+id]?ownerAvatar(id,'fig-team-avatar'):'';return `<span class="fig-team-identity">${photo}<span class="fig-team-identity-name">${esc(displayOwnerName(name,id))}</span>${ownerBadges(id)}</span>`}
 function ownerLink(name,id){return `<a href="#/team/${id}">${ownerName(name,id)}</a>`}
 function humanMetric(m){const map={total_points:'Total points',average_points:'Points per start',highest_score:'Best game',starts:'Starts',games_125:'125+ games',games_150:'150+ games',games_175:'175+ games',games_180:'180+ games',games_190:'190+ games',games_200:'200+ games',games_225:'225+ games',games_250:'250+ games',games_275:'275+ games',games_300:'300+ games',point_differential:'Point differential',median_score:'Median score'};return map[m]||String(m||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}
 const bombLabelForScore=s=>num(s)>=50?'50 BOMBS':num(s)>=40?'40 BOMBS':num(s)>=30?'30 BOMBS':num(s)>=20?'20 BOMBS':num(s)>=0&&num(s)<10?'5 BOMBS':null;
@@ -500,7 +500,7 @@ async function standings(){
 
 async function teams(){
  await load(['standingsCareer']);navActive('teams');const rows=[...DATA.standingsCareer].sort((a,b)=>+a.franchise_id-+b.franchise_id);
- app.innerHTML=hero('TEN FRANCHISES','THE TEAMS','Every franchise has a complete history of results, players and matchups.')+section('FRANCHISE DIRECTORY',`<div class="team-grid">${rows.map(x=>`<a class="team-card" href="#/team/${x.franchise_id}">${ownerAvatar(x.franchise_id,"team-card-photo")}<div class="team-name">${ownerName(x.owner_name,x.franchise_id)}</div><div class="team-record">${x.wins}-${x.losses} • ${pct(x.win_pct)}</div><div class="team-meta"><span><strong>${money(x.points_for)}</strong>Points</span><span><strong>${num(x.point_differential)>=0?'+':''}${money(x.point_differential)}</strong>Diff</span></div></a>`).join('')}</div>`);
+ app.innerHTML=hero('TEN FRANCHISES','THE TEAMS','Every franchise has a complete history of results, players and matchups.')+section('FRANCHISE DIRECTORY',`<div class="team-grid">${rows.map(x=>`<a class="team-card" href="#/team/${x.franchise_id}">${ownerAvatar(x.franchise_id,"team-card-photo")}<div class="team-name">${esc(displayOwnerName(x.owner_name,x.franchise_id))}${ownerBadges(x.franchise_id)}</div><div class="team-record">${x.wins}-${x.losses} • ${pct(x.win_pct)}</div><div class="team-meta"><span><strong>${money(x.points_for)}</strong>Points</span><span><strong>${num(x.point_differential)>=0?'+':''}${money(x.point_differential)}</strong>Diff</span></div></a>`).join('')}</div>`);
 }
 
 
@@ -899,7 +899,24 @@ async function minigames(){
  `<section class="mini-arcade"><div class="mini-arcade-list"><a href="#/minigames/trade-gap" class="mini-arcade-card active" aria-current="page"><span class="mini-arcade-icon">GAP</span><span><strong>TRADE GAP CHALLENGE</strong><small>THE JAMES–HAYDEN LINEUP GAME</small></span><b>PLAYING</b></a><div class="mini-arcade-card future"><span class="mini-arcade-icon">+</span><span><strong>MORE GAMES</strong><small>COMING SOON</small></span></div></div>${renderTradeGapGame(difference)}</section>`;
 }
 
-async function more(){navActive('');app.innerHTML=hero('LEAGUE ARCHIVE','MORE','The rest of the league archive.')+section('EXPLORE',`<div class="team-grid"><a class="team-card" href="#/champions"><div class="avatar">♛</div><div class="team-name">Champions</div></a><a class="team-card" href="#/records"><div class="avatar">R</div><div class="team-name">Team Records</div></a><a class="team-card" href="#/players"><div class="avatar">P</div><div class="team-name">Player Records</div></a><a class="team-card" href="#/streaks"><div class="avatar">⚡</div><div class="team-name">Streaks</div></a><a class="team-card" href="#/games"><div class="avatar">G</div><div class="team-name">Game Archive</div></a><a class="team-card" href="#/h2h"><div class="avatar">↔</div><div class="team-name">Head-to-Head</div></a><a class="team-card" href="#/teams"><div class="avatar">◎</div><div class="team-name">Teams</div></a><a class="team-card" href="#/minigames"><div class="avatar">▣</div><div class="team-name">Minigames</div></a></div>`) }
+async function more(){
+ navActive('');
+ const items=[
+  ['▥','Dynasty Values','#/dynasty'],
+  ['▦','Game Archive','#/games'],
+  ['♛','Champions','#/champions'],
+  ['↔','Head-to-Head','#/h2h'],
+  ['≣','Standings','#/standings'],
+  ['★','Team Records','#/records'],
+  ['◌','Player Records','#/players'],
+  ['⚡','Streaks','#/streaks'],
+  ['◎','Teams','#/teams'],
+  ['⇄','Trades','#/trades'],
+  ['▤','The Draft','#/draft']
+ ];
+ app.innerHTML=hero('LEAGUE ARCHIVE','MORE','Explore league history, live dynasty values and every completed game.')+
+ section('EXPLORE',`<div class="team-grid fig-more-grid">${items.map(([icon,label,href])=>`<a class="team-card fig-more-item" href="${href}"><div class="avatar" aria-hidden="true">${icon}</div><div class="team-name">${label}</div><span class="fig-more-open" aria-hidden="true">OPEN →</span></a>`).join('')}</div>`);
+}
 
 
 
@@ -912,6 +929,21 @@ async function teamSeason(teamId,year){
  app.innerHTML=hero('TEAM SEASON',`${ownerName(team.owner_name,teamId)} • ${year}`,`${summary.wins}-${summary.losses} • ${money(summary.points_for)} PF • ${money(summary.max_pf)} Max PF • #${summary.regular_season_finish} regular-season finish`)+section('EVERY GAME',`<div class="season-game-grid">${cards}</div>`);
 }
 
+
+
+async function liveMatchPage(week,matchup){
+ navActive('');
+ if(!/^\\d{1,2}$/.test(String(week)) || !/^(?:\\d+|solo-\\d+)$/.test(String(matchup))){
+  app.innerHTML='<div class="empty">Invalid live matchup link. <a href="#/home">Back to scores</a></div>';return;
+ }
+ app.innerHTML=hero('SLEEPER LIVE','WEEK '+esc(week)+' MATCHUP','Current-week starters and bench · unofficial until Sleeper finalizes results')+
+ `<section class="section fig-live-panel fig-live-detail" aria-label="Current matchup lineups">
+ <div class="fig-live-summary"><span class="fig-live-badge">LIVE MATCHUP</span><span id="figLiveDetailStatus" role="status" aria-live="polite">Connecting…</span></div>
+ <div id="figLiveDetail" data-week="${esc(week)}" data-matchup="${esc(matchup)}"><div class="fig-live-empty">Loading live lineup from Sleeper…</div></div>
+ <div class="fig-live-footer">Live scores and lineups refresh about every 30 seconds while this page is visible. They do not affect historical records, rankings or streaks.</div>
+ <p><a class="btn-lite" href="#/home">← Back to current matchups</a></p></section>`;
+ window.dispatchEvent(new Event('fig:live-route'));
+}
 
 async function gameDetail(season,week,matchup){
  await load(['allGames','weeklyRosters']);navActive('');
@@ -1070,7 +1102,7 @@ async function rivalryDetail(a,b){
  a=+a;b=+b;const r=DATA.h2h.find(x=>+x.franchise_id===a&&+x.opponent_franchise_id===b),ta=DATA.standingsCareer.find(x=>+x.franchise_id===a),tb=DATA.standingsCareer.find(x=>+x.franchise_id===b);const games=DATA.games.filter(g=>(+g.franchise_1===a&&+g.franchise_2===b)||(+g.franchise_1===b&&+g.franchise_2===a)).sort((x,y)=>+y.season-+x.season||+y.week-+x.week);const rows=games.map(g=>({open:`<a class="btn-lite" href="#/game/${g.season}/${g.week}/${g.matchup_id}">OPEN</a>`,season:g.season,week:g.week,a:+g.franchise_1===a?money(g.score_1):money(g.score_2),b:+g.franchise_1===b?money(g.score_1):money(g.score_2),winner:ownerLink(g.winner_name,g.winner_franchise_id),margin:money(g.margin),_sort:{season:num(g.season),week:num(g.week),a:+g.franchise_1===a?num(g.score_1):num(g.score_2),b:+g.franchise_1===b?num(g.score_1):num(g.score_2),winner:displayOwnerName(g.winner_name,g.winner_franchise_id),margin:num(g.margin)}}));app.innerHTML=hero('RIVALRY HISTORY',`${ownerName(ta.owner_name,a)} VS ${ownerName(tb.owner_name,b)}`,r?`${r.wins}-${r.losses} series • ${money(r.point_differential)} point differential`:'Series history')+section('EVERY MEETING',sortableTable([{label:'',key:'open'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:displayOwnerName(ta.owner_name,a).toUpperCase(),key:'a'},{label:displayOwnerName(tb.owner_name,b).toUpperCase(),key:'b'},{label:'WINNER',key:'winner'},{label:'MARGIN',key:'margin'}],rows));
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings')await standings();else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings')await standings();else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every five minutes; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
