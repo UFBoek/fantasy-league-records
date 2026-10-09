@@ -101,9 +101,16 @@ function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint
  const top=ranked[0];
  const tiedEntries=ranked.filter(x=>sameRecordValue(x.value,top.value));
  const tiedManagers=uniqueRecordManagers(tiedEntries);
- // Leader + exactly two more historical placements at most. The tied winner
- // portrait collage still includes every unique person at the record value.
- const rivals=ranked.filter(x=>!sameRecordValue(x.value,top.value)).slice(0,Math.max(0,3-tiedEntries.length));
+ // Preview the top three *ranked places*, including every entry tied
+ // at the cutoff. E.g. two tied winners occupy ranks T1/T1, so every
+ // performance tied for third must appear as T3, not just the first one.
+ // The top portrait mosaic already includes every tied winning manager.
+ const rivalCandidates=ranked.filter(x=>!sameRecordValue(x.value,top.value));
+ const rivalSlots=Math.max(0,3-tiedEntries.length);
+ const boundary=rivalSlots>0 ? rivalCandidates[rivalSlots-1] : undefined;
+ const rivals=boundary
+  ? rivalCandidates.filter((x,i)=>i<rivalSlots||sameRecordValue(x.value,boundary.value))
+  : [];
  const columns=Math.min(tiedManagers.length,5);
  const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tiedManagers.length}" style="--fig-portrait-cols:${columns}" aria-label="${tiedManagers.length} record holder${tiedManagers.length===1?'':'s'}">${tiedManagers.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
  const names=tiedManagers.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
