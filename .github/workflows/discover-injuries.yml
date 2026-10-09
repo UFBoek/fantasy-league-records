@@ -67,11 +67,17 @@ jobs:
           from pathlib import Path
           p = Path('data/injury_discovery_candidates.json')
           d = json.loads(p.read_text())
-          assert d['schema_version'] == 1
+          assert d['schema_version'] == 2
           assert d['counts_toward_injuries'] is False
           assert d['is_complete_injury_history'] is False
           assert set(d['seasons_checked']) == {2023, 2024, 2025, 2026}
           assert d['candidate_count'] == len(d['candidates']) > 0
+          assert d['automatic_estimate_count'] == sum(
+              c['inference_tier'] == 'automated_estimate' and not c['already_verified']
+              for c in d['candidates'])
+          assert all(not c['counts_toward_verified_injuries'] for c in d['candidates'])
+          assert set(c['inference_tier'] for c in d['candidates']) <= {
+              'automated_estimate', 'archived_weak_signal'}
           assert all(c['review_status'] == 'candidate_unverified_do_not_count'
                      for c in d['candidates'])
           print("Safe injury candidate snapshot validated:", d['candidate_count'])
