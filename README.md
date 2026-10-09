@@ -1,3 +1,14 @@
+## v78 — NFL player headshots
+
+- **Source:** Sleeper's existing CDN player images, `https://sleepercdn.com/content/nfl/players/thumb/<player_id>.jpg`, indexed directly by the already-published Sleeper NFL player IDs. No extra Sleeper API requests, player-directory downloads, tokens, or background jobs are required.
+- **Coverage:** Player Records top-week feature, sortable Player Record Books and bomb leaderboards, individual player profile heroes, manager roster players, draft pick cards, completed Game Archive starter/bench lineups, live matchup starters/bench, and received-player trade details.
+- **Performance:** Images load lazily and decode asynchronously. Thumbnail requests are made only for visible players. Browser cache/CDN serves repeated thumbnails.
+- **Missing photos:** A neutral initials badge remains behind the image, and a capturing image-error handler removes broken headshots. Non-numeric defense/special IDs and empty lineup slots intentionally do not request player JPGs.
+- **Data integrity:** Players, live scores and archive record computations are unchanged. Franchise/manager portraits continue to use the custom images under `assets/avatars/`.
+- **Publishing:** `player-headshots-v78.css` is in the Pages staging script, `index.html` and versioned service-worker manifest. The app and live-matchup scripts have new v78 URLs.
+- **Usage note:** Images are served from Sleeper's CDN rather than redistributed in the repository. Sleeper's public read-only API terms cover non-commercial use; verify suitability/licensing separately before repurposing imagery for commercial deployment.
+
+---
 ## v77 — compact leaderboards, performance reruns, and trade contrast
 
 - **Featured records:** Each record card shows the record-holder portrait group and at most two additional ranked entries (the top three performances/placements in total). Tied record holders each appear in the portrait group once.
