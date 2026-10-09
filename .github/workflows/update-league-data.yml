@@ -91,6 +91,7 @@ jobs:
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/build_trade_lineage.py
 
+      # Injury model v3: verified season-ending events count only as Major.
       # In-game injury counts require verified inability to finish normally;
       # a player who returns fully and finishes is deliberately excluded.
       - name: Rebuild reviewed injury history from completed fantasy weeks
