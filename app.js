@@ -926,7 +926,17 @@ async function team(id){
    const ssHtml=seasonTopRecords.length?seasonTopRecords.map(r=>`<a class="single-season-team-record" href="#/singleseasons/${encodeURIComponent(r.record_category)}"><div><span>${r.season}</span><b>${esc(r.record_category)}</b></div><strong>${tiedRankLabel(r.rank,r.tied)}</strong><em>${typeof r.value==='number'?money(r.value):esc(r.value)}</em></a>`).join(''):'<div class="snapshot-empty">No top-3 single-season records.</div>';
    $('#teamTabBody').innerHTML=`<section class="team-record-dashboard"><div class="records-dashboard-head"><div><span>FRANCHISE RECORDS</span><h2>RECORD SNAPSHOT</h2></div></div><div class="two-col-record-snapshot"><div><h3>ACTIVE STREAKS</h3><div class="mini-record-list">${activeHtml}</div><h3 class="spaced">TOP-3 TEAM RECORDS</h3><div class="mini-record-list">${recordHtml}</div><h3 class="spaced">TOP-3 STREAK RECORDS</h3><div class="mini-record-list">${streakHtml}</div></div><div><h3>PAST SEASON ACCOMPLISHMENTS</h3><div class="season-accomplishments">${seasonHtml}</div></div></div></section><section class="team-single-season-section"><div class="section-head"><div><div class="eyebrow">HISTORICAL PEAKS</div><h2 class="section-title">SINGLE-SEASON RECORDS</h2></div><a class="section-link" href="#/singleseasons">FULL LEAGUE BOOK →</a></div><div class="single-season-team-grid">${ssHtml}</div></section>`;
  };
- const renderSeasons=()=>{$('#teamTabBody').innerHTML=section('SEASONS',`<div class="season-card-grid">${years.map(y=>{const s=DATA.teamSeasonMaster.find(x=>+x.franchise_id===id&&+x.season===y);return `<a class="season-card" href="#/teamseason/${id}/${y}"><div class="season-year">${y}</div><div class="season-record">${s?s.wins:0}-${s?s.losses:0}</div><div class="muted">${s?money(s.points_for):0} PF • ${s?money(s.max_pf):0} Max PF</div></a>`}).join('')}</div>`)};
+ const renderSeasons=()=>{
+  const cards=years.map(year=>{
+   const z=DATA.teamSeasonMaster.find(x=>+x.franchise_id===id&&+x.season===year)||{};
+   return `<a class="fig-season-preview" href="#/teamseason/${id}/${year}">
+    <div class="fig-season-preview-head"><strong>${year}</strong><span>${z.season_complete?'FINAL':'IN PROGRESS'}</span></div>
+    <div class="fig-season-preview-lead"><strong>${num(z.wins)}–${num(z.losses)}</strong><span>WIN % ${pct(z.win_pct)} · FINISH #${z.regular_season_finish||'—'}</span></div>
+    <div class="fig-season-preview-metrics"><div><small>POINTS FOR</small><b>${money(z.points_for)}</b></div><div><small>MAX PF</small><b>${money(z.max_pf)}</b></div><div><small>ALL-PLAY</small><b>${num(z.all_play_wins)}–${num(z.all_play_losses)}</b></div><div><small>HIGH WEEKS</small><b>${num(z.weekly_high_scores)}</b></div></div>
+    <div class="fig-season-preview-open">VIEW SEASON, OPPONENTS & GAMES →</div></a>`;
+  }).join('');
+  $('#teamTabBody').innerHTML=section('SEASON ARCHIVE',`<div class="fig-season-previews">${cards}</div>`,'Tap any year for detailed statistics, all-play against all nine teams, scoring leaders and every game.');
+ };
 
  const renderPositions=()=>{const rows=DATA.positions.filter(x=>+x.franchise_id===id).map(x=>({pos:x.position,players:x.unique_players_started,starts:x.total_starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_single_game),_sort:{pos:x.position,players:x.unique_players_started,starts:x.total_starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_single_game}}));$('#teamTabBody').innerHTML=section('POSITION HISTORY',sortableTable([{label:'POS',key:'pos'},{label:'PLAYERS',key:'players'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'}],rows))};
 
@@ -1428,30 +1438,76 @@ async function more(){
 
 
 async function teamSeason(teamId,year){
- await load(['games','teamSeasonMaster','standingsCareer']);navActive('teams');
- const team=DATA.standingsCareer.find(x=>+x.franchise_id===+teamId),summary=DATA.teamSeasonMaster.find(x=>+x.franchise_id===+teamId&&String(x.season)===String(year));
+ await load(['games','teamSeasonMaster','standingsCareer','playerLog']);navActive('teams');
+ const fid=+teamId,season=String(year);
+ const team=(DATA.standingsCareer||[]).find(x=>+x.franchise_id===fid);
+ const summary=(DATA.teamSeasonMaster||[]).find(x=>+x.franchise_id===fid&&String(x.season)===season);
  if(!team||!summary){app.innerHTML='<div class="empty">Season not found.</div>';return}
- const games=DATA.games.filter(g=>String(g.season)===String(year)&&(String(g.franchise_1)===String(teamId)||String(g.franchise_2)===String(teamId))).sort((a,b)=>num(a.week)-num(b.week));
- const cards=games.map(g=>{const is1=+g.franchise_1===+teamId,oppId=is1?g.franchise_2:g.franchise_1,opp=is1?g.owner_2:g.owner_1,us=is1?num(g.score_1):num(g.score_2),them=is1?num(g.score_2):num(g.score_1),win=us>them;return `<a class="season-game-card ${win?'win':'loss'}" href="#/game/${g.season}/${g.week}/${g.matchup_id}"><div class="season-game-top"><span>WEEK ${g.week}</span><span>${g.game_type}</span></div><div class="season-game-main"><strong>${win?'W':'L'} ${money(us)}–${money(them)}</strong><span>vs ${ownerName(opp,oppId)}</span></div><div class="season-game-open">OPEN GAME →</div></a>`}).join('');
- app.innerHTML=hero('TEAM SEASON',`${ownerName(team.owner_name,teamId)} • ${year}`,`${summary.wins}-${summary.losses} • ${money(summary.points_for)} PF • ${money(summary.max_pf)} Max PF • #${summary.regular_season_finish} regular-season finish`)+section('EVERY GAME',`<div class="season-game-grid">${cards}</div>`);
-}
-
-
-
-async function liveMatchPage(week,matchup){
- navActive('');
- if(!/^[0-9]{1,2}$/.test(String(week)) || !/^(?:[0-9]+|solo-[0-9]+)$/.test(String(matchup))){
-  app.innerHTML='<div class="empty">Invalid live matchup link. <a href="#/home">Back to scores</a></div>';return;
+ const regular=(DATA.games||[]).filter(g=>g.game_type==='Regular Season'&&String(g.season)===season);
+ const opponents=(DATA.standingsCareer||[]).filter(t=>+t.franchise_id!==fid).sort((a,b)=>+a.franchise_id-+b.franchise_id);
+ // Team-season all-play follows the official regular-season-only data;
+ // qualifying playoff weeks are an H2H-only exception.
+ const matchups=opponents.map(t=>{
+  const other=+t.franchise_id;
+  const weeks=h2hAllPlayPair(regular,fid,other);
+  const record=h2hRecord(weeks);
+  return {other,name:displayOwnerName(t.owner_name,other),weeks,record};
+ }).sort((a,b)=>b.record.pct-a.record.pct||b.record.wins-a.record.wins||a.other-b.other);
+ const allplay=matchups.reduce((total,x)=>({wins:total.wins+x.record.wins,losses:total.losses+x.record.losses,ties:total.ties+x.record.ties}),{wins:0,losses:0,ties:0});
+ const allplayTotal=allplay.wins+allplay.losses+allplay.ties;
+ const allplayPct=allplayTotal?100*(allplay.wins+allplay.ties/2)/allplayTotal:0;
+ const stats=[
+  {label:'RECORD',value:`${summary.wins}–${summary.losses}${num(summary.ties)?'–'+summary.ties:''}`},
+  {label:'WIN %',value:pct(summary.win_pct)},
+  {label:'POINTS FOR',value:money(summary.points_for)},
+  {label:'POINTS AGAINST',value:money(summary.points_against)},
+  {label:'POINT DIFF',value:`${num(summary.point_differential)>0?'+':''}${money(summary.point_differential)}`},
+  {label:'MAX PF',value:money(summary.max_pf)},
+  {label:'AVG POINTS',value:money(summary.points_per_game)},
+  {label:'ALL-PLAY',value:`${allplay.wins}–${allplay.losses}${allplay.ties?'–'+allplay.ties:''}`},
+  {label:'ALL-PLAY WIN %',value:pct(allplayPct)},
+  {label:'WEEKLY HIGHS',value:summary.weekly_high_scores??0},
+  {label:'TOP-3 WEEKS',value:summary.weekly_top_3_finishes??0},
+  {label:'REGULAR FINISH',value:summary.regular_season_finish?'#'+summary.regular_season_finish:'—'}
+ ];
+ const statsHtml=`<div class="fig-season-metrics">${stats.map(x=>`<div class="fig-season-metric"><span>${esc(x.label)}</span><strong>${esc(x.value)}</strong></div>`).join('')}</div>`;
+ const pairCards=matchups.map(x=>{
+  const r=x.record;
+  const weekHtml=x.weeks.sort((a,b)=>a.week-b.week).map(w=>`<div class="fig-season-week"><span>W${w.week}</span><span>${money(w.a)}</span><span>${money(w.b)}</span><strong class="fig-season-outcome fig-season-${w.result.toLowerCase()}">${w.result}</strong></div>`).join('');
+  return `<details class="fig-season-opponent">
+    <summary>${ownerAvatar(x.other,'fig-season-opponent-avatar')}<span class="fig-season-opponent-name">${esc(x.name)}</span><strong>${h2hRecordText(r)}</strong><small>${pct(r.pct)}</small><span class="fig-season-chevron">⌄</span></summary>
+    <div class="fig-season-opponent-detail"><p>${r.games} completed shared regular-season weeks. Scores from ${esc(displayOwnerName(team.owner_name,fid))} vs ${esc(x.name)}.</p>
+    <div class="fig-season-week-head"><span>WEEK</span><span>US</span><span>THEM</span><span>W/L</span></div>
+    ${weekHtml}
+    <a class="fig-season-h2h-link" href="#/matchup/${fid}/${x.other}">VIEW CAREER RIVALRY →</a>
+    </div>
+  </details>`;
+ }).join('');
+ const games=(DATA.games||[]).filter(g=>String(g.season)===season&&(+g.franchise_1===fid||+g.franchise_2===fid)).sort((a,b)=>num(a.week)-num(b.week));
+ const gameCards=games.map(g=>{
+  const isFirst=+g.franchise_1===fid,opponent=isFirst?g.franchise_2:g.franchise_1,oppName=isFirst?g.owner_2:g.owner_1;
+  const ours=isFirst?num(g.score_1):num(g.score_2),theirs=isFirst?num(g.score_2):num(g.score_1),result=ours>theirs?'W':ours<theirs?'L':'T';
+  return `<a class="fig-season-game" href="#/game/${g.season}/${g.week}/${g.matchup_id}"><span class="fig-season-game-week">WEEK ${g.week}<small>${g.game_type==='Regular Season'?'REGULAR':'POSTSEASON'}</small></span>
+   <span class="fig-season-game-opponent">${ownerAvatar(opponent,'fig-season-game-avatar')}<b>${esc(displayOwnerName(oppName,opponent))}</b></span>
+   <span class="fig-season-game-final"><b class="fig-season-outcome fig-season-${result.toLowerCase()}">${result}</b><strong>${money(ours)} – ${money(theirs)}</strong></span>
+   <span class="fig-season-game-arrow">→</span>
+  </a>`;
+ }).join('');
+ const playerTotals=new Map();
+ for(const log of DATA.playerLog||[]){
+  if(+log.franchise_id!==fid||String(log.season)!==season)continue;
+  const key=String(log.player_id),p=playerTotals.get(key)||{id:key,name:log.player_name,pos:log.position,starts:0,points:0};
+  p.starts++;p.points+=num(log.starter_points);playerTotals.set(key,p);
  }
- app.innerHTML=hero('SLEEPER LIVE','WEEK '+esc(week)+' MATCHUP','Current-week starters and bench · unofficial until Sleeper finalizes results')+
- `<section class="section fig-live-panel fig-live-detail" aria-label="Current matchup lineups">
- <div class="fig-live-summary"><span class="fig-live-badge">LIVE MATCHUP</span><span id="figLiveDetailStatus" role="status" aria-live="polite">Connecting…</span></div>
- <div id="figLiveDetail" data-week="${esc(week)}" data-matchup="${esc(matchup)}"><div class="fig-live-empty">Loading live lineup from Sleeper…</div></div>
- <div class="fig-live-footer">Live scores and lineups refresh about every 30 seconds while this page is visible. They do not affect historical records, rankings or streaks.</div>
- <p><a class="btn-lite" href="#/home">← Back to current matchups</a></p></section>`;
- window.dispatchEvent(new Event('fig:live-route'));
+ const topPlayers=[...playerTotals.values()].sort((a,b)=>b.points-a.points).slice(0,5);
+ const playerCards=topPlayers.map((p,i)=>`<a class="fig-season-player" href="#/player/${encodeURIComponent(p.id)}"><span class="fig-season-player-rank">${i+1}</span>${playerHeadshot(p.id,p.name)}<span class="fig-season-player-name"><b>${esc(p.name)}</b><small>${esc(p.pos)} · ${p.starts} STARTS</small></span><strong>${money(p.points)}<small>PTS</small></strong></a>`).join('');
+ app.innerHTML=hero('TEAM SEASON',`${esc(displayOwnerName(team.owner_name,fid))} • ${esc(season)}`,`${summary.season_complete?'COMPLETED SEASON':'SEASON IN PROGRESS'} · #${summary.regular_season_finish||'—'} REGULAR-SEASON FINISH`)+
+  `<div class="fig-season-back"><a href="#/team/${fid}">← BACK TO TEAM PROFILE</a></div>`+
+  section('SEASON AT A GLANCE',statsHtml,'Official regular-season statistics. Playoffs appear in the game log below.')+
+  section('ALL-PLAY VS EVERY TEAM',`<p class="fig-season-explainer">How this team scored against each opponent in the same completed regular-season weeks — even when they were not scheduled to face each other. Tap a team to inspect every comparison.</p><div class="fig-season-opponents">${pairCards}</div>`,'Regular season only · ranked by all-play win percentage')+
+  section('SEASON SCORING LEADERS',`<div class="fig-season-players">${playerCards||'<div class="empty">No finished starts yet.</div>'}</div>`,'Official starting lineup points')+
+  section('EVERY GAME',`<div class="fig-season-games">${gameCards||'<div class="empty">No completed games yet.</div>'}</div>`,'Regular season and playoff games · tap for full lineups');
 }
-
 async function gameDetail(season,week,matchup){
  await load(['allGames','weeklyRosters']);navActive('');
  const matchupEq=(a,b)=>{const an=Number(a),bn=Number(b);if(Number.isFinite(an)&&Number.isFinite(bn))return an===bn;return String(a??'').replace(/\.0+$/,'')===String(b??'').replace(/\.0+$/,'')};
