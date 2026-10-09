@@ -573,13 +573,49 @@ async function home(){
  window.dispatchEvent(new Event('fig:home-rendered'));
 }
 
+/* Match published playoff bracket rosters to scored games; IDs of bracket games differ from weekly matchup IDs. */
+function playoffSeasonResults(season) {
+ const year=String(season);
+ const bracket=(DATA.playoffs||[]).filter(x=>String(x.season)===year);
+ const scored=(DATA.games||[]).filter(g=>String(g.season)===year&&String(g.game_type).toLowerCase().includes('playoff'));
+ const rounds=bracket.map(b=>{
+  const ids=[+b.roster_a,+b.roster_b].sort((x,y)=>x-y);
+  const game=scored.find(g=>+g.week===+b.week&&[+g.franchise_1,+g.franchise_2].sort((x,y)=>x-y).every((id,i)=>id===ids[i]));
+  return {...b,game:game||null};
+ }).sort((x,y)=>num(x.playoff_round)-num(y.playoff_round)||num(x.week)-num(y.week)||num(x.bracket_matchup_id)-num(y.bracket_matchup_id));
+ const title=rounds.find(x=>x.playoff_category==='Championship');
+ const bronze=rounds.find(x=>x.playoff_category==='Third Place');
+ const winner=title?.game?.winner_franchise_id;
+ const finalist=title?.game?(+title.game.franchise_1===+winner?+title.game.franchise_2:+title.game.franchise_1):null;
+ return {rounds,champion:winner?+winner:null,runnerUp:finalist,third:bronze?.game?.winner_franchise_id?+bronze.game.winner_franchise_id:null,title,bronze};
+}
+
+function playoffSeasonOwner(id,season) {
+ if(!id)return '';
+ const standings=(DATA.standingsSeasons||[]).find(x=>String(x.season)===String(season)&&+x.franchise_id===+id);
+ const career=(DATA.standingsCareer||[]).find(x=>+x.franchise_id===+id);
+ return displayOwnerName(standings?.owner_name||career?.owner_name||'',id);
+}
+
 async function champions(){
- await load(['playoffs','playoffCareer','standingsCareer']);navActive('');
+ await load(['playoffs','games','playoffCareer','standingsCareer','standingsSeasons']);navActive('');
  const seasons=[...new Set(DATA.playoffs.map(x=>String(x.season)))].sort((a,b)=>+b-+a);
  const seasonCards=seasons.map(y=>{
-  const rows=DATA.playoffs.filter(x=>String(x.season)===String(y));
-  const champ=rows.find(x=>num(x.champion)===1),runner=rows.find(x=>num(x.runner_up)===1),third=rows.find(x=>num(x.third_place)===1);
-  return `<a class="champion-season-card champion-season-link" href="#/playoffbracket/${y}"><div class="champion-year">${y}</div><div class="champion-crown">♛</div>${champ?ownerAvatar(champ.franchise_id,'fig-champion-portrait'):''}<div class="champion-name">${champ?ownerName(champ.owner_name,champ.franchise_id):'—'}</div><div class="champion-label">CHAMPION</div>${runner?`<div class="champion-sub"><span>Runner-up</span><strong>${ownerName(runner.owner_name,runner.franchise_id)}</strong></div>`:''}${third?`<div class="champion-sub"><span>Third</span><strong>${ownerName(third.owner_name,third.franchise_id)}</strong></div>`:''}<div class="champion-open">VIEW BRACKET →</div></a>`
+  const result=playoffSeasonResults(y),champ=result.champion;
+  const standing=(DATA.standingsSeasons||[]).find(x=>String(x.season)===y&&+x.franchise_id===+champ);
+  const portrait=champ?ownerAvatar(champ,'fig-champion-portrait'):'';
+  const pts=standing&&num(standing.games)>0?money(num(standing.points_for)/num(standing.games)):'—';
+  const record=standing?`${num(standing.wins)}–${num(standing.losses)}`:'—';
+  return `<a class="champion-season-card champion-season-link fig-championship-poster" href="#/playoffbracket/${y}">
+    <div class="champion-year">${y}</div>
+    <div class="champion-label">CHAMPION</div>
+    ${portrait}
+    <div class="champion-name">${champ?esc(playoffSeasonOwner(champ,y)):'Result not available'}</div>
+    <div class="fig-champion-stat-row"><div><span>REGULAR SEASON</span><strong>${record}</strong></div><div><span>POINTS / GAME</span><strong>${pts}</strong></div></div>
+    ${result.runnerUp?`<div class="champion-sub"><span>RUNNER-UP</span><strong>${esc(playoffSeasonOwner(result.runnerUp,y))}</strong></div>`:''}
+    ${result.third?`<div class="champion-sub"><span>THIRD PLACE</span><strong>${esc(playoffSeasonOwner(result.third,y))}</strong></div>`:''}
+    <div class="champion-open">VIEW PLAYOFF BRACKET →</div>
+  </a>`;
  }).join('');
  const byId={};DATA.playoffCareer.forEach(x=>byId[+x.franchise_id]={...x});
  DATA.standingsCareer.forEach(t=>{if(!byId[+t.franchise_id])byId[+t.franchise_id]={franchise_id:+t.franchise_id,owner_name:t.owner_name,playoff_appearances:0,championships:0,finals_appearances:0,third_place_finishes:0,fourth_place_finishes:0,playoff_games:0,playoff_wins:0,playoff_losses:0,playoff_win_pct:0,playoff_point_differential:0}});
@@ -589,11 +625,29 @@ async function champions(){
 }
 
 function playoffMatchCard(g,label=''){
- const w=+g.winner_franchise_id;
- const row=(fid,name,score)=>`<div class="bracket-team ${+fid===w?'winner':''}"><span>${ownerName(name,fid)}</span><strong>${money(score)}</strong></div>`;
- return `<a class="bracket-match" href="#/game/${g.season}/${g.week}/${g.matchup_id}">${label?`<div class="bracket-match-label">${label}</div>`:''}${row(g.franchise_1,g.owner_1,g.score_1)}${row(g.franchise_2,g.owner_2,g.score_2)}<div class="bracket-open">OPEN MATCH →</div></a>`;
+ if(!g)return '<div class="bracket-empty">Game results unavailable.</div>';
+ const winner=+g.winner_franchise_id;
+ const row=(fid,name,score)=>`<div class="bracket-team ${+fid===winner?'winner':''}">${ownerAvatar(fid,'fig-bracket-avatar')}<span>${esc(displayOwnerName(name,fid))}</span><strong>${money(score)}</strong></div>`;
+ return `<a class="bracket-match" href="#/game/${g.season}/${g.week}/${g.matchup_id}">${label?`<div class="bracket-match-label">${esc(label)}</div>`:''}${row(g.franchise_1,g.owner_1,g.score_1)}${row(g.franchise_2,g.owner_2,g.score_2)}<div class="bracket-open">VIEW MATCHUP & LINEUPS →</div></a>`;
 }
 
+async function playoffBracket(season){
+ await load(['games','playoffs','standingsCareer','standingsSeasons']);navActive('');
+ const y=String(season),results=playoffSeasonResults(y);
+ if(!results.rounds.length){app.innerHTML=hero('PLAYOFF HISTORY',`${esc(y)} PLAYOFFS`,'No official championship bracket is available for this season.');return}
+ const rounds=[...new Set(results.rounds.map(x=>num(x.playoff_round)))].sort((a,b)=>a-b);
+ const first=results.rounds.filter(x=>num(x.playoff_round)===rounds[0]&&x.playoff_category==='Championship Path');
+ const semi=results.rounds.filter(x=>num(x.playoff_round)===rounds[1]&&x.playoff_category==='Championship Path');
+ const firstTeams=new Set(first.flatMap(x=>[+x.roster_a,+x.roster_b]));
+ const semiTeams=new Set(semi.flatMap(x=>[+x.roster_a,+x.roster_b]));
+ const byes=[...semiTeams].filter(id=>!firstTeams.has(id));
+ const byeCards=byes.map(id=>`<div class="bracket-bye"><div class="bracket-match-label">FIRST-ROUND BYE</div>${ownerAvatar(id,'fig-bracket-avatar')}<strong>${esc(playoffSeasonOwner(id,y))}</strong></div>`).join('');
+ const firstHtml=`<div class="bracket-round"><h2 class="bracket-round-title">ROUND 1</h2>${byeCards}${first.map(x=>playoffMatchCard(x.game,'WEEK '+x.week)).join('')||'<div class="bracket-empty">No first-round games.</div>'}</div>`;
+ const semiHtml=`<div class="bracket-round"><h2 class="bracket-round-title">SEMIFINALS</h2>${semi.map(x=>playoffMatchCard(x.game,'WEEK '+x.week)).join('')||'<div class="bracket-empty">No semifinal games.</div>'}</div>`;
+ const finalHtml=`<div class="bracket-round bracket-finals"><h2 class="bracket-round-title">FINALS</h2>${playoffMatchCard(results.title?.game,'CHAMPIONSHIP')}${playoffMatchCard(results.bronze?.game,'THIRD PLACE')}</div>`;
+ const podium=`<div class="playoff-podium">${[['CHAMPION',results.champion],['RUNNER-UP',results.runnerUp],['THIRD PLACE',results.third]].map(([label,id])=>`<div><span>${label}</span>${id?ownerAvatar(id,'fig-bracket-podium-photo'):''}<strong>${id?ownerLink(playoffSeasonOwner(id,y),id):'Result not available'}</strong></div>`).join('')}</div>`;
+ app.innerHTML=hero('PLAYOFF BRACKET',`${esc(y)} PLAYOFFS`,'Official championship-path results. Select any played matchup to see starters and the bench.')+podium+`<section class="section playoff-bracket-section"><div class="playoff-bracket">${firstHtml}${semiHtml}${finalHtml}</div></section>`;
+}
 async function playoffBracket(season){
  await load(['games','playoffs']);navActive('');
  const y=String(season);
