@@ -2,10 +2,11 @@ name: Update league data
 
 on:
   schedule:
-    # Daily fallback plus hourly refreshes on NFL's usual game days.
-    # GitHub-hosted schedules are best-effort; never rely on exact start times.
-    - cron: '17 12 * * *'
-    - cron: '23 * * * 0,1,4'
+    # GitHub Actions' fastest allowed cadence: every five minutes, UTC.
+    # :17 is the hourly full rebuild. The other 11 intervals are light checks.
+    # GitHub-hosted schedules are best effort and can be delayed or skipped.
+    - cron: '2,7,12,22,27,32,37,42,47,52,57 * * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
@@ -33,7 +34,20 @@ jobs:
           ref: main
           fetch-depth: 1
 
+      - name: Five-minute Sleeper change probe
+        id: quick
+        shell: bash
+        run: |
+          # Manual, push, and hourly :17 runs always rebuild the full archive.
+          if [[ "$GITHUB_EVENT_NAME" != "schedule" || "${{ github.event.schedule }}" == "17 * * * *" ]]; then
+            echo "refresh=true" >> "$GITHUB_OUTPUT"
+            echo "Full refresh requested."
+          else
+            python scripts/quick_refresh_check.py
+          fi
+
       - name: Set up Python
+        if: steps.quick.outputs.refresh == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -41,12 +55,15 @@ jobs:
           cache-dependency-path: scripts/requirements-automation.txt
 
       - name: Install refresh dependencies
+        if: steps.quick.outputs.refresh == 'true'
         run: python -m pip install -r scripts/requirements-automation.txt
 
       - name: Check the data pipeline before contacting providers
+        if: steps.quick.outputs.refresh == 'true'
         run: bash scripts/check_refresh_tests.sh
 
       - name: Rebuild Sleeper history, standings, rosters and records
+        if: steps.quick.outputs.refresh == 'true'
         shell: bash
         run: |
           if ! python scripts/build_site_data.py > "$RUNNER_TEMP/fig-sleeper-build.log" 2>&1; then
@@ -57,15 +74,19 @@ jobs:
           tail -n 35 "$RUNNER_TEMP/fig-sleeper-build.log"
 
       - name: Prepare verified completed-week player records for website
+        if: steps.quick.outputs.refresh == 'true'
         run: python scripts/prepare_player_records.py
 
       - name: Refresh completed rookie-pick audit
+        if: steps.quick.outputs.refresh == 'true'
         run: python scripts/build_draft_pick_audit.py
 
       - name: Recalculate direct-trade asset history
+        if: steps.quick.outputs.refresh == 'true'
         run: python scripts/build_trade_lineage.py
 
       - name: Refresh RosterAudit dynasty values (keep last good on failure)
+        if: steps.quick.outputs.refresh == 'true'
         shell: bash
         run: |
           if python scripts/build_rosteraudit_values.py; then
@@ -76,12 +97,15 @@ jobs:
           fi
 
       - name: Validate the complete snapshot before publishing
+        if: steps.quick.outputs.refresh == 'true'
         run: python scripts/validate_refresh.py
 
       - name: Run regression tests against the refreshed data
+        if: steps.quick.outputs.refresh == 'true'
         run: bash scripts/check_refresh_tests.sh
 
       - name: Stamp a new published snapshot only when provider data changed
+        if: steps.quick.outputs.refresh == 'true'
         shell: bash
         run: |
           # The browser polls this tiny manifest, not dozens of historical files.
@@ -99,6 +123,7 @@ jobs:
           fi
 
       - name: Commit safe JSON changes
+        if: steps.quick.outputs.refresh == 'true'
         id: commit
         shell: bash
         run: |
