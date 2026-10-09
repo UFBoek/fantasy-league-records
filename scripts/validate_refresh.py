@@ -170,13 +170,14 @@ def main():
     guard_completed_weeks(history)
 
     injury = load("injury_history")
-    check(isinstance(injury, dict) and injury.get("schema_version") == 1,
+    check(isinstance(injury, dict) and injury.get("schema_version") == 2,
           "injury_history.json has an unexpected schema")
     check(injury.get("coverage") == "reviewed_events_only"
           and injury.get("is_complete_historical_census") is False,
           "injury counts must not imply complete verified historical coverage")
     check(isinstance(injury.get("events"), list)
           and isinstance(injury.get("by_franchise"), dict)
+          and isinstance(injury.get("excluded_verified_events"), list)
           and not injury.get("rejected_unverified_events"),
           "injury history includes invalid or unreviewed injury evidence")
 
