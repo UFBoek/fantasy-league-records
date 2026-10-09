@@ -84,7 +84,7 @@ function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return
  $('th',t).forEach(th=>{
    if(t.classList.contains('fig-sticky-table')&&(historical||activeStreaks)){
      const label=th.textContent.replace(/[↕↑↓]/g,'').trim().toUpperCase();
-     const allowed=historical ? /^(VALUE|LENGTH|POINTS|SCORE)$/.test(label) : /^(TYPE|LENGTH)$/.test(label);
+     const allowed=historical ? /^(VALUE|LENGTH|POINTS|SCORE|BOMBS|COUNT|TOTAL)$/.test(label) : /^(TYPE|LENGTH)$/.test(label);
      if(!allowed){const button=th.querySelector('button');if(button){button.disabled=true;button.setAttribute('aria-disabled','true');}return;}
    }
    th.onclick=()=>{const idx=+th.dataset.col,key=th.dataset.key,asc=th.dataset.asc!=='true';$$('th',t).forEach(x=>{x.dataset.asc='';$('.sort-icon',x).textContent='↕'});th.dataset.asc=String(asc);$('.sort-icon',th).textContent=asc?'↑':'↓';const trs=$$('tbody tr',t);trs.sort((a,b)=>{let av,bv;try{av=JSON.parse(a.dataset.row||'{}')[key];bv=JSON.parse(b.dataset.row||'{}')[key]}catch{}if(av===undefined)av=a.children[idx].textContent.trim();if(bv===undefined)bv=b.children[idx].textContent.trim();const an=Number(String(av).replace(/[%,$+]/g,'')),bn=Number(String(bv).replace(/[%,$+]/g,''));let c=(!Number.isNaN(an)&&!Number.isNaN(bn))?an-bn:String(av).localeCompare(String(bv),undefined,{numeric:true,sensitivity:'base'});return asc?c:-c});const tb=$('tbody',t);trs.forEach(r=>tb.appendChild(r))}})}
