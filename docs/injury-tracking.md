@@ -47,12 +47,20 @@ prior completed fantasy weeks on that same franchise**. An injury counts
 as a rotation injury if the game-ending disruption is verified by the
 same rules, even when the manager benched the player during the injury week.
 
-A **major rotation injury** requires corroborated IR placement,
-season-ending status, or at least four subsequent NFL games missed. The
-severity source must explicitly support that result.
+A **Major injury** requires an independently documented **season-ending
+injury** (with a source expressly confirming the player will miss the rest
+of the NFL season). Neither injured reserve placement nor four missed
+games alone is sufficient. The player must have been started or part of
+the established fantasy rotation, and the injury must also qualify as
+a verified injury-limited NFL game exit.
 
-These categories can overlap: never add them as if they were separate
-injury events. Don't count recovery weeks repeatedly.
+Major is **mutually exclusive** with Started and Rotation for that event.
+A verified season-ending injury is counted once, as **Major only**; it is
+never additionally counted as an in-game starter injury or a rotational
+injury. Non-major started and rotational injuries may overlap, because
+an established regular starter satisfies both criteria. Use
+`injury_events` for the unique injury total and never add the Started
+and Rotation totals together. Don't count recovery weeks repeatedly.
 
 ## Played-through and brief-return counterexamples
 
@@ -104,10 +112,15 @@ available if the game had been closer. He remains a review lead rather than
 an automatically counted game-ending injury. Saquon Barkley's temporary Week 2
 stinger exit and return similarly needs an explicit normal-finish check.
 
-The site exposes the source-backed first pass at `#/injuries` from Records.
-Manager totals show only the verified cases currently in the ledger and are
-not ranked as definitive injury luck. Any unverified lead appears separately
-and is never incorporated into verified totals.
+The site exposes team-first Injury History at `#/injuries` from Records.
+Click any of the 10 franchises (`#/injuries/team/6`), select a year
+(`#/injuries/team/6/2024`), then click an injury for the evidence
+(`#/injuries/event/EVENT_ID`). Every team profile and team-season page
+has a direct injury-history link.
+
+Manager totals show only verified cases and are not definitive injury-luck
+rankings. Unconfirmed snap-count leads are grouped **under each team and
+season** in a separate review panel, rather than mixed with counted cases.
 
 ### Adding new events
 
@@ -182,8 +195,7 @@ and Xavier Worthy, CeeDee Lamb and C.J. Stroud (2025).
 
 Joe Burrow's wrist injury and Brandon Aiyuk's ACL/MCL injury have
 independent NFL.com documentation confirming **season-ending** outcomes.
-Their underlying injury events can still overlap with the rotational
-classification, but they are counted only once within each category.
+Both are counted as **Major only**, not Started or Rotation.
 Other cases remain non-major until severity evidence is checked.
 
 **The historical audit remains incomplete.** Continue verifying
