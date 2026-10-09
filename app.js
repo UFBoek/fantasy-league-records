@@ -203,7 +203,6 @@ function standingsTableFor(season,view){
 
 function appLauncher(){
  const items=[
-  {icon:'≣',label:'STANDINGS',href:'#/standings'},
   {icon:'♛',label:'CHAMPIONS',href:'#/champions'},
   {icon:'★',label:'TEAM RECORDS',href:'#/records'},
   {icon:'◌',label:'PLAYER RECORDS',href:'#/players'},
@@ -737,7 +736,7 @@ async function team(id){
 
 
 async function records(){
- await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog']);navActive('records');
+ await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog','websiteStreaks']);navActive('records');
  let view='All-Time Combined';
  const podiumById=new Map((DATA.playoffCareer||[]).map(x=>[+x.franchise_id,x]));
  const allTime=[...(DATA.standingsCareer||[])].sort((a,b)=>num(b.win_pct)-num(a.win_pct)||num(b.wins)-num(a.wins));
@@ -756,9 +755,45 @@ async function records(){
     {label:'3RD',key:'bronze'},{label:'WIN %',key:'win'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PF',key:'pf'}],rows),
    'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','League bests, record holders and the full historical leaderboard.')+
- hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
+ '<div id="figRecordLeaders"></div>'+hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
  const gamesForView=()=>DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);
  const weeklySummary=()=>{const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});const perf=[];gamesForView().forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});return Object.values(out)};
+
+ // All-time visual podiums built solely from finalized archive data.
+ const streaksAll=(DATA.websiteStreaks||[]).filter(x=>String(x.streak_mode)==='Career Games');
+ const podiumWeek=weeklySummary();
+ const byTitle=[
+  {title:'WINNING STREAK',badge:'STREAK RECORD',tone:'mint',href:'#/streak/Winning/Career%20Games',
+   scores:streaksAll.filter(x=>x.streak_type==='Winning').sort((a,b)=>num(b.length)-num(a.length))
+     .map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}))},
+  {title:'LOSING STREAK',badge:'STREAK RECORD',tone:'coral',href:'#/streak/Losing/Career%20Games',
+   scores:streaksAll.filter(x=>x.streak_type==='Losing').sort((a,b)=>num(b.length)-num(a.length))
+     .map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}))},
+  {title:'HIGH SCORES',badge:'WEEKLY LEADER',tone:'blue',href:'#/special/highscores/All-Time%20Combined',
+   scores:[...podiumWeek].sort((a,b)=>b.high-a.high||b.top3-a.top3)
+     .map(x=>({id:x.id,name:x.owner,value:x.high}))},
+  {title:'TOP 3 SCORES',badge:'WEEKLY LEADER',tone:'gold',href:'#/special/top3/All-Time%20Combined',
+   scores:[...podiumWeek].sort((a,b)=>b.top3-a.top3||b.high-a.high)
+     .map(x=>({id:x.id,name:x.owner,value:x.top3}))}
+ ];
+ const visualLeaderCards=byTitle.map((category)=>{
+  const first=category.scores[0];
+  if(!first)return'';
+  const rivals=category.scores.slice(1,5).map((r,i)=>
+   `<div class="fig-podium-rival"><span class="fig-podium-rank">${i+2}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}</span><b>${r.value}</b></div>`).join('');
+  return `<a class="fig-podium-card fig-podium-${category.tone}" href="${category.href}">
+   <div class="fig-podium-banner">${category.title}</div>
+   <div class="fig-podium-photo">${ownerAvatar(first.id,'fig-podium-avatar')}</div>
+   <div class="fig-podium-name">${esc(displayOwnerName(first.name,first.id))}</div>
+   <div class="fig-podium-value">${first.value}</div>
+   <div class="fig-podium-label">${category.badge}</div>
+   <div class="fig-podium-rivals">${rivals}</div>
+   <div class="fig-podium-view">VIEW FULL LEADERBOARD →</div></a>`;
+ }).join('');
+ $('#figRecordLeaders').innerHTML=section('RECORD LEADERS',
+   `<div class="fig-podium-grid">${visualLeaderCards}</div>`,
+   'All-time bests · Select any leaderboard for the complete history');
+
  const overviewSpecials=()=>{
    if(view==='Single Season') return '';
    const wr=weeklySummary().sort((a,b)=>b.high-a.high||b.top3-a.top3);const viewKey=encodeURIComponent(view);const highLeaders=wr.length?wr.filter(x=>x.high===wr[0].high):[];const top3Max=wr.length?Math.max(...wr.map(x=>x.top3)):0;const top3Leaders=wr.filter(x=>x.top3===top3Max);
@@ -1014,7 +1049,6 @@ async function more(){
   ['▦','Game Archive','#/games'],
   ['♛','Champions','#/champions'],
   ['↔','Head-to-Head','#/h2h'],
-  ['≣','Standings','#/standings'],
   ['★','Team Records','#/records'],
   ['◌','Player Records','#/players'],
   ['⚡','Streaks','#/streaks'],
@@ -1210,7 +1244,7 @@ async function rivalryDetail(a,b){
  a=+a;b=+b;const r=DATA.h2h.find(x=>+x.franchise_id===a&&+x.opponent_franchise_id===b),ta=DATA.standingsCareer.find(x=>+x.franchise_id===a),tb=DATA.standingsCareer.find(x=>+x.franchise_id===b);const games=DATA.games.filter(g=>(+g.franchise_1===a&&+g.franchise_2===b)||(+g.franchise_1===b&&+g.franchise_2===a)).sort((x,y)=>+y.season-+x.season||+y.week-+x.week);const rows=games.map(g=>({open:`<a class="btn-lite" href="#/game/${g.season}/${g.week}/${g.matchup_id}">OPEN</a>`,season:g.season,week:g.week,a:+g.franchise_1===a?money(g.score_1):money(g.score_2),b:+g.franchise_1===b?money(g.score_1):money(g.score_2),winner:ownerLink(g.winner_name,g.winner_franchise_id),margin:money(g.margin),_sort:{season:num(g.season),week:num(g.week),a:+g.franchise_1===a?num(g.score_1):num(g.score_2),b:+g.franchise_1===b?num(g.score_1):num(g.score_2),winner:displayOwnerName(g.winner_name,g.winner_franchise_id),margin:num(g.margin)}}));app.innerHTML=hero('RIVALRY HISTORY',`${ownerName(ta.owner_name,a)} VS ${ownerName(tb.owner_name,b)}`,r?`${r.wins}-${r.losses} series • ${money(r.point_differential)} point differential`:'Series history')+section('EVERY MEETING',sortableTable([{label:'',key:'open'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:displayOwnerName(ta.owner_name,a).toUpperCase(),key:'a'},{label:displayOwnerName(tb.owner_name,b).toUpperCase(),key:'b'},{label:'WINNER',key:'winner'},{label:'MARGIN',key:'margin'}],rows));
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings')await standings();else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.replace('#/home');await home();}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every five minutes; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
