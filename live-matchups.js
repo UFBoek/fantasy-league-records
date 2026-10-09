@@ -264,7 +264,7 @@
   // navigating to their franchise pages. The dedicated link supports keyboards.
   document.addEventListener('click', event => {
     const card = event.target.closest?.('.fig-live-match');
-    if (!card || event.target.closest('a,button')) return;
+    if (!card || event.target.closest('a,button,summary,details')) return;
     const link = card.querySelector('.fig-live-open');
     if (link) location.hash = link.getAttribute('href');
   });
