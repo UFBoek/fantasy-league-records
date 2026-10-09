@@ -12,6 +12,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/update-league-data.yml'
+      - 'data/injury_events_reviewed.json'
+      - 'data/injury_candidate_leads.json'
 
 # Use the same deployment queue as the website publisher.
 concurrency:
@@ -90,6 +92,10 @@ jobs:
       - name: Rebuild reviewed injury history from completed fantasy weeks
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/build_injury_history.py
+
+      - name: Refresh sourced injury candidate review queue
+        if: steps.quick.outputs.refresh == 'true'
+        run: python scripts/build_injury_candidates.py
 
       - name: Refresh RosterAudit dynasty values (keep last good on failure)
         if: steps.quick.outputs.refresh == 'true'
