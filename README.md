@@ -1,3 +1,13 @@
+## v92 — Game Archive scores fit on mobile and select an individual team
+
+- Fix the cropped trailing digits of final scores on small iPhone screens. The winner marker and entire number now form a single right-aligned `fig-archive-result` group within a **three-column** score row (portrait, flexible name, nonwrapping result). The inactive winner marker keeps both scores aligned without occupying a separate layout track. CSS adapts at 699px and 360px.
+- Remove **ALL TEAMS** from Game Archive. Default to the first team (Boek) and leave all ten individual manager filters available. Switching managers or seasons resets the visible matchup list to 40 items.
+- Keep **ALL SEASONS**, so the user can still view an individual team's career archive. Other archive records and all final scores are unchanged.
+- Verified with published completed `data/all_games.json`: Boek has 52 games, initial 40 render correctly; showing more reveals the remainder. Hayden's 53 games filter correctly; 2026 narrows to four. Full `176.06` score remains in the markup. Every game has a group for each complete result. Code syntax, responsive CSS, asset/version staging and phone cache references passed.
+- Delivery: `app.js?v=92`, `archive-mobile-fit-v92.css?v=92`, and service worker `fig-league-shell-v92`.
+
+---
+
 ## v91 — Explore ordering and readable Game Archive scoreboard cards
 
 - **Explore in exact five-row order:** Teams · Team Records / Streaks · Player Records / Head-to-Head · Dynasty Values / Champions · The Draft / Trades · Game Archive. The first pair stays highlighted in soft mint.

@@ -728,9 +728,9 @@ async function gamesArchive(){
  const all=DATA.allGames||[];
  const years=[...new Set(all.map(g=>String(g.season)))].sort((a,b)=>+b-+a);
  const teams=[...(DATA.standingsCareer||[])].sort((a,b)=>+a.franchise_id-+b.franchise_id);
- let season='all',team='all',visible=40;
+ let season='all',team=String(teams[0]?.franchise_id??''),visible=40;
  const seasonPills=[{value:'all',label:'ALL SEASONS'},...years.map(y=>({value:y,label:y}))];
- const teamPills=[{value:'all',label:'ALL TEAMS'},...teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}))];
+ const teamPills=teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}));
  app.innerHTML=hero('LEAGUE ARCHIVE','GAME ARCHIVE','Final scores and starting lineups from every completed league matchup.')+
    `<section class="section fig-archive-page">
     <div class="fig-archive-intro"><strong>EVERY GAME. EVERY RIVALRY.</strong><p>Browse final scores from regular-season and postseason matchups, including consolation games. Select a game to see its complete lineup.</p></div>
@@ -742,7 +742,7 @@ async function gamesArchive(){
  const filtered=()=>{
   let gs=all;
   if(season!=='all')gs=gs.filter(g=>String(g.season)===String(season));
-  if(team!=='all')gs=gs.filter(g=>+g.franchise_1===+team||+g.franchise_2===+team);
+  gs=gs.filter(g=>+g.franchise_1===+team||+g.franchise_2===+team);
   return [...gs].sort((a,b)=>+b.season-+a.season||+b.week-+a.week||+a.matchup_id-+b.matchup_id);
  };
  const makeCard=g=>{
@@ -753,8 +753,7 @@ async function gamesArchive(){
   const teamLine=(id,name,score)=>`<div class="fig-archive-team ${winner===+id?'fig-archive-winner':''}">
     ${ownerAvatar(id,'fig-archive-avatar')}
     <span class="fig-archive-name">${esc(displayOwnerName(name,id))}</span>
-    ${winner===+id?'<span class="fig-archive-win-mark" aria-label="Winner">W</span>':''}
-    <strong class="fig-archive-score">${money(score)}</strong>
+    <span class="fig-archive-result">${winner===+id?'<span class="fig-archive-win-mark" aria-label="Winner">W</span>':'<span class="fig-archive-win-mark fig-archive-win-placeholder" aria-hidden="true">W</span>'}<strong class="fig-archive-score">${money(score)}</strong></span>
    </div>`;
   return `<a class="fig-archive-game" href="#/game/${encodeURIComponent(g.season)}/${encodeURIComponent(g.week)}/${encodeURIComponent(g.matchup_id)}"
    aria-label="${esc(displayOwnerName(g.owner_1,g.franchise_1))} ${money(score1)} versus ${esc(displayOwnerName(g.owner_2,g.franchise_2))} ${money(score2)}, ${g.season} week ${g.week}; view lineups">
