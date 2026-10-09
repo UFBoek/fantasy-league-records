@@ -409,16 +409,19 @@ function jamesHaydenTradeArchive(mode='archive'){
 async function home(){
  await load(['league','standingsCareer','allPlayCareer','luckSeasons','teamSeasonMaster','playerLog','trades','tradeSides','tradeAssets','tradeLineage','draftPicks','draftAudit','transactions','weeklyRosters','raValues']);navActive('home');
  const latest=Math.max(...DATA.league.map(x=>+x.season));
+ const currentSeasonInfo=DATA.league.find(x=>+x.season===latest)||{};
  const years=[...new Set(DATA.teamSeasonMaster.map(x=>+x.season))].sort((a,b)=>b-a);
  const jack=DATA.standingsCareer.find(x=>+x.franchise_id===JACK_ID);
  const puka20=DATA.playerLog.filter(x=>x.player_name==='Puka Nacua'&&num(x.starter_points)>=20).length;
  let season=String(latest),view='actual';
  app.innerHTML=hero('OFFICIAL LEAGUE ARCHIVE','FROMM IS<br>GARBAGE','Four seasons of dynasty history, receipts, bad trades and arguments.')+
+ `<section class="section fig-live-panel" aria-label="Current-week Sleeper matchups"><div class="section-head"><h2 class="section-title">CURRENT WEEK MATCHUPS</h2><div class="section-note">Unofficial until Sleeper finalizes the week</div></div><div class="fig-live-summary"><span class="fig-live-badge">SLEEPER SCORES</span><span id="figLiveStatus" role="status" aria-live="polite">Connecting…</span></div><div id="figLiveBoard" data-league-id="${esc(currentSeasonInfo.league_id||'')}"><div class="fig-live-empty">Getting current matchups from Sleeper…</div></div><div class="fig-live-footer">Checks every 30 seconds while this page is visible. In-progress scores never count toward historical records or streaks.</div></section>`+
  `<section class="section home-standings"><div class="section-head"><h2 class="section-title">STANDINGS</h2><div class="section-note">Actual results, all-play and luck • every column is sortable</div></div><div class="control-label">SEASON</div>${pills('homeSeasonPills',[{value:'career',label:'ALL-TIME'},...years.map(y=>({value:y,label:y}))],season)}<div class="control-label spaced">VIEW</div>${pills('homeStandView',[{value:'actual',label:'ACTUAL'},{value:'allplay',label:'ALL-PLAY'},{value:'luck',label:'LUCK'}],view)}<div id="homeStandingsTable" class="control-output"></div></section>`+
  appLauncher()+
  jamesHaydenTradeArchive();
  const render=()=>{$('#homeStandingsTable').innerHTML=standingsTableFor(season,view)};
  bindPills('homeSeasonPills',v=>{season=v;render()});bindPills('homeStandView',v=>{view=v;render()});render();
+ window.dispatchEvent(new Event('fig:home-rendered'));
 }
 
 async function champions(){
