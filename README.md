@@ -1,3 +1,16 @@
+## v74 — Hall of Records visual refresh and frozen table columns
+
+The design references a high-contrast editorial sports archive: white paper, bold black headline typography, muted gray panels, dark controls, mint accents, and a few featured manager portraits. It is not a copy of another website's branding or artwork.
+
+- **Records home** now includes a sortable all-time standings table with official win percentage, wins/losses, scoring and real postseason podium placements (championships, runner-ups and third-place finishes). Each team uses its fixed franchise portrait in the table.
+- **Frozen leaderboards** keep Rank and Team/Player/Holder fixed while additional stat columns scroll horizontally. These preserve native accessible HTML tables and clickable sort headers rather than being converted to mobile `+ Stats` cards. Other mobile tables keep their existing compact layout.
+- **Sort constraints** remain intact on historical records (value/length only) and active streaks (type/length). Large player and standings tables are now more explorable on phones without hiding columns.
+- **Portraits are selective:** linked teams in data tables and featured champions/streak holders retain images. Passing mentions and dense card text no longer duplicate a tiny portrait after every team name.
+- **No data calculation changes:** ongoing weekly scores remain excluded from official record books. The build, Sleeper feed and RosterAudit workflow remain unchanged.
+- **Delivery:** `editorial-v74.css` is included in the GitHub Pages staging script, service worker and versioned page entrypoint. As with any theme-wide change, confirm visual contrast on real phones after deployment.
+
+---
+
 ## v73 — More navigation, live matchup lineups, franchise portraits
 
 - **More:** Dynasty Values and Game Archive are the first two menu tiles, with working links to `#/dynasty` and `#/games`. The remaining league pages remain available below.
