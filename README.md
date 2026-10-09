@@ -1,3 +1,12 @@
+## v76 — records and streaks in their own galleries
+
+- **Records layout:** Hall of Records all-time standings stays at the top. Below it, the Records filter displays every eligible team/statistic record as an illustrated card, rather than repeating dense tiny summary cards. Highest/lowest scoring weeks and weekly high-score/top-three awards stay under Records.
+- **Streaks layout:** Winning, losing, and point-threshold streak record posters belong exclusively on the Streaks page, after the Active Streaks leaderboard. Cards open their existing complete history views.
+- **Tied holders:** Tied record cards render a shared, responsive side-by-side portrait mosaic of every *unique franchise holder* and display all tied names. Multiple games or seasons tied by the same franchise use **one** photo. Runner-up rows reflect the positions after the tie.
+- **Compact frozen columns:** On phones the fixed Rank + Name pane is narrower (168 px on most phones; 155 px on narrow devices) and statistics cells are more compact. Position chips are smaller and lighter for better contrast. The fixed-identity/statistics two-pane architecture and sorting synchronization are unchanged.
+- **Versioning:** `layout-v76.css` is deployed in GitHub Pages and cached with `app.js?v=76`; bumping the app shell ensures phones receive the updated tables and galleries. League scoring and the completed-week-only historical cutoff are unchanged.
+
+---
 ## v75 — Phone fixes and records gallery
 
 - **Player Records contrast:** The former navy feature card had dark inherited text. The new final-loaded `layout-v75.css` forces a charcoal panel with explicit white text and mint accent for all labels and top-five scores.

@@ -61,6 +61,41 @@ function sameRecordValue(a,b){const an=Number(a),bn=Number(b);return Number.isFi
 function tiedRowsForTop(rows,valueKey='value'){const valid=[...rows].filter(x=>num(x[valueKey])!==0).sort((a,b)=>num(a.rank)-num(b.rank)||num(b[valueKey])-num(a[valueKey]));if(!valid.length)return[];const top=valid[0];return valid.filter(x=>sameRecordValue(x[valueKey],top[valueKey]))}
 function joinedOwners(rows,nameKey='record_holder',idKey='franchise_id'){const seen=new Set();return rows.filter(x=>{const k=String(x[idKey]);if(seen.has(k))return false;seen.add(k);return true}).map(x=>ownerName(x[nameKey],x[idKey])).join(' / ')}
 
+/* Each official record is one illustrated leaderboard, with one portrait per
+   distinct franchise even if it has tied the record in multiple games/seasons. */
+function uniqueRecordManagers(rows){
+ const seen=new Set();
+ return rows.filter(x=>{
+  const id=Number(x.id);
+  const key=Number.isInteger(id)&&id>0?'franchise:'+id:'owner:'+String(x.name||'').trim().toLowerCase();
+  if(seen.has(key))return false;
+  seen.add(key);return true;
+ });
+}
+function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note=''}) {
+ const unique=uniqueRecordManagers(leaders||[]);
+ if(!unique.length)return '';
+ const top=unique[0];
+ const tied=unique.filter(x=>sameRecordValue(x.value,top.value));
+ const rivals=unique.filter(x=>!sameRecordValue(x.value,top.value)).slice(0,4);
+ const count=Math.min(tied.length,10);
+ const columns=Math.min(count,5);
+ const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tied.length}" style="--fig-portrait-cols:${columns}" aria-label="${tied.length} record holder${tied.length===1?'':'s'}">${tied.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
+ const names=tied.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
+ const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tied.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}</span><b>${esc(r.display??r.value)}</b></div>`).join('');
+ return `<a class="fig-podium-card fig-record-card fig-podium-${esc(tone)}" href="${esc(href)}">
+  <div class="fig-podium-banner">${esc(title)}</div>
+  ${pics}
+  <div class="fig-podium-name">${names}</div>
+  <div class="fig-podium-value">${esc(top.display??top.value)}</div>
+  <div class="fig-podium-label">${tied.length>1?'TIED · ':''}${esc(badge)}</div>
+  ${note?`<div class="fig-podium-note">${esc(note)}</div>`:''}
+  ${opponents?`<div class="fig-podium-rivals">${opponents}</div>`:''}
+  <div class="fig-podium-view">VIEW FULL LEADERBOARD →</div>
+ </a>`;
+}
+
+
 // Universal sortable table. Every header is clickable.
 let tableCounter=0;
 function sortableTable(headers,rows,opts={}){
@@ -736,7 +771,7 @@ async function team(id){
 
 
 async function records(){
- await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog','websiteStreaks']);navActive('records');
+ await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog']);navActive('records');
  let view='All-Time Combined';
  const podiumById=new Map((DATA.playoffCareer||[]).map(x=>[+x.franchise_id,x]));
  const allTime=[...(DATA.standingsCareer||[])].sort((a,b)=>num(b.win_pct)-num(a.win_pct)||num(b.wins)-num(a.wins));
@@ -755,78 +790,70 @@ async function records(){
     {label:'3RD',key:'bronze'},{label:'WIN %',key:'win'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PF',key:'pf'}],rows),
    'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','League bests, record holders and the full historical leaderboard.')+
- '<div id="figRecordLeaders"></div>'+hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
+ hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
  const gamesForView=()=>DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);
  const weeklySummary=()=>{const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});const perf=[];gamesForView().forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});return Object.values(out)};
 
- // All-time visual podiums built solely from finalized archive data.
- const streaksAll=(DATA.websiteStreaks||[]).filter(x=>String(x.streak_mode)==='Career Games');
- const bestStreakByTeam=(kind)=>{
-  const best=new Map();
-  for(const x of streaksAll.filter(x=>x.streak_type===kind)){
-   const id=+x.franchise_id;
-   if(!best.has(id)||num(x.length)>num(best.get(id).length))best.set(id,x);
-  }
-  return [...best.values()].sort((a,b)=>num(b.length)-num(a.length)||+a.franchise_id-+b.franchise_id)
-   .map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}));
- };
- const podiumWeek=weeklySummary();
- const byTitle=[
-  {title:'WINNING STREAK',badge:'STREAK RECORD',tone:'mint',href:'#/streak/Winning/Career%20Games',
-   scores:bestStreakByTeam('Winning')},
-  {title:'LOSING STREAK',badge:'STREAK RECORD',tone:'coral',href:'#/streak/Losing/Career%20Games',
-   scores:bestStreakByTeam('Losing')},
-  {title:'HIGH SCORES',badge:'WEEKLY LEADER',tone:'blue',href:'#/special/highscores/All-Time%20Combined',
-   scores:[...podiumWeek].sort((a,b)=>b.high-a.high||b.top3-a.top3)
-     .map(x=>({id:x.id,name:x.owner,value:x.high}))},
-  {title:'TOP 3 SCORES',badge:'WEEKLY LEADER',tone:'gold',href:'#/special/top3/All-Time%20Combined',
-   scores:[...podiumWeek].sort((a,b)=>b.top3-a.top3||b.high-a.high)
-     .map(x=>({id:x.id,name:x.owner,value:x.top3}))}
- ];
- const visualLeaderCards=byTitle.map((category)=>{
-  const first=category.scores[0];
-  if(!first)return'';
-  const rivals=category.scores.slice(1,5).map((r,i)=>
-   `<div class="fig-podium-rival"><span class="fig-podium-rank">${i+2}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}</span><b>${r.value}</b></div>`).join('');
-  return `<a class="fig-podium-card fig-podium-${category.tone}" href="${category.href}">
-   <div class="fig-podium-banner">${category.title}</div>
-   <div class="fig-podium-photo">${ownerAvatar(first.id,'fig-podium-avatar')}</div>
-   <div class="fig-podium-name">${esc(displayOwnerName(first.name,first.id))}</div>
-   <div class="fig-podium-value">${first.value}</div>
-   <div class="fig-podium-label">${category.badge}</div>
-   <div class="fig-podium-rivals">${rivals}</div>
-   <div class="fig-podium-view">VIEW FULL LEADERBOARD →</div></a>`;
- }).join('');
- $('#figRecordLeaders').innerHTML=section('RECORD LEADERS',
-   `<div class="fig-podium-grid">${visualLeaderCards}</div>`,
-   'All-time bests · Select any leaderboard for the complete history');
 
- const overviewSpecials=()=>{
-   if(view==='Single Season') return '';
-   const wr=weeklySummary().sort((a,b)=>b.high-a.high||b.top3-a.top3);const viewKey=encodeURIComponent(view);const highLeaders=wr.length?wr.filter(x=>x.high===wr[0].high):[];const top3Max=wr.length?Math.max(...wr.map(x=>x.top3)):0;const top3Leaders=wr.filter(x=>x.top3===top3Max);
-   const teamWeeks=[];gamesForView().forEach(g=>{teamWeeks.push({id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1),season:g.season,week:g.week});teamWeeks.push({id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2),season:g.season,week:g.week})});teamWeeks.sort((a,b)=>b.score-a.score);const bestWeek=teamWeeks[0],lowWeek=[...teamWeeks].sort((a,b)=>a.score-b.score)[0];const bestTies=bestWeek?teamWeeks.filter(x=>sameRecordValue(x.score,bestWeek.score)):[];const lowTies=lowWeek?teamWeeks.filter(x=>sameRecordValue(x.score,lowWeek.score)):[];
-   const high=`<a class="record-index-card special-record-card special-mint" href="#/special/teamweeks/${viewKey}"><div class="record-index-label">HIGHEST SCORING WEEK</div><div class="record-index-value">${bestWeek?money(bestWeek.score):'—'}</div><div class="record-index-holder">${bestTies.length?bestTies.map(x=>`${ownerName(x.owner,x.id)} • ${x.season} W${x.week}`).join(' / '):'—'}</div></a>`;
-   const low=`<a class="record-index-card special-record-card special-coral" href="#/special/teamweeks-low/${viewKey}"><div class="record-index-label">LOWEST SCORING WEEK</div><div class="record-index-value">${lowWeek?money(lowWeek.score):'—'}</div><div class="record-index-holder">${lowTies.length?lowTies.map(x=>`${ownerName(x.owner,x.id)} • ${x.season} W${x.week}`).join(' / '):'—'}</div></a>`;
-   if(view==='Playoffs') return high+low;
-   return high+low+`<a class="record-index-card special-record-card special-blue" href="#/special/highscores/${viewKey}"><div class="record-index-label">WEEKLY HIGH SCORES</div><div class="record-index-value">${highLeaders[0]?.high??0}</div><div class="record-index-holder">${highLeaders.length?highLeaders.map(x=>ownerName(x.owner,x.id)).join(' / '):'—'}</div></a><a class="record-index-card special-record-card special-gold" href="#/special/top3/${viewKey}"><div class="record-index-label">TOP-3 WEEKLY SCORES</div><div class="record-index-value">${top3Max}</div><div class="record-index-holder">${top3Leaders.length?top3Leaders.map(x=>ownerName(x.owner,x.id)).join(' / '):'—'}</div></a>`;
+ const renderSpecialRecords=()=>{
+   if(view==='Single Season')return '';
+   const viewKey=encodeURIComponent(view);
+   const perf=[];
+   gamesForView().forEach(g=>{
+     perf.push({id:+g.franchise_1,name:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});
+     perf.push({id:+g.franchise_2,name:g.owner_2,value:num(g.score_2),season:g.season,week:g.week});
+   });
+   const high=[...perf].sort((a,b)=>b.value-a.value).map(x=>({...x,display:money(x.value)}));
+   const low=[...perf].sort((a,b)=>a.value-b.value).map(x=>({...x,display:money(x.value)}));
+   const wins=weeklySummary();
+   const highWeeks=[...wins].sort((a,b)=>b.high-a.high||b.top3-a.top3).map(x=>({id:x.id,name:x.owner,value:x.high}));
+   const topThree=[...wins].sort((a,b)=>b.top3-a.top3||b.high-a.high).map(x=>({id:x.id,name:x.owner,value:x.top3}));
+   const items=[
+    {title:'HIGHEST SCORING WEEK',href:`#/special/teamweeks/${viewKey}`,leaders:high,badge:'SCORING RECORD',tone:'mint'},
+    {title:'LOWEST SCORING WEEK',href:`#/special/teamweeks-low/${viewKey}`,leaders:low,badge:'SCORING RECORD',tone:'coral'}
+   ];
+   if(view!=='Playoffs')items.push(
+    {title:'WEEKLY HIGH SCORES',href:`#/special/highscores/${viewKey}`,leaders:highWeeks,badge:'WEEKLY LEADER',tone:'blue'},
+    {title:'TOP-3 WEEKLY SCORES',href:`#/special/top3/${viewKey}`,leaders:topThree,badge:'WEEKLY LEADER',tone:'gold'}
+   );
+   return items.map(recordPodiumCard).join('');
  };
+
  const renderSingleSeason=()=>{
    const completeSeasons=new Set(DATA.teamSeasonMaster.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').map(x=>String(x.season)));
-   const data=DATA.singleSeasonRecords.filter(x=>!redundantScoreAverageRecord(x)&&!excludedSingleSeasonRecord(x)&&completeSeasons.has(String(x.season))&&num(x.value)!==0&&!['games_100'].includes(String(x.metric||''))&&!/100\+ point games/i.test(String(x.record_category||''))).concat(singleSeasonBombRows().filter(x=>num(x.value)!==0));
+   const data=DATA.singleSeasonRecords.filter(x=>!redundantScoreAverageRecord(x)&&!excludedSingleSeasonRecord(x)&&completeSeasons.has(String(x.season))&&num(x.value)!==0&&!['games_100'].includes(String(x.metric||''))&&!/100\\+ point games/i.test(String(x.record_category||''))).concat(singleSeasonBombRows().filter(x=>num(x.value)!==0));
    const categories=[...new Set(data.map(x=>x.record_category))].sort();
-   const cards=categories.map(cat=>{const rs=data.filter(x=>x.record_category===cat).sort((a,b)=>num(a.rank)-num(b.rank)||num(b.value)-num(a.value));const top=rs[0];if(!top)return'';const ties=rs.filter(x=>sameRecordValue(x.value,top.value));const sameSeason=ties.every(x=>String(x.season)===String(top.season));return `<a class="record-index-card single-season-card" href="#/singleseasons/${encodeURIComponent(cat)}"><div class="record-index-label">${esc(cat)}</div><div class="record-index-value">${typeof top.value==='number'?money(top.value):esc(top.value)}</div><div class="record-index-holder">${sameSeason?`${ties.map(x=>ownerName(x.owner_name,x.franchise_id)).join(' / ')} • ${top.season}`:ties.map(x=>`${ownerName(x.owner_name,x.franchise_id)} • ${x.season}`).join(' / ')}</div></a>`}).join('');
-   return `<div class="record-view-intro"><div class="eyebrow">COMPLETED SEASONS ONLY</div><h2 class="section-title">SINGLE-SEASON RECORDS</h2></div><div class="record-index-grid">${cards}</div>`;
+   return categories.map((cat,i)=>{
+     const rs=data.filter(x=>x.record_category===cat).sort((a,b)=>num(a.rank)-num(b.rank)||num(b.value)-num(a.value));
+     if(!rs.length)return '';
+     const winner=rs[0],ties=rs.filter(x=>sameRecordValue(x.value,winner.value));
+     const seasons=[...new Set(ties.map(x=>String(x.season||'')).filter(Boolean))];
+     return recordPodiumCard({
+       title:cat,href:`#/singleseasons/${encodeURIComponent(cat)}`,
+       leaders:rs.map(x=>({id:+x.franchise_id,name:x.owner_name,value:x.value,display:money(x.value)})),
+       badge:'SINGLE-SEASON RECORD',tone:['mint','blue','gold','coral'][i%4],
+       note:seasons.join(' · ')
+     });
+   }).join('');
  };
  const renderTeam=()=>{
-   if(view==='Single Season') return renderSingleSeason();
-   const data=cleanTeamRecordRows(view);
-   const groups={};data.forEach(x=>(groups[x.category]??=[]).push(x));
-   const cards=Object.entries(groups).map(([cat,rs])=>{const valid=[...rs].filter(x=>num(x.value)!==0).sort((a,b)=>num(a.rank)-num(b.rank));const top=valid[0];if(!top)return'';const ties=valid.filter(x=>sameRecordValue(x.value,top.value));return `<a class="record-index-card" href="#/record/team/${encodeURIComponent(cat)}/${encodeURIComponent(view)}"><div class="record-index-label">${esc(cat)}</div><div class="record-index-value">${typeof top.value==='number'?money(top.value):esc(top.value)}</div><div class="record-index-holder">${ties.map(x=>x.franchise_id?ownerName(x.record_holder,x.franchise_id):esc(x.record_holder)).join(' / ')}</div></a>`}).join('');
-   return cards;
+   if(view==='Single Season')return renderSingleSeason();
+   const groups={};
+   cleanTeamRecordRows(view).forEach(x=>(groups[x.category]??=[]).push(x));
+   return Object.entries(groups).map(([category,rs],i)=>{
+     const valid=rs.filter(x=>num(x.value)!==0).sort((a,b)=>num(a.rank)-num(b.rank)||num(b.value)-num(a.value));
+     if(!valid.length)return '';
+     return recordPodiumCard({
+       title:category,href:`#/record/team/${encodeURIComponent(category)}/${encodeURIComponent(view)}`,
+       leaders:valid.map(x=>({id:+x.franchise_id,name:x.record_holder,value:x.value,display:money(x.value)})),
+       badge:'TEAM RECORD',tone:['mint','gold','blue','coral'][i%4]
+     });
+   }).join('');
  };
  const render=()=>{
-   if(view==='Single Season'){$('#recordBody').innerHTML=renderSingleSeason();return}
-   $('#recordBody').innerHTML=`<div class="record-index-grid unified-record-grid">${overviewSpecials()}${renderTeam()}</div>`
+   const output=renderSpecialRecords()+renderTeam();
+   const title=view==='Single Season'?'SINGLE-SEASON RECORDS':view==='Playoffs'?'PLAYOFF RECORDS':view==='Regular Season'?'REGULAR-SEASON RECORDS':'ALL-TIME RECORDS';
+   $('#recordBody').innerHTML=`<div class="fig-record-gallery-heading"><h2>${title}</h2><p>Every official record has its own full leaderboard. Tied record holders share the portrait space.</p></div><div class="fig-podium-grid fig-record-gallery">${output||'<div class="empty">No completed records found.</div>'}</div>`;
  };
  bindPills('recordView',v=>{view=v;render()});render();
 }
@@ -850,10 +877,25 @@ async function streaks(){
  const active=career.filter(x=>x.active===true||String(x.active).toLowerCase()==='true');
  const types=[...new Set(career.map(x=>x.streak_type))].sort();
  const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:esc(x.streak_type),len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
- const topCards=types.map(type=>{const rows=career.filter(x=>x.streak_type===type).sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points));const x=rows[0];if(!x)return'';const topLength=num(x.length);const tiedRows=rows.filter(r=>num(r.length)===topLength);const holderHtml=tiedRows.map(r=>ownerName(r.owner,r.franchise_id)).join(' / ');return `<a class="record-card clickable streak-record-card" href="#/streak/${encodeURIComponent(type)}/Career%20Games"><div class="rank-line"><span>ALL-TIME RECORD</span><span>${tiedRows.length>1?'T1':'#1'}</span></div><div class="fig-streak-leader">${ownerAvatar(x.franchise_id,'fig-streak-portrait')}</div><div class="holder">${holderHtml}</div><div class="value">${x.length}</div><div class="meta streak-name">${esc(type)}</div></a>`}).join('');
+ const orderedTypes=[...types].sort((a,b)=>{
+   const priority=t=>t==='Winning'?0:t==='Losing'?1:2;
+   return priority(a)-priority(b)||a.localeCompare(b);
+ });
+ const topCards=orderedTypes.map((type,i)=>{
+   const seen=new Set();
+   const ranked=career.filter(x=>x.streak_type===type)
+     .sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points))
+     .filter(x=>{const id=String(x.franchise_id);if(seen.has(id))return false;seen.add(id);return true;});
+   return recordPodiumCard({
+     title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type.toUpperCase(),
+     badge:'STREAK RECORD',tone:['mint','coral','blue','gold'][i%4],
+     href:`#/streak/${encodeURIComponent(type)}/Career%20Games`,
+     leaders:ranked.map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}))
+   });
+ }).join('');
  app.innerHTML=hero('STREAK ARCHIVE','STREAKS','Active runs and the league records that actually matter.')+
  section('ACTIVE STREAKS',activeRows.length?sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'TYPE',key:'type'},{label:'LENGTH',key:'len'},{label:'START',key:'start'},{label:'LAST',key:'last'}],activeRows):'<div class="empty">No active qualifying streaks.</div>')+
- section('ALL-TIME RECORDS',`<div class="record-list compact-streak-records">${topCards}</div>`,'');
+ section('ALL-TIME STREAK RECORDS',`<div class="fig-podium-grid fig-streak-gallery">${topCards}</div>`,'Records belong here · select a category for the complete history');
 }
 
 
