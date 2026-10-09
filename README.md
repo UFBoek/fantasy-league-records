@@ -1,3 +1,14 @@
+## v88 — Head-to-Head archive redesign with pairwise all-play
+
+- **Rivalry overview:** The More → Head-to-Head page now uses high-contrast portrait-led rivalry cards in place of the old hard-to-read mobile expandable table. Each card shows the directional *actual H2H W–L–T* (scheduled league and playoff matches) and *pairwise all-play W–L–T* (weekly scores against the opponent whether or not scheduled), plus official game count and shared weeks. The team filter shows nine directional rivalries; All shows every unordered franchise pairing (45).
+- **Sorting:** Sort rivalries by actual H2H win percentage, pairwise all-play win percentage, completed official matchups or team name. Clicking a card opens the detailed opponent matchup view.
+- **Detailed comparison:** Big manager portraits, lifetime H2H and lifetime pairwise all-play records, win percentages, and **all-play by season**. Each season has both actual H2H and all-play W–L–T; an expandable row lets viewers inspect *every* weekly all-play comparison and scores.
+- **Official matchup archive:** Actual scheduled meetings, regular-season and playoffs, retain links to the real game archive lineups. Playoffs are not counted in all-play, consistent with `data/all_play_seasons.json`.
+- **Data integrity:** Pairwise all-play is computed client-side from *completed* regular-season games in `data/games.json`, comparing each franchise's score against another's in matching season/week. No weekly live scores or extra Sleeper requests. Tested all 40 franchise-season all-play totals exactly against published `data/all_play_seasons.json`, and all 90 directional actual H2H records exactly against `data/h2h.json`.
+- **Mobile and publishing:** New `h2h-v88.css` contains scoped, explicit readable colors and responsive grids. `app.js?v=88` and the new CSS are referenced in GitHub Pages staging and the v88 service worker cache.
+
+---
+
 ## v82 — Render long weekly histories in increments of 100
 
 - **Highest Scoring Player Weeks:** Player Records → Highest Scoring Player Weeks → Full History now renders only the **top 100 player performances** at first load, instead of creating thousands of DOM table cells.

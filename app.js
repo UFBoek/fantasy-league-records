@@ -1126,65 +1126,154 @@ async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseE
  app.innerHTML=hero('PLAYER BOMB BREAKDOWN',`${esc(playerName)} • ${esc(bomb)}`,`${context.length?context.join(' • ')+' • ':''}${logs.length} qualifying started performances.`)+section('EVERY BOMB',sortableTable([{label:'#',key:'n'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TEAM',key:'team'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TYPE',key:'type'}],rows));
 }
 
+function h2hAllPlayPair(games,a,b) {
+ // Replicate official all_play_seasons math: compare *completed regular-season*
+ // team scores in the same season/week, regardless of scheduled opponent.
+ const weeks=new Map();
+ for(const g of games||[]){
+  if(g.game_type!=='Regular Season')continue;
+  const key=`${g.season}:${g.week}`;
+  if(!weeks.has(key))weeks.set(key,{season:+g.season,week:+g.week,teams:new Map()});
+  const w=weeks.get(key);
+  w.teams.set(+g.franchise_1,num(g.score_1));
+  w.teams.set(+g.franchise_2,num(g.score_2));
+ }
+ return [...weeks.values()].filter(w=>w.teams.has(+a)&&w.teams.has(+b))
+  .map(w=>{
+   const as=w.teams.get(+a),bs=w.teams.get(+b);
+   const diff=Math.round((as-bs)*100);
+   return {season:w.season,week:w.week,a:as,b:bs,result:diff>0?'W':diff<0?'L':'T',margin:Math.abs(diff)/100};
+  }).sort((x,y)=>y.season-x.season||y.week-x.week);
+}
+
+function h2hRecord(rows){
+ const wins=rows.filter(x=>x.result==='W').length;
+ const losses=rows.filter(x=>x.result==='L').length;
+ const ties=rows.length-wins-losses;
+ return {wins,losses,ties,games:rows.length,pct:rows.length?100*(wins+ties/2)/rows.length:0};
+}
+
+function h2hRecordText(r){return `${r.wins}–${r.losses}${r.ties?`–${r.ties}`:''}`;}
+
+function h2hActualPair(games,a,b) {
+ return (games||[]).filter(g=>(+g.franchise_1===+a&&+g.franchise_2===+b)||(+g.franchise_1===+b&&+g.franchise_2===+a))
+  .map(g=>{
+   const as=+g.franchise_1===+a?num(g.score_1):num(g.score_2);
+   const bs=+g.franchise_1===+b?num(g.score_1):num(g.score_2);
+   const diff=Math.round((as-bs)*100);
+   return {game:g,season:+g.season,week:+g.week,a:as,b:bs,result:diff>0?'W':diff<0?'L':'T',margin:Math.abs(diff)/100};
+  }).sort((x,y)=>y.season-x.season||y.week-x.week);
+}
+
+function h2hPortraitName(id,name){
+ return `<span class="fig-h2h-person">${ownerAvatar(id,'fig-h2h-avatar')}<span>${esc(displayOwnerName(name,id))}</span></span>`;
+}
+
 async function h2h(){
  await load(['standingsCareer','h2h','games']);navActive('');
- const teams=[...DATA.standingsCareer].sort((a,b)=>+a.franchise_id-+b.franchise_id);
- let selected='all';
- const buildRows=()=>{
-  // The archive stores both team perspectives for each pairing.
-  // ALL shows each rivalry only once; choosing a team shows that team's own
-  // row, so W-L, PF, opponent PF and signed differential all refer to the
-  // selected franchise rather than whichever franchise has the lower ID.
-  const matchups=DATA.h2h||[];
-  const data=selected==='all'
-   ? matchups.filter(x=>+x.franchise_id<+x.opponent_franchise_id)
-   : matchups.filter(x=>+x.franchise_id===+selected);
-  return data.map(x=>{
-   const aId=+x.franchise_id,bId=+x.opponent_franchise_id;
-   const aName=displayOwnerName(x.owner,aId),bName=displayOwnerName(x.opponent,bId);
-   const aW=num(x.wins),bW=num(x.losses),ties=num(x.ties);
-   const series=`${aW}-${bW}${ties?`-${ties}`:''}`;
-   return {
-    a:ownerLink(x.owner,aId),
-    b:ownerLink(x.opponent,bId),
-    games:num(x.games),
-    series:`<a class="h2h-series-link" href="#/matchup/${aId}/${bId}">${series}</a>`,
-    apf:money(x.points_for),
-    bpf:money(x.points_against),
-    diff:`${num(x.point_differential)>=0?'+':''}${money(x.point_differential)}`,
-    _href:`#/matchup/${aId}/${bId}`,
-    _sort:{a:aName,b:bName,games:num(x.games),series:aW-bW,apf:num(x.points_for),bpf:num(x.points_against),diff:num(x.point_differential)}
-   }
-  }).sort((a,b)=>a._sort.a.localeCompare(b._sort.a)||a._sort.b.localeCompare(b._sort.b));
+ const teams=[...(DATA.standingsCareer||[])].sort((a,b)=>+a.franchise_id-+b.franchise_id);
+ const byId=new Map(teams.map(t=>[+t.franchise_id,t]));
+ let selected='all',sortBy='series';
+ const pairs=(DATA.h2h||[]).filter(x=>+x.franchise_id<+x.opponent_franchise_id);
+ const comparisons=new Map();
+ const compare=(a,b)=>{
+  const key=`${a}:${b}`;
+  if(!comparisons.has(key)){
+   const ap=h2hRecord(h2hAllPlayPair(DATA.games,a,b));
+   comparisons.set(key,ap);
+  }
+  return comparisons.get(key);
  };
- const render=()=>{$('#h2hTable').innerHTML=sortableTable([
-  {label:'TEAM',key:'a'},{label:'OPPONENT',key:'b'},{label:'G',key:'games'},{label:'SERIES',key:'series'},{label:'TEAM PF',key:'apf'},{label:'OPP PF',key:'bpf'},{label:'DIFF',key:'diff'}
- ],buildRows())};
- app.innerHTML=hero('LEAGUE HISTORY','HEAD-TO-HEAD','Every franchise against every other franchise. Click any series to see every meeting.')+
- `<section class="section"><div class="section-head"><h2 class="section-title">MATCHUP RECORDS</h2><div class="section-note">Filter by team or view all 45 series</div></div><div class="control-label">TEAM</div>${pills('h2hTeamPills',[{value:'all',label:'ALL'},...teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}))],selected)}<div id="h2hTable" class="control-output"></div></section>`;
- bindPills('h2hTeamPills',v=>{selected=v;render()});render();
+ const list=()=>{
+  const records=(selected==='all'?pairs:(DATA.h2h||[]).filter(x=>+x.franchise_id===+selected)).map(x=>{
+   const a=+x.franchise_id,b=+x.opponent_franchise_id;
+   return {...x,a,b,ap:compare(a,b),winRate:num(x.games)?100*(num(x.wins)+num(x.ties)/2)/num(x.games):0};
+  });
+  const sorters={
+   series:(a,b)=>b.winRate-a.winRate||num(b.wins)-num(a.wins),
+   allplay:(a,b)=>b.ap.pct-a.ap.pct||b.ap.wins-a.ap.wins,
+   meetings:(a,b)=>num(b.games)-num(a.games),
+   name:(a,b)=>displayOwnerName(a.owner,a.a).localeCompare(displayOwnerName(b.owner,b.a))||displayOwnerName(a.opponent,a.b).localeCompare(displayOwnerName(b.opponent,b.b))
+  };
+  return records.sort((a,b)=>sorters[sortBy](a,b)||a.a-b.a||a.b-b.b);
+ };
+ const render=()=>{
+  const records=list();
+  const cards=records.map(x=>{
+   const actual={wins:num(x.wins),losses:num(x.losses),ties:num(x.ties)};
+   return `<a class="fig-h2h-tile" href="#/matchup/${x.a}/${x.b}">
+     <div class="fig-h2h-matchup">${h2hPortraitName(x.a,x.owner)}<span class="fig-h2h-vs">VS</span>${h2hPortraitName(x.b,x.opponent)}</div>
+     <div class="fig-h2h-tile-stats">
+       <div><span>ACTUAL HEAD-TO-HEAD</span><strong>${h2hRecordText(actual)}</strong><small>${num(x.games)} official matchups</small></div>
+       <div><span>ALL-PLAY</span><strong>${h2hRecordText(x.ap)}</strong><small>${x.ap.games} shared weeks</small></div>
+     </div>
+     <div class="fig-h2h-view">VIEW RIVALRY HISTORY <span aria-hidden="true">→</span></div>
+   </a>`;
+  }).join('');
+  $('#h2hResults').innerHTML=`<div class="fig-h2h-count">${records.length} rivalries · records shown from ${selected==='all'?'the left-hand team’s':esc(displayOwnerName(byId.get(+selected)?.owner_name,+selected))+'’s'} perspective</div><div class="fig-h2h-grid">${cards||'<div class="empty">No matchups found.</div>'}</div>`;
+ };
+ app.innerHTML=hero('LEAGUE HISTORY','HEAD-TO-HEAD','Actual matchups and the games you would have won against every other team.')+
+  `<section class="section fig-h2h-page">
+   <div class="fig-h2h-intro"><strong>TWO WAYS TO MEASURE A RIVALRY</strong><p><b>Head-to-head</b> counts scheduled regular-season and playoff games. <b>All-play</b> compares your completed regular-season score against that opponent's score every week, even when you weren't scheduled to play.</p></div>
+   <div class="control-label">CHOOSE A TEAM</div>
+   ${pills('h2hTeamPills',[{value:'all',label:'ALL'},...teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}))],selected)}
+   <div class="fig-h2h-toolbar"><label for="h2hSort">SORT RIVALRIES</label><select id="h2hSort"><option value="series">HEAD-TO-HEAD WIN %</option><option value="allplay">ALL-PLAY WIN %</option><option value="meetings">MOST MATCHUPS</option><option value="name">TEAM NAME</option></select></div>
+   <div id="h2hResults" class="fig-h2h-results"></div>
+  </section>`;
+ bindPills('h2hTeamPills',v=>{selected=v;render()});
+ $('#h2hSort').addEventListener('change',e=>{sortBy=e.target.value;render()});
+ render();
 }
 
 async function matchupHistory(a,b){
  await load(['standingsCareer','h2h','games']);navActive('');
  a=+a;b=+b;
- const r=(DATA.h2h||[]).find(x=>+x.franchise_id===a&&+x.opponent_franchise_id===b);
- const ta=DATA.standingsCareer.find(x=>+x.franchise_id===a),tb=DATA.standingsCareer.find(x=>+x.franchise_id===b);
- if(!ta||!tb){app.innerHTML='<div class="empty">Matchup not found.</div>';return}
- const games=(DATA.games||[]).filter(g=>(+g.franchise_1===a&&+g.franchise_2===b)||(+g.franchise_1===b&&+g.franchise_2===a)).sort((x,y)=>+y.season-+x.season||+y.week-+x.week);
- const rows=games.map(g=>({
-  season:g.season,week:g.week,type:g.game_type,
-  a:+g.franchise_1===a?money(g.score_1):money(g.score_2),
-  b:+g.franchise_1===b?money(g.score_1):money(g.score_2),
-  winner:ownerLink(g.winner_name,g.winner_franchise_id),margin:money(g.margin),
-  _href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,
-  _sort:{season:num(g.season),week:num(g.week),type:g.game_type,a:+g.franchise_1===a?num(g.score_1):num(g.score_2),b:+g.franchise_1===b?num(g.score_1):num(g.score_2),winner:displayOwnerName(g.winner_name,g.winner_franchise_id),margin:num(g.margin)}
- }));
- const subtitle=r?`${r.wins}-${r.losses}${num(r.ties)?`-${r.ties}`:''} series • ${num(r.point_differential)>=0?'+':''}${money(r.point_differential)} point differential • ${r.games} games`:`${games.length} games`;
- app.innerHTML=hero('HEAD-TO-HEAD',`${ownerName(ta.owner_name,a)} VS ${ownerName(tb.owner_name,b)}`,subtitle)+section('EVERY MEETING',sortableTable([
-  {label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:displayOwnerName(ta.owner_name,a).toUpperCase(),key:'a'},{label:displayOwnerName(tb.owner_name,b).toUpperCase(),key:'b'},{label:'WINNER',key:'winner'},{label:'MARGIN',key:'margin'}
- ],rows));
+ const teams=DATA.standingsCareer||[];
+ const ta=teams.find(x=>+x.franchise_id===a),tb=teams.find(x=>+x.franchise_id===b);
+ if(!ta||!tb||a===b){app.innerHTML='<div class="empty">Matchup not found.</div>';return}
+ const actual=h2hActualPair(DATA.games,a,b);
+ const allplay=h2hAllPlayPair(DATA.games,a,b);
+ const totals=h2hRecord(actual),ap=h2hRecord(allplay);
+ const nameA=displayOwnerName(ta.owner_name,a),nameB=displayOwnerName(tb.owner_name,b);
+ const years=[...new Set([...actual,...allplay].map(x=>x.season))].sort((x,y)=>y-x);
+ const summary=`<div class="fig-h2h-battle">
+   <div>${h2hPortraitName(a,ta.owner_name)}</div>
+   <span class="fig-h2h-versus">VS</span>
+   <div>${h2hPortraitName(b,tb.owner_name)}</div>
+  </div>
+  <div class="fig-h2h-summary">
+   <div><span>ACTUAL HEAD-TO-HEAD</span><strong>${h2hRecordText(totals)}</strong><small>${totals.games} completed matchups · ${pct(totals.pct)} win rate</small></div>
+   <div><span>ALL-PLAY AGAINST ${esc(nameB.toUpperCase())}</span><strong>${h2hRecordText(ap)}</strong><small>${ap.games} regular-season weeks · ${pct(ap.pct)} win rate</small></div>
+  </div>`;
+ const seasons=years.map(year=>{
+  const games=actual.filter(x=>x.season===year),weeks=allplay.filter(x=>x.season===year);
+  const ar=h2hRecord(games),pr=h2hRecord(weeks);
+  return `<div class="fig-h2h-season">
+   <div class="fig-h2h-season-title"><strong>${year}</strong><span>${weeks.length} completed regular-season weeks</span></div>
+   <div class="fig-h2h-season-stats">
+    <div><span>ACTUAL H2H</span><strong>${h2hRecordText(ar)}</strong><small>${ar.games} matchups</small></div>
+    <div><span>ALL-PLAY</span><strong>${h2hRecordText(pr)}</strong><small>${pct(pr.pct)} win rate</small></div>
+   </div>
+   <details class="fig-h2h-weeks"><summary>SEE ${year} WEEK-BY-WEEK COMPARISON <span aria-hidden="true">⌄</span></summary>
+    <div class="fig-h2h-week-head"><span>WEEK</span><span>${esc(nameA.toUpperCase())}</span><span>${esc(nameB.toUpperCase())}</span><span>RESULT</span></div>
+    ${weeks.sort((x,y)=>x.week-y.week).map(x=>`<div class="fig-h2h-week"><span>W${x.week}</span><span>${money(x.a)}</span><span>${money(x.b)}</span><b class="fig-h2h-result fig-h2h-result-${x.result.toLowerCase()}">${x.result}</b></div>`).join('')}
+   </details>
+  </div>`;
+ }).join('');
+ const matches=actual.map(x=>{
+  const g=x.game;
+  return `<a class="fig-h2h-actual-game" href="#/game/${g.season}/${g.week}/${g.matchup_id}">
+    <div class="fig-h2h-game-when"><strong>${g.season} · WEEK ${g.week}</strong><span>${esc(g.game_type)}</span></div>
+    <div class="fig-h2h-game-score"><span class="${x.result==='W'?'fig-h2h-game-winner':''}">${money(x.a)}</span><small>–</small><span class="${x.result==='L'?'fig-h2h-game-winner':''}">${money(x.b)}</span><b class="fig-h2h-result fig-h2h-result-${x.result.toLowerCase()}">${x.result}</b></div>
+    <div class="fig-h2h-game-view">VIEW LINEUPS →</div>
+   </a>`;
+ }).join('');
+ app.innerHTML=hero('RIVALRY ARCHIVE',`${esc(nameA.toUpperCase())} VS ${esc(nameB.toUpperCase())}`,'Historical records from the first team’s perspective. All-play includes every completed regular-season week, not just scheduled games.')+
+  `<section class="section fig-h2h-detail"><a class="fig-h2h-back" href="#/h2h">← ALL HEAD-TO-HEAD RIVALRIES</a>${summary}</section>`+
+  section('ALL-PLAY BY SEASON',`<div class="fig-h2h-seasons">${seasons}</div>`,'Compare every completed regular-season week, including weeks without a scheduled matchup.')+
+  section('ACTUAL MATCHUP HISTORY',`<div class="fig-h2h-game-legend"><b>${esc(nameA)}</b> score <span>—</span> <b>${esc(nameB)}</b> score</div><div class="fig-h2h-games">${matches||'<p>No official meetings yet.</p>'}</div>`,'Tap a game to view the archived lineups and scores.');
 }
+
 
 async function draft(){
  await load(['draftPicks']);navActive('draft');const years=[...new Set(DATA.draftPicks.map(x=>x.draft_season))].sort((a,b)=>b-a);let year=years[0];app.innerHTML=hero('WAR ROOM','THE DRAFT','Startup history and every official rookie pick. Click a year instead of digging through a dropdown.')+`<section class="section">${pills('draftYears',years.map(y=>({value:y,label:y})),year)}<div id="draftBody" class="control-output"></div></section>`;
