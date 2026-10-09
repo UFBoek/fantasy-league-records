@@ -1272,7 +1272,18 @@ async function specialRecord(kind,viewEnc){
  const viewGames=DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':true);
  const viewLabel=view==='All-Time Combined'?'ALL-TIME':view.toUpperCase();
  if(kind==='teamweeks'||kind==='teamweeks-low'){
-  const rows=[];viewGames.forEach(g=>{rows.push({team:ownerLink(g.owner_1,g.franchise_1),score:money(g.score_1),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_1,g.franchise_1),score:num(g.score_1),season:num(g.season),week:num(g.week),type:g.game_type}});rows.push({team:ownerLink(g.owner_2,g.franchise_2),score:money(g.score_2),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_2,g.franchise_2),score:num(g.score_2),season:num(g.season),week:num(g.week),type:g.game_type}})});rows.sort((a,b)=>kind==='teamweeks-low'?a._sort.score-b._sort.score:b._sort.score-a._sort.score);app.innerHTML=hero('RECORD HISTORY',kind==='teamweeks-low'?'LOWEST SCORING WEEKS':'HIGHEST SCORING WEEKS',`${viewLabel} • every qualifying team-week ranked ${kind==='teamweeks-low'?'from lowest to highest':'from highest to lowest'}.`)+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'score'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}],rows.map((x,i)=>({...x,rank:i+1,_sort:{...x._sort,rank:i+1}}))));return
+  const rows=[];
+  viewGames.forEach(g=>{
+    rows.push({team:ownerLink(g.owner_1,g.franchise_1),score:money(g.score_1),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_1,g.franchise_1),score:num(g.score_1),season:num(g.season),week:num(g.week),type:g.game_type}});
+    rows.push({team:ownerLink(g.owner_2,g.franchise_2),score:money(g.score_2),season:g.season,week:g.week,type:g.game_type,_href:`#/game/${g.season}/${g.week}/${g.matchup_id}`,_sort:{team:displayOwnerName(g.owner_2,g.franchise_2),score:num(g.score_2),season:num(g.season),week:num(g.week),type:g.game_type}});
+  });
+  const low=kind==='teamweeks-low';
+  rows.sort((a,b)=>low?a._sort.score-b._sort.score:b._sort.score-a._sort.score);
+  const headers=[{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'score'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}];
+  const makeRow=(x,i)=>({...x,rank:i+1,_sort:{...x._sort,rank:i+1}});
+  app.innerHTML=hero('RECORD HISTORY',low?'LOWEST SCORING WEEKS':'HIGHEST SCORING WEEKS',`${viewLabel} • every qualifying team-week ranked ${low?'from lowest to highest':'from highest to lowest'}.`)+
+   section('FULL HISTORY',pagedWeekHistory(headers,rows,makeRow,{label:'team weeks',initialDescending:!low}));
+  return;
  }
  if(kind==='seasons'){const data=DATA.standingsSeasons.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').sort((a,b)=>num(b.points_for)-num(a.points_for));const rows=data.map((x,i)=>({rank:i+1,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.points_for),season:x.season,w:x.wins,l:x.losses,avg:money(num(x.points_for)/Math.max(1,num(x.games))),_sort:{rank:i+1,team:displayOwnerName(x.owner_name,x.franchise_id),points:num(x.points_for),season:num(x.season),w:num(x.wins),l:num(x.losses),avg:num(x.points_for)/Math.max(1,num(x.games))}}));app.innerHTML=hero('SEASON RECORD','BEST SCORING SEASONS','Completed 14-game regular seasons ranked by points scored.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'},{label:'SEASON',key:'season'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PPG',key:'avg'}],rows));return}
  const perf=[];viewGames.forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});const metric=kind==='highscores'?'high':'top3',title=kind==='highscores'?'WEEKLY HIGH SCORES':'TOP-3 WEEKLY SCORES';const ranked=Object.values(out).sort((a,b)=>b[metric]-a[metric]);const counts={};ranked.forEach(x=>counts[String(x[metric])]=(counts[String(x[metric])]||0)+1);let prev=null,rank=0;const rows=ranked.map((x,i)=>{if(prev===null||x[metric]!==prev)rank=i+1;prev=x[metric];return{rank:tiedRankLabel(rank,counts[String(x[metric])]>1),team:ownerLink(x.owner,x.id),value:x[metric],_href:`#/breakdown/weekly/${encodeURIComponent(kind)}/${encodeURIComponent(view)}/${x.id}`,_sort:{rank,team:displayOwnerName(x.owner,x.id),value:x[metric]}}});app.innerHTML=hero('WEEKLY PERFORMANCE RECORD',title,`${viewLabel} • qualifying weeks only.`)+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'COUNT',key:'value'}],rows));
@@ -1380,7 +1391,20 @@ async function breakdown(kind,...parts){
 }
 
 async function playerWeeks(){
- await load(['playerLog']);navActive('players');const data=[...DATA.playerLog].sort((a,b)=>num(b.starter_points)-num(a.starter_points));const rows=data.map((x,i)=>({rank:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${x.position}</span>`,points:money(x.starter_points),team:`<a class="fig-playerweeks-team-photo" href="#/team/${+x.franchise_id}" aria-label="Open ${esc(displayOwnerName(x.owner_name,x.franchise_id))} team profile" title="${esc(displayOwnerName(x.owner_name,x.franchise_id))}">${ownerAvatar(x.franchise_id,'fig-playerweeks-avatar')}</a>`,season:x.season,week:x.week,type:x.game_type,_sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}}));app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}],rows));
+ await load(['playerLog']);navActive('players');
+ const data=[...(DATA.playerLog||[])].sort((a,b)=>num(b.starter_points)-num(a.starter_points));
+ const headers=[{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}];
+ const makeRow=(x,i)=>({
+  rank: i+1,
+  player:playerLink(x.player_id,x.player_name),
+  pos:`<span class="pos">${esc(x.position)}</span>`,
+  points:money(x.starter_points),
+  team:`<a class="fig-playerweeks-team-photo" href="#/team/${+x.franchise_id}" aria-label="Open ${esc(displayOwnerName(x.owner_name,x.franchise_id))} team profile" title="${esc(displayOwnerName(x.owner_name,x.franchise_id))}">${ownerAvatar(x.franchise_id,'fig-playerweeks-avatar')}</a>`,
+  season:x.season,week:x.week,type:x.game_type,
+  _sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}
+ });
+ app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+
+  section('FULL HISTORY',pagedWeekHistory(headers,data,makeRow,{label:'player weeks'}));
 }
 
 async function rivalryDetail(a,b){
