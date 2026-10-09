@@ -1,6 +1,6 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const app=$('#app'), DATA={};
-const fileMap={league:'league_history',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',injuryHistory:'injury_history',injuryCandidates:'injury_candidates',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
+const fileMap={league:'league_history',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',injuryHistory:'injury_history',injuryCandidates:'injury_candidates',injuryDiscovery:'injury_discovery_candidates',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
 const JACK_ID=1,HAYDEN_ID=6;
 const OWNER_DISPLAY_BY_ID={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 // Permanent, franchise-ID keyed images; independent of Sleeper refreshes.
@@ -1029,9 +1029,9 @@ async function team(id){
 
 /* Injury review pilot: all totals are explicitly partial. */
 async function injuries(){
- await load(['injuryHistory','injuryCandidates']);
+ await load(['injuryHistory','injuryCandidates','injuryDiscovery']);
  navActive('records');
- const data=DATA.injuryHistory||{},review=DATA.injuryCandidates||{};
+ const data=DATA.injuryHistory||{},review=DATA.injuryCandidates||{},discovery=DATA.injuryDiscovery||{};
  const events=(data.events||[]).filter(e=>+e.season===2026);
  const totals=data.by_franchise||{};
  const managers=Array.from({length:10},(_,i)=>i+1).map(id=>{
@@ -1053,7 +1053,30 @@ async function injuries(){
  '<div class="fig-injury-summary"><div><strong>'+events.length+'</strong><span>VERIFIED FANTASY CASES</span></div><div><strong>'+leads.length+'</strong><span>LEAGUE-RELEVANT LEADS TO REVIEW</span></div></div>'+
  '<section class="fig-injury-block"><h2>MANAGER SNAPSHOT <small>VERIFIED SO FAR · NOT RANKED</small></h2><div class="fig-injury-teams">'+managers+'</div></section>'+
  '<section class="fig-injury-block"><h2>VERIFIED GAME EXITS <small>OPEN THE SOURCES</small></h2><div class="fig-injury-events">'+(reports||'<p>No verified pilot cases have been published yet.</p>')+'</div></section>'+
- '<section class="fig-injury-block"><details class="fig-injury-review"><summary>REVIEW QUEUE · '+leads.length+' RELEVANT CASES</summary><p>These are injury reporting leads, not verified counts. Their impact on end-of-game participation still requires review.</p><div class="fig-injury-leads">'+(pending||'<p>No other eligible review leads are recorded.</p>')+'</div></details></section></section>';
+ '<section class="fig-injury-block"><details class="fig-injury-review"><summary>2026 ARTICLE REVIEW QUEUE · '+leads.length+' RELEVANT CASES</summary><p>These are injury reporting leads, not verified counts. Their impact on end-of-game participation still requires review.</p><div class="fig-injury-leads">'+(pending||'<p>No other eligible review leads are recorded.</p>')+'</div></details></section>'+
+ '<section class="fig-injury-block fig-historical-audit"><h2>2023–2025 HISTORICAL DISCOVERY <small>AUTOMATED STRUCTURED DATA · UNVERIFIED</small></h2>'+
+ '<p class="fig-injury-history-note">Cross-matching official NFL injury-report datasets, Pro Football Reference offensive snap percentages, and completed fantasy lineups. A low snap share or later injury designation is only a review lead—not proof that an injury ended the game. Nothing below affects rankings until independently verified.</p>'+
+ '<div class="fig-injury-year-picker"><label for="figInjuryYear">Season</label><select id="figInjuryYear"><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option></select><label for="figInjurySearch">Find player</label><input id="figInjurySearch" type="search" placeholder="Search player or team…" aria-label="Search historical injury leads"></div>'+
+ '<div id="figHistoricalData" aria-live="polite"></div></section></section>';
+ let selected='2025',term='';
+ const renderHistory=()=>{
+  const rows=(discovery.candidates||[]).filter(c=>String(c.season)===selected&&!c.already_verified).filter(c=>!term||(c.player_name+' '+(OWNER_DISPLAY_BY_ID[c.franchise_id]||c.owner_name)).toLowerCase().includes(term));
+  const rank=rows.sort((a,b)=>(b.priority==='higher')-(a.priority==='higher')||+a.week-+b.week||String(a.player_name).localeCompare(String(b.player_name)));
+  const published=rank.slice(0,65);
+  const summary=(discovery.by_season||[]).find(x=>String(x.season)===selected);
+  const status=discovery.status==='candidate_discovery_only';
+  const top='<p class="fig-injury-history-meta">'+(status?rank.length+' review leads from '+selected+' (not verified injuries)':'Historical data scan pending; the first daily source refresh has not completed successfully yet.')+'</p>';
+  const list=published.map(c=>{
+   const owner=OWNER_DISPLAY_BY_ID[c.franchise_id]||c.owner_name;
+   const evidence=[c.offense_pct!==null?'Snap share '+Math.round(100*Number(c.offense_pct))+'% vs usual '+Math.round(100*Number(c.reference_offense_pct))+'%':'Game nonappearance'];
+   if(c.injury_report_detail?.injury)evidence.push('Following injury report: '+c.injury_report_detail.injury);
+   return '<div class="fig-injury-history-row"><div class="fig-injury-history-person"><strong>'+esc(c.player_name)+'</strong><small>'+selected+' · W'+esc(c.week)+' · '+esc(owner)+' · '+(c.starter?'STARTED':'ROTATION')+'</small><span>'+esc(evidence.join(' · '))+'</span></div><div class="fig-injury-history-actions"><span class="fig-injury-lead-status">'+(c.priority==='higher'?'HIGHER-PRIORITY LEAD':'REVIEW LEAD')+'</span><a href="'+esc(c.snaps_source_url)+'" target="_blank" rel="noopener noreferrer">Snap data ↗</a><a href="'+esc(c.injury_report_source_url)+'" target="_blank" rel="noopener noreferrer">Injury reports ↗</a></div></div>';
+  }).join('');
+  $('#figHistoricalData').innerHTML=top+(list||'<p class="fig-injury-history-note">No matching cases found in the current scan. That does not imply no injuries occurred.</p>')+(rank.length>published.length?'<p class="fig-injury-history-meta">Showing first '+published.length+' matches; refine the player search for more.</p>':'');
+ };
+ $('#figInjuryYear').onchange=e=>{selected=e.target.value;renderHistory()};
+ $('#figInjurySearch').oninput=e=>{term=e.target.value.trim().toLowerCase();renderHistory()};
+ renderHistory();
 }
 async function records(){
  await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog']);navActive('records');
