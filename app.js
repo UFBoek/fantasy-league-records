@@ -147,7 +147,7 @@ function frozenTable(heads, rows, id, opts={}) {
     const title = String(h.label).trim().toUpperCase();
     return history ? /^(VALUE|LENGTH|POINTS|SCORE|BOMBS|COUNT|TOTAL)$/.test(title) : /^(TYPE|LENGTH)$/.test(title);
   };
-  const buildHead = (h, i) => `<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? '↕' : ''}</span></button></th>`;
+  const buildHead = (h, i) => {const selected=opts.sortState?.column===i;return `<th data-col="${i}" data-key="${esc(h.key)}"${selected?` aria-sort="${opts.sortState.descending?'descending':'ascending'}"`:''}><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? (selected ? (opts.sortState.descending?'↓':'↑') : '↕') : ''}</span></button></th>`;};
   const renderRows = (start, columns) => rows.map((r, i) => {
     const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
     return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td data-key="${esc(h.key)}">${r[h.key] ?? ''}</td>`).join('')}</tr>`;
@@ -163,7 +163,7 @@ function bindFrozenTable(id, heads, opts={}) {
   if (!right || !left) return;
   const rightBody = right.tBodies[0], leftBody = left.tBodies[0];
   const allHeaders = [...left.querySelectorAll('th'), ...right.querySelectorAll('th')];
-  let activeColumn = -1, descending = true;
+  let activeColumn = opts.sortState?.column ?? -1, descending = opts.sortState?.descending ?? true;
   const sortValue = (tr, col) => {
     const key = heads[col].key;
     let parsed;
@@ -177,6 +177,7 @@ function bindFrozenTable(id, heads, opts={}) {
       const col = Number(th.dataset.col);
       descending = activeColumn !== col || !descending;
       activeColumn = col;
+      if(opts.sortState) { opts.sortState.column=col; opts.sortState.descending=descending; }
       if(typeof opts.onSort === 'function') { opts.onSort(heads[col]?.key, descending); return; }
       const field = heads[col]?.key || '';
       const textual = /^(team|player|owner|holder|type|pos|status)$/i.test(field);
@@ -219,11 +220,12 @@ function pagedWeekHistory(headers, sortedRows, makeRow, opts={}) {
  const pageSize=100, id=`fig_history_${++tableCounter}`;
  const firstDescending=opts.initialDescending!==false;
  let descending=firstDescending, shown=Math.min(pageSize,sortedRows.length);
+ const sortState={column:headers.findIndex(h=>h.key===(opts.sortKey||'points')),descending:firstDescending};
  let ordered=sortedRows;
  const label=opts.label||'performances';
  const tableMarkup=()=>{
   const rows=ordered.slice(0,shown).map((record,i)=>makeRow(record,i));
-  const t=sortableTable(headers,rows,{onSort:(key,d)=>{
+  const t=sortableTable(headers,rows,{sortState,onSort:(key,d)=>{
     if(key!=='points'&&key!=='score')return;
     descending=d;
     ordered=descending===firstDescending?sortedRows:[...sortedRows].reverse();
