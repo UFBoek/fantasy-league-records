@@ -1,0 +1,178 @@
+/* FIG League v68 — mobile legibility, record controls, integrated dark surfaces.
+   Additive overrides only: desktop and original archive data remain unchanged. */
+@media(max-width:699px) {
+  /* Record detail and streak detail: the value direction is the only sort. */
+  .fig-list-controls select[hidden] { display:none!important; }
+  .fig-list-controls label {line-height:1.35;}
+  .fig-list-controls label:has(select[hidden]) {display:flex;align-items:center;font-size:12px!important;color:#d1e2f6!important;letter-spacing:.035em;}
+  .fig-list-controls button {min-height:42px;cursor:pointer;}
+  .fig-list-table table.sortable tbody tr[hidden] {display:none!important;}
+  .fig-list-controls.fig-streak-controls {
+    display:grid!important;grid-template-columns:minmax(0,1fr) 42px;
+    align-items:end;column-gap:9px;row-gap:9px;
+    background:#16233b!important;padding:12px!important;
+  }
+  .fig-streak-controls>label:first-child {grid-column:1;grid-row:1;}
+  .fig-streak-controls>button {grid-column:2;grid-row:1;min-height:40px;align-self:end;}
+  .fig-streak-controls>.fig-streak-type-filter {grid-column:1/-1;grid-row:2;width:100%;min-width:0;}
+  .fig-streak-type-filter select {width:100%;min-height:43px;font-size:14px!important;}
+  .fig-streak-controls select {margin-top:5px!important;}
+
+  /* The team record snapshot was a light-gray desktop panel with white mobile text.
+     Make the entire section one readable navy sheet, with clear accents and separators. */
+  .team-record-dashboard {
+    background:var(--fig-panel)!important;color:var(--fig-text)!important;
+    border:1px solid #334260!important;box-shadow:none!important;
+    border-radius:14px!important;padding:15px 13px!important;
+    margin:17px 0 20px!important;
+  }
+  .team-record-dashboard .records-dashboard-head {
+    display:flex!important;align-items:flex-start!important;
+    border-bottom:1px solid #31415e!important;padding-bottom:13px!important;margin-bottom:12px!important;
+  }
+  .team-record-dashboard .records-dashboard-head span {
+    color:var(--fig-mint)!important;font-size:10px!important;letter-spacing:.13em;
+  }
+  .team-record-dashboard .records-dashboard-head h2 {
+    color:var(--fig-text)!important;font:850 clamp(21px,6vw,26px)/1.1 Inter,sans-serif!important;
+    letter-spacing:-.04em;margin-top:5px!important;
+  }
+  .team-record-dashboard .two-col-record-snapshot {
+    background:transparent!important;color:var(--fig-text)!important;border:0!important;
+    box-shadow:none!important;padding:0!important;border-radius:0!important;
+    margin:0!important;gap:13px!important;grid-template-columns:minmax(0,1fr)!important;
+  }
+  .team-record-dashboard .two-col-record-snapshot>div {min-width:0;}
+  .team-record-dashboard h3 {
+    color:#dbe8fa!important;font:850 12px/1.3 Inter,sans-serif!important;
+    letter-spacing:.065em;margin:16px 0 9px!important;
+  }
+  .team-record-dashboard h3:first-child {margin-top:4px!important;}
+  .team-record-dashboard .mini-record-list,
+  .team-record-dashboard .season-accomplishments {
+    display:flex!important;flex-direction:column!important;gap:0!important;
+    border:1px solid #2c3b55!important;border-radius:10px!important;
+    overflow:hidden;background:#142039!important;
+  }
+  .team-record-dashboard .mini-record,
+  .team-record-dashboard .season-accomplishment {
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:10px!important;min-height:53px!important;
+    padding:12px 11px!important;margin:0!important;
+    background:#142039!important;border:0!important;border-bottom:1px solid #2c3b55!important;
+    border-left:3px solid #397f9a!important;border-radius:0!important;
+    box-shadow:none!important;color:#f5f8ff!important;
+  }
+  .team-record-dashboard .mini-record.accent-streak {border-left-color:var(--fig-mint)!important;}
+  .team-record-dashboard .mini-record:last-child,
+  .team-record-dashboard .season-accomplishment:last-child {border-bottom:0!important;}
+  .team-record-dashboard .mini-record b {
+    color:#f3f7ff!important;font:750 12px/1.4 Inter,sans-serif!important;min-width:0;
+  }
+  .team-record-dashboard .mini-record span {
+    color:#82eddc!important;font:800 12px/1.3 Inter,sans-serif!important;
+    text-align:right;flex:0 0 auto;max-width:42%;
+  }
+  .team-record-dashboard .mini-record span small {display:block;color:#b3c3d9!important;font-size:10px;}
+  .team-record-dashboard .season-accomplishment {
+    border-left-color:#f4cb6a!important;justify-content:flex-start!important;
+    color:#e6eefc!important;font-size:12px!important;
+  }
+  .team-record-dashboard .season-accomplishment span {
+    color:#f4cb6a!important;font:800 13px Inter,sans-serif!important;min-width:41px;
+  }
+  .team-record-dashboard .season-accomplishment b {color:#e9f2ff!important;font-weight:750;}
+  .team-record-dashboard .snapshot-empty {
+    background:#16243e!important;color:#b7c7dc!important;
+    border-radius:0!important;padding:15px 12px!important;font-size:12px!important;
+  }
+
+  /* These historical season record links also carried white desktop backgrounds. */
+  .team-single-season-section {
+    background:#101b30!important;color:var(--fig-text)!important;
+    border:1px solid #2c3a53!important;border-radius:13px!important;
+    padding:15px 13px!important;margin:17px 0!important;
+  }
+  .team-single-season-section .single-season-team-grid {
+    background:#142039!important;border:1px solid var(--fig-line)!important;
+    border-radius:11px!important;overflow:hidden;gap:0!important;
+  }
+  .team-single-season-section .single-season-team-record {
+    background:transparent!important;color:var(--fig-text)!important;
+    border:0!important;border-bottom:1px solid var(--fig-line)!important;
+    border-radius:0!important;box-shadow:inset 3px 0 0 #f4c96a!important;
+    padding:12px 11px!important;gap:7px!important;min-width:0;
+  }
+  .team-single-season-section .single-season-team-record:nth-child(4n+2) {box-shadow:inset 3px 0 0 var(--fig-mint)!important;}
+  .team-single-season-section .single-season-team-record:nth-child(4n+3) {box-shadow:inset 3px 0 0 var(--fig-blue)!important;}
+  .team-single-season-section .single-season-team-record:last-child {border-bottom:0!important;}
+  .team-single-season-section .single-season-team-record b,
+  .team-single-season-section .single-season-team-record strong {color:var(--fig-text)!important;}
+  .team-single-season-section .single-season-team-record span {color:#b3c4da!important;}
+  .team-single-season-section .single-season-team-record em {color:var(--fig-mint)!important;font-weight:800;}
+  .team-single-season-section .snapshot-empty {background:#17263e!important;color:#b8c8e0!important;}
+
+  /* James vs Hayden: remove leftover white/pastel panels and gray-on-gray copy. */
+  .jh-archive .jh-receives,
+  .jh-overall,.jh-story,.jh-method {color:var(--fig-text)!important;}
+  .jh-archive .jh-market-total,
+  .jh-archive .jh-receives+.jh-receives .jh-market-total,
+  .jh-overview-team,.jh-story-stage {
+    background:#192940!important;border:1px solid #36506c!important;
+    border-radius:10px!important;color:var(--fig-text)!important;
+    box-shadow:none!important;
+  }
+  .jh-archive .jh-market-heading {color:#83e9d4!important;letter-spacing:.045em;}
+  .jh-archive .jh-receives+.jh-receives .jh-market-heading {color:#91c7ff!important;}
+  .jh-archive .jh-market-total strong {color:#f2faff!important;font:850 clamp(24px,7vw,30px)/1.15 Inter,sans-serif!important;}
+  .jh-archive .jh-market-total small {color:#b3c9da!important;line-height:1.45;}
+  .jh-archive .jh-column-total {
+    background:#192940!important;color:var(--fig-text)!important;
+    border:1px solid #2b425a!important;border-radius:9px!important;padding:10px 11px!important;
+  }
+  .jh-archive .jh-column-total b {color:#f2f9ff!important;font:850 22px Inter,sans-serif!important;}
+  .jh-archive .jh-column-total span {color:#b6c9dc!important;}
+  .jh-archive .jh-receives-label,
+  .jh-archive .jh-receives-label span {color:#d7e6f5!important;}
+  .jh-archive .jh-item,
+  .jh-archive .jh-receives+.jh-receives .jh-item {
+    background:#16243a!important;color:#edf7ff!important;
+    border-color:#314864!important;border-radius:9px!important;
+    padding:11px!important;
+  }
+  .jh-archive .jh-kind {color:#8ae3d4!important;}
+  .jh-archive .jh-item-top strong {color:#eff7ff!important;}
+  .jh-archive .jh-asset-detail,
+  .jh-archive .jh-asset-note {color:#b7c9df!important;}
+  .jh-archive .jh-asset-detail strong {color:#87ead3!important;}
+  .jh-archive .jh-asset-detail span {color:#aabed4!important;}
+  .jh-method {color:#aebfd2!important;}
+  .jh-overall-title,.jh-overview-label,.jh-story h3,
+  .jh-story-target,.jh-story-stage strong {color:#f1f8ff!important;}
+  .jh-overall-title small,.jh-overview-figures small,
+  .jh-overview-figures span,.jh-overview-production span,
+  .jh-overview-production small,.jh-story-market,
+  .jh-story-note,.jh-story-stage p {color:#bbcee1!important;}
+  .jh-overview-team {min-width:0;padding:13px!important;}
+  .jh-overview-figures strong,
+  .jh-overview-production strong {color:#86ead6!important;}
+  .jh-overview-production {border-color:#36506c!important;}
+  .jh-story-stage {padding:12px!important;}
+  .jh-story-stage>span:first-child {color:#8be4d6!important;}
+  .jh-story-flow-arrow {color:var(--fig-mint)!important;}
+  .jh-story-kicker {color:#8de4d5!important;}
+  .jh-story-link {
+    background:#123e48!important;border:1px solid #357984!important;
+    color:#dbfff6!important;border-radius:8px!important;
+  }
+  .jh-story-link small {color:#bce7e0!important;}
+
+  /* Normalize remaining prominent desktop-white surfaces within mobile-only content. */
+  .ra-team-figures>div,.h2h-details,.game-detail-grid,
+  .player-book-section .player-book-head,.playoff-podium,
+  .trade-sides,.roster-panel,.single-season-team-grid {
+    color:var(--fig-text)!important;
+  }
+  .snapshot-line strong,.season-accomplishment b,
+  .ra-team-figures strong {color:var(--fig-text)!important;}
+}
