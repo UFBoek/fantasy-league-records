@@ -1,0 +1,138 @@
+[
+  {
+    "season": 2026,
+    "week": 1,
+    "player_name": "Zay Flowers",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-1-games-2026",
+    "reason": "Hamstring exit reported; separate reporting suggests game flow may have influenced non-return; verify impact.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 1,
+    "player_name": "Ladd McConkey",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-1-games-2026",
+    "reason": "NFL reports he did not return with a chest injury; confirm timing and injury-related limitation.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 2,
+    "player_name": "Caleb Williams",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-2-games",
+    "reason": "Carted off late with a hamstring injury; confirm whether returned or had remaining game snaps.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 2,
+    "player_name": "David Njoku",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-2-games",
+    "reason": "Ruled out with a knee injury; check injury timing and participation.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 2,
+    "player_name": "Mike Evans",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-2-games",
+    "reason": "NFL reports no return with a hip injury; confirm time of exit and context.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 2,
+    "player_name": "Saquon Barkley",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-2-games",
+    "reason": "Returned after halftime following a stinger; confirm if he fully finished (likely exclude).",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 2,
+    "player_name": "Rico Dowdle",
+    "source_url": "https://www.nfl.com/news/notable-injuries-news-from-sunday-s-week-2-games",
+    "reason": "Returned following a temporary toe-related first-half absence; confirm normal game finish.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 3,
+    "player_name": "Breece Hall",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-from-sunday-week-3-games",
+    "reason": "Thigh injury with game-day rule-out; verify timing and injury-forced early finish.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 3,
+    "player_name": "Jalen Coker",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-from-sunday-week-3-games",
+    "reason": "Quad injury and ruled out; confirm when he exited.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 3,
+    "player_name": "Travis Etienne",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-from-sunday-week-3-games",
+    "reason": "NFL reports he did not return; verify injury-specific cause and timing.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 3,
+    "player_name": "De'Von Achane",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-from-sunday-week-3-games",
+    "reason": "Knee injury with rule-out; check in-game departure and roster eligibility.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 3,
+    "player_name": "Baker Mayfield",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-from-sunday-week-3-games",
+    "reason": "Late thumb injury; check whether it stopped his participation before game end.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 4,
+    "player_name": "Lamar Jackson",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-sunday-week-4-games",
+    "reason": "Ankle injury, did not return; verify the exact time and circumstances.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 4,
+    "player_name": "Ladd McConkey",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-sunday-week-4-games",
+    "reason": "Foot injury, ruled out; verify whether unable to finish normally.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 4,
+    "player_name": "Jalen Nailor",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-sunday-week-4-games",
+    "reason": "Concussion and ruled out; confirm when in game it happened.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 4,
+    "player_name": "Marcus Mariota",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-sunday-week-4-games",
+    "reason": "Knee injury, replaced in first quarter; verify whether he returned.",
+    "review_status": "needs_game_finish_verification"
+  },
+  {
+    "season": 2026,
+    "week": 4,
+    "player_name": "Saquon Barkley",
+    "source_url": "https://amp.nfl.com/news/notable-injuries-news-sunday-week-4-games",
+    "reason": "Hamstring injury, ruled out in first half; check if rostered for the fantasy week.",
+    "review_status": "needs_game_finish_verification"
+  }
+]
