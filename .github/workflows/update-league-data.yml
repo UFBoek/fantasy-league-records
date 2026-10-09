@@ -1,0 +1,124 @@
+name: Update league data
+
+on:
+  schedule:
+    # Daily at 12:17 UTC (morning in US Eastern time).
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-league-data.yml'
+
+# Use the same deployment queue as the website publisher.
+concurrency:
+  group: league-pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Refresh Sleeper and RosterAudit
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Check out current league website
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: scripts/requirements-automation.txt
+
+      - name: Install refresh dependencies
+        run: python -m pip install -r scripts/requirements-automation.txt
+
+      - name: Check the data pipeline before contacting providers
+        run: python -m unittest discover -s tests
+
+      - name: Rebuild Sleeper history, standings, rosters and records
+        shell: bash
+        run: |
+          if ! python scripts/build_site_data.py > "$RUNNER_TEMP/fig-sleeper-build.log" 2>&1; then
+            echo '::error::Sleeper database rebuild failed; existing published records will remain unchanged.'
+            tail -n 140 "$RUNNER_TEMP/fig-sleeper-build.log"
+            exit 1
+          fi
+          tail -n 35 "$RUNNER_TEMP/fig-sleeper-build.log"
+
+      - name: Refresh completed rookie-pick audit
+        run: python scripts/build_draft_pick_audit.py
+
+      - name: Recalculate direct-trade asset history
+        run: python scripts/build_trade_lineage.py
+
+      - name: Refresh RosterAudit dynasty values (keep last good on failure)
+        shell: bash
+        run: |
+          if python scripts/build_rosteraudit_values.py; then
+            echo 'RosterAudit API request completed.'
+          else
+            echo '::warning::RosterAudit API was unavailable; retaining the last good snapshot.'
+            git restore -- data/rosteraudit_values.json
+          fi
+
+      - name: Validate the complete snapshot before publishing
+        run: python scripts/validate_refresh.py
+
+      - name: Run regression tests against the refreshed data
+        run: python -m unittest discover -s tests
+
+      - name: Commit safe JSON changes
+        id: commit
+        shell: bash
+        run: |
+          git add data/
+          if git diff --cached --quiet; then
+            echo 'No data changes. Skipping commit and deployment.'
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'data: refresh Sleeper and RosterAudit snapshots'
+            git push origin HEAD:main
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+            echo 'League data updated on main.'
+          fi
+
+  deploy:
+    name: Publish refreshed league website
+    needs: refresh
+    if: needs.refresh.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the refreshed main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Stage the website with its latest JSON data
+        run: bash scripts/stage_pages.sh "$RUNNER_TEMP/league-site"
+
+      - name: Upload refreshed website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/league-site
+
+      - name: Publish refreshed website
+        id: deployment
+        uses: actions/deploy-pages@v4
