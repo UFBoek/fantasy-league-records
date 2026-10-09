@@ -172,9 +172,11 @@ def parse_picks(raw, fmt):
                 if result: return result
     for item in entries:
         if not isinstance(item, dict): continue
-        year = item.get('season', item.get('year', item.get('draft_year')))
-        rnd = item.get('round', item.get('round_number'))
-        slot = item.get('slot', item.get('tier', item.get('range')))
+        # Public /picks rows use pick_season, pick_round and pick_slot.
+        # Keep the older aliases for other documented response variations.
+        year = item.get('pick_season', item.get('season', item.get('year', item.get('draft_year'))))
+        rnd = item.get('pick_round', item.get('round', item.get('round_number')))
+        slot = item.get('pick_slot', item.get('slot', item.get('tier', item.get('range'))))
         if slot is None and any(k in item for k in ('early','mid','late')):
             for label in ('early','mid','late'):
                 if label in item:
