@@ -14,20 +14,32 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 
 
-def cutoff_by_season(history):
+def cutoff_by_season(history, league_settings=None):
+    # While a week is in progress, leg may advance before Sleeper officially
+    # finalizes scoring. Never exceed its last_scored_leg when available.
+    last_scored = {}
+    for row in league_settings or []:
+        cfg = row.get("settings_json", {})
+        if isinstance(cfg, str):
+            cfg = json.loads(cfg)
+        if isinstance(cfg, dict) and cfg.get("last_scored_leg") is not None:
+            last_scored[str(row["season"])] = max(0, int(cfg["last_scored_leg"]))
     out = {}
     for item in history:
         season = str(item["season"])
         leg = int(item.get("current_leg") or 0)
         status = str(item.get("status", "")).lower()
-        out[season] = leg if status == "complete" else max(0, leg - 1)
+        if status == "complete":
+            out[season] = leg
+        else:
+            out[season] = min(max(0, leg - 1), last_scored.get(season, leg))
     return out
 
 
-def normalize_player_log(rows, history):
+def normalize_player_log(rows, history, league_settings=None):
     if not isinstance(rows, list) or not rows:
         raise ValueError("Missing completed player starter data")
-    cutoff = cutoff_by_season(history)
+    cutoff = cutoff_by_season(history, league_settings)
     output = []
     seen = set()
     for row in rows:
@@ -78,8 +90,9 @@ def normalize_player_log(rows, history):
 def main():
     target = DATA / "player_game_log.json"
     history = json.loads((DATA / "league_history.json").read_text(encoding="utf8"))
+    settings = json.loads((DATA / "league_settings.json").read_text(encoding="utf8"))
     raw = json.loads(target.read_text(encoding="utf8"))
-    converted = normalize_player_log(raw, history)
+    converted = normalize_player_log(raw, history, settings)
     tmp = target.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(converted, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf8")
     tmp.replace(target)
