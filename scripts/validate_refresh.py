@@ -83,6 +83,57 @@ def protect_rosteraudit():
           "preserving the previous verified dynasty snapshot instead.")
 
 
+
+def guard_completed_weeks(history):
+    """Fail closed if any official stat or record uses an unfinished Sleeper week.
+
+    Unfiltered roster archives and future schedule rows can exist for app
+    navigation, but rows tagged as official scoring must not be from those weeks.
+    """
+    from prepare_player_records import cutoff_by_season
+
+    limits = cutoff_by_season(history)
+    # These exports represent completed, scored weeks ONLY.
+    for name in ("games", "all_games", "player_game_log",
+                 "weekly_scoring_ranks", "playoffs"):
+        records = load(name)
+        for row in records:
+            year = str(row.get("season"))
+            week = int(row.get("week") or 0)
+            check(year in limits and 1 <= week <= limits[year],
+                  f"{name}.json contains unfinished week {year} W{week}; "
+                  f"completed through W{limits.get(year)}")
+
+    # Raw weekly roster archive intentionally includes current/future weeks,
+    # but only past completed weeks may be tagged for official records.
+    for row in load("weekly_full_rosters"):
+        if row.get("counts_for_official_records") is not True:
+            continue
+        year = str(row.get("season"))
+        week = int(row.get("week") or 0)
+        check(year in limits and 1 <= week <= limits[year],
+              f"weekly_full_rosters.json marked live week {year} W{week} as official")
+
+    for name in ("streaks", "website_streaks"):
+        for row in load(name):
+            year = str(row.get("end_season"))
+            week = int(row.get("end_week") or 0)
+            check(year in limits and 1 <= week <= limits[year],
+                  f"{name}.json includes unfinished streak ending {year} W{week}")
+
+    # An accidental export-field change can break every player record display
+    # without shrinking the JSON file. Assert the actual website contract.
+    logs = load("player_game_log")
+    for row in logs:
+        check(bool(row.get("player_name")) and
+              isinstance(row.get("starter_points"), (int, float)),
+              "player_game_log.json missing player_name/starter_points; "
+              "the Player Records interface would display blank statistics")
+    print("Official record week safety passed: every scored record stops "
+          "before the active Sleeper week.")
+
+
+
 def main():
     for item in REQUIRED_LISTS:
         contents = load(item)
@@ -115,6 +166,8 @@ def main():
           int(lineage.get("trade_count", 0)) >= 12 and
           isinstance(lineage.get("asset_paths"), dict),
           "James/Hayden trade evidence is missing")
+
+    guard_completed_weeks(history)
 
     protect_rosteraudit()
 
