@@ -22,7 +22,7 @@
     const value = Number(raw);
     return Number.isFinite(value) ? value : null;
   }
-  function gameCards(rows, names) {
+  function gameCards(rows) {
     const groups = new Map();
     for (const row of rows) {
       const roster = Number(row.roster_id);
@@ -52,7 +52,7 @@
       }).join('');
       return '<article class="fig-live-match"><div class="fig-live-match-label">' +
         (pair ? 'MATCHUP ' + String(id).replace(/[^0-9]/g,'') : 'UNPAIRED ROSTER') + '</div>' +
-        sides + liveLineups(group, leagueMeta, names, {compact:true}) + '<a class="fig-live-open" href="#/livematch/' + Number(leagueMeta.settings.leg) + '/' + encodeURIComponent(id) + '">OPEN MATCHUP DETAILS →</a></article>';
+        sides + '<a class="fig-live-open" href="#/livematch/' + Number(leagueMeta.settings.leg) + '/' + encodeURIComponent(id) + '">VIEW LINEUPS →</a></article>';
     }).join('');
   }
   async function refresh(force = false) {
@@ -85,9 +85,9 @@
       const rows = await result.json();
       if (!Array.isArray(rows)) throw new Error('Unexpected Sleeper matchup data');
       if (document.getElementById('figLiveBoard') !== board) return;
-      const names = await namesForPlayers();
-      if (document.getElementById('figLiveBoard') !== board) return;
-      const cards = gameCards(rows, names);
+      // Scoreboard cards show scores only. Player lineups are fetched when
+      // visitors open an individual current-week matchup.
+      const cards = gameCards(rows);
       board.innerHTML = cards ? '<div class="fig-live-grid">' + cards + '</div>' :
         '<div class="fig-live-empty">Current-week matchups have not been posted on Sleeper yet.</div>';
       if (status) status.textContent = 'Week ' + week + ' · Updated ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
