@@ -29,3 +29,53 @@
   .fig-live-score {font-size:18px;}
   .fig-live-panel .section-title {font-size:16px;}
 }
+
+
+/* Shared manager identities: every record/streak/game table can render the same
+   league portrait beside a franchise name, including dense mobile rows. */
+.fig-team-identity { display:inline-flex; align-items:center; vertical-align:middle; gap:7px; max-width:100%; min-width:0; line-height:1.35; }
+.fig-team-identity-name {min-width:0;overflow-wrap:anywhere;}
+.fig-team-identity .fig-team-avatar,.fig-team-avatar {
+  display:inline-block;flex:0 0 23px;width:23px;height:23px;
+  object-fit:cover;object-position:center;border-radius:50%;
+  border:1px solid #496680;background:#21344c;vertical-align:middle;
+}
+.fig-team-identity .identity-badge {flex:0 0 auto;}
+.sortable tbody td .fig-team-identity {white-space:normal;}
+.fig-live-side .fig-team-identity {flex:1;min-width:0; color:inherit;}
+.fig-live-side .fig-team-identity img {flex-shrink:0;}
+.fig-live-match {cursor:pointer;}
+.fig-live-open {display:inline-block;padding:8px 0 2px;color:#61e6d4!important;font-size:11px;font-weight:850;text-decoration:none;letter-spacing:.025em;}
+.fig-live-open:focus-visible {outline:2px solid #61e6d4;outline-offset:3px;}
+.fig-live-match:focus-within {border-color:#54dac8;}
+.fig-live-detail {margin-top:15px;}
+.fig-live-detail-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;}
+.fig-live-team {min-width:0;background:#15223a;border:1px solid #365069;border-radius:12px;overflow:hidden;}
+.fig-live-team-head {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;background:#20324f;}
+.fig-live-team-head .fig-team-identity {font-size:17px;font-weight:850;color:#f0f8ff;text-decoration:none;}
+.fig-live-team-head .fig-team-avatar {width:37px;height:37px;flex-basis:37px;border-radius:12px;}
+.fig-live-team-total {font-size:23px;color:#8af4db;font-variant-numeric:tabular-nums;}
+.fig-live-team-section {padding:10px 12px 7px;font-size:10px;letter-spacing:.1em;font-weight:850;color:#9fbdd4;background:#101d32;}
+.fig-live-player-row {display:grid;grid-template-columns:50px minmax(0,1fr) 74px;gap:9px;align-items:center;padding:10px 12px;border-top:1px solid #293b55;color:#f0f7ff;}
+.fig-live-slot {padding:4px 2px;background:#283c54;color:#aee6e2;text-align:center;border-radius:6px;font-size:10px;font-weight:800;}
+.fig-live-player-name {min-width:0;overflow-wrap:anywhere;font-weight:700;font-size:12px;}
+.fig-live-player-name small {display:block;color:#a9bed5;font-size:10px;font-weight:600;padding-top:2px;}
+.fig-live-player-points {text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:#e5f4ff;}
+.fig-more-grid .fig-more-item {display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:7px;text-decoration:none;min-height:126px;}
+.fig-more-grid .fig-more-item:nth-child(-n+2) {background:#193b43!important;border:1px solid #398c88!important;}
+.fig-more-grid .fig-more-item:nth-child(-n+2) .team-name {color:#b9fff1!important;}
+.fig-more-grid .fig-more-item .avatar {margin:0;width:37px;height:37px;flex-shrink:0;background:#21465b;color:#7ee3d2;border-radius:10px;font-size:21px;}
+.fig-more-open {display:block;font-size:10px;font-weight:800;letter-spacing:.05em;color:#74e8d4;}
+@media(max-width:699px) {
+  .fig-team-identity {gap:5px;}
+  .fig-team-identity .fig-team-avatar,.fig-team-avatar {width:21px;height:21px;flex-basis:21px;}
+  .fig-list-table td.fig-name .fig-team-identity,.fig-list-table td.fig-name a {max-width:100%;min-width:0;}
+  .fig-live-detail-grid {grid-template-columns:1fr;}
+  .fig-live-player-row {grid-template-columns:42px minmax(0,1fr) 66px;gap:7px;padding:9px 9px;}
+  .fig-live-team-head .fig-team-avatar {width:34px;height:34px;flex-basis:34px;}
+  .fig-live-team-head .fig-team-identity {font-size:15px;}
+  .fig-live-team-total {font-size:21px;}
+  .fig-more-grid .fig-more-item {min-height:110px;padding:12px!important;}
+  .fig-more-grid .fig-more-item .avatar {width:34px;height:34px;margin:0!important;}
+  .fig-more-grid .fig-more-item .team-name {font-size:13px;letter-spacing:normal;}
+}

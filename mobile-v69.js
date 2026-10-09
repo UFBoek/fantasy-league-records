@@ -29,6 +29,7 @@
     if (route === 'streak') return '#/streaks';
     if (['playoffbracket'].includes(route)) return '#/champions';
     if (route === 'game') return '#/games';
+    if (route === 'livematch') return '#/home';
     if (['matchup','rivalry'].includes(route)) return '#/h2h';
     if (route.startsWith('player') && route !== 'players') return '#/players';
     return '#/home';
@@ -97,6 +98,7 @@
       ['records','record','singleseasons','special','breakdown'].includes(route) ? 'records' :
       ['streaks','streak'].includes(route) ? 'streaks' :
       ['minigames','game'].includes(route) ? 'more' :
+      route === 'livematch' ? 'home' :
       ['standings','playoffs','champions','h2h','dynasty','draft','trades'].includes(route) ? 'more' : route;
     document.querySelectorAll('.app-dock a').forEach(a => {
       const active = a.getAttribute('href') === '#/' + dockSection;
