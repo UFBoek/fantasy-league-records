@@ -143,7 +143,7 @@
     const isRecordHistory = ['record','streak','singleseasons','special','playerweeks','playerbombrank','playerbomb'].includes(route) && (valueIndex >= 0 || lengthIndex >= 0);
     const standingsDefault = route === 'standings' ?
       labels.findIndex(text => /^(WIN %|AP %|LUCK W|ALL-PLAY %)$/i.test(text)) : -1;
-    const mainIndex = isRecordHistory ? (valueIndex >= 0 ? valueIndex : lengthIndex) :
+    const mainIndex = isRecordHistory ? (route === 'streak' && lengthIndex >= 0 ? lengthIndex : (valueIndex >= 0 ? valueIndex : lengthIndex)) :
       isActiveStreaks ? typeIndex : standingsDefault >= 0 ? standingsDefault : metricIndex;
     const isStatsBoard = route === 'players' || route === 'standings';
     const allowedIndices = isRecordHistory ? [mainIndex] :
@@ -160,7 +160,7 @@
     });
     select.value=String(mainIndex);
     if (isRecordHistory) {
-      label.textContent = valueIndex >= 0 ? 'SORT BY VALUE' : 'SORT BY STREAK LENGTH';
+      label.textContent = route === 'streak' || valueIndex < 0 ? 'SORT BY STREAK LENGTH' : 'SORT BY VALUE';
       select.hidden=true;
     } else {
       label.textContent = isActiveStreaks ? 'SORT ACTIVE STREAKS BY' : 'SORT LEADERS BY';
