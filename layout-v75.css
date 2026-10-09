@@ -1,0 +1,238 @@
+/* v75 — repair illegible feature + physically separate frozen and scrolling columns.
+   A fixed pane avoids WebKit sticky table-cell failures seen on iPhones. */
+.page-wrap .player-week-feature {
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  background:#292b2c!important;color:#fff!important;border:2px solid #292b2c!important;
+  border-radius:22px!important;padding:22px!important;gap:12px!important;
+}
+.page-wrap .player-week-feature span {color:#80e7cc!important;font-weight:900!important;letter-spacing:.14em!important;}
+.page-wrap .player-week-feature h3 {
+  color:#fff!important;font:900 clamp(19px,3.5vw,28px)/1.18 "Archivo Black",Inter,sans-serif!important;
+  letter-spacing:-.025em!important;text-transform:uppercase!important;
+}
+.page-wrap .player-week-feature-list {
+  color:#f2f4f3!important;text-align:left!important;font-size:clamp(12px,1.6vw,15px)!important;line-height:1.8!important;
+  display:grid!important;gap:1px!important;
+}
+.page-wrap .player-week-feature-list b {color:#f5f7f6!important;font-weight:750!important;}
+
+/* Two true side-by-side tables: Rank + Name never participates in horizontal scroll.
+   Fixed heights keep both halves aligned even on Safari. */
+.page-wrap .fig-frozen-grid {
+  --fig-fixed-size:256px;
+  display:grid!important;grid-template-columns:var(--fig-fixed-size) minmax(0,1fr)!important;
+  width:100%!important;min-width:0!important;
+  overflow:hidden!important;border:4px solid #dedede!important;
+  border-radius:24px!important;background:#dedede!important;
+  isolation:isolate;
+}
+.page-wrap .fig-frozen-identity {
+  width:var(--fig-fixed-size);min-width:0!important;z-index:2;
+  overflow:hidden!important;background:#fff!important;
+  border-right:3px solid #bfc7c4!important;
+  box-shadow:4px 0 10px -7px #363636;
+}
+.page-wrap .fig-frozen-grid table {
+  border-collapse:separate!important;border-spacing:0!important;table-layout:fixed!important;
+  background:#dedede!important;width:100%!important;min-width:0!important;
+}
+.page-wrap .fig-frozen-grid .fig-frozen-identity-table {
+  display:table!important;width:100%!important;
+}
+.page-wrap .fig-frozen-grid thead {display:table-header-group!important;}
+.page-wrap .fig-frozen-grid tbody {display:table-row-group!important;}
+.page-wrap .fig-frozen-grid tr {display:table-row!important;position:static!important;transform:none!important;}
+.page-wrap .fig-frozen-grid tr[style*="display: none"],
+.page-wrap .fig-frozen-grid tr.fig-hidden {display:none!important;}
+.page-wrap .fig-frozen-grid th {
+  position:static!important;background:#e0e0e0!important;color:#2b2c2e!important;
+  height:58px!important;padding:7px 10px!important;
+  border-bottom:4px solid #dedede!important;border-right:3px solid #dedede!important;
+  vertical-align:middle;text-align:left;font:900 11px/1.15 Inter,sans-serif!important;
+}
+.page-wrap .fig-frozen-grid td {
+  position:static!important;height:78px!important;max-height:78px!important;
+  padding:7px 10px!important;border-bottom:4px solid #dedede!important;
+  border-right:3px solid #dedede!important;background:#fff!important;
+  color:#272829!important;font:750 13px/1.25 Inter,sans-serif!important;
+  white-space:normal!important;vertical-align:middle;overflow:hidden;
+}
+.page-wrap .fig-frozen-grid tr:hover td,.page-wrap .fig-frozen-grid tr:focus-within td {background:#f1faf6!important;}
+.page-wrap .fig-frozen-grid .sort-head {
+  display:inline-flex!important;align-items:center;gap:3px;
+  color:#303233!important;background:transparent!important;
+  border:0!important;padding:5px 0!important;
+  font:900 11px/1.2 Inter,sans-serif!important;text-align:left!important;
+  white-space:normal!important;
+}
+.page-wrap .fig-frozen-grid .sort-head .sort-icon {color:#6e7775!important;}
+.page-wrap .fig-frozen-grid .sort-head:disabled {opacity:1!important;cursor:default!important;}
+.page-wrap .fig-frozen-grid .sort-head:disabled .sort-icon {display:none!important;}
+.page-wrap .fig-frozen-identity th:nth-child(1),
+.page-wrap .fig-frozen-identity td:nth-child(1) {
+  width:51px!important;max-width:51px!important;text-align:center!important;
+  padding:5px!important;font-weight:900!important;
+}
+.page-wrap .fig-frozen-identity th:nth-child(2),.page-wrap .fig-frozen-identity td:nth-child(2) {
+  width:calc(var(--fig-fixed-size) - 51px)!important;max-width:calc(var(--fig-fixed-size) - 51px)!important;
+  text-align:left!important;
+}
+.page-wrap .fig-frozen-identity th:nth-child(1) .sort-head {justify-content:center!important;}
+.page-wrap .fig-frozen-stats {
+  display:block!important;overflow-x:auto!important;overflow-y:hidden!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  border:0!important;border-radius:0!important;padding:0!important;
+  background:#dedede!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+  scrollbar-width:thin;scrollbar-color:#aaa #ddd;
+}
+.page-wrap .fig-frozen-stats table {
+  width:max-content!important;min-width:100%!important;
+  table-layout:fixed!important;
+}
+.page-wrap .fig-frozen-stats th,.page-wrap .fig-frozen-stats td {
+  min-width:118px!important;width:118px!important;max-width:118px!important;
+  white-space:nowrap!important;font-variant-numeric:tabular-nums;
+}
+.page-wrap .fig-frozen-stats td {font-size:14px!important;}
+.page-wrap .fig-frozen-stats td .fig-medal {vertical-align:middle;}
+.page-wrap .fig-frozen-grid .fig-owner-link {display:inline-flex;align-items:center;min-width:0;max-width:100%;}
+.page-wrap .fig-frozen-grid .fig-team-identity {display:inline-flex;align-items:center;gap:7px;min-width:0;max-width:100%;}
+.page-wrap .fig-frozen-grid .fig-team-identity-name {white-space:normal!important;overflow-wrap:anywhere!important;}
+.page-wrap .fig-frozen-grid .fig-owner-link .fig-team-avatar {
+  display:inline-block!important;width:37px!important;height:37px!important;flex:0 0 37px!important;
+  border:1px solid #d0d0d0!important;border-radius:50%!important;object-fit:cover!important;
+}
+.page-wrap .fig-frozen-grid .fig-frozen-identity td a {color:#282a2b!important;text-decoration:none!important;font-weight:900!important;}
+.page-wrap .fig-frozen-grid .fig-frozen-identity td a:hover {color:#128667!important;}
+.page-wrap .fig-frozen-stats:focus-visible {outline:3px solid #139a7b!important;outline-offset:-3px!important;}
+
+/* Hall-of-records posters: trophy/leader visuals with genuine runner-up data. */
+.page-wrap .fig-podium-grid {
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:13px!important;padding:16px!important;background:#e4e4e4!important;
+  border-radius:28px!important;
+}
+.page-wrap .fig-podium-card {
+  display:flex!important;flex-direction:column;align-items:center;min-width:0;
+  padding:15px 12px 12px;background:#fff!important;border:1px solid #dbdbdb!important;
+  border-radius:22px!important;color:#242525!important;text-align:center;
+  text-decoration:none!important;box-shadow:none!important;
+}
+.page-wrap .fig-podium-banner {
+  align-self:stretch;background:#292a2b;color:#9cf2d3!important;
+  font:900 11px/1.2 Inter,sans-serif!important;letter-spacing:.04em!important;
+  padding:11px 4px;text-align:center;
+  clip-path:polygon(0 0,100% 0,100% 88%,50% 100%,0 88%);
+}
+.page-wrap .fig-podium-coral .fig-podium-banner {color:#f9b8a7!important;}
+.page-wrap .fig-podium-blue .fig-podium-banner {color:#b5dbff!important;}
+.page-wrap .fig-podium-gold .fig-podium-banner {color:#ffdf85!important;}
+.page-wrap .fig-podium-photo {width:100%;display:flex;justify-content:center;margin:13px auto 6px;}
+.page-wrap .fig-podium-avatar {
+  width:clamp(90px,11vw,144px)!important;height:clamp(90px,11vw,144px)!important;
+  border-radius:25px;object-fit:cover;background:#e0e0e0;border:4px solid #eee;
+}
+.page-wrap .fig-podium-name {font:900 14px/1.2 "Archivo Black",Inter,sans-serif!important;overflow-wrap:anywhere;text-transform:uppercase!important;}
+.page-wrap .fig-podium-value {font:900 clamp(36px,4.5vw,58px)/1 "Archivo Black",Inter,sans-serif!important;color:#242526!important;margin:7px 0 0;}
+.page-wrap .fig-podium-label {font:800 9px Inter,sans-serif!important;color:#3b947b!important;letter-spacing:.075em;padding:4px 0 10px;}
+.page-wrap .fig-podium-rivals {width:100%;border-top:3px solid #e2e2e2!important;margin-top:auto;padding-top:9px;}
+.page-wrap .fig-podium-rival {
+  display:grid;grid-template-columns:25px minmax(0,1fr) 35px;
+  align-items:center;text-align:left;gap:5px;padding:5px 0;
+  color:#3a3c3c!important;font:750 11px/1.2 Inter,sans-serif!important;
+}
+.page-wrap .fig-podium-rank {background:#eaeaea;border-radius:5px;padding:4px;font-weight:900;text-align:center;}
+.page-wrap .fig-podium-rival-name {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.page-wrap .fig-podium-rival b {text-align:right;font:900 13px Inter,sans-serif!important;}
+.page-wrap .fig-podium-view {color:#14896f!important;font:850 9px Inter,sans-serif!important;letter-spacing:.03em;padding-top:12px;}
+
+/* Profile portraits and supporting thumbnails now have meaningful visual size. */
+.page-wrap .team-profile-photo {
+  width:200px!important;height:200px!important;flex:0 0 200px!important;
+  border-radius:28px!important;border:5px solid #e1e1e1!important;
+  box-shadow:none!important;background:#e4e4e4!important;object-fit:cover!important;
+}
+.page-wrap .team-card-photo {
+  width:108px!important;height:108px!important;object-fit:cover!important;
+  border-radius:22px!important;border:3px solid #dedede!important;box-shadow:none!important;
+}
+.page-wrap .ra-rank-photo {width:72px!important;height:72px!important;border-radius:17px!important;object-fit:cover;}
+.page-wrap .fig-champion-portrait {width:min(82%,250px)!important;max-width:250px!important;}
+.page-wrap .fig-streak-portrait {width:128px!important;height:128px!important;}
+.page-wrap .playoff-podium .fig-team-avatar,.page-wrap .game-side-head .fig-team-avatar {width:40px!important;height:40px!important;flex-basis:40px!important;}
+@media(max-width:900px) {
+  .page-wrap .fig-podium-grid {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:699px) {
+  .page-wrap .player-week-feature {padding:17px 16px!important;gap:10px!important;}
+  .page-wrap .player-week-feature h3 {font-size:20px!important;}
+  .page-wrap .fig-frozen-grid {--fig-fixed-size:205px;border:3px solid #ddd!important;border-radius:20px!important;}
+  .page-wrap .fig-frozen-identity th:nth-child(1),.page-wrap .fig-frozen-identity td:nth-child(1) {width:40px!important;max-width:40px!important;}
+  .page-wrap .fig-frozen-identity th:nth-child(2),.page-wrap .fig-frozen-identity td:nth-child(2) {
+    width:165px!important;max-width:165px!important;padding:6px!important;
+  }
+  .page-wrap .fig-frozen-grid th {height:55px!important;font-size:10px!important;padding:6px!important;}
+  .page-wrap .fig-frozen-grid td {height:83px!important;max-height:83px!important;font-size:12px!important;padding:7px!important;}
+  .page-wrap .fig-frozen-grid .sort-head {font-size:10px!important;}
+  .page-wrap .fig-frozen-stats th,.page-wrap .fig-frozen-stats td {min-width:105px!important;width:105px!important;max-width:105px!important;}
+  .page-wrap .fig-frozen-grid .fig-owner-link .fig-team-avatar {
+    width:34px!important;height:34px!important;flex-basis:34px!important;
+  }
+  .page-wrap .fig-podium-grid {grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:9px!important;gap:9px!important;border-radius:22px!important;}
+  .page-wrap .fig-podium-card {padding:10px 8px 10px!important;border-radius:15px!important;}
+  .page-wrap .fig-podium-banner {font-size:10px!important;padding:10px 4px!important;}
+  .page-wrap .fig-podium-avatar {width:96px!important;height:96px!important;border-radius:21px!important;}
+  .page-wrap .fig-podium-name {font-size:13px!important;}
+  .page-wrap .fig-podium-value {font-size:37px!important;}
+  .page-wrap .fig-podium-rival {grid-template-columns:22px minmax(0,1fr) 29px;gap:3px;font-size:10px!important;}
+  .page-wrap .fig-podium-rival b {font-size:11px!important;}
+  .page-wrap .team-profile-top {
+    display:flex!important;align-items:center!important;gap:16px!important;
+    padding:19px 11px!important;background:#ededed!important;border:1px solid #dedede!important;
+    border-radius:21px!important;
+  }
+  .page-wrap .team-profile-photo {
+    width:122px!important;height:122px!important;flex:0 0 122px!important;
+    border:4px solid #fff!important;border-radius:24px!important;
+  }
+  .page-wrap .team-profile-copy h1 {font:900 clamp(24px,6vw,32px)/1.05 "Archivo Black",Inter,sans-serif!important;color:#252525!important;}
+  .page-wrap .team-profile-sub {font-size:13px!important;color:#62686b!important;}
+  .page-wrap .team-card-photo {
+    width:83px!important;height:83px!important;border-radius:19px!important;border:3px solid #ddd!important;margin-bottom:8px!important;
+  }
+  .page-wrap .ra-rank-photo {width:56px!important;height:56px!important;border-radius:13px!important;}
+  .page-wrap .fig-champion-portrait {width:min(76%,238px)!important;max-width:238px!important;}
+  .page-wrap .fig-streak-portrait {width:107px!important;height:107px!important;}
+  .page-wrap .fig-table-hint {font-size:10px!important;}
+}
+@media(max-width:375px) {
+  .page-wrap .fig-frozen-grid {--fig-fixed-size:178px;}
+  .page-wrap .fig-frozen-identity th:nth-child(1),.page-wrap .fig-frozen-identity td:nth-child(1) {width:34px!important;max-width:34px!important;}
+  .page-wrap .fig-frozen-identity th:nth-child(2),.page-wrap .fig-frozen-identity td:nth-child(2) {width:144px!important;max-width:144px!important;}
+  .page-wrap .fig-frozen-grid .fig-owner-link .fig-team-avatar {width:30px!important;height:30px!important;flex-basis:30px!important;}
+  .page-wrap .team-profile-photo {width:110px!important;height:110px!important;flex-basis:110px!important;}
+}
+
+/* A readable visual cue on the smaller category cards, without putting a tiny
+   avatar next to every repeated name. */
+.page-wrap .unified-record-grid .record-index-card::before {
+ content:"";display:block;width:38px;height:5px;border-radius:10px;
+ background:#2cae91;margin:1px 0 11px;
+}
+.page-wrap .unified-record-grid .record-index-card:nth-child(4n+2)::before {background:#e3b84c;}
+.page-wrap .unified-record-grid .record-index-card:nth-child(4n+3)::before {background:#539ec4;}
+.page-wrap .unified-record-grid .record-index-card:nth-child(4n+4)::before {background:#d98b6c;}
+.page-wrap .table-wrap:not(.fig-frozen-stats) .fig-owner-link .fig-team-avatar {
+ display:inline-block!important;width:33px!important;height:33px!important;flex-basis:33px!important;
+ border:1px solid #d1d6d3!important;object-fit:cover!important;
+}
+.page-wrap .fig-live-match .fig-team-avatar,.page-wrap .fig-live-team-head .fig-team-avatar {
+ display:inline-block!important;width:34px!important;height:34px!important;flex-basis:34px!important;
+ border-radius:11px!important;object-fit:cover!important;
+}
+@media (max-width:699px) {
+ .page-wrap .table-wrap:not(.fig-frozen-stats) .fig-owner-link .fig-team-avatar {
+   width:31px!important;height:31px!important;flex-basis:31px!important;
+ }
+}

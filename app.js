@@ -71,12 +71,85 @@ function sortableTable(headers,rows,opts={}){
   const freeze=heads.length>=4&&['#','RANK'].includes(String(heads[0].label).trim().toUpperCase())&&
     ['TEAM','PLAYER','HOLDER','OWNER','OPPONENT'].includes(String(heads[1].label).trim().toUpperCase());
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
-  setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
+  if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
   const html=`<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
-  return freeze ? '<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>' +
-    html.replace('class="table-wrap"','class="table-wrap fig-sticky-wrap" data-fig-version="74-frozen"')
-        .replace('class="sortable"','class="sortable fig-sticky-table"') : html;
+  return freeze ? frozenTable(heads,rows,id) : html;
 }
+function frozenTable(heads, rows, id) {
+  const firstHeads = heads.slice(0, 2);
+  const statHeads = heads.slice(2);
+  const route = (location.hash.startsWith('#/') ? location.hash.slice(2) : 'home').split('/')[0];
+  const history = ['record', 'streak', 'singleseasons', 'special', 'playerweeks', 'playerbombrank', 'playerbomb'].includes(route);
+  const activeStreaks = route === 'streaks';
+  const allowed = h => {
+    if (!history && !activeStreaks) return true;
+    const title = String(h.label).trim().toUpperCase();
+    return history ? /^(VALUE|LENGTH|POINTS|SCORE|BOMBS|COUNT|TOTAL)$/.test(title) : /^(TYPE|LENGTH)$/.test(title);
+  };
+  const buildHead = (h, i) => `<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? '↕' : ''}</span></button></th>`;
+  const renderRows = (start, columns) => rows.map((r, i) => {
+    const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
+    return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td>${r[h.key] ?? ''}</td>`).join('')}</tr>`;
+  }).join('');
+  setTimeout(() => bindFrozenTable(id, heads), 0);
+  return `<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>` +
+    `<div class="fig-frozen-grid" data-fig-version="75-frozen">` +
+    `<div class="fig-frozen-identity"><table id="${id}_fixed" class="fig-frozen-identity-table" aria-label="Fixed rank and name columns"><thead><tr>${firstHeads.map((h, i) => buildHead(h, i)).join('')}</tr></thead><tbody>${renderRows(0, firstHeads)}</tbody></table></div>` +
+    `<div class="table-wrap fig-frozen-stats" data-fig-version="75-frozen" role="region" tabindex="0" aria-label="Scroll sideways for additional statistics"><table id="${id}" class="sortable fig-frozen-stats-table" aria-label="Scrollable statistics"><thead><tr>${statHeads.map((h, i) => buildHead(h, i + 2)).join('')}</tr></thead><tbody>${renderRows(2, statHeads)}</tbody></table></div></div>`;
+}
+function bindFrozenTable(id, heads) {
+  const right = document.getElementById(id), left = document.getElementById(id + '_fixed');
+  if (!right || !left) return;
+  const rightBody = right.tBodies[0], leftBody = left.tBodies[0];
+  const allHeaders = [...left.querySelectorAll('th'), ...right.querySelectorAll('th')];
+  let activeColumn = -1, descending = true;
+  const sortValue = (tr, col) => {
+    const key = heads[col].key;
+    let parsed;
+    try { parsed = JSON.parse(tr.dataset.row || '{}'); } catch { parsed = {}; }
+    return parsed[key] === undefined ? (tr.cells[col < 2 ? col : col - 2]?.textContent || '').trim() : parsed[key];
+  };
+  for (const th of allHeaders) {
+    const button = th.querySelector('button');
+    if (!button || button.disabled) continue;
+    button.addEventListener('click', () => {
+      const col = Number(th.dataset.col);
+      descending = activeColumn !== col || !descending;
+      activeColumn = col;
+      const field = heads[col]?.key || '';
+      const textual = /^(team|player|owner|holder|type|pos|status)$/i.test(field);
+      const ordered = [...rightBody.rows].sort((a, b) => {
+        const av = sortValue(a, col), bv = sortValue(b, col);
+        const an = textual ? NaN : Number(String(av).replace(/[,%$+]/g, ''));
+        const bn = textual ? NaN : Number(String(bv).replace(/[,%$+]/g, ''));
+        const cmp = Number.isFinite(an) && Number.isFinite(bn) ? an - bn :
+          String(av).localeCompare(String(bv), undefined, {numeric: true, sensitivity: 'base'});
+        return descending ? -cmp : cmp;
+      });
+      const leftById = new Map([...leftBody.rows].map(row => [row.dataset.figRow, row]));
+      for (const row of ordered) {
+        rightBody.appendChild(row);
+        const companion = leftById.get(row.dataset.figRow);
+        if (companion) leftBody.appendChild(companion);
+      }
+      for (const h of allHeaders) {
+        const selected = h === th;
+        h.removeAttribute('aria-sort');
+        const marker = h.querySelector('.sort-icon');
+        if (marker && !h.querySelector('button').disabled) marker.textContent = selected ? descending ? '↓' : '↑' : '↕';
+        if (selected) h.setAttribute('aria-sort', descending ? 'descending' : 'ascending');
+      }
+    });
+  }
+  const openRow = e => {
+    if (e.target.closest('a,button,input,select')) return;
+    const row = e.target.closest('tr[data-href]');
+    if (row && row.dataset.href) location.hash = row.dataset.href;
+  };
+  leftBody.addEventListener('click', openRow);
+  rightBody.addEventListener('click', openRow);
+}
+
 function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return;
  const route=(location.hash.startsWith('#/')?location.hash.slice(2):'home').split('/')[0];
  const historical=['record','streak','singleseasons','special','playerweeks','playerbombrank','playerbomb'].includes(route);
@@ -130,7 +203,6 @@ function standingsTableFor(season,view){
 
 function appLauncher(){
  const items=[
-  {icon:'≣',label:'STANDINGS',href:'#/standings'},
   {icon:'♛',label:'CHAMPIONS',href:'#/champions'},
   {icon:'★',label:'TEAM RECORDS',href:'#/records'},
   {icon:'◌',label:'PLAYER RECORDS',href:'#/players'},
@@ -664,7 +736,7 @@ async function team(id){
 
 
 async function records(){
- await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog']);navActive('records');
+ await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog','websiteStreaks']);navActive('records');
  let view='All-Time Combined';
  const podiumById=new Map((DATA.playoffCareer||[]).map(x=>[+x.franchise_id,x]));
  const allTime=[...(DATA.standingsCareer||[])].sort((a,b)=>num(b.win_pct)-num(a.win_pct)||num(b.wins)-num(a.wins));
@@ -683,9 +755,52 @@ async function records(){
     {label:'3RD',key:'bronze'},{label:'WIN %',key:'win'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PF',key:'pf'}],rows),
    'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','League bests, record holders and the full historical leaderboard.')+
- hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
+ '<div id="figRecordLeaders"></div>'+hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
  const gamesForView=()=>DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);
  const weeklySummary=()=>{const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});const perf=[];gamesForView().forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});return Object.values(out)};
+
+ // All-time visual podiums built solely from finalized archive data.
+ const streaksAll=(DATA.websiteStreaks||[]).filter(x=>String(x.streak_mode)==='Career Games');
+ const bestStreakByTeam=(kind)=>{
+  const best=new Map();
+  for(const x of streaksAll.filter(x=>x.streak_type===kind)){
+   const id=+x.franchise_id;
+   if(!best.has(id)||num(x.length)>num(best.get(id).length))best.set(id,x);
+  }
+  return [...best.values()].sort((a,b)=>num(b.length)-num(a.length)||+a.franchise_id-+b.franchise_id)
+   .map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}));
+ };
+ const podiumWeek=weeklySummary();
+ const byTitle=[
+  {title:'WINNING STREAK',badge:'STREAK RECORD',tone:'mint',href:'#/streak/Winning/Career%20Games',
+   scores:bestStreakByTeam('Winning')},
+  {title:'LOSING STREAK',badge:'STREAK RECORD',tone:'coral',href:'#/streak/Losing/Career%20Games',
+   scores:bestStreakByTeam('Losing')},
+  {title:'HIGH SCORES',badge:'WEEKLY LEADER',tone:'blue',href:'#/special/highscores/All-Time%20Combined',
+   scores:[...podiumWeek].sort((a,b)=>b.high-a.high||b.top3-a.top3)
+     .map(x=>({id:x.id,name:x.owner,value:x.high}))},
+  {title:'TOP 3 SCORES',badge:'WEEKLY LEADER',tone:'gold',href:'#/special/top3/All-Time%20Combined',
+   scores:[...podiumWeek].sort((a,b)=>b.top3-a.top3||b.high-a.high)
+     .map(x=>({id:x.id,name:x.owner,value:x.top3}))}
+ ];
+ const visualLeaderCards=byTitle.map((category)=>{
+  const first=category.scores[0];
+  if(!first)return'';
+  const rivals=category.scores.slice(1,5).map((r,i)=>
+   `<div class="fig-podium-rival"><span class="fig-podium-rank">${i+2}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}</span><b>${r.value}</b></div>`).join('');
+  return `<a class="fig-podium-card fig-podium-${category.tone}" href="${category.href}">
+   <div class="fig-podium-banner">${category.title}</div>
+   <div class="fig-podium-photo">${ownerAvatar(first.id,'fig-podium-avatar')}</div>
+   <div class="fig-podium-name">${esc(displayOwnerName(first.name,first.id))}</div>
+   <div class="fig-podium-value">${first.value}</div>
+   <div class="fig-podium-label">${category.badge}</div>
+   <div class="fig-podium-rivals">${rivals}</div>
+   <div class="fig-podium-view">VIEW FULL LEADERBOARD →</div></a>`;
+ }).join('');
+ $('#figRecordLeaders').innerHTML=section('RECORD LEADERS',
+   `<div class="fig-podium-grid">${visualLeaderCards}</div>`,
+   'All-time bests · Select any leaderboard for the complete history');
+
  const overviewSpecials=()=>{
    if(view==='Single Season') return '';
    const wr=weeklySummary().sort((a,b)=>b.high-a.high||b.top3-a.top3);const viewKey=encodeURIComponent(view);const highLeaders=wr.length?wr.filter(x=>x.high===wr[0].high):[];const top3Max=wr.length?Math.max(...wr.map(x=>x.top3)):0;const top3Leaders=wr.filter(x=>x.top3===top3Max);
@@ -941,7 +1056,6 @@ async function more(){
   ['▦','Game Archive','#/games'],
   ['♛','Champions','#/champions'],
   ['↔','Head-to-Head','#/h2h'],
-  ['≣','Standings','#/standings'],
   ['★','Team Records','#/records'],
   ['◌','Player Records','#/players'],
   ['⚡','Streaks','#/streaks'],
@@ -1137,7 +1251,7 @@ async function rivalryDetail(a,b){
  a=+a;b=+b;const r=DATA.h2h.find(x=>+x.franchise_id===a&&+x.opponent_franchise_id===b),ta=DATA.standingsCareer.find(x=>+x.franchise_id===a),tb=DATA.standingsCareer.find(x=>+x.franchise_id===b);const games=DATA.games.filter(g=>(+g.franchise_1===a&&+g.franchise_2===b)||(+g.franchise_1===b&&+g.franchise_2===a)).sort((x,y)=>+y.season-+x.season||+y.week-+x.week);const rows=games.map(g=>({open:`<a class="btn-lite" href="#/game/${g.season}/${g.week}/${g.matchup_id}">OPEN</a>`,season:g.season,week:g.week,a:+g.franchise_1===a?money(g.score_1):money(g.score_2),b:+g.franchise_1===b?money(g.score_1):money(g.score_2),winner:ownerLink(g.winner_name,g.winner_franchise_id),margin:money(g.margin),_sort:{season:num(g.season),week:num(g.week),a:+g.franchise_1===a?num(g.score_1):num(g.score_2),b:+g.franchise_1===b?num(g.score_1):num(g.score_2),winner:displayOwnerName(g.winner_name,g.winner_franchise_id),margin:num(g.margin)}}));app.innerHTML=hero('RIVALRY HISTORY',`${ownerName(ta.owner_name,a)} VS ${ownerName(tb.owner_name,b)}`,r?`${r.wins}-${r.losses} series • ${money(r.point_differential)} point differential`:'Series history')+section('EVERY MEETING',sortableTable([{label:'',key:'open'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:displayOwnerName(ta.owner_name,a).toUpperCase(),key:'a'},{label:displayOwnerName(tb.owner_name,b).toUpperCase(),key:'b'},{label:'WINNER',key:'winner'},{label:'MARGIN',key:'margin'}],rows));
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings')await standings();else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every five minutes; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
