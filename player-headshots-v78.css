@@ -42,6 +42,10 @@
 .page-wrap .player-week-feature-list .fig-nfl-photo-fallback {font-size:11px;}
 .page-wrap .player-week-feature-list .fig-feature-player-name {flex:1;min-width:0;color:#fff!important;font-size:12px;font-weight:850;letter-spacing:0!important;}
 .page-wrap .player-week-feature-list .fig-feature-player-points {color:#90ebcb!important;white-space:nowrap;font-size:12px;font-weight:900;letter-spacing:0!important;}
+.page-wrap .fig-threshold-player {display:inline-flex;align-items:center;gap:7px;min-width:0;}
+.page-wrap .fig-threshold-player .fig-nfl-photo {width:27px;height:27px;flex:0 0 27px;}
+.page-wrap .fig-threshold-player>span:last-child {overflow-wrap:anywhere;min-width:0;}
+.page-wrap .jh-item-top .fig-nfl-photo {width:34px;height:34px;flex:0 0 34px;border-color:#d1e0d7;}
 /* Spotlight headshot on the player profile page. */
 .page-wrap .hero.fig-player-profile-hero {
   display:grid;grid-template-columns:minmax(0,1fr) 150px;
