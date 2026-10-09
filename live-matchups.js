@@ -3,6 +3,10 @@
   'use strict';
   const API = 'https://api.sleeper.app/v1/league/';
   const NAMES = {1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
+  const PORTRAITS = {1:'boek',2:'fru',3:'fromm',4:'sack',5:'leyton',6:'hayden',7:'line',8:'winston',9:'camnol',10:'james'};
+  const clean = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const photo = roster => PORTRAITS[roster] ? '<img class="fig-team-avatar" src="assets/avatars/' + PORTRAITS[roster] + '.webp" alt="" loading="lazy">' : '';
+  const teamLabel = roster => photo(roster) + '<span>' + clean(NAMES[roster] || 'Roster ' + roster) + '</span>';
   const POLL_MS = 30 * 1000;
   const META_MS = 5 * 60 * 1000;
   let leagueMeta = null, metaLeague = '', metaAt = 0;
@@ -40,7 +44,7 @@
       const sides = group.map(row => {
         const roster = Number(row.roster_id);
         const name = NAMES[roster] || 'Roster ' + roster;
-        const label = NAMES[roster] ? '<a href="#/team/' + roster + '">' + name + '</a>' : '<span class="fig-live-name">' + name + '</span>';
+        const label = NAMES[roster] ? '<a class="fig-team-identity" href="#/team/' + roster + '">' + teamLabel(roster) + '</a>' : '<span class="fig-team-identity fig-live-name">' + teamLabel(roster) + '</span>';
         const value = score(row);
         const lead = pair && value !== null && value === high && group.filter(other => score(other) === high).length === 1;
         return '<div class="fig-live-side' + (lead ? ' fig-live-leading' : '') + '">' + label +
@@ -48,7 +52,7 @@
       }).join('');
       return '<article class="fig-live-match"><div class="fig-live-match-label">' +
         (pair ? 'MATCHUP ' + String(id).replace(/[^0-9]/g,'') : 'UNPAIRED ROSTER') + '</div>' +
-        sides + '</article>';
+        sides + '<a class="fig-live-open" href="#/livematch/' + Number(leagueMeta.settings.leg) + '/' + encodeURIComponent(id) + '">VIEW LINEUPS →</a></article>';
     }).join('');
   }
   async function refresh(force = false) {
@@ -100,6 +104,114 @@
       busy = false;
     }
   }
+
+  // Detail pages reuse the same read-only Sleeper endpoint. Player IDs get their
+  // display names from the periodically published roster snapshot; never download
+  // Sleeper's multi-megabyte NFL player dictionary for every visitor.
+  let rosterNames = null, detailBusy = false, lastDetailPoll = 0, detailRetryAfter = 0;
+  function activeDetail() {
+    const route = location.hash.startsWith('#/') ? location.hash.slice(2).split('/')[0] : 'home';
+    return !document.hidden && route === 'livematch' ? document.getElementById('figLiveDetail') : null;
+  }
+  async function namesForPlayers() {
+    if (rosterNames) return rosterNames;
+    const names = new Map();
+    try {
+      const response = await fetch('data/current_roster.json', {cache:'no-store'});
+      if (response.ok) {
+        const rows = await response.json();
+        if (Array.isArray(rows)) for (const x of rows) {
+          if (x.player_id && x.player_name) names.set(String(x.player_id), {name:String(x.player_name),position:String(x.position || '')});
+        }
+      }
+    } catch (error) {
+      console.warn('Player-name snapshot unavailable; using Sleeper player IDs:', error);
+    }
+    rosterNames = names;
+    return names;
+  }
+  function liveLineups(rows, league, names) {
+    const positions = Array.isArray(league.roster_positions) ? league.roster_positions : [];
+    const slotName = slot => slot === 'SUPER_FLEX' ? 'SFLX' : slot === 'FLEX' ? 'FLEX' : String(slot || 'START');
+    const playerRow = (id, slot, points) => {
+      const detail = names.get(String(id)) || {};
+      const name = detail.name || (id === '0' ? 'Empty lineup slot' : 'Player ' + id);
+      const pts = points === null || points === undefined || points === '' || !Number.isFinite(Number(points)) ? '—' : Number(points).toFixed(2);
+      return '<div class="fig-live-player-row"><span class="fig-live-slot">' + clean(slot) + '</span>' +
+        '<span class="fig-live-player-name">' + clean(name) + (detail.position ? '<small>' + clean(detail.position) + '</small>' : '') + '</span>' +
+        '<strong class="fig-live-player-points">' + pts + '</strong></div>';
+    };
+    return '<div class="fig-live-detail-grid">' + rows.map(row => {
+      const roster = Number(row.roster_id);
+      const starters = Array.isArray(row.starters) ? row.starters.map(String) : [];
+      const allPlayers = Array.isArray(row.players) ? row.players.map(String) : [];
+      const starting = new Set(starters);
+      const points = row.players_points && typeof row.players_points === 'object' ? row.players_points : {};
+      const perStarter = Array.isArray(row.starters_points) ? row.starters_points : [];
+      const first = starters.map((id, i) => playerRow(id, slotName(positions[i]), perStarter[i] ?? points[id]));
+      const bench = allPlayers.filter(id => id && id !== '0' && !starting.has(id)).map(id => playerRow(id,'BN',points[id]));
+      const total = score(row);
+      return '<section class="fig-live-team"><div class="fig-live-team-head"><a class="fig-team-identity" href="#/team/' + roster + '">' + teamLabel(roster) + '</a>' +
+        '<strong class="fig-live-team-total">' + (total === null ? '—' : total.toFixed(2)) + '</strong></div>' +
+        '<div class="fig-live-team-section">STARTERS</div>' + (first.join('') || '<div class="fig-live-empty">Starters not posted yet.</div>') +
+        '<div class="fig-live-team-section">BENCH</div>' + (bench.join('') || '<div class="fig-live-empty">No bench players listed.</div>') +
+        '</section>';
+    }).join('') + '</div>';
+  }
+  async function refreshDetail(force = false) {
+    const detail = activeDetail();
+    if (!detail || detailBusy) return;
+    const now = Date.now();
+    if (now < detailRetryAfter || (!force && now - lastDetailPoll < POLL_MS - 1000)) return;
+    const week = Number(detail.dataset.week);
+    const key = String(detail.dataset.matchup || '');
+    if (!Number.isInteger(week) || week < 1 || week > 18 || !/^(?:[0-9]+|solo-[0-9]+)$/.test(key)) return;
+    detailBusy = true;lastDetailPoll = now;
+    const status = document.getElementById('figLiveDetailStatus');
+    try {
+      let id = metaLeague;
+      if (!id) {
+        const res = await fetch('data/league_history.json', {cache:'no-store'});
+        if (!res.ok) throw new Error('Cannot find the active Sleeper league');
+        const seasons = await res.json();
+        const current = seasons.sort((a,b)=>Number(b.season)-Number(a.season))[0];
+        id = String(current?.league_id || '');
+      }
+      if (!/^[0-9]{10,22}$/.test(id)) throw new Error('Invalid Sleeper league ID');
+      if (!leagueMeta || metaLeague !== id || Date.now() - metaAt >= META_MS) {
+        const response = await fetch(API + id, {cache:'no-store'});
+        if (!response.ok) throw new Error('Sleeper league HTTP ' + response.status);
+        leagueMeta = await response.json();metaLeague = id;metaAt = Date.now();
+      }
+      if (activeDetail() !== detail) return;
+      if (leagueMeta.status !== 'in_season' || Number(leagueMeta.settings?.leg) !== week) {
+        detail.innerHTML = '<div class="fig-live-empty">This is no longer the active Sleeper week. View finalized scores and lineups in the <a href="#/games">Game Archive</a>.</div>';
+        if (status) status.textContent = 'Historical week — not live';
+        return;
+      }
+      const res = await fetch(API + id + '/matchups/' + week, {cache:'no-store'});
+      if (!res.ok) throw new Error('Sleeper matchup HTTP ' + res.status);
+      const all = await res.json();
+      if (!Array.isArray(all)) throw new Error('Invalid matchup response');
+      const selected = all.filter(row => String(row.matchup_id == null ? 'solo-' + Number(row.roster_id) : row.matchup_id) === key);
+      const names = await namesForPlayers();
+      if (activeDetail() !== detail) return;
+      detail.innerHTML = selected.length ? liveLineups(selected.sort((a,b)=>Number(a.roster_id)-Number(b.roster_id)),leagueMeta,names) :
+        '<div class="fig-live-empty">Matchup not found in the current week. <a href="#/home">Back to scores</a>.</div>';
+      if (status) status.textContent = 'Week ' + week + ' · Updated ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+      detailRetryAfter = 0;
+    } catch (error) {
+      if (activeDetail() === detail) {
+        if (!detail.querySelector('.fig-live-detail-grid')) detail.innerHTML =
+          '<div class="fig-live-empty">Live lineups are temporarily unavailable. <a href="#/home">Back to scores</a>.</div>';
+        if (status) status.textContent = 'Waiting to reconnect';
+      }
+      detailRetryAfter = Date.now() + 2 * 60 * 1000;
+      console.warn('FIG current-week lineup refresh:',error);
+    } finally {detailBusy = false;}
+  }
+  window.addEventListener('fig:live-route', () => {lastDetailPoll = 0;detailRetryAfter = 0;refreshDetail(true);});
+
   window.addEventListener('fig:home-rendered', () => {
     const board = activeBoard();
     if (!board) return;
@@ -110,9 +222,10 @@
     refresh(true);
   });
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) refresh();
+    if (!document.hidden) {refresh();refreshDetail();}
   });
-  setInterval(() => refresh(), POLL_MS);
+  setInterval(() => {refresh();refreshDetail();}, POLL_MS);
   // Also handle a home view rendered before this deferred script was evaluated.
   refresh();
+  refreshDetail();
 })();
