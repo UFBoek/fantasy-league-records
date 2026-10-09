@@ -13,8 +13,9 @@ on:
       - 'scripts/discover_injury_candidates.py'
       - 'tests/test_injury_discovery.py'
 
+# Keep scanning independent of five-minute Sleeper jobs.
 concurrency:
-  group: league-pages
+  group: nfl-injury-source-scan
   cancel-in-progress: false
 
 jobs:
@@ -47,6 +48,18 @@ jobs:
           # down, fail safely: keep previously published candidates intact.
           python scripts/discover_injury_candidates.py
 
+      - name: Mark new injury evidence available to open browser tabs
+        shell: bash
+        run: |
+          python - <<'PY'
+          import datetime, json
+          from pathlib import Path
+          manifest = Path('data/refresh_manifest.json')
+          manifest.write_text(json.dumps({
+              'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+          }, indent=2) + '\n')
+          PY
+
       - name: Validate candidates cannot count as verified injuries
         run: |
           python - <<'PY'
@@ -68,7 +81,7 @@ jobs:
         id: commit
         shell: bash
         run: |
-          git add data/injury_discovery_candidates.json
+          git add data/injury_discovery_candidates.json data/refresh_manifest.json
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
