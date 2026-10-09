@@ -1,3 +1,14 @@
+## v75 — Phone fixes and records gallery
+
+- **Player Records contrast:** The former navy feature card had dark inherited text. The new final-loaded `layout-v75.css` forces a charcoal panel with explicit white text and mint accent for all labels and top-five scores.
+- **Rank + Name never scroll out of view:** Wide leaderboards use two adjacent, matched-height native tables. The fixed left pane contains Rank and Team/Player/Holder; the right pane alone scrolls horizontally through stats. The two sides reorder together when users sort. This replaces the unreliable CSS sticky-cell approach on iPhone Safari and is skipped by the mobile `+ Stats` transformer.
+- **Records visuals:** The Records landing page now starts with four poster-like official all-time leader cards—Winning Streak, Losing Streak, Weekly High Scores, Top 3 Weekly Scores—with a large manager portrait, record value, and four further *unique* manager leaders; the full all-time medals and career standings table remains below. The existing category book adds small colored markers and drill-downs stay intact.
+- **Larger portraits:** Team profiles, franchise-directory cards, RosterAudit ranks, live matchups, featured champions and streak holders, and team names in tables get larger images. Repeated incidental team mentions remain text-only.
+- **Navigation:** Standings is no longer a separate visible page/menu item because Home already contains season-selectable standings. Existing `#/standings` bookmarks redirect to `#/home` instead of breaking.
+- **Deployment:** `layout-v75.css` and `app.js?v=75` are included in the versioned page, service-worker manifest, and GitHub Pages staging script.
+- **Data boundaries:** All of the above uses existing finalized archive data. No live weekly score is added to official record histories. Sleeper polling and roster/dynasty valuations are unchanged.
+
+---
 ## v74 — Hall of Records visual refresh and frozen table columns
 
 The design references a high-contrast editorial sports archive: white paper, bold black headline typography, muted gray panels, dark controls, mint accents, and a few featured manager portraits. It is not a copy of another website's branding or artwork.
