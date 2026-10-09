@@ -1,0 +1,338 @@
+/* FIG v74 — original editorial-inspired archive styling, not an external site's assets.
+   Crisp black type, bright paper, soft-gray display panels, mint performance accents.
+   Keep interactive tables native so the first two columns can remain pinned. */
+:root {
+  --paper:#f8f8f7; --ink:#252628; --muted:#72777a; --line:#dddddc;
+  --card:#e9e9e8; --white:#fff; --accent:#36bd9c;
+  --fig-bg:#f8f8f7;--fig-panel:#fff;--fig-elevated:#efefed;
+  --fig-line:#dededd;--fig-text:#252628;--fig-muted:#74777a;
+  --fig-mint:#31c6a2;--fig-blue:#197fbc;--fig-pink:#b95a72;
+}
+html,body {background:#f8f8f7!important;color:#252628!important;}
+body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
+.page-wrap {color:#242527;}
+.page-wrap .hero {border-bottom:3px solid #292a2c;padding-top:27px;padding-bottom:23px;}
+.page-wrap .hero .eyebrow,.page-wrap .eyebrow {
+  color:#268b77!important;font:850 11px Inter,system-ui,sans-serif!important;letter-spacing:.13em;
+}
+.page-wrap .hero h1 {font-family:"Archivo Black",Inter,system-ui,sans-serif!important;
+  color:#262729!important;line-height:1.02;letter-spacing:-.045em;
+  font-size:clamp(35px,6.5vw,74px);text-wrap:balance;}
+.page-wrap .section {border-bottom:1px solid #dedede;}
+.page-wrap .section-head .section-title,.page-wrap .section-title {
+  color:#252628!important;font-family:"Archivo Black",Inter,system-ui,sans-serif!important;
+  font-size:clamp(21px,3.5vw,36px)!important;letter-spacing:-.035em;
+  text-transform:uppercase;line-height:1.15;
+}
+.page-wrap .section-note,.page-wrap .muted {color:#707579!important;}
+.page-wrap .control-label,.page-wrap .record-view-intro .eyebrow {color:#555b5e!important;font-weight:850;}
+.page-wrap .pill-row {gap:7px;}
+.page-wrap .pill {
+  border:1px solid #ddd!important;background:#e8e8e8!important;
+  color:#303336!important;border-radius:30px!important;padding:10px 14px;
+  box-shadow:none!important;min-height:36px;
+}
+.page-wrap .pill.active,.page-wrap .pill:hover {
+  background:#292a2c!important;color:#fff!important;border-color:#292a2c!important;
+}
+.page-wrap .search,.page-wrap select,.page-wrap input[type="search"] {
+  background:#fff!important;border:2px solid #ddd!important;color:#272a2c!important;
+  border-radius:13px;
+}
+.page-wrap .hero-strip,.page-wrap .card-grid {background:#e8e8e8!important;border-color:#dedede!important;}
+.page-wrap .hero-stat {background:#fff;}
+.page-wrap .hero-stat .k,.page-wrap .card-value {color:#292929!important;}
+.page-wrap .hero-stat .l,.page-wrap .card-label {color:#6e7374!important;}
+.page-wrap .card.dark {background:#292929!important;color:#fff!important;}
+.page-wrap .card.dark .card-value {color:#fff!important;}
+.page-wrap .card {border-color:#dedede;background:#fff;box-shadow:none;}
+.page-wrap .card-sub {color:#717577!important;}
+
+/* Hall-of-records index and streak winners: strong hierarchy and photo
+   only for the featured holder, not every secondary historical mention. */
+.page-wrap .record-index-grid,.page-wrap .record-list,
+.page-wrap .compact-streak-records,.page-wrap .compact-record-feature-grid {
+  background:#e6e6e6!important;border:0!important;border-radius:28px!important;
+  overflow:visible!important;padding:13px!important;gap:12px!important;
+}
+.page-wrap .record-index-card,.page-wrap .record-card,
+.page-wrap .compact-record-feature {
+  background:#fff!important;color:#272829!important;
+  border:1px solid #dfdfdf!important;border-radius:22px!important;
+  padding:19px 17px!important;box-shadow:none!important;
+  transition:transform .12s ease,border-color .12s ease;
+}
+.page-wrap .record-index-card:hover,.page-wrap .record-card:hover {
+  transform:translateY(-2px)!important;border-color:#63c6ac!important;
+}
+.page-wrap .record-index-label,.page-wrap .record-card .rank-line,
+.page-wrap .card-label {color:#5e6365!important;font-size:10px!important;font-weight:900;letter-spacing:.05em;}
+.page-wrap .record-index-value,.page-wrap .record-card .value {
+  color:#222426!important;font:900 clamp(26px,3.7vw,43px)/1.02 "Archivo Black",Inter,sans-serif!important;
+  letter-spacing:-.04em;
+}
+.page-wrap .record-index-holder,.page-wrap .record-card .holder {
+  color:#4c5053!important;font-size:12px!important;font-weight:800;
+}
+.page-wrap .record-card .meta {color:#484b4d!important;letter-spacing:.02em;font-weight:800;}
+.page-wrap .streak-record-card {display:flex!important;flex-direction:column;align-items:center;text-align:center;justify-content:space-between;}
+.page-wrap .streak-record-card .rank-line {align-self:stretch;width:100%;}
+.page-wrap .streak-record-card .fig-streak-leader {display:flex;align-items:center;justify-content:center;margin:13px 0 7px;}
+.page-wrap .fig-streak-portrait {
+  height:112px;width:112px;object-fit:cover;border-radius:24px;
+  background:#e0e0e0;border:5px solid #ededed;
+}
+.page-wrap .streak-record-card .holder {font-size:15px!important;color:#252628!important;text-transform:uppercase;margin:2px 0 0!important;}
+.page-wrap .streak-record-card .value {font-size:40px!important;margin:5px 0!important;}
+.page-wrap .streak-record-card .streak-name {text-transform:uppercase;font-weight:850;color:#278a75!important;}
+
+/* Yearly champions get a poster-like display, while the stats remain factual. */
+.page-wrap .champions-grid {
+  gap:20px!important;background:transparent!important;border:0!important;
+  border-radius:0!important;overflow:visible!important;
+}
+.page-wrap .champion-season-card,.page-wrap .champions-grid .champion-season-card {
+  display:flex!important;flex-direction:column;align-items:center;
+  padding:24px 17px!important;border:1px solid #dedede!important;
+  border-radius:30px!important;background:#e5e5e5!important;
+  color:#262728!important;text-align:center!important;box-shadow:none!important;
+}
+.page-wrap .champion-year {font:900 clamp(29px,4vw,46px) "Archivo Black",Inter,sans-serif!important;color:#232426!important;}
+.page-wrap .champion-crown {display:none!important;}
+.page-wrap .fig-champion-portrait {
+  width:min(74%,220px);height:auto;aspect-ratio:1;
+  object-fit:cover;border-radius:26px;
+  background:#fff;border:7px solid #fff;
+  margin:14px auto 12px;
+}
+.page-wrap .champion-name {
+  color:#282829!important;font:900 clamp(22px,3vw,32px)/1.1 "Archivo Black",Inter,sans-serif!important;
+  text-transform:uppercase;
+}
+.page-wrap .champion-label {
+  order:-1;display:block;background:#262728;color:white!important;
+  border-radius:30px;padding:8px 24px;margin:8px 0 0;
+  font-size:12px!important;letter-spacing:.15em;font-weight:950;
+}
+.page-wrap .champion-sub {color:#333!important;width:100%;border-color:#c9c9c9;}
+.page-wrap .champion-sub span {color:#666!important;}
+
+/* Freeze Rank and Team/Player on sortable leaderboards. The page scrolls
+   vertically normally; only the stats inside this container scroll sideways. */
+.page-wrap .fig-table-hint {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:10px 1px 7px;font:850 10px/1.35 Inter,sans-serif;
+  color:#696d6f;letter-spacing:.03em;
+}
+.page-wrap .fig-table-hint span {color:#168b72;white-space:nowrap;}
+.page-wrap .table-wrap.fig-sticky-wrap {
+  position:relative;display:block!important;max-width:100%;width:100%!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+  background:#dedede!important;border:5px solid #dedede!important;
+  border-radius:26px!important;box-shadow:none!important;
+  scrollbar-color:#aaa #eee;scrollbar-width:thin;
+}
+.page-wrap .fig-sticky-wrap table.fig-sticky-table {
+  display:table!important;table-layout:auto!important;
+  border-collapse:separate!important;border-spacing:0!important;
+  width:max-content!important;min-width:100%!important;
+  background:#dedede!important;
+}
+.page-wrap .fig-sticky-table thead {display:table-header-group!important;}
+.page-wrap .fig-sticky-table tbody {display:table-row-group!important;}
+.page-wrap .fig-sticky-table tr {display:table-row!important;}
+.page-wrap .fig-sticky-table thead th {
+  background:#e1e1e1!important;color:#2c2d2f!important;
+  font:850 11px Inter,sans-serif!important;letter-spacing:.025em;
+  text-transform:uppercase;min-width:97px;height:56px;
+  padding:12px 13px!important;border-right:3px solid #dedede!important;
+  border-bottom:4px solid #dedede!important;
+}
+.page-wrap .fig-sticky-table thead .sort-head {
+  color:#323334!important;background:transparent!important;
+  border:0!important;font:inherit!important;padding:0!important;text-align:left;
+  cursor:pointer;white-space:nowrap;
+}
+.page-wrap .fig-sticky-table thead .sort-head:disabled {
+  color:#333!important;cursor:default;opacity:1;
+}
+.page-wrap .fig-sticky-table thead .sort-head:disabled .sort-icon {display:none;}
+.page-wrap .fig-sticky-table tbody td {
+  position:static;display:table-cell!important;vertical-align:middle;
+  padding:13px 14px!important;white-space:nowrap!important;
+  background:#fff!important;color:#303132!important;
+  border-right:3px solid #dedede!important;border-bottom:3px solid #dedede!important;
+  min-width:97px;font-size:13px!important;font-weight:700;
+}
+.page-wrap .fig-sticky-table tbody tr:hover td,
+.page-wrap .fig-sticky-table tbody tr:focus-within td {background:#f6faf8!important;}
+.page-wrap .fig-sticky-table tr>th:nth-child(1),
+.page-wrap .fig-sticky-table tr>td:nth-child(1) {
+  position:sticky!important;left:0!important;z-index:3!important;
+  width:58px!important;min-width:58px!important;max-width:58px!important;
+  padding-left:7px!important;padding-right:7px!important;text-align:center!important;
+  font-weight:900!important;
+}
+.page-wrap .fig-sticky-table tr>th:nth-child(2),
+.page-wrap .fig-sticky-table tr>td:nth-child(2) {
+  position:sticky!important;left:58px!important;z-index:3!important;
+  min-width:195px!important;width:195px!important;max-width:195px!important;
+  font-weight:900!important;
+  box-shadow:5px 0 6px -6px #777;
+}
+.page-wrap .fig-sticky-table thead tr>th:nth-child(-n+2) {
+  z-index:6!important;background:#e1e1e1!important;
+}
+.page-wrap .fig-sticky-table tbody td:nth-child(-n+2) {
+  background:#fff!important;
+}
+.page-wrap .fig-sticky-table tbody tr:hover td:nth-child(-n+2),
+.page-wrap .fig-sticky-table tbody tr:focus-within td:nth-child(-n+2) {
+  background:#f6faf8!important;
+}
+.page-wrap .fig-sticky-table .fig-owner-link {
+  display:inline-flex;align-items:center;max-width:100%;color:#262728!important;
+  text-decoration:none!important;
+}
+.page-wrap .fig-sticky-table .fig-owner-link:hover {color:#148b73!important;}
+.page-wrap .fig-sticky-table .fig-team-identity {flex-wrap:nowrap;}
+.page-wrap .fig-sticky-table .fig-team-avatar {width:28px!important;height:28px!important;flex-basis:28px!important;border:1px solid #ddd;}
+.page-wrap .fig-sticky-table .fig-team-identity-name {white-space:normal;line-height:1.15;}
+
+/* Other lists stay consistent with the new paper/gray presentation. */
+.page-wrap .team-grid {background:#e5e5e5;border-color:#dedede;}
+.page-wrap .team-card {background:#fff!important;color:#272829!important;border-color:#dadada!important;}
+.page-wrap .team-card .team-name {color:#292929!important;}
+.page-wrap .team-record {color:#747779!important;}
+.page-wrap .app-menu-shell {background:#e8e8e8!important;border-color:#ddd!important;border-radius:22px!important;}
+.page-wrap .app-tile {background:#fff!important;color:#292929!important;}
+.page-wrap .app-tile-label {color:#303132!important;}
+.page-wrap .app-tile-icon {color:#228e76!important;}
+.page-wrap .fig-more-grid {background:#e9e9e9!important;}
+.page-wrap .fig-more-grid .fig-more-item:nth-child(-n+2) {background:#d8efe6!important;color:#232626!important;border-color:#a5d9c8!important;}
+.page-wrap .fig-more-grid .fig-more-item:nth-child(-n+2) .team-name {color:#252628!important;}
+.page-wrap .fig-more-open {color:#1a846e!important;}
+.page-wrap .fig-live-panel {background:#e7e7e7!important;color:#252628!important;border:1px solid #dadada!important;}
+.page-wrap .fig-live-panel .section-title {color:#282929!important;}
+.page-wrap .fig-live-summary,.page-wrap .fig-live-panel .section-note,.page-wrap .fig-live-footer {color:#656c6b!important;}
+.page-wrap .fig-live-match,.page-wrap .fig-live-team {background:#fff!important;color:#252628!important;border-color:#d4d4d4!important;}
+.page-wrap .fig-live-side a,.page-wrap .fig-live-side .fig-live-name,.page-wrap .fig-live-score,
+.page-wrap .fig-live-player-name,.page-wrap .fig-live-player-points {color:#282929!important;}
+.page-wrap .fig-live-match-label {color:#65686b!important;}
+.page-wrap .fig-live-open {color:#147f69!important;}
+.page-wrap .fig-live-team-head,.page-wrap .fig-live-team-section {background:#ededed!important;color:#313536!important;}
+.page-wrap .fig-live-team-head .fig-team-identity {color:#222!important;}
+.page-wrap .fig-live-team-total {color:#13765e!important;}
+.page-wrap .fig-live-player-row {color:#292929!important;border-color:#e2e2e2!important;}
+.page-wrap .fig-live-player-name small {color:#777!important;}
+.page-wrap .fig-live-slot {background:#e0f3eb!important;color:#12765c!important;}
+.page-wrap .fig-live-empty {background:#fff!important;border-color:#dedede!important;color:#333!important;}
+.page-wrap .fig-live-badge {background:#d5f2e6!important;color:#136d56!important;border-color:#97d7bb!important;}
+.page-wrap .fig-owner-link {text-decoration:none;}
+.page-wrap .fig-owner-link .fig-team-identity-name {color:inherit;}
+.page-wrap .fig-team-name {display:inline;color:inherit;}
+.page-wrap .fig-owner-link .fig-team-avatar {border-color:#d0d4d2;background:#e4e4e4;}
+.page-wrap .fig-player-book-scroll-tip,.page-wrap .player-book-scroll-tip {color:#717474!important;}
+
+@media(max-width:699px) {
+  :root {--fig-bg:#f8f8f7;--fig-panel:#fff;--fig-elevated:#f1f1f0;
+    --fig-text:#252628;--fig-muted:#727677;--fig-line:#ddd;--fig-mint:#218f77;}
+  html,body {background:#f8f8f7!important;color:#272829!important;}
+  .site-header.app-header {background:rgba(255,255,255,.98)!important;border-bottom:1px solid #ddd!important;}
+  .app-header .brand-name {color:#222!important;font-family:"Archivo Black",Inter,sans-serif!important;}
+  .app-header .brand-sub {color:#697071!important;}
+  .app-header .brand-mark {background:#282828!important;color:#fff!important;border-color:#222!important;}
+  .app-header .fig-topnav a {color:#666c6e!important;}
+  .app-header .fig-topnav a.active {color:#137f67!important;}
+  .app-header .fig-topnav a.active::after {background:#2baf8e!important;box-shadow:none!important;}
+  .app-header .fig-back-button {color:#292929!important;}
+  .mobile-nav.app-dock {background:rgba(255,255,255,.98)!important;border-top:1px solid #d9d9d9!important;
+    box-shadow:0 -4px 12px rgba(0,0,0,.06)!important;}
+  .mobile-nav.app-dock a {color:#6b7073!important;}
+  .mobile-nav.app-dock a span {color:#7a7e80!important;}
+  .mobile-nav.app-dock a[aria-current='page'],.mobile-nav.app-dock a[aria-current='page'] span {color:#0c8b70!important;}
+  .page-wrap {padding:15px 12px 35px!important;background:#f8f8f7!important;}
+  .page-wrap .hero {padding:22px 4px 22px!important;border-bottom:3px solid #292929!important;}
+  .page-wrap .hero h1 {font-size:clamp(33px,9vw,48px)!important;line-height:1.05!important;}
+  .page-wrap .hero .eyebrow {font-size:11px!important;color:#2c947e!important;}
+  .page-wrap .section {padding:24px 0 20px;border-color:#ddd!important;}
+  .page-wrap .section-head .section-title,.page-wrap .section-title {
+    font-size:clamp(22px,6.3vw,30px)!important;color:#252628!important;
+  }
+  .page-wrap .section-note {color:#747779!important;}
+  .page-wrap .card-grid,.page-wrap .record-index-grid,.page-wrap .record-list,
+  .page-wrap .compact-streak-records,.page-wrap .champions-grid,
+  .page-wrap .compact-record-feature-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;padding:10px!important;
+    border-radius:22px!important;
+  }
+  .page-wrap .record-index-card,.page-wrap .record-card,.page-wrap .compact-record-feature {
+    min-width:0!important;padding:13px 12px!important;
+    border:1px solid #dedede!important;border-radius:16px!important;background:#fff!important;
+  }
+  .page-wrap .record-index-value,.page-wrap .record-card .value {font-size:clamp(24px,6.8vw,37px)!important;}
+  .page-wrap .record-index-holder,.page-wrap .record-card .holder {font-size:11px!important;}
+  .page-wrap .streak-record-card .fig-streak-leader {margin:9px 0 4px!important;}
+  .page-wrap .fig-streak-portrait {width:88px;height:88px;border-radius:19px;border-width:4px;}
+  .page-wrap .streak-record-card .holder {font-size:12px!important;}
+  .page-wrap .streak-record-card .value {font-size:36px!important;}
+  .page-wrap .champions-grid {display:grid!important;grid-template-columns:1fr!important;
+    background:transparent!important;border:0!important;gap:15px!important;padding:0!important;}
+  .page-wrap .champions-grid>.champion-season-card {border:1px solid #dedede!important;border-radius:28px!important;background:#e7e7e7!important;
+    padding:19px 12px!important;display:flex!important;flex-direction:column!important;text-align:center!important;}
+  .page-wrap .champion-label {order:-1!important;align-self:center;}
+  .page-wrap .fig-champion-portrait {width:min(62%,195px)!important;max-width:195px!important;height:auto!important;border-radius:25px;}
+  .page-wrap .champion-year {font-size:35px!important;}
+  .page-wrap .champion-name {font-size:24px!important;}
+  .page-wrap .table-wrap.fig-sticky-wrap {border-width:4px!important;border-radius:20px!important;padding:0!important;}
+  .page-wrap .fig-sticky-table tr>th:nth-child(1),.page-wrap .fig-sticky-table tr>td:nth-child(1) {
+    width:44px!important;min-width:44px!important;max-width:44px!important;padding:8px 2px!important;left:0!important;
+  }
+  .page-wrap .fig-sticky-table tr>th:nth-child(2),.page-wrap .fig-sticky-table tr>td:nth-child(2) {
+    min-width:151px!important;width:151px!important;max-width:151px!important;left:44px!important;padding:10px 6px!important;
+  }
+  .page-wrap .fig-sticky-table thead th {font-size:10px!important;min-width:82px;height:50px;padding:9px!important;}
+  .page-wrap .fig-sticky-table tbody td {font-size:12px!important;min-width:82px;padding:10px 9px!important;}
+  .page-wrap .fig-sticky-table .fig-team-avatar {width:26px!important;height:26px!important;flex-basis:26px!important;}
+  .page-wrap .fig-team-identity {gap:5px;}
+  .page-wrap .fig-sticky-table tr>td:nth-child(2) .fig-team-identity-name {
+    min-width:0;max-width:110px;white-space:normal;overflow-wrap:anywhere;font-weight:850;
+  }
+  .page-wrap .fig-table-hint {font-size:9px!important;}
+  .page-wrap .table-wrap.fig-sticky-wrap table.fig-sticky-table tbody tr:hover {background:transparent!important;}
+  .page-wrap .app-menu-shell {background:#ebebeb!important;border-color:#ddd!important;}
+  .page-wrap .app-tile {background:#fff!important;color:#2b2b2b!important;}
+  .page-wrap .app-tile-label {color:#272727!important;}
+  .page-wrap .app-tile-icon {color:#1b8c75!important;}
+  .page-wrap .team-grid {background:#ececec!important;border-color:#d9d9d9!important;}
+  .page-wrap .team-card {background:#fff!important;border-color:#d9d9d9!important;color:#222!important;}
+  .page-wrap .team-card .team-name {color:#222!important;}
+  .page-wrap .card,.page-wrap .snapshot-panel,.page-wrap .mini-card {background:#fff!important;color:#252525!important;}
+  .page-wrap .hero-strip {background:#fff!important;}
+  .page-wrap .hero-stat .k {color:#262626!important;}
+  .page-wrap .card .card-label,.page-wrap .card .card-sub,.page-wrap .hero-stat .l {color:#687071!important;}
+  .page-wrap .fig-live-panel {background:#e8e8e8!important;border-color:#dadada!important;}
+  .page-wrap .fig-live-panel .section-head .section-title {color:#272727!important;}
+  .page-wrap .fig-live-panel .fig-live-match {background:#fff!important;border-color:#ddd!important;}
+  .page-wrap .fig-list-table table.sortable tbody tr,.page-wrap .fig-list-table table.sortable tbody tr:hover,
+  .page-wrap .fig-list-table table.sortable tbody tr:active,
+  .page-wrap .fig-list-table table.sortable tbody tr.fig-expanded {background:#fff!important;color:#242424!important;}
+  .page-wrap .fig-list-table table.sortable tbody td {color:#2e3031!important;}
+  .page-wrap .fig-list-table tbody td.fig-name a,.page-wrap .fig-list-table tbody td.fig-primary {color:#272829!important;}
+  .page-wrap .fig-list-table tbody td.fig-primary::before,.page-wrap .fig-list-table .fig-mobile-substats {color:#686d6e!important;}
+  .page-wrap .fig-list-table .fig-expand-button {color:#187f66!important;}
+  .page-wrap .fig-list-table tr.fig-expanded .fig-expanded-stats {border-color:#ddd!important;}
+  .page-wrap .fig-list-table tr.fig-expanded .fig-expanded-stats>span {color:#262626!important;}
+  .page-wrap .fig-list-table tr.fig-expanded .fig-expanded-stats small {color:#6e7172!important;}
+  .page-wrap .fig-list-controls,.page-wrap .fig-streak-controls {background:#ededed!important;border-color:#d4d4d4!important;}
+  .page-wrap .fig-list-controls label {color:#444!important;}
+  .page-wrap .fig-list-controls select {background:#fff!important;color:#262626!important;border-color:#d1d1d1!important;}
+  .page-wrap .fig-list-table table.sortable tbody {background:#e8e8e8!important;}
+  .page-wrap .fig-list-table table.sortable tbody tr {border-bottom:3px solid #e5e5e5!important;}
+  .page-wrap .fig-more-grid .fig-more-item:nth-child(-n+2) {background:#d6f1e7!important;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .page-wrap .record-card,.page-wrap .record-index-card {transition:none!important;}
+}
