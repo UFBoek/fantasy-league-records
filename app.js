@@ -185,6 +185,51 @@ function bindFrozenTable(id, heads, opts={}) {
   if (!right || !left) return;
   const rightBody = right.tBodies[0], leftBody = left.tBodies[0];
   const allHeaders = [...left.querySelectorAll('th'), ...right.querySelectorAll('th')];
+  // Two physically separate tables can lay out wrapped player names and stats
+  // at different heights (especially after web fonts render on iOS). Align each
+  // paired row by its stable data-fig-row key, not by approximate CSS heights.
+  const frozenGrid = left.closest('.fig-frozen-grid');
+  let syncFrame = 0;
+  const syncRowHeights = () => {
+    syncFrame = 0;
+    if (!left.isConnected || !right.isConnected) return;
+    const leftHeaders = [...left.tHead?.rows || []], rightHeaders = [...right.tHead?.rows || []];
+    const leftRows = [...leftBody.rows], rightRows = [...rightBody.rows];
+    const rightById = new Map(rightRows.map(row => [row.dataset.figRow, row]));
+    const pairs = [...leftHeaders.map((row,i) => [row,rightHeaders[i]]),
+      ...leftRows.map(row => [row,rightById.get(row.dataset.figRow)])].filter(pair=>pair[0]&&pair[1]);
+    // Remove old sizes before measuring; otherwise a prior viewport/column
+    // width could lock the rows to unnecessarily tall or short heights.
+    for (const [a,b] of pairs) {
+      a.style.removeProperty('height');
+      b.style.removeProperty('height');
+    }
+    const sizes = pairs.map(([a,b]) => Math.ceil(Math.max(
+      a.getBoundingClientRect().height, b.getBoundingClientRect().height)));
+    pairs.forEach(([a,b],i) => {
+      const height = sizes[i] + 'px';
+      a.style.height = height;
+      b.style.height = height;
+    });
+  };
+  const queueRowSync = () => {
+    if (!syncFrame && left.isConnected && right.isConnected)
+      syncFrame = requestAnimationFrame(syncRowHeights);
+  };
+  // Initial layout, fonts, responsive viewport changes and late image loads
+  // can all alter name-column row heights after the table is first painted.
+  queueRowSync();
+  document.fonts?.ready?.then(queueRowSync);
+  frozenGrid?.addEventListener('load',queueRowSync,true);
+  if (frozenGrid && typeof ResizeObserver !== 'undefined') {
+    let gridWidth = frozenGrid.getBoundingClientRect().width;
+    const observer = new ResizeObserver(entries => {
+      if (!left.isConnected) {observer.disconnect();return;}
+      const width = entries[0]?.contentRect.width ?? gridWidth;
+      if (Math.abs(width-gridWidth)>0.5) {gridWidth=width;queueRowSync();}
+    });
+    observer.observe(frozenGrid);
+  }
   let activeColumn = opts.sortState?.column ?? -1, descending = opts.sortState?.descending ?? true;
   const sortValue = (tr, col) => {
     const key = heads[col].key;
@@ -217,6 +262,7 @@ function bindFrozenTable(id, heads, opts={}) {
         const companion = leftById.get(row.dataset.figRow);
         if (companion) leftBody.appendChild(companion);
       }
+      queueRowSync();
       for (const h of allHeaders) {
         const selected = h === th;
         h.removeAttribute('aria-sort');
