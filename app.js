@@ -1852,7 +1852,7 @@ async function liveMatchPage(weekArg, matchupArg) {
 
 async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
-// browser tab every five minutes; the server-side build owns official records.
+// browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
 let publishedSnapshot=null,checkingSnapshot=false;
 async function checkPublishedSnapshot(){
@@ -1873,7 +1873,7 @@ async function checkPublishedSnapshot(){
  }catch(error){console.warn('Unable to check published league snapshot:',error)}
  finally{checkingSnapshot=false}
 }
-setInterval(checkPublishedSnapshot,5*60*1000);
+setInterval(checkPublishedSnapshot,60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPublishedSnapshot()});
 checkPublishedSnapshot();
 
