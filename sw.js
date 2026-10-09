@@ -8,10 +8,10 @@ const APP_SHELL = [
   './mobile-v68.css?v=68',
   './mobile-v69.css?v=69',
   './mobile-v70.css?v=70',
-  './live-matchups.css?v=72',
-  './live-matchups.js?v=72',
+  './live-matchups.css?v=73',
+  './live-matchups.js?v=73',
   './mobile-v69.js?v=73',
-  './app.js?v=72',
+  './app.js?v=73',
   './manifest.webmanifest',
   './assets/icons/fig-192.png',
   './assets/icons/fig-512.png'
