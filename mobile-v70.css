@@ -1,0 +1,48 @@
+/* v70 phone-only fix: desktop's pale clickable-row :hover overrides dark card UI.
+   iOS can leave :hover sticky after tapping buttons inside a row. */
+@media(max-width:699px) {
+  .fig-list-table table.sortable tbody tr,
+  .fig-list-table table.sortable tbody tr.clickable-row,
+  .fig-list-table table.sortable tbody tr.clickable-row:hover,
+  .fig-list-table table.sortable tbody tr:hover,
+  .fig-list-table table.sortable tbody tr:active,
+  .fig-list-table table.sortable tbody tr:focus-within {
+    background:#121e34!important;
+    color:#f3f8ff!important;
+    box-shadow:none!important;
+  }
+  .fig-list-table table.sortable tbody tr.fig-expanded,
+  .fig-list-table table.sortable tbody tr.fig-expanded:hover,
+  .fig-list-table table.sortable tbody tr.fig-expanded:focus-within {
+    background:#1a2b44!important;
+    color:#f4f9ff!important;
+  }
+  .fig-list-table table.sortable tbody tr td,
+  .fig-list-table table.sortable tbody tr:hover td,
+  .fig-list-table table.sortable tbody tr.fig-expanded td {
+    background:transparent!important;
+  }
+  .fig-list-table table.sortable tbody tr.fig-expanded td.fig-expanded-stats,
+  .fig-list-table table.sortable tbody tr.fig-expanded:hover td.fig-expanded-stats {
+    background:transparent!important;
+    color:#f4f9ff!important;
+  }
+  .fig-list-table table.sortable tbody tr,
+  .fig-list-table .fig-expand-button,
+  .fig-list-table table.sortable tbody tr a {
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fig-list-table .fig-expand-button:hover,
+  .fig-list-table .fig-expand-button:active {
+    background:transparent!important;
+    color:#65e9d5!important;
+  }
+  @media(hover:none) {
+    .team-card:hover,
+    .record-index-card:hover,
+    .season-game-card:hover {
+      background-color:#192a43!important;
+      color:#f3f8ff!important;
+    }
+  }
+}
