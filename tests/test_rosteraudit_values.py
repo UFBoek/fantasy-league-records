@@ -37,6 +37,20 @@ class RosterAuditTests(unittest.TestCase):
         self.assertEqual(ra.parse_picks(raw,'sf')['2028:2:mid'],1450)
         self.assertNotIn('2027:1:1', ra.parse_picks(raw,'sf'))
 
+    def test_public_2026_pick_endpoint_field_names(self):
+        # Verified against the provider's public /picks response (Oct 2026).
+        raw = {'picks': [
+            {'id':1,'pick_season':2027,'pick_round':1,'pick_slot':'early',
+             'val_sf':4902,'val_1qb':4902,'label':'2027 Early 1st'},
+            {'id':2,'pick_season':2027,'pick_round':1,'pick_slot':'mid',
+             'val_sf':2650,'val_1qb':2650,'label':'2027 Mid 1st'},
+            {'id':3,'pick_season':2027,'pick_round':1,'pick_slot':'late',
+             'val_sf':2196,'val_1qb':2196,'label':'2027 Late 1st'},
+        ], 'pick_curve_sf':[], 'attribution':'Values by RosterAudit.com'}
+        parsed = ra.parse_picks(raw, 'sf')
+        self.assertEqual(parsed, {'2027:1:early':4902, '2027:1:mid':2650,
+                                  '2027:1:late':2196})
+
     def test_refresh_fixtures_writes_only_verified_values(self):
         values={str(i):{'sf':i+5000,'1qb':i+4000} for i in range(100,160)}
         ranks={'players':[{'sleeper_id':str(i),'value':i+9000,'position':'QB'} for i in range(100,160)]}
