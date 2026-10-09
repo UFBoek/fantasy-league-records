@@ -1,8 +1,10 @@
 # FIG injury history — evidence and definitions
 
 The injury leaderboard must **never infer an injury from fantasy points or a
-low snap share**. nflverse injury-report coverage has a gap after 2024. NFL
-snap counts alone cannot prove a player left due to injury.
+low snap share**. nflverse's published documentation once reported that
+injury-report feeds ended after 2024, but the GitHub release archive now has
+2025 and 2026 CSV assets as of October 2026. NFL snap counts and injury
+reports alone cannot prove a player left due to injury.
 
 ## Injury event verification
 
@@ -121,3 +123,70 @@ and is never incorporated into verified totals.
 
 The injury-count logic remains independent of current-week live scores and
 will continue to use **completed fantasy weeks only**.
+
+
+## Structured discovery: 2023–2026
+
+\`scripts/discover_injury_candidates.py\` downloads **per-season structured
+CSV files** from two GitHub release feeds under \`nflverse/nflverse-data\`:
+
+- \`releases/download/snap_counts/snap_counts_YEAR.csv\`: Pro Football
+  Reference offensive participation by game.
+- \`releases/download/injuries/injuries_YEAR.csv\`: NFL pregame/practice
+  injury reports; subsequent reports are supporting clues, not proof
+  an injury happened in an earlier game.
+
+The script intersects completed Sleeper starter/rotation lineups with
+players whose in-game NFL offensive participation is unusually low versus
+their own season reference (at least two other normal-sized games).
+A next-week injury report elevates review priority.
+
+**Critical guardrail:** A player with *no NFL snaps* that week is excluded
+from in-game injury leads. That pattern could be a bye, game-day inactive,
+coaching decision or a previously acquired injury; none is proof of an
+in-game departure. Sam Darnold's 2025 Week 8 Seattle bye was a real false
+positive caught and removed by this rule.
+
+This is an evidence triage system, not an injury classifier. Confirmed
+game-ending conditions require separately reviewed NFL/team reporting.
+No source records or generic snap percentages can award league injury
+counts automatically. Even the resulting leads list may omit injuries
+where no reliable season-long comparison exists, especially first-week
+season-ending injuries.
+
+The data file \`data/injury_discovery_candidates.json\` has
+\`counts_toward_injuries: false\` and \`is_complete_injury_history: false\`.
+Its candidates are only review suggestions. Historical verified injuries
+still come exclusively from \`data/injury_events_reviewed.json\`.
+
+### Automation
+
+\`.github/workflows/discover-injuries.yml\` runs **daily at 11:47 UTC**
+(GitHub schedule is best-effort) and whenever the discovery workflow,
+script or discovery tests change. It scans seasons 2023–2026, runs
+\`tests/test_injury_discovery.py\`, publishes updated review suggestions,
+and stamps the browser manifest to notify open tabs. If any provider
+data is missing/incomplete or tests fail, it stops without replacing the
+last successful discovery snapshot.
+
+Separately, the Sleeper refresh checks every five minutes and performs
+a full rebuild hourly, using source-reviewed injury events in
+\`scripts/build_injury_history.py\` only after fantasy weeks have closed.
+
+### Initial historical verification sample
+
+The first 2023–2025 source-backed entries include the in-game injuries
+to Anthony Richardson, Deebo Samuel and Joe Burrow (2023);
+Chris Olave, Jayden Daniels and Brandon Aiyuk (2024);
+and Xavier Worthy, CeeDee Lamb and C.J. Stroud (2025).
+
+Joe Burrow's wrist injury and Brandon Aiyuk's ACL/MCL injury have
+independent NFL.com documentation confirming **season-ending** outcomes.
+Their underlying injury events can still overlap with the rotational
+classification, but they are counted only once within each category.
+Other cases remain non-major until severity evidence is checked.
+
+**The historical audit remains incomplete.** Continue verifying
+higher-priority leads against game-ending reports and exclude
+fully returned players; user approval of a set of review leads is not
+a substitute for precise event-by-event game-outcome evidence.
