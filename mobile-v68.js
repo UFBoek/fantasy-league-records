@@ -111,7 +111,9 @@
     controls.append(label,dirButton);
     const count = document.createElement('small');count.className='fig-results-count';
     const more = document.createElement('button');more.type='button';more.className='fig-table-more';
-    let visible = CHUNK;let descending=!isActiveStreaks;
+    let visible = CHUNK;
+    const lowestFirst = route === 'special' && location.hash.includes('teamweeks-low');
+    let descending = !isActiveStreaks && !lowestFirst;
     function filteredRows() {
       return [...table.tBodies[0].rows].filter(row => !row.hidden && row.style.display !== 'none');
     }
@@ -222,7 +224,7 @@
         exp.append(toggle);row.append(exp,detail);
       }
     });
-    wrap.classList.add('fig-list-table');wrap.dataset.figVersion='67';
+    wrap.classList.add('fig-list-table');wrap.dataset.figVersion='68';
     wrap.prepend(controls);wrap.append(count,more);
     more.addEventListener('click',()=>{visible+=CHUNK;paginate();});
     select.addEventListener('change',()=> {
@@ -241,7 +243,7 @@
     app.querySelectorAll('.threshold-grid:not([data-fig-tabs])').forEach(grid => {
       const panels=[...grid.querySelectorAll(':scope > .threshold-panel')];
       if (panels.length < 2) return;
-      grid.dataset.figTabs='67';
+      grid.dataset.figTabs='68';
       grid.classList.add('fig-leaderbook');
       const nav=document.createElement('nav');nav.className='fig-leader-tabs';
       nav.setAttribute('aria-label','Scoring milestones');
