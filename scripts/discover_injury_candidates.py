@@ -29,6 +29,34 @@ POSITIONS = {"QB", "RB", "WR", "TE"}
 MIN_REFERENCE_SHARE = 0.45
 MIN_DROP = 0.35
 
+# Conservative, entirely data-backed screening signal. A qualifying event
+# needs documented NFL game participation, a severe playing-time drop and an
+# Out/Doubtful injury designation *the following week*. This is an estimate,
+# never evidence the injury made a player unable to finish normally.
+AUTO_MAX_SHARE = 0.35
+AUTO_MAX_RELATIVE_SHARE = 0.45
+EXCLUDED_INJURY_DESCRIPTIONS = ("illness", "rest", "personal", "not injury related")
+
+
+def strong_injury_signal(current_share, baseline, snaps, followup, week):
+    if current_share is None or baseline is None or snaps is None:
+        return False
+    if snaps < 1 or baseline < MIN_REFERENCE_SHARE:
+        return False
+    if current_share > AUTO_MAX_SHARE or current_share > baseline * AUTO_MAX_RELATIVE_SHARE:
+        return False
+    for report in followup:
+        if int(report.get("week") or 0) != week + 1:
+            continue
+        injury = str(report.get("injury") or "").strip()
+        status = str(report.get("status") or "").strip().casefold()
+        if status in {"out", "doubtful"} and injury and not any(
+            x in injury.casefold() for x in EXCLUDED_INJURY_DESCRIPTIONS
+        ):
+            return True
+    return False
+
+
 
 def canonical(value):
     """Conservative person-name comparison; a match is a lead, not identity proof."""
@@ -145,7 +173,10 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
         if not decline:
             continue
         checked += 1
-        report = followup[0] if followup else None
+        strong = strong_injury_signal(current_share, baseline, current_snaps, followup, week)
+        report = next((r for r in followup if int(r["week"]) == week+1
+                       and str(r.get("status") or "").strip().casefold() in ("out", "doubtful")),
+                      followup[0] if followup else None)
         for fantasy in participants:
             franchise = int(fantasy["franchise_id"])
             player_id = str(fantasy["player_id"])
@@ -173,12 +204,12 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
                 "reference_offense_pct": round(baseline, 3),
                 "injury_report_detail": report,
                 "signal_types": evidence,
-                "priority": "higher" if followup and str(report.get("status") or "").casefold() not in (
-                    "full participation in practice", "not listed", "healthy"
-                ) else "review",
+                "priority": "higher" if strong else "background",
+                "inference_tier": "automated_estimate" if strong else "archived_weak_signal",
+                "counts_toward_verified_injuries": False,
                 "already_verified": (year, week, player_id) in verified,
                 "review_status": "candidate_unverified_do_not_count",
-                "disclaimer": "Snap drop/next injury report is not proof of game-ending injury.",
+                "disclaimer": "Automatic injury estimate, not evidence of injury-limited NFL game finish.",
                 "snaps_source_url": f"{RELEASE}/snap_counts/snap_counts_{year}.csv",
                 "injury_report_source_url": f"{RELEASE}/injuries/injuries_{year}.csv",
             })
@@ -193,10 +224,14 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
             "season": year, "review_leads": len(group),
             "high_priority": sum(c["priority"] == "higher" for c in group),
             "previously_verified": sum(bool(c["already_verified"]) for c in group),
+            "automated_estimates": sum(c["inference_tier"] == "automated_estimate"
+                                       and not c["already_verified"] for c in group),
+            "archived_weak_signals": sum(c["inference_tier"] == "archived_weak_signal"
+                                         for c in group),
         })
     return {
-        "schema_version": 1,
-        "status": "candidate_discovery_only",
+        "schema_version": 2,
+        "status": "automatic_injury_estimates_separate_from_verified",
         "counts_toward_injuries": False,
         "is_complete_injury_history": False,
         "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -209,6 +244,10 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
         "signals_matched": checked,
         "excluded_absences_and_bye_weeks": "No-snap fantasy players do not enter the in-game injury discovery list.",
         "candidate_count": len(candidates),
+        "automatic_estimate_count": sum(c["inference_tier"] == "automated_estimate"
+                                        and not c["already_verified"] for c in candidates),
+        "automatically_archived_count": sum(c["inference_tier"] == "archived_weak_signal"
+                                            for c in candidates),
         "by_season": summary,
         "candidates": candidates,
     }
