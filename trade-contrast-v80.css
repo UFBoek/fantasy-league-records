@@ -1,0 +1,14 @@
+/* v80: restore legible trade value captions on the white James/Hayden cards.
+   Older phone CSS still forces pale blue (#bbcee1) onto these spans. */
+.page-wrap .jh-archive .jh-overall .jh-overview-team .jh-overview-figures > span,
+.page-wrap .jh-archive .jh-overall .jh-overview-team .jh-overview-production > span {
+  color:#3c5549!important;
+  font-weight:900!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+.page-wrap .jh-archive .jh-overall .jh-overview-team .jh-overview-figures > small,
+.page-wrap .jh-archive .jh-overall .jh-overview-team .jh-overview-production > small {
+  color:#586c60!important;
+  opacity:1!important;
+}
