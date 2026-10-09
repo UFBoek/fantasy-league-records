@@ -1055,7 +1055,7 @@ async function injuries(){
   const clubs=l.roster_matches.filter(m=>m.potentially_relevant&&!m.already_verified).map(m=>esc(OWNER_DISPLAY_BY_ID[m.franchise_id]||m.owner_name)).join(', ');
   return '<div class="fig-injury-lead"><div><strong>'+esc(l.player_name)+'</strong><small>'+esc(l.season)+' · W'+esc(l.week)+' · '+clubs+'</small></div><a target="_blank" rel="noopener noreferrer" href="'+esc(l.source_url)+'">Source ↗</a></div>';
  }).join('');
- app.innerHTML=hero('RECORDS LAB · 2026','INJURY AUDIT','Injuries that prevented players from completing NFL games normally, verified against fantasy starts.')+
+ app.innerHTML=hero('RECORDS LAB · 2023–2026','INJURY AUDIT','Injuries that prevented players from completing NFL games normally, verified against fantasy starts.')+
  '<section class="fig-injury-pilot"><div class="fig-injury-notice"><strong>2026 PILOT — PARTIAL COVERAGE</strong><p>These are not complete injury-luck rankings. A dash means we have not verified an eligible event for that manager, not that they suffered zero injuries. Fully returning to finish a game never counts.</p></div>'+
  '<div class="fig-injury-summary"><div><strong>'+events.length+'</strong><span>VERIFIED FANTASY CASES</span></div><div><strong>'+leads.length+'</strong><span>LEAGUE-RELEVANT LEADS TO REVIEW</span></div></div>'+
  '<section class="fig-injury-block"><h2>MANAGER SNAPSHOT <small>VERIFIED SO FAR · NOT RANKED</small></h2><div class="fig-injury-teams">'+managers+'</div></section>'+
@@ -1067,7 +1067,8 @@ async function injuries(){
  '<div id="figHistoricalData" aria-live="polite"></div></section></section>';
  let selected='2025',term='';
  const renderHistory=()=>{
-  const rows=(discovery.candidates||[]).filter(c=>String(c.season)===selected&&!c.already_verified).filter(c=>!term||(c.player_name+' '+(OWNER_DISPLAY_BY_ID[c.franchise_id]||c.owner_name)).toLowerCase().includes(term));
+  const verifiedKeys=new Set((data.events||[]).map(e=>String(e.season)+'|'+String(e.week)+'|'+String(e.player_id)));
+  const rows=(discovery.candidates||[]).filter(c=>String(c.season)===selected&&!c.already_verified&&!verifiedKeys.has(String(c.season)+'|'+String(c.week)+'|'+String(c.player_id))).filter(c=>!term||(c.player_name+' '+(OWNER_DISPLAY_BY_ID[c.franchise_id]||c.owner_name)).toLowerCase().includes(term));
   const rank=rows.sort((a,b)=>(b.priority==='higher')-(a.priority==='higher')||+a.week-+b.week||String(a.player_name).localeCompare(String(b.player_name)));
   const published=rank.slice(0,65);
   const summary=(discovery.by_season||[]).find(x=>String(x.season)===selected);
@@ -1112,7 +1113,7 @@ async function records(){
     {label:'3RD',key:'bronze'},{label:'WIN %',key:'win'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PF',key:'pf'}],rows),
    'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','League bests, record holders and the full historical leaderboard.')+
- `<div class="fig-injury-entry"><a href="#/injuries"><strong>2026 INJURY AUDIT</strong><span>Sourced game exits · 2026 research pilot ↗</span></a></div>`+
+ `<div class="fig-injury-entry"><a href="#/injuries"><strong>INJURY AUDIT · 2023–2026</strong><span>Verified exits and historical injury research ↗</span></a></div>`+
  hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
  const gamesForView=()=>DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);
  const weeklySummary=()=>{const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});const perf=[];gamesForView().forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});return Object.values(out)};
