@@ -70,15 +70,14 @@ class StructuredInjuryDiscovery(unittest.TestCase):
         self.assertTrue(matched[0]["established_rotation"])
         self.assertFalse(matched[0]["starter"])
 
-    def test_nonappearance_is_not_labeled_as_game_exit(self):
+    def test_nonappearance_or_bye_does_not_enter_in_game_leads(self):
         rosters, snaps, reports = self.base()
+        # Absence in Week 1 is NOT proof of an in-game injury. NFL bye weeks
+        # create identical no-snap patterns in weekly fantasy rosters.
         snaps[2026] = [snap(3, 0.90), snap(4, 0.95)]
         result = scan.find_review_candidates(rosters, snaps, reports, [])
-        self.assertEqual(result["candidate_count"], 1)
-        lead = result["candidates"][0]
-        self.assertIn("game_nonappearance", lead["signal_types"])
-        self.assertNotIn("unusual_offensive_snap_reduction", lead["signal_types"])
-        self.assertNotEqual(lead["priority"], "higher")
+        self.assertEqual(result["candidate_count"], 0)
+        self.assertEqual(result["candidates"], [])
 
     def test_incomplete_week_cannot_enter_pilot(self):
         rosters, snaps, reports = self.base()
@@ -88,6 +87,14 @@ class StructuredInjuryDiscovery(unittest.TestCase):
     def test_lack_of_baseline_does_not_fabricate_injury(self):
         rosters, snaps, reports = self.base()
         snaps[2026] = [snap(1, 0.03), snap(3, 0.92)]
+        self.assertEqual(scan.find_review_candidates(rosters, snaps, reports, [])["candidate_count"], 0)
+
+    def test_missed_game_not_counted_even_with_injury_report(self):
+        rosters, snaps, reports = self.base()
+        # A later Week 2 "Out" designation is not evidence that he left an
+        # actual Week 1 game unless there are Week 1 playing-time records.
+        snaps[2026] = [snap(3, 0.95), snap(4, 0.93)]
+        reports[2026] = [injury(2)]
         self.assertEqual(scan.find_review_candidates(rosters, snaps, reports, [])["candidate_count"], 0)
 
     def test_percentage_format_variations(self):
