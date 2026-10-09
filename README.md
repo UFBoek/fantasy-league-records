@@ -1,3 +1,14 @@
+## v82 — Render long weekly histories in increments of 100
+
+- **Highest Scoring Player Weeks:** Player Records → Highest Scoring Player Weeks → Full History now renders only the **top 100 player performances** at first load, instead of creating thousands of DOM table cells.
+- **Highest/Lowest Scoring Team Weeks:** The individual team-scoring week record histories use the same 100-row first view and can show another 100 at a time, respecting lowest-first for the lowest-score view.
+- **Load more:** The end of each history displays “Showing N of TOTAL” and a “SHOW 100 MORE” button until all official entries are visible. Exact historical scores and rankings are unchanged.
+- **Sorting:** The Points header applies ascending/descending ordering to the *full* archived dataset, then resets to the top 100 of that order. Sort direction remains visible and stays consistent as more rows load.
+- **Mobile:** Rank + Player/Team remain fixed. Loading more or changing sort redraws both panes together and preserves the horizontal stat scroll position.
+- **Delivery:** `history-paging-v82.css` is included in index.html, GitHub Pages staging and the service-worker cache. `app.js?v=82` and the shell cache version are bumped. No Sleeper polling, completed-week record filters or data files are changed.
+
+---
+
 ## v79 — Restore official champions, score-linked playoff brackets, and legible team cards
 
 - **Root cause:** `data/playoffs.json` contains bracket roster pairs, seasons, rounds and categories, *not* `champion`, `runner_up`, `third_place`, `owner_name` or `franchise_id` summary fields. The former Champions and Playoffs pages read those missing fields, displaying dashes or generic team numbers.
