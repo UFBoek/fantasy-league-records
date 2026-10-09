@@ -71,7 +71,7 @@
     const nameIndex = labels.findIndex(l => /^(PLAYER|TEAM|NAME|HOLDER|OWNER|OPPONENT|RECORD)$/i.test(l));
     const rankIndex = labels.findIndex(l => l === '#');
     const keyIndex = nameIndex >= 0 ? nameIndex : (rankIndex === 0 ? 1 : 0);
-    const firstMetric = labels.findIndex(l => /^(VALUE|LENGTH|POINTS|FPTS|FANTASY PTS|PTS|TOTAL|PF|WINS|WIN %|PTS\/START)$/i.test(l));
+    const firstMetric = labels.findIndex(l => /^(VALUE|LENGTH|COUNT|SCORE|POINTS|FPTS|FANTASY PTS|PTS|TOTAL|PF|WINS|WIN %|PTS\/START)$/i.test(l));
     const metricIndex = firstMetric >= 0 ? firstMetric : (labels.length > 3 ? 3 : labels.length - 1);
     const extras = labels.map((l,i) => i).filter(i => i !== keyIndex && i !== rankIndex && i !== metricIndex);
     const preferred = [
@@ -86,9 +86,9 @@
     const route = routeName();
     const typeIndex = labels.findIndex(value => /^TYPE$/i.test(value));
     const lengthIndex = labels.findIndex(value => /^LENGTH$/i.test(value));
-    const valueIndex = labels.findIndex(value => /^VALUE$/i.test(value));
+    const valueIndex = labels.findIndex(value => /^(VALUE|POINTS|COUNT|SCORE)$/i.test(value));
     const isActiveStreaks = route === 'streaks' && typeIndex >= 0 && lengthIndex >= 0;
-    const isRecordHistory = ['record','streak','singleseasons'].includes(route) && (valueIndex >= 0 || lengthIndex >= 0);
+    const isRecordHistory = ['record','streak','singleseasons','special'].includes(route) && (valueIndex >= 0 || lengthIndex >= 0);
     const mainIndex = isRecordHistory ? (valueIndex >= 0 ? valueIndex : lengthIndex) :
       isActiveStreaks ? typeIndex : metricIndex;
     const allowedIndices = isRecordHistory ? [mainIndex] :
