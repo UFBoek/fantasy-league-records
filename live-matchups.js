@@ -22,7 +22,7 @@
     const value = Number(raw);
     return Number.isFinite(value) ? value : null;
   }
-  function gameCards(rows) {
+  function gameCards(rows, names) {
     const groups = new Map();
     for (const row of rows) {
       const roster = Number(row.roster_id);
@@ -52,7 +52,7 @@
       }).join('');
       return '<article class="fig-live-match"><div class="fig-live-match-label">' +
         (pair ? 'MATCHUP ' + String(id).replace(/[^0-9]/g,'') : 'UNPAIRED ROSTER') + '</div>' +
-        sides + '<a class="fig-live-open" href="#/livematch/' + Number(leagueMeta.settings.leg) + '/' + encodeURIComponent(id) + '">VIEW LINEUPS →</a></article>';
+        sides + liveLineups(group, leagueMeta, names, {compact:true}) + '<a class="fig-live-open" href="#/livematch/' + Number(leagueMeta.settings.leg) + '/' + encodeURIComponent(id) + '">OPEN MATCHUP DETAILS →</a></article>';
     }).join('');
   }
   async function refresh(force = false) {
@@ -85,7 +85,9 @@
       const rows = await result.json();
       if (!Array.isArray(rows)) throw new Error('Unexpected Sleeper matchup data');
       if (document.getElementById('figLiveBoard') !== board) return;
-      const cards = gameCards(rows);
+      const names = await namesForPlayers();
+      if (document.getElementById('figLiveBoard') !== board) return;
+      const cards = gameCards(rows, names);
       board.innerHTML = cards ? '<div class="fig-live-grid">' + cards + '</div>' :
         '<div class="fig-live-empty">Current-week matchups have not been posted on Sleeper yet.</div>';
       if (status) status.textContent = 'Week ' + week + ' · Updated ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
@@ -130,34 +132,79 @@
     rosterNames = names;
     return names;
   }
-  function liveLineups(rows, league, names) {
-    const positions = Array.isArray(league.roster_positions) ? league.roster_positions : [];
-    const slotName = slot => slot === 'SUPER_FLEX' ? 'SFLX' : slot === 'FLEX' ? 'FLEX' : String(slot || 'START');
-    const playerRow = (id, slot, points) => {
-      const detail = names.get(String(id)) || {};
-      const name = detail.name || (id === '0' ? 'Empty lineup slot' : 'Player ' + id);
-      const pts = points === null || points === undefined || points === '' || !Number.isFinite(Number(points)) ? '—' : Number(points).toFixed(2);
-      return '<div class="fig-live-player-row"><span class="fig-live-slot">' + clean(slot) + '</span>' +
-        (typeof window.playerHeadshot === 'function' ? window.playerHeadshot(id, name, 'fig-live-nfl-photo') : '') +
-        '<span class="fig-live-player-name">' + clean(name) + (detail.position ? '<small>' + clean(detail.position) + '</small>' : '') + '</span>' +
-        '<strong class="fig-live-player-points">' + pts + '</strong></div>';
+  // One shared, position-aligned lineup for both live scoreboard cards
+  // and the dedicated matchup page. The source is always the live Sleeper
+  // matchup feed; no in-progress scores enter historical league records.
+  function liveLineups(rows, league, names, options = {}) {
+    const compact = options.compact === true;
+    const ordered = [...rows].sort((a,b) => Number(a.roster_id)-Number(b.roster_id)).slice(0,2);
+    const positions = Array.isArray(league?.roster_positions)
+      ? league.roster_positions.filter(slot => !['BN','IR','TAXI','RESERVE'].includes(String(slot).toUpperCase())) : [];
+    const abbrev = slot => slot === 'SUPER_FLEX' ? 'SFLX' : String(slot || 'START').toUpperCase();
+    const positionCounts = {};
+    positions.forEach(slot => {const k=abbrev(slot);positionCounts[k]=(positionCounts[k]||0)+1;});
+    const usedPositions = {};
+    const positionLabel = i => {
+      const key = abbrev(positions[i]);
+      usedPositions[key] = (usedPositions[key]||0) + 1;
+      return positionCounts[key]>1 ? key+usedPositions[key] : key;
     };
-    return '<div class="fig-live-detail-grid">' + rows.map(row => {
-      const roster = Number(row.roster_id);
+    const sides = ordered.map(row => {
       const starters = Array.isArray(row.starters) ? row.starters.map(String) : [];
-      const allPlayers = Array.isArray(row.players) ? row.players.map(String) : [];
-      const starting = new Set(starters);
-      const points = row.players_points && typeof row.players_points === 'object' ? row.players_points : {};
-      const perStarter = Array.isArray(row.starters_points) ? row.starters_points : [];
-      const first = starters.map((id, i) => playerRow(id, slotName(positions[i]), perStarter[i] ?? points[id]));
-      const bench = allPlayers.filter(id => id && id !== '0' && !starting.has(id)).map(id => playerRow(id,'BN',points[id]));
-      const total = score(row);
-      return '<section class="fig-live-team"><div class="fig-live-team-head"><a class="fig-team-identity" href="#/team/' + roster + '">' + teamLabel(roster) + '</a>' +
-        '<strong class="fig-live-team-total">' + (total === null ? '—' : total.toFixed(2)) + '</strong></div>' +
-        '<div class="fig-live-team-section">STARTERS</div>' + (first.join('') || '<div class="fig-live-empty">Starters not posted yet.</div>') +
-        '<div class="fig-live-team-section">BENCH</div>' + (bench.join('') || '<div class="fig-live-empty">No bench players listed.</div>') +
-        '</section>';
-    }).join('') + '</div>';
+      const onField = new Set(starters);
+      const scored = row.players_points && typeof row.players_points === 'object' ? row.players_points : {};
+      const starterPoints = Array.isArray(row.starters_points) ? row.starters_points : [];
+      // Positive bench points only. Zero, negative, missing, reserve and empty
+      // slots are never displayed in scoreboard bench lists.
+      const bench = (Array.isArray(row.players) ? row.players.map(String) : [])
+        .filter(id => id && id !== '0' && !onField.has(id) &&
+          scored[id] !== null && scored[id] !== undefined &&
+          scored[id] !== '' && Number.isFinite(Number(scored[id])) && Number(scored[id]) > 0)
+        .sort((a,b) => Number(scored[b])-Number(scored[a]));
+      return {roster:Number(row.roster_id), starters, scored, starterPoints, bench, total:score(row)};
+    });
+    const player = (side, id, points) => {
+      if (!side || !id || id === '0') return '<div class="fig-live-lineup-empty">—</div>';
+      const info = names.get(String(id)) || {};
+      const name = info.name || 'Player ' + id;
+      const value = points == null || points === '' || !Number.isFinite(Number(points)) ? '—' : Number(points).toFixed(2);
+      const headshot = typeof window.playerHeadshot === 'function'
+        ? window.playerHeadshot(id, name, 'fig-live-nfl-photo') : '';
+      return '<div class="fig-live-slot-player">' + headshot +
+        '<span class="fig-live-slot-info"><b>' + clean(name) + '</b>' +
+        (info.position ? '<small>' + clean(info.position) + '</small>' : '') +
+        '</span><strong class="fig-live-slot-points">' + value + '</strong></div>';
+    };
+    const maxStarters = Math.max(positions.length, ...sides.map(x=>x.starters.length), 0);
+    const heading = side => side ? '<a href="#/team/' + side.roster + '" class="fig-live-lineup-team">' +
+      teamLabel(side.roster) + '<strong>' + (side.total === null ? '—' : side.total.toFixed(2)) + '</strong></a>' :
+      '<span class="fig-live-lineup-team">NO OPPONENT</span>';
+    const starters = Array.from({length:maxStarters},(_,i) => {
+      const left=sides[0], right=sides[1];
+      const leftId=left?.starters[i],rightId=right?.starters[i];
+      return '<div class="fig-live-lineup-pair">' +
+        player(left,leftId,left?.starterPoints[i] ?? left?.scored[leftId]) +
+        '<span class="fig-live-lineup-slot">' + clean(positionLabel(i)) + '</span>' +
+        player(right,rightId,right?.starterPoints[i] ?? right?.scored[rightId]) +
+        '</div>';
+    }).join('');
+    const benches = sides.map(side => '<div class="fig-live-bench-team">' +
+      '<div class="fig-live-bench-team-title">' + clean(NAMES[side.roster] || 'Roster ' + side.roster) +
+      ' · ' + side.bench.length + '</div>' +
+      (side.bench.length ? side.bench.map(id=>player(side,id,side.scored[id])).join('') :
+        '<div class="fig-live-bench-empty">No bench players above 0 points</div>') + '</div>').join('');
+    const open = compact ? '' : ' open';
+    return '<div class="fig-live-detail-grid' + (compact ? ' fig-live-compact' : '') + '">' +
+      '<div class="fig-live-lineup-title">STARTING LINEUPS <span>HEAD TO HEAD · BY POSITION</span></div>' +
+      '<div class="fig-live-lineup-comparison">' +
+        '<div class="fig-live-lineup-heading">' + heading(sides[0]) +
+        '<span class="fig-live-lineup-middle">SLOT</span>' + heading(sides[1]) + '</div>' +
+        (starters || '<div class="fig-live-empty">Starting lineups have not been posted yet.</div>') +
+      '</div>' +
+      '<details class="fig-live-positive-bench"' + open + '><summary>BENCH SCORERS <span>ABOVE 0 POINTS · ' +
+        sides.reduce((sum,side)=>sum+side.bench.length,0) + ' PLAYERS</span></summary>' +
+        '<div class="fig-live-positive-bench-grid">' + benches + '</div></details>' +
+      '</div>';
   }
   async function refreshDetail(force = false) {
     const detail = activeDetail();
