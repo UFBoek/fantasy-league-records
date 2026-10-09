@@ -138,6 +138,7 @@
       const name = detail.name || (id === '0' ? 'Empty lineup slot' : 'Player ' + id);
       const pts = points === null || points === undefined || points === '' || !Number.isFinite(Number(points)) ? '—' : Number(points).toFixed(2);
       return '<div class="fig-live-player-row"><span class="fig-live-slot">' + clean(slot) + '</span>' +
+        (typeof window.playerHeadshot === 'function' ? window.playerHeadshot(id, name, 'fig-live-nfl-photo') : '') +
         '<span class="fig-live-player-name">' + clean(name) + (detail.position ? '<small>' + clean(detail.position) + '</small>' : '') + '</span>' +
         '<strong class="fig-live-player-points">' + pts + '</strong></div>';
     };
