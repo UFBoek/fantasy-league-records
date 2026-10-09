@@ -1,0 +1,120 @@
+name: Discover NFL injury review candidates
+
+on:
+  schedule:
+    # Daily after the previous NFL game day, 11:47 UTC (~7:47 AM EDT).
+    # GitHub cron is best-effort. This only creates review leads.
+    - cron: '47 11 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/discover-injuries.yml'
+      - 'scripts/discover_injury_candidates.py'
+      - 'tests/test_injury_discovery.py'
+
+concurrency:
+  group: league-pages
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: Find historical NFL injury signals (unverified)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Prepare Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Test conservative injury discovery
+        run: python -m unittest discover -s tests -p 'test_injury_discovery.py'
+
+      - name: Fetch official nflverse injury reports and PFR snap counts
+        shell: bash
+        run: |
+          # All four annual reports must be available. If one provider is
+          # down, fail safely: keep previously published candidates intact.
+          python scripts/discover_injury_candidates.py
+
+      - name: Validate candidates cannot count as verified injuries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('data/injury_discovery_candidates.json')
+          d = json.loads(p.read_text())
+          assert d['schema_version'] == 1
+          assert d['counts_toward_injuries'] is False
+          assert d['is_complete_injury_history'] is False
+          assert set(d['seasons_checked']) == {2023, 2024, 2025, 2026}
+          assert d['candidate_count'] == len(d['candidates']) > 0
+          assert all(c['review_status'] == 'candidate_unverified_do_not_count'
+                     for c in d['candidates'])
+          print("Safe injury candidate snapshot validated:", d['candidate_count'])
+          PY
+
+      - name: Commit candidate review evidence without touching official records
+        id: commit
+        shell: bash
+        run: |
+          git add data/injury_discovery_candidates.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data: refresh NFL injury discovery candidates'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [[ "$attempt" -eq 3 ]]; then
+              echo '::error::Could not publish safely after 3 rebase attempts'
+              exit 1
+            fi
+            git fetch origin main
+            git rebase origin/main
+          done
+
+  deploy:
+    name: Publish injury review page
+    needs: discover
+    if: needs.discover.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - name: Checkout refreshed main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Stage updated website
+        run: bash scripts/stage_pages.sh "$RUNNER_TEMP/league-site"
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/league-site
+
+      - name: Deploy
+        id: publish
+        uses: actions/deploy-pages@v4
