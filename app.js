@@ -1783,6 +1783,27 @@ async function rivalryDetail(a,b){
  a=+a;b=+b;const r=DATA.h2h.find(x=>+x.franchise_id===a&&+x.opponent_franchise_id===b),ta=DATA.standingsCareer.find(x=>+x.franchise_id===a),tb=DATA.standingsCareer.find(x=>+x.franchise_id===b);const games=DATA.games.filter(g=>(+g.franchise_1===a&&+g.franchise_2===b)||(+g.franchise_1===b&&+g.franchise_2===a)).sort((x,y)=>+y.season-+x.season||+y.week-+x.week);const rows=games.map(g=>({open:`<a class="btn-lite" href="#/game/${g.season}/${g.week}/${g.matchup_id}">OPEN</a>`,season:g.season,week:g.week,a:+g.franchise_1===a?money(g.score_1):money(g.score_2),b:+g.franchise_1===b?money(g.score_1):money(g.score_2),winner:ownerLink(g.winner_name,g.winner_franchise_id),margin:money(g.margin),_sort:{season:num(g.season),week:num(g.week),a:+g.franchise_1===a?num(g.score_1):num(g.score_2),b:+g.franchise_1===b?num(g.score_1):num(g.score_2),winner:displayOwnerName(g.winner_name,g.winner_franchise_id),margin:num(g.margin)}}));app.innerHTML=hero('RIVALRY HISTORY',`${ownerName(ta.owner_name,a)} VS ${ownerName(tb.owner_name,b)}`,r?`${r.wins}-${r.losses} series • ${money(r.point_differential)} point differential`:'Series history')+section('EVERY MEETING',sortableTable([{label:'',key:'open'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:displayOwnerName(ta.owner_name,a).toUpperCase(),key:'a'},{label:displayOwnerName(tb.owner_name,b).toUpperCase(),key:'b'},{label:'WINNER',key:'winner'},{label:'MARGIN',key:'margin'}],rows));
 }
 
+/* Current-week matchup route. The separate live-matchups module owns polling
+   and lineup rendering; this shell must exist before it receives its event. */
+async function liveMatchPage(weekArg, matchupArg) {
+ navActive('home');
+ const week=Number(weekArg);
+ const matchup=String(matchupArg||'');
+ if(!Number.isInteger(week)||week<1||week>18||!/^(?:[0-9]+|solo-[0-9]+)$/.test(matchup)){
+  app.innerHTML=hero('LIVE MATCHUP','MATCHUP UNAVAILABLE')+
+   section('LIVE LINEUPS','<div class="fig-live-empty">Invalid matchup link. <a href="#/home">Back to live scores →</a></div>');
+  return;
+ }
+ app.innerHTML=hero('LIVE MATCHUP','WEEK '+week+' LINEUPS')+
+  '<div class="toolbar"><a href="#/home" class="pill">← LIVE SCOREBOARD</a></div>'+
+  section('STARTERS & BENCH',
+   '<div id="figLiveDetailStatus" role="status" aria-live="polite">Connecting to Sleeper…</div>'+
+   '<div id="figLiveDetail" data-week="'+week+'" data-matchup="'+esc(matchup)+'">'+
+   '<div class="fig-live-empty">Loading current matchups and player lineups…</div></div>');
+ // Give the independently loaded live module a chance to attach its listener.
+ setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
+}
+
 async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every five minutes; the server-side build owns official records.
