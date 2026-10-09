@@ -1,3 +1,17 @@
+## v94 — Better team-season, roster, player and matchup archives
+
+- **Player bomb history:** The older mobile-converted sortable table created ambiguous/malformed numbers in the left-hand column (e.g. on Travis Kelce's 5 BOMBS page). Replace it with numbered, high-contrast performance cards showing clear **#1, #2, #3…** labels, the franchise photo, season/week, position and exact fantasy points.
+- **Player trade history:** The existing transaction-scoped `playerTradeHistory` (linked by Sleeper player ID and receiving trade assets) now appears **immediately after** the player profile hero, above Franchise History. It shows every archived trade, from/to managers and expandable package received by each party. Validated against received trade assets; no duplicated player transaction IDs were found.
+- **Team Seasons tab:** Replace sparse one-line year cards with compact season summaries: official W–L, win %, PF, Max PF, all-play record, weekly high scores and regular-season finishing position. Each season is clickable.
+- **Season detail:** Twelve metric tiles, all-play W–L–T **against all nine other franchises**, with expandable week-by-week score comparisons, the top-five NFL scoring contributors and every completed regular/postseason matchup linked to its lineups. This uses *official regular-season-only all-play*; the H2H section remains the only place to extend pairwise all-play through qualifying playoff weeks.
+- **Rosters:** New team roster overview with starter, bench, injured reserve and taxi counts; current valuated asset totals and starter value; QB/RB/WR/TE/K/DEF filter pills, grouped player/headshot rows and more readable future-pick cards. No guessed valuations.
+- **Active streaks:** The main Active Streaks list and each team snapshot now directly link to the complete scored games underlying a specific streak. The streak breakdown is a sequence of readable scored game cards with opponent, result, date and full-lineup link. Historical streak leaderboard navigation remains separate.
+- **Game detail:** Replace stacked full-roster columns with a **side-by-side, slot-matched starting lineup**, a two-team final score header and separately aligned **side-by-side benches**, preserving all archived player links and data.
+- **Styling/release:** `league-detail-v94.css` provides high-contrast responsive mobile-first layouts (including <=360px). Cache/staging bumped to `app.js?v=94`, `league-detail-v94.css?v=94`, `fig-league-shell-v94`.
+- **Tests:** All 40 franchise-season all-play totals independently re-computed and matched the official published season totals; all 20 active streaks matched their recorded full game counts; player transaction and roster-filter tests passed; Travis Kelce's breakdown rendered 15 distinct #1–#15 cards; a representative 8-slot side-by-side game lineup test verified score/bench/player links; JS syntax/CSS balance and Pages asset-cache wiring passed. On-device visual QA still pending.
+
+---
+
 ## v93 — Player trade histories on individual NFL player profiles
 
 - **Player Archive → Player History** includes a new **Trade History** section after Franchise History and before Season History, showing all completed league trades where the player was transferred. Each row includes the archived season and week, manager/team portraits with the sending and receiving franchise, and an expandable **See Full Trade Package** showing every participating manager's received players and picks. There's also a link to the full Trades archive.
