@@ -76,3 +76,18 @@
 .page-wrap .fig-team-injury-link span{font:750 11px/1.4 Inter,system-ui,sans-serif;color:#49745b}
 @media(max-width:760px){.page-wrap .fig-injury-team-cards{grid-template-columns:minmax(0,1fr)}.page-wrap .fig-injury-team-card{gap:9px;padding:11px}.page-wrap .fig-injury-team-title strong{font-size:16px}.page-wrap .fig-injury-kpis strong{font-size:23px}.page-wrap .fig-team-injury-overview,.page-wrap .fig-team-injury-season,.page-wrap .fig-injury-incident{padding:12px}.page-wrap .fig-team-injury-header{padding:13px;gap:11px}.page-wrap .fig-team-injury-header-avatar{height:52px;width:52px;flex-basis:52px}.page-wrap .fig-team-injury-season-heading strong{font-size:15px}.page-wrap .fig-injury-incident dl{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:400px){.page-wrap .fig-injury-kpis>div{padding:8px 4px}.page-wrap .fig-injury-kpis small{font-size:8px}.page-wrap .fig-injury-kpis.compact strong{font-size:19px}.page-wrap .fig-injury-season-link{padding:7px 5px;font-size:10px}}
+
+/* v109: separate strong automated estimates from verified injury totals. */
+.page-wrap .fig-auto-injury-counter{margin:0;color:#5c614a;background:#faf7e9;border:1px solid #e6d9b0;padding:8px 10px;border-radius:8px;font:800 10px/1.5 Inter,system-ui,sans-serif}
+.page-wrap .fig-auto-injury-section{margin-top:14px;padding:12px;background:#fff9ea;border:1px solid #e4d5ae;border-radius:10px;color:#554829}
+.page-wrap .fig-auto-injury-heading{display:flex;gap:7px 12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.page-wrap .fig-auto-injury-heading strong{color:#69511f;font:900 12px/1.4 Inter,system-ui,sans-serif}
+.page-wrap .fig-auto-injury-heading span{color:#785e30;font:800 10px/1.3 Inter,system-ui,sans-serif}
+.page-wrap .fig-auto-injury-section>p{margin:7px 0 13px;font:650 11px/1.65 Inter,system-ui,sans-serif;color:#695633}
+.page-wrap .fig-auto-injury-row{border-top:1px solid #e9dfc4}
+.page-wrap .fig-auto-injury-row b{color:#574b29}
+.page-wrap .fig-auto-injury-row small{color:#795d30}
+.page-wrap .fig-auto-injury-row span{color:#705b3d}
+.page-wrap .fig-auto-injury-row a{color:#7c5a28}
+.page-wrap .fig-team-injury-global-review strong{font:900 12px/1.4 Inter,system-ui,sans-serif;color:#1e6440}
+@media(max-width:699px){.page-wrap .fig-auto-injury-section{padding:10px}.page-wrap .fig-auto-injury-row{flex-wrap:wrap}.page-wrap .fig-auto-injury-row>a{white-space:normal}}
