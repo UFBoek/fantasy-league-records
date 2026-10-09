@@ -98,6 +98,12 @@ body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
   color:#262728!important;text-align:center!important;box-shadow:none!important;
 }
 .page-wrap .champion-year {font:900 clamp(29px,4vw,46px) "Archivo Black",Inter,sans-serif!important;color:#232426!important;}
+.page-wrap .champion-year {order:0;}
+.page-wrap .champion-label {order:1!important;}
+.page-wrap .fig-champion-portrait {order:2;}
+.page-wrap .champion-name {order:3;}
+.page-wrap .champion-sub {order:4;}
+.page-wrap .champion-open {order:5;}
 .page-wrap .champion-crown {display:none!important;}
 .page-wrap .fig-champion-portrait {
   width:min(74%,220px);height:auto;aspect-ratio:1;
@@ -110,7 +116,7 @@ body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
   text-transform:uppercase;
 }
 .page-wrap .champion-label {
-  order:-1;display:block;background:#262728;color:white!important;
+  order:1;display:block;background:#262728;color:white!important;
   border-radius:30px;padding:8px 24px;margin:8px 0 0;
   font-size:12px!important;letter-spacing:.15em;font-weight:950;
 }
@@ -287,7 +293,7 @@ body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
     background:transparent!important;border:0!important;gap:15px!important;padding:0!important;}
   .page-wrap .champions-grid>.champion-season-card {border:1px solid #dedede!important;border-radius:28px!important;background:#e7e7e7!important;
     padding:19px 12px!important;display:flex!important;flex-direction:column!important;text-align:center!important;}
-  .page-wrap .champion-label {order:-1!important;align-self:center;}
+  .page-wrap .champion-label {order:1!important;align-self:center;}
   .page-wrap .fig-champion-portrait {width:min(62%,195px)!important;max-width:195px!important;height:auto!important;border-radius:25px;}
   .page-wrap .champion-year {font-size:35px!important;}
   .page-wrap .champion-name {font-size:24px!important;}
@@ -341,3 +347,13 @@ body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
 @media (prefers-reduced-motion:reduce) {
   .page-wrap .record-card,.page-wrap .record-index-card {transition:none!important;}
 }
+
+/* Small medal markers provide the first/second/third podium columns without
+   relying on color alone: the actual place and count remain in text. */
+.page-wrap .fig-medal {display:inline-block;font-size:17px;line-height:1;vertical-align:middle;margin-right:4px;}
+.page-wrap .fig-gold {color:#e8b627;}
+.page-wrap .fig-silver {color:#aeb1b3;}
+.page-wrap .fig-bronze {color:#b47645;}
+.page-wrap .fig-sticky-table tbody td:nth-child(3),
+.page-wrap .fig-sticky-table tbody td:nth-child(4),
+.page-wrap .fig-sticky-table tbody td:nth-child(5) {font-variant-numeric:tabular-nums;}
