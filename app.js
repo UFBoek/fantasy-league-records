@@ -81,7 +81,7 @@ function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return
  const route=(location.hash.startsWith('#/')?location.hash.slice(2):'home').split('/')[0];
  const historical=['record','streak','singleseasons','special','playerweeks','playerbombrank','playerbomb'].includes(route);
  const activeStreaks=route==='streaks';
- $('th',t).forEach(th=>{
+ $$('th',t).forEach(th=>{
    if(t.classList.contains('fig-sticky-table')&&(historical||activeStreaks)){
      const label=th.textContent.replace(/[↕↑↓]/g,'').trim().toUpperCase();
      const allowed=historical ? /^(VALUE|LENGTH|POINTS|SCORE|BOMBS|COUNT|TOTAL)$/.test(label) : /^(TYPE|LENGTH)$/.test(label);
