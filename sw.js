@@ -1,12 +1,13 @@
-/* FIG League v68 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v68';
+/* FIG League v69 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v69';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css?v=63',
   './mobile-v67.css?v=67',
   './mobile-v68.css?v=68',
-  './mobile-v68.js?v=68',
+  './mobile-v69.css?v=69',
+  './mobile-v69.js?v=69',
   './app.js?v=64',
   './manifest.webmanifest',
   './assets/icons/fig-192.png',

@@ -1,0 +1,234 @@
+/* FIG League v69 — focused phone-only navigation, stat visibility and champions contrast.
+   Does not touch desktop layout, league records or rankings. */
+@media(max-width:699px) {
+  /* A real in-app back control for routes opened from lists or shared links. */
+  .site-header.app-header.fig-has-back {
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr);
+    column-gap:6px;
+    align-items:center;
+  }
+  .app-header.fig-has-back .brand {
+    grid-column:2;
+    min-width:0;
+    width:auto!important;
+    overflow:hidden;
+  }
+  .app-header.fig-has-back .brand>div:last-child {min-width:0;}
+  .app-header.fig-has-back .brand-name {
+    font-size:clamp(15px,4.3vw,22px)!important;
+    overflow-wrap:break-word;
+  }
+  .app-header.fig-has-back .fig-topnav {
+    grid-column:1/-1;
+    grid-row:2;
+    width:100%;
+  }
+  .fig-back-button {
+    display:flex!important;
+    align-items:center;
+    justify-content:center;
+    width:42px;
+    min-height:48px;
+    border:0!important;
+    border-radius:10px;
+    background:transparent!important;
+    color:#e7f8ff!important;
+    font:800 31px/1 Inter,system-ui,sans-serif;
+    cursor:pointer;
+    padding:0 0 4px!important;
+    touch-action:manipulation;
+    grid-column:1;
+    grid-row:1;
+  }
+  .fig-back-button:hover {background:#192940!important;}
+  .fig-back-button:focus-visible {
+    outline:2px solid #48e3cb!important;outline-offset:-2px!important;
+  }
+  .fig-back-button[hidden] {display:none!important;}
+
+  /* When sorting player or standings rows, the selected stat becomes the headline. */
+  .fig-list-table table.sortable tbody td.fig-primary {
+    align-items:flex-end!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow-wrap:anywhere!important;
+    font-variant-numeric:tabular-nums;
+  }
+  .fig-list-table table.sortable tbody td.fig-primary a {
+    color:#f4faff!important;
+    font:inherit!important;
+    text-decoration:none;
+  }
+  .fig-list-table table.sortable tbody td.fig-primary::before {
+    color:#a9c5e1!important;
+    line-height:1.2;
+    font-size:9px!important;
+    letter-spacing:.035em;
+    overflow-wrap:anywhere;
+  }
+  .fig-list-table table.sortable tbody td.fig-mobile-substats b {
+    color:#dcecff!important;
+  }
+  .fig-list-controls label:has(select[hidden]) {
+    color:#e7f2ff!important;
+    font-size:12px!important;
+  }
+  /* Avoid offering irrelevant alphabetical and category sorts on stat-heavy lists. */
+  .fig-list-controls select {
+    background:#1d2e49!important;
+    border-color:#3b5370!important;
+    color:#eff8ff!important;
+  }
+
+  /* Champions was inheriting a light card color with dark text and borders.
+     Make its seasonal winner list and playoff bracket fully navy/teal. */
+  .champions-grid {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:0!important;
+    overflow:hidden;
+    border:1px solid #31435d!important;
+    border-radius:13px!important;
+    background:#111b31!important;
+  }
+  .champions-grid>.champion-season-card {
+    display:grid!important;
+    grid-template-columns:63px minmax(0,1fr);
+    column-gap:12px;
+    align-items:center;
+    padding:14px 13px!important;
+    text-align:left!important;
+    margin:0!important;
+    min-width:0;
+    border:0!important;
+    border-bottom:1px solid #31435d!important;
+    border-radius:0!important;
+    background:#121f37!important;
+    box-shadow:none!important;
+    color:#f3f8ff!important;
+    transform:none!important;
+    text-decoration:none!important;
+  }
+  .champions-grid>.champion-season-card:last-child {border-bottom:0!important;}
+  .champions-grid .champion-year {
+    grid-column:1;grid-row:1/3;
+    font:850 24px/1 Inter,sans-serif!important;
+    color:#80e8d4!important;
+    text-align:center;
+  }
+  .champions-grid .champion-crown {
+    grid-column:1;grid-row:3;
+    text-align:center;
+    font-size:24px!important;
+    line-height:1.15!important;
+    margin:4px 0!important;
+    color:#f4d37c!important;
+  }
+  .champions-grid .champion-name {
+    grid-column:2;grid-row:1;
+    font:850 clamp(17px,5vw,22px)/1.1 Inter,sans-serif!important;
+    color:#f6faff!important;
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .champions-grid .champion-label {
+    grid-column:2;grid-row:2;
+    color:#91ead8!important;
+    font-weight:850!important;
+    margin:5px 0!important;
+  }
+  .champions-grid .champion-sub {
+    grid-column:2;
+    margin:6px 0 0!important;
+    padding:8px 0 0!important;
+    border-top:1px solid #2c415c!important;
+    gap:8px!important;
+    font-size:11px!important;
+    flex-wrap:wrap;
+    color:#dceafb!important;
+  }
+  .champions-grid .champion-sub span {
+    color:#aabed8!important;
+  }
+  .champions-grid .champion-sub strong {
+    color:#edf5ff!important;
+  }
+  .champions-grid .champion-open {
+    grid-column:2;
+    margin:9px 0 0!important;
+    font-size:10px!important;
+    color:#7de5d2!important;
+  }
+  .playoff-podium {
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:0!important;
+    overflow:hidden;
+    border:1px solid #31435d!important;
+    border-radius:12px!important;
+    background:#13213a!important;
+  }
+  .playoff-podium>div {
+    min-width:0;
+    background:transparent!important;
+    border:0!important;
+    border-bottom:1px solid #31435d!important;
+    border-left:4px solid #48e3cb!important;
+    border-radius:0!important;
+    padding:14px 13px!important;
+  }
+  .playoff-podium>div:nth-child(2) {border-left-color:#76bafd!important;}
+  .playoff-podium>div:nth-child(3) {border-left-color:#ffd277!important;}
+  .playoff-podium>div:last-child {border-bottom:0!important;}
+  .playoff-podium span {color:#b6c7de!important;}
+  .playoff-podium strong,.playoff-podium a {color:#f5f9ff!important;}
+
+  .playoff-bracket {
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:16px!important;
+  }
+  .bracket-round-title {
+    color:#edf7ff!important;
+    font:850 18px/1.2 Inter,sans-serif!important;
+    text-align:left!important;
+  }
+  .bracket-match,.bracket-bye {
+    background:#132139!important;
+    color:#f4f9ff!important;
+    border:1px solid #39506e!important;
+    border-radius:10px!important;
+    box-shadow:none!important;
+  }
+  .bracket-match-label {
+    background:#1a2b46!important;
+    color:#b6cbe2!important;
+    padding:10px 12px 7px!important;
+  }
+  .bracket-team {
+    background:transparent!important;
+    color:#eef7ff!important;
+    border-color:#354963!important;
+    padding:11px 12px!important;
+  }
+  .bracket-team span,.bracket-team strong {color:inherit!important;}
+  .bracket-team.winner {
+    background:#174040!important;
+    color:#ebfff9!important;
+  }
+  .bracket-team.winner span::after {color:#73edd4!important;}
+  .bracket-open {
+    border-color:#354963!important;
+    color:#8de7d7!important;
+    padding:8px 12px!important;
+  }
+  .bracket-bye strong,.bracket-bye a {color:#f5f9ff!important;}
+}
+@media(max-width:370px) {
+  .site-header.app-header.fig-has-back {
+    grid-template-columns:35px minmax(0,1fr);
+    column-gap:4px;
+  }
+  .fig-back-button {width:35px;min-height:44px;font-size:28px;}
+  .app-header.fig-has-back .brand-name {font-size:15px!important;}
+  .champions-grid>.champion-season-card {grid-template-columns:53px minmax(0,1fr);}
+}
