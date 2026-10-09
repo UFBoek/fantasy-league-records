@@ -1,0 +1,64 @@
+/* v104 — provisional injury research, readable on phones.
+   The audit does not claim to be a complete historical injury leaderboard. */
+.fig-injury-entry{margin:10px 0 18px}
+.fig-injury-entry a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 17px;border:1px solid #b8d5c5;background:#eaf4ed;border-radius:13px;color:#183b2a;text-decoration:none;flex-wrap:wrap}
+.fig-injury-entry strong{font:900 14px/1.25 Inter,system-ui,sans-serif;letter-spacing:.02em}
+.fig-injury-entry span{font:750 12px/1.3 Inter,system-ui,sans-serif;color:#35614a}
+.fig-injury-entry a:focus-visible{outline:3px solid #31885d;outline-offset:3px}
+.fig-injury-pilot{display:grid;gap:15px;margin:16px auto 34px;max-width:1120px}
+.fig-injury-notice{padding:15px 18px;border:1px solid #d3b77e;border-left:5px solid #b57921;background:#fff6e2;color:#503a1d;border-radius:12px}
+.fig-injury-notice strong{font:900 12px/1.3 Inter,system-ui,sans-serif;letter-spacing:.04em}
+.fig-injury-notice p{font:600 12px/1.6 Inter,system-ui,sans-serif;margin:6px 0 0;color:#604e32}
+.fig-injury-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fig-injury-summary>div{display:flex;align-items:center;gap:12px;background:#e8f2eb;border:1px solid #d5e1d8;border-radius:12px;padding:13px 17px}
+.fig-injury-summary strong{font:900 30px/1 Inter,system-ui,sans-serif;color:#18583a;font-variant-numeric:tabular-nums}
+.fig-injury-summary span{font:850 11px/1.3 Inter,system-ui,sans-serif;color:#3c5946}
+.fig-injury-block{padding:16px;border:1px solid #d7e1da;background:#fff;border-radius:14px;color:#293930}
+.fig-injury-block>h2{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 13px;font:900 17px/1.3 Inter,system-ui,sans-serif;color:#243b2e;margin:0 0 13px}
+.fig-injury-block>h2 small{font:800 10px/1.3 Inter,system-ui,sans-serif;color:#5a6c61;letter-spacing:.02em}
+.fig-injury-teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.fig-injury-team{display:grid;grid-template-columns:minmax(100px,1fr) repeat(3,minmax(54px,auto));align-items:center;gap:6px;min-width:0;border:1px solid #e0e9e2;background:#f8faf8;padding:9px;border-radius:9px}
+.fig-injury-team-id{display:flex;align-items:center;gap:7px;min-width:0;font:850 12px/1.25 Inter,system-ui,sans-serif}
+.fig-injury-team-id strong{overflow-wrap:anywhere}
+.fig-injury-avatar{width:31px;height:31px;border-radius:50%;object-fit:cover;flex:0 0 31px}
+.fig-injury-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+.fig-injury-stat b{font:900 17px/1 Inter,system-ui,sans-serif;color:#204e34;font-variant-numeric:tabular-nums}
+.fig-injury-stat small{font:700 9px/1.2 Inter,system-ui,sans-serif;color:#5a7160}
+.fig-injury-events{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.fig-injury-event{background:#f7faf8;border:1px solid #dce7df;border-left:3px solid #63a97c;border-radius:10px;padding:13px;min-width:0}
+.fig-injury-event-head{display:flex;align-items:start;justify-content:space-between;gap:10px}
+.fig-injury-event-head small{font:850 10px/1.2 Inter,system-ui,sans-serif;color:#4d6757}
+.fig-injury-event-head h3{font:900 16px/1.3 Inter,system-ui,sans-serif;color:#1d3f2b;margin:5px 0 0}
+.fig-injury-event-head>a{white-space:nowrap;font:850 11px/1.3 Inter,system-ui,sans-serif;color:#225d3b;text-decoration:underline;text-underline-offset:3px}
+.fig-injury-tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 7px}
+.fig-injury-tags span{font:850 9px/1.1 Inter,system-ui,sans-serif;color:#205939;background:#e0f0e6;border:1px solid #c6e3d1;border-radius:5px;padding:4px 6px}
+.fig-injury-event p{font:650 12px/1.55 Inter,system-ui,sans-serif;color:#344b3b;margin:7px 0 12px}
+.fig-injury-links{display:flex;flex-wrap:wrap;gap:9px 15px}
+.fig-injury-links a,.fig-injury-lead>a{font:850 11px/1.4 Inter,system-ui,sans-serif;color:#166d49;text-decoration:underline;text-underline-offset:3px}
+.fig-injury-review>summary{display:list-item;cursor:pointer;padding:3px 0;font:850 13px/1.5 Inter,system-ui,sans-serif;color:#21563a}
+.fig-injury-review>summary:focus-visible{outline:3px solid #31885d;outline-offset:4px}
+.fig-injury-review>p{font:600 12px/1.6 Inter,system-ui,sans-serif;color:#53675a;margin:11px 0}
+.fig-injury-leads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.fig-injury-lead{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #e0e5df;background:#f9faf8;border-radius:9px;padding:9px 11px}
+.fig-injury-lead>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fig-injury-lead strong{font:850 12px/1.3 Inter,system-ui,sans-serif;color:#293b2f}
+.fig-injury-lead small{font:650 10px/1.4 Inter,system-ui,sans-serif;color:#51655a}
+@media(max-width:820px){.fig-injury-teams,.fig-injury-events,.fig-injury-leads{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:699px){
+ .fig-injury-entry a{padding:11px 12px;gap:6px;border-radius:10px}
+ .fig-injury-entry strong{font-size:12px}
+ .fig-injury-entry span{font-size:11px}
+ .fig-injury-pilot{gap:9px;margin-top:10px}
+ .fig-injury-notice,.fig-injury-block{padding:12px;border-radius:11px}
+ .fig-injury-notice p{font-size:11px}
+ .fig-injury-summary>div{gap:7px;padding:10px}
+ .fig-injury-summary strong{font-size:25px}
+ .fig-injury-summary span{font-size:10px}
+ .fig-injury-team{grid-template-columns:minmax(78px,1fr) repeat(3,minmax(42px,auto));gap:4px;padding:7px}
+ .fig-injury-team-id{font-size:11px;gap:4px}
+ .fig-injury-avatar{width:25px;height:25px;flex-basis:25px}
+ .fig-injury-stat b{font-size:15px}
+ .fig-injury-stat small{font-size:8px}
+ .fig-injury-block>h2{font-size:14px}
+ .fig-injury-event{padding:11px}
+}
