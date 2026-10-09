@@ -212,6 +212,15 @@
   }
   window.addEventListener('fig:live-route', () => {lastDetailPoll = 0;detailRetryAfter = 0;refreshDetail(true);});
 
+  // Tapping empty space on a matchup card opens lineups; team-name links keep
+  // navigating to their franchise pages. The dedicated link supports keyboards.
+  document.addEventListener('click', event => {
+    const card = event.target.closest?.('.fig-live-match');
+    if (!card || event.target.closest('a,button')) return;
+    const link = card.querySelector('.fig-live-open');
+    if (link) location.hash = link.getAttribute('href');
+  });
+
   window.addEventListener('fig:home-rendered', () => {
     const board = activeBoard();
     if (!board) return;
