@@ -155,7 +155,9 @@
       visible=CHUNK;paginate();
     }
     if (isActiveStreaks) {
+      controls.classList.add('fig-streak-controls');
       const typeFilter=document.createElement('label');
+      typeFilter.className='fig-streak-type-filter';
       typeFilter.textContent='STREAK TYPE';
       const filter=document.createElement('select');
       filter.setAttribute('aria-label','Filter active streaks by type');
