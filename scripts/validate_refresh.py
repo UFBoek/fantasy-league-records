@@ -181,6 +181,16 @@ def main():
           and not injury.get("rejected_unverified_events"),
           "injury history includes invalid or unreviewed injury evidence")
 
+    candidates = load("injury_candidates")
+    check(isinstance(candidates, dict)
+          and candidates.get("schema_version") == 1
+          and candidates.get("counts_toward_injuries") is False
+          and isinstance(candidates.get("leads"), list),
+          "injury candidates must remain an unverified review queue")
+    check(all(row.get("review_status") == "unverified_lead_do_not_count"
+              for row in candidates["leads"]),
+          "an injury review candidate was incorrectly promoted to a verified count")
+
     protect_rosteraudit()
 
     # Parse EVERY export, including files not listed above, before publication.
