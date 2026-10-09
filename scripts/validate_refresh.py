@@ -92,7 +92,7 @@ def guard_completed_weeks(history):
     """
     from prepare_player_records import cutoff_by_season
 
-    limits = cutoff_by_season(history)
+    limits = cutoff_by_season(history, load("league_settings"))
     # These exports represent completed, scored weeks ONLY.
     for name in ("games", "all_games", "player_game_log",
                  "weekly_scoring_ranks", "playoffs"):
