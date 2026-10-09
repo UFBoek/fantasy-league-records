@@ -1,0 +1,126 @@
+/* v95 — Refinements to player, season, roster, streak and lineup detail views.
+   Keeps all original archive and live-data calculations intact. */
+.page-wrap .fig-bomb-entry {
+ grid-template-columns:42px minmax(0,1fr) max-content!important;
+ column-gap:11px!important;align-items:center!important;
+ padding:12px!important;min-width:0!important;min-height:80px!important;
+}
+.page-wrap .fig-bomb-rank {
+ display:grid!important;place-items:center!important;align-self:center!important;
+ width:42px!important;height:42px!important;min-width:42px!important;max-width:42px!important;
+ padding:0!important;margin:0!important;white-space:nowrap!important;
+ border-radius:11px!important;
+ font:900 15px/1 Inter,system-ui,sans-serif!important;
+ font-variant-numeric:tabular-nums!important;letter-spacing:-.03em!important;
+ background:#e7eee8!important;color:#206849!important;
+}
+.page-wrap .fig-bomb-rank::before,
+.page-wrap .fig-bomb-rank::after {content:none!important;display:none!important;}
+.page-wrap .fig-bomb-owner {min-width:0!important;max-width:100%!important;gap:9px!important;}
+.page-wrap .fig-bomb-owner>div {flex:1!important;min-width:0!important;}
+.page-wrap .fig-bomb-owner b {font-size:14px!important;line-height:1.3!important;color:#243229!important;}
+.page-wrap .fig-bomb-owner span {font-size:11px!important;line-height:1.5!important;color:#455e4e!important;overflow-wrap:anywhere!important;}
+.page-wrap .fig-bomb-points {min-width:max-content!important;max-width:100%!important;padding-left:5px!important;}
+.page-wrap .fig-bomb-points strong {color:#116d52!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important;}
+.page-wrap .fig-bomb-points small {color:#506a58!important;font-size:10px!important;}
+.page-wrap .fig-bomb-list {gap:9px!important;}
+
+/* Team seasons: reveal six useful season stats on each tappable season card. */
+.page-wrap .fig-season-preview {border-color:#d3dbd4!important;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.page-wrap .fig-season-preview:focus-visible {outline:3px solid #228c6d!important;outline-offset:2px;}
+.page-wrap .fig-season-preview-metrics {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+.page-wrap .fig-season-preview-metrics>div {min-width:0!important;padding:11px!important;background:#eff3f0!important;}
+.page-wrap .fig-season-preview-metrics small {color:#486355!important;font-size:10px!important;line-height:1.3!important;}
+.page-wrap .fig-season-preview-metrics b {color:#243328!important;font-size:15px!important;line-height:1.15!important;overflow-wrap:anywhere!important;font-variant-numeric:tabular-nums;}
+.page-wrap .fig-season-preview-open {color:#087d5e!important;}
+.page-wrap .fig-season-opponent summary {min-width:0!important;color:#29332c!important;}
+.page-wrap .fig-season-opponent summary strong {color:#205e45!important;white-space:nowrap!important;}
+.page-wrap .fig-season-opponent summary small {color:#456752!important;white-space:nowrap!important;}
+.page-wrap .fig-season-opponent-detail p {color:#3e5647!important;}
+.page-wrap .fig-season-metric {border-color:#d7dfd8!important;}
+.page-wrap .fig-season-metric span {color:#4e6856!important;}
+.page-wrap .fig-season-metric strong {color:#26352b!important;}
+
+/* Roster position snapshot above the already-filterable 4 roster groups. */
+.page-wrap .fig-roster-mix {
+ display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;
+ padding:11px 13px!important;margin-top:12px!important;
+ background:#e8f2eb!important;border:1px solid #cde1d3!important;
+ border-radius:14px!important;color:#2d4837!important;
+}
+.page-wrap .fig-roster-mix>strong {
+ color:#185e45!important;font:900 10px/1.3 Inter,system-ui,sans-serif!important;
+ letter-spacing:.06em!important;margin-right:3px!important;
+}
+.page-wrap .fig-roster-mix>span {
+ display:inline-flex;gap:6px!important;align-items:center!important;
+ padding:7px 9px!important;border-radius:9px!important;
+ border:1px solid #cbdfd2!important;background:#fff!important;
+ color:#2d4132!important;font:800 12px/1.2 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-roster-mix>span b {color:#116c4e!important;}
+.page-wrap .fig-roster-boards .sleeper-player-row:hover {background:#eef6f0!important;}
+.page-wrap .fig-roster-boards .fig-roster-player-copy b {color:#27362b!important;}
+.page-wrap .fig-roster-boards .fig-roster-player-copy small {color:#547161!important;}
+
+/* Starter totals and equivalent lineup slots are always side by side. */
+.page-wrap .fig-lineup-summary {
+ display:grid!important;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr)!important;
+ gap:9px!important;align-items:center!important;margin:8px 0 10px!important;
+}
+.page-wrap .fig-lineup-summary>div {
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:4px!important;padding:11px 8px!important;
+ border:1px solid #ccdfd3!important;background:#e8f3eb!important;border-radius:11px!important;min-width:0!important;
+}
+.page-wrap .fig-lineup-summary>div b {font:900 10px/1.25 Inter,system-ui,sans-serif!important;color:#425d4b!important;}
+.page-wrap .fig-lineup-summary>div strong {font:900 18px/1.2 Inter,system-ui,sans-serif!important;color:#146c4e!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important;}
+.page-wrap .fig-lineup-summary>span {font:900 10px Inter,system-ui,sans-serif!important;text-align:center;color:#647469!important;}
+.page-wrap .fig-lineup-guide {font:720 12px/1.55 Inter,system-ui,sans-serif!important;color:#4d6354!important;margin:9px 0 15px!important;}
+.page-wrap .fig-lineup-comparison,.page-wrap .fig-lineup-bench-grid {min-width:0!important;max-width:100%!important;}
+.page-wrap .fig-lineup-pair,.page-wrap .fig-lineup-side-label {grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)!important;}
+.page-wrap .fig-lineup-player {min-width:0!important;max-width:100%!important;}
+.page-wrap .fig-lineup-player-info b {color:#24352b!important;}
+.page-wrap .fig-lineup-player-info small {color:#506958!important;}
+.page-wrap .fig-lineup-points {color:#0f7152!important;}
+
+/* Streak games: obvious hit area and legible completed result. */
+.page-wrap .fig-streak-game {border-color:#d4dfd5!important;}
+.page-wrap .fig-streak-game:hover,.page-wrap .fig-streak-game:focus-visible {border-color:#1a8d6b!important;outline-color:#1a8d6b!important;}
+.page-wrap .fig-streak-game-open {color:#0f7a59!important;}
+
+/* Limit the amount of decorative UI needed on a narrow phone. */
+@media(max-width:699px) {
+ .page-wrap .fig-bomb-entry {
+  grid-template-columns:33px minmax(0,1fr) max-content!important;
+  gap:7px!important;padding:10px!important;min-height:69px!important;
+ }
+ .page-wrap .fig-bomb-rank {width:33px!important;height:36px!important;min-width:33px!important;max-width:33px!important;font-size:12px!important;}
+ .page-wrap .fig-bomb-avatar {width:36px!important;height:36px!important;}
+ .page-wrap .fig-bomb-owner {gap:6px!important;}
+ .page-wrap .fig-bomb-owner b {font-size:12px!important;}
+ .page-wrap .fig-bomb-owner span {font-size:10px!important;}
+ .page-wrap .fig-bomb-points strong {font-size:17px!important;}
+ .page-wrap .fig-bomb-points small {font-size:9px!important;}
+ .page-wrap .fig-season-preview-metrics b {font-size:14px!important;}
+ .page-wrap .fig-season-preview-metrics>div {padding:9px!important;}
+ .page-wrap .fig-roster-mix {padding:10px!important;}
+ .page-wrap .fig-lineup-summary {grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr)!important;gap:5px!important;}
+ .page-wrap .fig-lineup-summary>div {padding:9px 4px!important;}
+ .page-wrap .fig-lineup-summary>div strong {font-size:16px!important;}
+ .page-wrap .fig-lineup-guide {font-size:11px!important;}
+ .page-wrap .fig-lineup-side-label,.page-wrap .fig-lineup-pair {
+  grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr)!important;gap:3px!important;
+ }
+ .page-wrap .fig-lineup-pair {padding:4px!important;}
+}
+@media(max-width:360px){
+ .page-wrap .fig-bomb-entry {grid-template-columns:29px minmax(0,1fr) max-content!important;gap:5px!important;padding:8px!important;}
+ .page-wrap .fig-bomb-rank {width:29px!important;max-width:29px!important;min-width:29px!important;font-size:11px!important;}
+ .page-wrap .fig-bomb-owner b {font-size:11px!important;}
+ .page-wrap .fig-bomb-points strong {font-size:15px!important;}
+ .page-wrap .fig-lineup-summary>div strong {font-size:14px!important;}
+ .page-wrap .fig-lineup-side-label,.page-wrap .fig-lineup-pair {
+  grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important;gap:2px!important;
+ }
+}
