@@ -1,4 +1,4 @@
-"""No zero-snap-loss injury may enter the fantasy injury totals."""
+"""No brief, fully recovered injury exit may enter the fantasy injury totals."""
 import importlib.util
 import unittest
 from pathlib import Path
@@ -27,6 +27,8 @@ def event(key, week_number=4, **changes):
         "source_url": "https://example.org/verified-injury",
         "injury_description": "Game exit with confirmed missed playing time",
         "exited_due_to_injury": True, "missed_snaps_confirmed": True,
+        "injury_game_outcome": "did_not_return",
+        "game_outcome_source_url": "https://example.org/confirmed-game-exit",
         "subsequent_nfl_games_missed": 1,
         "placed_on_ir": False, "season_ending": False,
         "severity_source_url": None,
@@ -53,7 +55,53 @@ class InjuryHistoryTests(unittest.TestCase):
         ], self.roster)
         self.assertEqual(result["events"], [])
         self.assertEqual(result["by_franchise"], {})
+        self.assertEqual(result["rejected_unverified_events"], [])
+        self.assertEqual(len(result["excluded_verified_events"]), 1)
+
+    def test_temporary_exit_then_returns_fully_and_finishes_is_excluded(self):
+        result = mod.compute_injuries([
+            event("temporary-exit", missed_snaps_confirmed=True,
+                  exited_due_to_injury=True, injury_game_outcome="returned_full_and_finished",
+                  subsequent_nfl_games_missed=0)
+        ], self.roster)
+        self.assertEqual(result["events"], [])
+        self.assertEqual(result["by_franchise"], {})
+        self.assertEqual(result["rejected_unverified_events"], [])
+        self.assertEqual(result["excluded_verified_events"][0]["reason"],
+                         "returned and finished at full participation")
+
+    def test_few_snap_return_then_injury_ends_game_counts(self):
+        result = mod.compute_injuries([
+            event("limited-return", injury_game_outcome="limited_return_no_finish")
+        ], self.roster)
+        totals = result["by_franchise"]["6"]
+        self.assertEqual(totals["started_in_game_injuries"], 1)
+        self.assertEqual(totals["rotation_injuries"], 1)
+        self.assertEqual(result["events"][0]["injury_game_outcome"], "limited_return_no_finish")
+
+    def test_uncertain_finish_does_not_count(self):
+        result = mod.compute_injuries([
+            event("uncertain-exit", injury_game_outcome="unknown")
+        ], self.roster)
+        self.assertEqual(result["events"], [])
+        self.assertEqual(len(result["excluded_verified_events"]), 1)
+
+    def test_no_game_outcome_source_cannot_count(self):
+        result = mod.compute_injuries([
+            event("unsubstantiated-exit", game_outcome_source_url="")
+        ], self.roster)
+        self.assertEqual(result["events"], [])
         self.assertEqual(len(result["rejected_unverified_events"]), 1)
+
+    def test_major_later_does_not_override_full_game_finish(self):
+        result = mod.compute_injuries([
+            event("later-major", missed_snaps_confirmed=True, exited_due_to_injury=True,
+                  injury_game_outcome="returned_full_and_finished",
+                  placed_on_ir=True, subsequent_nfl_games_missed=4,
+                  severity_source_url="https://example.org/verified-ir")
+        ], self.roster)
+        self.assertEqual(result["events"], [])
+        self.assertEqual(result["by_franchise"], {})
 
     def test_rotation_injury_counts_when_benched(self):
         roster = [week(1), week(2), week(3, False), week(4, False)]
@@ -72,7 +120,7 @@ class InjuryHistoryTests(unittest.TestCase):
                        missed_snaps_confirmed=False, exited_due_to_injury=False)
         result = mod.compute_injuries([injury], self.roster)
         self.assertEqual(result["events"], [])
-        self.assertEqual(len(result["rejected_unverified_events"]), 1)
+        self.assertEqual(len(result["excluded_verified_events"]), 1)
 
     def test_no_in_progress_fantasy_matchups(self):
         roster = [week(1), week(2), week(3, False), {**week(4), "counts_for_official_records": False}]
@@ -83,6 +131,7 @@ class InjuryHistoryTests(unittest.TestCase):
         result = mod.compute_injuries([], self.roster)
         self.assertEqual(result["events"], [])
         self.assertFalse(result["is_complete_historical_census"])
+        self.assertEqual(result["schema_version"], 2)
         self.assertEqual(result["coverage"], "reviewed_events_only")
 
     def test_one_event_does_not_duplicate_categories(self):
