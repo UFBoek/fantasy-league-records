@@ -877,10 +877,25 @@ async function streaks(){
  const active=career.filter(x=>x.active===true||String(x.active).toLowerCase()==='true');
  const types=[...new Set(career.map(x=>x.streak_type))].sort();
  const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:esc(x.streak_type),len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
- const topCards=types.map(type=>{const rows=career.filter(x=>x.streak_type===type).sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points));const x=rows[0];if(!x)return'';const topLength=num(x.length);const tiedRows=rows.filter(r=>num(r.length)===topLength);const holderHtml=tiedRows.map(r=>ownerName(r.owner,r.franchise_id)).join(' / ');return `<a class="record-card clickable streak-record-card" href="#/streak/${encodeURIComponent(type)}/Career%20Games"><div class="rank-line"><span>ALL-TIME RECORD</span><span>${tiedRows.length>1?'T1':'#1'}</span></div><div class="fig-streak-leader">${ownerAvatar(x.franchise_id,'fig-streak-portrait')}</div><div class="holder">${holderHtml}</div><div class="value">${x.length}</div><div class="meta streak-name">${esc(type)}</div></a>`}).join('');
+ const orderedTypes=[...types].sort((a,b)=>{
+   const priority=t=>t==='Winning'?0:t==='Losing'?1:2;
+   return priority(a)-priority(b)||a.localeCompare(b);
+ });
+ const topCards=orderedTypes.map((type,i)=>{
+   const seen=new Set();
+   const ranked=career.filter(x=>x.streak_type===type)
+     .sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points))
+     .filter(x=>{const id=String(x.franchise_id);if(seen.has(id))return false;seen.add(id);return true;});
+   return recordPodiumCard({
+     title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type.toUpperCase(),
+     badge:'STREAK RECORD',tone:['mint','coral','blue','gold'][i%4],
+     href:`#/streak/${encodeURIComponent(type)}/Career%20Games`,
+     leaders:ranked.map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}))
+   });
+ }).join('');
  app.innerHTML=hero('STREAK ARCHIVE','STREAKS','Active runs and the league records that actually matter.')+
  section('ACTIVE STREAKS',activeRows.length?sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'TYPE',key:'type'},{label:'LENGTH',key:'len'},{label:'START',key:'start'},{label:'LAST',key:'last'}],activeRows):'<div class="empty">No active qualifying streaks.</div>')+
- section('ALL-TIME RECORDS',`<div class="record-list compact-streak-records">${topCards}</div>`,'');
+ section('ALL-TIME STREAK RECORDS',`<div class="fig-podium-grid fig-streak-gallery">${topCards}</div>`,'Records belong here · select a category for the complete history');
 }
 
 
