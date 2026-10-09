@@ -119,12 +119,14 @@ function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint
   const isTied=ranked.some((x,i)=>i!==first&&sameRecordValue(x.value,entry.value));
   return `${isTied?'T':''}${first+1}`;
  };
- // Keep the preview compact even when a tie spans many seasons/managers.
- // The last row summarizes omitted entries at the same rank and value;
- // the linked full leaderboard still contains every actual performance.
- const compactRivals=rivals.length>2
-  ? [rivals[0],{...rivals[1],otherCount:rivals.length-1}]
-  : rivals;
+ // Keep at most two preview rows. When a tied placement overflows
+ // the available space, summarize its entire group rather than arbitrarily
+ // naming one person and calling the remaining entries "others".
+ // All managers/performances remain visible in the full leaderboard.
+ const compactRivals=rivals.length<=2?rivals
+  : sameRecordValue(rivals[0].value,rivals[1].value)
+   ? [{...rivals[0],otherCount:rivals.length}]
+   : [rivals[0],{...rivals[1],otherCount:rivals.length-1}];
  const opponents=compactRivals.map(r=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${displayPlacement(r)}</span><span class="fig-podium-rival-name">${r.otherCount?`${r.otherCount} others`:esc(displayOwnerName(r.name,r.id))}${!r.otherCount&&r.note?`<small>${esc(r.note)}</small>`:''}</span><b class="fig-podium-rival-score">${esc(r.display??r.value)}</b></div>`).join('');
  const valueText=String(top.display??top.value);
  const valueSize=valueText.length>=12?'fig-record-value-xl':valueText.length>=9?'fig-record-value-long':'';
