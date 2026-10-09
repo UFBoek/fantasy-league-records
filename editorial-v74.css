@@ -229,6 +229,11 @@ body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
 .page-wrap .fig-live-slot {background:#e0f3eb!important;color:#12765c!important;}
 .page-wrap .fig-live-empty {background:#fff!important;border-color:#dedede!important;color:#333!important;}
 .page-wrap .fig-live-badge {background:#d5f2e6!important;color:#136d56!important;border-color:#97d7bb!important;}
+/* Identity portraits appear where comparison benefits from them, not in all prose. */
+.page-wrap .fig-owner-link .fig-team-avatar {display:none;}
+.page-wrap .table-wrap .fig-owner-link .fig-team-avatar,
+.page-wrap .playoff-podium .fig-owner-link .fig-team-avatar,
+.page-wrap .game-side-head .fig-owner-link .fig-team-avatar {display:inline-block;}
 .page-wrap .fig-owner-link {text-decoration:none;}
 .page-wrap .fig-owner-link .fig-team-identity-name {color:inherit;}
 .page-wrap .fig-team-name {display:inline;color:inherit;}
