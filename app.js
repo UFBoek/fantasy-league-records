@@ -1075,15 +1075,71 @@ async function streakDetail(typeEnc,modeEnc){
  app.innerHTML=hero('STREAK HISTORY',esc(type),`${esc(smode)} • complete historical leaderboard.`)+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'owner'},{label:'LENGTH',key:'length'},{label:'START',key:'start'},{label:'END',key:'end'},{label:'POINTS',key:'points'},{label:'AVG',key:'avg'},{label:'STATUS',key:'status'}],rows));
 }
 
+// An NFL player's trades are transaction-scoped and keyed by Sleeper player_id.
+// Use only Received assets to avoid counting each trade twice (Sent + Received).
+function playerTradeEntries(playerId,tradeAssets,trades,tradeSides){
+ const txById=new Map((trades||[]).map(t=>[String(t.transaction_id),t]));
+ const sidesByTx=new Map(),sentByTx=new Map();
+ for(const side of tradeSides||[]){
+  const key=String(side.transaction_id);
+  if(!sidesByTx.has(key))sidesByTx.set(key,[]);
+  sidesByTx.get(key).push(side);
+ }
+ for(const asset of tradeAssets||[]){
+  if(asset.asset_type!=='Player'||String(asset.player_id)!==String(playerId)||asset.asset_direction!=='Sent')continue;
+  sentByTx.set(String(asset.transaction_id),asset);
+ }
+ return (tradeAssets||[]).filter(x=>x.asset_type==='Player'&&String(x.player_id)===String(playerId)&&x.asset_direction==='Received')
+  .map(received=>{
+   const key=String(received.transaction_id),sent=sentByTx.get(key),trade=txById.get(key);
+   return {key,received,sent,trade:trade||received,sides:sidesByTx.get(key)||[]};
+  })
+  .sort((a,b)=>+b.trade.season-+a.trade.season||+b.trade.week-+a.trade.week||b.key.localeCompare(a.key));
+}
+function playerTradeHistory(playerId){
+ const timeline=playerTradeEntries(playerId,DATA.tradeAssets,DATA.trades,DATA.tradeSides);
+ if(!timeline.length)return section('TRADE HISTORY',
+  '<div class="fig-player-trades-empty">No trades involving this player are recorded in the league archive.</div>',
+  'Completed league trades');
+ const cards=timeline.map(({key,received,sent,trade,sides})=>{
+  const fromId=+(sent?.franchise_id??received.counterparty_franchise_id);
+  const toId=+received.franchise_id;
+  const fromName=sent?.owner_name||'Previous team',toName=received.owner_name;
+  const participants=sides.length||num(trade.franchises_involved);
+  const packageRows=sides.map(s=>{
+   const items=parseMaybeJSON(s.assets_received);
+   return `<div class="fig-player-trade-package">
+     <div class="fig-player-trade-package-owner">${ownerLink(s.owner_name,s.franchise_id)} <span>RECEIVED</span></div>
+     <ul class="fig-player-trade-assets">${items.map(asset=>`<li>${esc(asset)}</li>`).join('')||'<li>No assets listed</li>'}</ul>
+    </div>`;
+  }).join('');
+  return `<article class="fig-player-trade-card">
+    <div class="fig-player-trade-top"><span>${esc(trade.season)} <b>WEEK ${esc(trade.week)}</b></span><span>${participants}-TEAM TRADE</span></div>
+    <div class="fig-player-trade-transfer">
+     <div class="fig-player-trade-direction"><small>TRADED FROM</small>${ownerLink(fromName,fromId)}</div>
+     <span class="fig-player-trade-arrow" aria-hidden="true">→</span>
+     <div class="fig-player-trade-direction"><small>TRADED TO</small>${ownerLink(toName,toId)}</div>
+    </div>
+    <details class="fig-player-trade-details"><summary>SEE FULL TRADE PACKAGE <span aria-hidden="true">⌄</span></summary>
+      <div class="fig-player-trade-packages">${packageRows||'<p>Transaction assets unavailable.</p>'}</div>
+    </details>
+   </article>`;
+ }).join('');
+ return section('TRADE HISTORY',
+  `<div class="fig-player-trade-heading"><b>${timeline.length} ${timeline.length===1?'TRADE':'TRADES'} RECORDED</b><a href="#/trades">FULL TRADE ARCHIVE →</a></div>
+    <div class="fig-player-trade-grid">${cards}</div>`,
+  'Player movements and what every manager received in each trade');
+}
+
 async function player(id){
- await load(['playerCareers','playerSeasons','franchiseCareer','playerLog']);navActive('players');const c=DATA.playerCareers.find(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined');if(!c){app.innerHTML='<div class="empty">Player not found.</div>';return}const seasons=DATA.playerSeasons.filter(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined').sort((a,b)=>+b.season-+a.season),fr=DATA.franchiseCareer.filter(x=>String(x.player_id)===String(id)).sort((a,b)=>b.total_starter_points-a.total_starter_points),logs=DATA.playerLog.filter(x=>String(x.player_id)===String(id));
+ await load(['playerCareers','playerSeasons','franchiseCareer','playerLog','tradeAssets','trades','tradeSides']);navActive('players');const c=DATA.playerCareers.find(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined');if(!c){app.innerHTML='<div class="empty">Player not found.</div>';return}const seasons=DATA.playerSeasons.filter(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined').sort((a,b)=>+b.season-+a.season),fr=DATA.franchiseCareer.filter(x=>String(x.player_id)===String(id)).sort((a,b)=>b.total_starter_points-a.total_starter_points),logs=DATA.playerLog.filter(x=>String(x.player_id)===String(id));
  const exactBombs=(rows)=>{const b={b5:0,b20:0,b30:0,b40:0,b50:0};rows.forEach(r=>{const p=num(r.starter_points);if(p>=0&&p<10)b.b5++;if(p>=20&&p<30)b.b20++;if(p>=30&&p<40)b.b30++;if(p>=40&&p<50)b.b40++;if(p>=50)b.b50++});return b};
  const careerBombs=exactBombs(logs);
  app.innerHTML=hero('PLAYER ARCHIVE',esc(c.full_name),`${c.position} • ${c.starts} official starts • ${c.fantasy_franchises} fantasy franchise${c.fantasy_franchises===1?'':'s'}`,[{value:money(c.total_points),label:'CAREER POINTS'},{value:money(c.average_points),label:'PTS / START'},{value:money(c.highest_score),label:'BEST GAME'},{value:careerBombs.b30,label:'30 BOMBS'}]).replace('class="hero"','class="hero fig-player-profile-hero"').replace('</h1>',`</h1>${playerHeadshot(c.player_id,c.full_name,'fig-nfl-photo-large')}`);
  const frows=fr.map(x=>{const b=exactBombs(logs.filter(r=>+r.franchise_id===+x.franchise_id));return{team:ownerLink(x.owner_name,x.franchise_id),starts:x.starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_game),g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50,_sort:{team:displayOwnerName(x.owner_name,x.franchise_id),starts:x.starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_game,g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50}}});
  const srows=seasons.map(x=>({year:x.season,starts:x.starts,points:money(x.total_points),pps:money(x.average_points),best:money(x.highest_score),teams:x.fantasy_franchises,_sort:{year:x.season,starts:x.starts,points:x.total_points,pps:x.average_points,best:x.highest_score,teams:x.fantasy_franchises}}));
  const grows=logs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week).map(x=>({year:x.season,week:x.week,type:x.game_type,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.starter_points),_sort:{year:x.season,week:x.week,type:x.game_type,team:displayOwnerName(x.owner_name,x.franchise_id),points:x.starter_points}}));
- app.innerHTML+=section('FRANCHISE HISTORY',sortableTable([{label:'TEAM',key:'team'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'5 BOMBS',key:'g5'},{label:'20 BOMBS',key:'g20'},{label:'30 BOMBS',key:'g30'},{label:'40 BOMBS',key:'g40'},{label:'50 BOMBS',key:'g50'}],frows))+section('SEASON HISTORY',sortableTable([{label:'YEAR',key:'year'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'TEAMS',key:'teams'}],srows))+section('START-BY-START LOG',sortableTable([{label:'YEAR',key:'year'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'}],grows));
+ app.innerHTML+=section('FRANCHISE HISTORY',sortableTable([{label:'TEAM',key:'team'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'5 BOMBS',key:'g5'},{label:'20 BOMBS',key:'g20'},{label:'30 BOMBS',key:'g30'},{label:'40 BOMBS',key:'g40'},{label:'50 BOMBS',key:'g50'}],frows))+playerTradeHistory(c.player_id)+section('SEASON HISTORY',sortableTable([{label:'YEAR',key:'year'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'TEAMS',key:'teams'}],srows))+section('START-BY-START LOG',sortableTable([{label:'YEAR',key:'year'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'}],grows));
 }
 
 async function players(){
