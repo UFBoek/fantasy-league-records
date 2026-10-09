@@ -80,8 +80,11 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
         and str(r.get("position") or "").upper() in POSITIONS
     ]
     roster_by_player = defaultdict(list)
+    starts_by_manager = defaultdict(set)
     for r in completed:
         roster_by_player[(int(r["season"]), canonical(r.get("player_name")), int(r["week"]))].append(r)
+        if r.get("starter_status") == "Starter":
+            starts_by_manager[(int(r["season"]), int(r["franchise_id"]), str(r["player_id"]))].add(int(r["week"]))
     verified = {
         (int(r["season"]), int(r["week"]), str(r["sleeper_player_id"]))
         for r in verified_events if r.get("verification_status") == "verified"
@@ -130,20 +133,16 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
         followup = []
         for report_week in (week + 1, week + 2):
             followup.extend(next_reports.get((year, player_key, report_week), []))
-        # Do not treat a nonappearance as an in-game injury. Those reports are
-        # a distinct injury-absence lead, not evidence of leaving a played game.
+        # In-game detection requires proof the player actually participated
+        # on the field. No-snap weeks include NFL byes and pregame inactive
+        # players; neither is evidence of an in-game injury.
         decline = (
             current_share is not None and current_snaps > 0
             and baseline is not None and baseline >= MIN_REFERENCE_SHARE
             and current_share <= baseline - MIN_DROP
             and current_share <= baseline * 0.55
         )
-        nonappearance = (
-            (current_share is None or current_snaps == 0)
-            and bool(followup)
-            and baseline is not None and baseline >= MIN_REFERENCE_SHARE
-        )
-        if not (decline or nonappearance):
+        if not decline:
             continue
         checked += 1
         report = followup[0] if followup else None
@@ -152,18 +151,13 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
             player_id = str(fantasy["player_id"])
             started = fantasy.get("starter_status") == "Starter"
             prior_weeks = {
-                int(row.get("week") or 0)
-                for row in completed
-                if int(row["season"]) == year
-                and int(row["franchise_id"]) == franchise
-                and str(row.get("player_id")) == player_id
-                and row.get("starter_status") == "Starter"
-                and max(1, week - 4) <= int(row.get("week") or 0) < week
+                w for w in starts_by_manager.get((year, franchise, player_id), ())
+                if max(1, week - 4) <= w < week
             }
             established = len(prior_weeks) >= 2
             if not (started or established):
                 continue
-            evidence = ["unusual_offensive_snap_reduction"] if decline else ["game_nonappearance"]
+            evidence = ["unusual_offensive_snap_reduction"]
             if report:
                 evidence.append("following_weeks_injury_report")
             candidates.append({
@@ -179,7 +173,9 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
                 "reference_offense_pct": round(baseline, 3),
                 "injury_report_detail": report,
                 "signal_types": evidence,
-                "priority": "higher" if decline and followup else "review",
+                "priority": "higher" if followup and str(report.get("status") or "").casefold() not in (
+                    "full participation in practice", "not listed", "healthy"
+                ) else "review",
                 "already_verified": (year, week, player_id) in verified,
                 "review_status": "candidate_unverified_do_not_count",
                 "disclaimer": "Snap drop/next injury report is not proof of game-ending injury.",
@@ -211,6 +207,7 @@ def find_review_candidates(rosters, snap_by_year, injuries_by_year, verified_eve
             "fantasy": "completed Sleeper weekly lineups; starters or regular rotation",
         },
         "signals_matched": checked,
+        "excluded_absences_and_bye_weeks": "No-snap fantasy players do not enter the in-game injury discovery list.",
         "candidate_count": len(candidates),
         "by_season": summary,
         "candidates": candidates,
