@@ -93,7 +93,7 @@ function uniqueRecordManagers(rows){
   seen.add(key);return true;
  });
 }
-function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note='',allowRepeat=false}) {
+function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note='',allowRepeat=false,summarizeTiedRivals=false}) {
  // Individual performances may belong to the same manager more than once.
  // For aggregate records/streaks rank each franchise once.
  const ranked=allowRepeat?[...(leaders||[])]:uniqueRecordManagers(leaders||[]);
@@ -123,10 +123,12 @@ function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint
  // the available space, summarize its entire group rather than arbitrarily
  // naming one person and calling the remaining entries "others".
  // All managers/performances remain visible in the full leaderboard.
- const compactRivals=rivals.length<=2?rivals
-  : sameRecordValue(rivals[0].value,rivals[1].value)
-   ? [{...rivals[0],otherCount:rivals.length}]
-   : [rivals[0],{...rivals[1],otherCount:rivals.length-1}];
+ const compactRivals=summarizeTiedRivals&&rivals.length>1&&sameRecordValue(rivals[0].value,rivals[1].value)
+  ? [{...rivals[0],otherCount:rivals.length}]
+  : rivals.length<=2?rivals
+   : sameRecordValue(rivals[0].value,rivals[1].value)
+    ? [{...rivals[0],otherCount:rivals.length}]
+    : [rivals[0],{...rivals[1],otherCount:rivals.length-1}];
  const opponents=compactRivals.map(r=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${displayPlacement(r)}</span><span class="fig-podium-rival-name">${r.otherCount?`${r.otherCount} others`:esc(displayOwnerName(r.name,r.id))}${!r.otherCount&&r.note?`<small>${esc(r.note)}</small>`:''}</span><b class="fig-podium-rival-score">${esc(r.display??r.value)}</b></div>`).join('');
  const valueText=String(top.display??top.value);
  const valueSize=valueText.length>=12?'fig-record-value-xl':valueText.length>=9?'fig-record-value-long':'';
@@ -1003,15 +1005,17 @@ async function streaks(){
    return priority(a)-priority(b)||a.localeCompare(b);
  });
  const topCards=orderedTypes.map((type,i)=>{
-   const seen=new Set();
+   // Match the Full History leaderboard: rank individual streak runs, not
+   // only each franchise's personal best. Each tied winning manager still
+   // appears just once in the portrait mosaic.
    const ranked=career.filter(x=>x.streak_type===type)
-     .sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points))
-     .filter(x=>{const id=String(x.franchise_id);if(seen.has(id))return false;seen.add(id);return true;});
+     .sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points));
    return recordPodiumCard({
      title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type.toUpperCase(),
      badge:'STREAK RECORD',tone:['mint','coral','blue','gold'][i%4],
      href:`#/streak/${encodeURIComponent(type)}/Career%20Games`,
-     leaders:ranked.map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)}))
+     leaders:ranked.map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)})),
+     allowRepeat:true,summarizeTiedRivals:true
    });
  }).join('');
  app.innerHTML=hero('STREAK ARCHIVE','STREAKS','Active runs and the league records that actually matter.')+
