@@ -213,3 +213,26 @@
   .page-wrap .fig-frozen-grid .fig-owner-link .fig-team-avatar {width:30px!important;height:30px!important;flex-basis:30px!important;}
   .page-wrap .team-profile-photo {width:110px!important;height:110px!important;flex-basis:110px!important;}
 }
+
+/* A readable visual cue on the smaller category cards, without putting a tiny
+   avatar next to every repeated name. */
+.page-wrap .unified-record-grid .record-index-card::before {
+ content:"";display:block;width:38px;height:5px;border-radius:10px;
+ background:#2cae91;margin:1px 0 11px;
+}
+.page-wrap .unified-record-grid .record-index-card:nth-child(4n+2)::before {background:#e3b84c;}
+.page-wrap .unified-record-grid .record-index-card:nth-child(4n+3)::before {background:#539ec4;}
+.page-wrap .unified-record-grid .record-index-card:nth-child(4n+4)::before {background:#d98b6c;}
+.page-wrap .table-wrap:not(.fig-frozen-stats) .fig-owner-link .fig-team-avatar {
+ display:inline-block!important;width:33px!important;height:33px!important;flex-basis:33px!important;
+ border:1px solid #d1d6d3!important;object-fit:cover!important;
+}
+.page-wrap .fig-live-match .fig-team-avatar,.page-wrap .fig-live-team-head .fig-team-avatar {
+ display:inline-block!important;width:34px!important;height:34px!important;flex-basis:34px!important;
+ border-radius:11px!important;object-fit:cover!important;
+}
+@media (max-width:699px) {
+ .page-wrap .table-wrap:not(.fig-frozen-stats) .fig-owner-link .fig-team-avatar {
+   width:31px!important;height:31px!important;flex-basis:31px!important;
+ }
+}
