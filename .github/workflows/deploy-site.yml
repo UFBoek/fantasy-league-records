@@ -20,11 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Stage static website
-        run: |
-          mkdir -p "$RUNNER_TEMP/league-site"
-          cp index.html app.js styles.css mobile-v64.css mobile-v66.css mobile-v66.js mobile-v67.css mobile-v67.js mobile-v68.css mobile-v68.js mobile-v69.css mobile-v69.js manifest.webmanifest sw.js "$RUNNER_TEMP/league-site/"
-          cp -R data assets resources "$RUNNER_TEMP/league-site/"
-          touch "$RUNNER_TEMP/league-site/.nojekyll"
+        run: bash scripts/stage_pages.sh "$RUNNER_TEMP/league-site"
 
       - name: Upload website for GitHub Pages
         uses: actions/upload-pages-artifact@v4
