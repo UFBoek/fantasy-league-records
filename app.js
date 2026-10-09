@@ -933,7 +933,7 @@ async function teamSeason(teamId,year){
 
 async function liveMatchPage(week,matchup){
  navActive('');
- if(!/^\\d{1,2}$/.test(String(week)) || !/^(?:\\d+|solo-\\d+)$/.test(String(matchup))){
+ if(!/^[0-9]{1,2}$/.test(String(week)) || !/^(?:[0-9]+|solo-[0-9]+)$/.test(String(matchup))){
   app.innerHTML='<div class="empty">Invalid live matchup link. <a href="#/home">Back to scores</a></div>';return;
  }
  app.innerHTML=hero('SLEEPER LIVE','WEEK '+esc(week)+' MATCHUP','Current-week starters and bench · unofficial until Sleeper finalizes results')+
