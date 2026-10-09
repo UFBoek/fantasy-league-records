@@ -1,0 +1,209 @@
+/* FIG v79: championship posters, official bracket clarity and contrast fixes. */
+
+/* Manager team value: remove navy-on-charcoal inheritance from the old mobile
+   design, including the big valuation and both smaller subtotals. */
+.page-wrap .ra-team-overview:not(.ra-loading) {
+  background:#edf0ec!important;color:#252b27!important;
+  border:1px solid #d9dfd8!important;box-shadow:none!important;
+  border-radius:23px!important;padding:20px!important;
+}
+.page-wrap .ra-team-overview .ra-eyebrow {
+  color:#237d64!important;font-weight:900!important;letter-spacing:.08em!important;
+}
+.page-wrap .ra-team-overview h2,
+.page-wrap .ra-team-overview h2 span {
+  color:#232927!important;text-shadow:none!important;
+}
+.page-wrap .ra-team-overview h2 {font-size:clamp(29px,6vw,43px)!important;}
+.page-wrap .ra-team-overview h2 span {font:750 13px/1.3 Inter,sans-serif!important;color:#626e67!important;}
+.page-wrap .ra-team-overview .ra-team-figures {gap:10px!important;}
+.page-wrap .ra-team-overview .ra-team-figures>div {
+  background:#fff!important;border:1px solid #d7ddd7!important;
+  box-shadow:none!important;border-radius:15px!important;
+  color:#252b27!important;padding:14px!important;min-width:0;
+}
+.page-wrap .ra-team-overview .ra-team-figures span {color:#49695c!important;font-weight:900!important;}
+.page-wrap .ra-team-overview .ra-team-figures strong {
+  color:#222a25!important;font:900 clamp(21px,3vw,30px)/1.1 "Archivo Black",Inter,sans-serif!important;
+}
+.page-wrap .ra-team-overview .ra-team-figures small {color:#51675b!important;font-weight:750!important;}
+.page-wrap .ra-team-overview .ra-board-link,
+.page-wrap .ra-team-overview a {color:#13795c!important;}
+.page-wrap .ra-team-overview p {color:#515c56!important;font-weight:600!important;}
+
+/* Records snapshot: the inherited white label color made accomplishment
+   text disappear on white cards. Gold season year stays readable. */
+.page-wrap .team-record-dashboard .season-accomplishments {
+  background:#e9e9e9!important;border-color:#d7d7d7!important;
+}
+.page-wrap .team-record-dashboard .season-accomplishment {
+  background:#fff!important;border:1px solid #dbddda!important;
+  border-left:4px solid #41b99b!important;
+  border-radius:12px!important;min-height:0!important;
+  color:#2b2d2c!important;
+}
+.page-wrap .team-record-dashboard .season-accomplishment span {
+  color:#a36f16!important;font:850 13px Inter,sans-serif!important;
+}
+.page-wrap .team-record-dashboard .season-accomplishment b {
+  color:#242725!important;font:800 13px/1.3 Inter,sans-serif!important;
+  opacity:1!important;text-shadow:none!important;
+}
+/* League champions as sports commemorative posters, not empty summary blocks. */
+.page-wrap .champions-grid {display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;align-items:stretch;}
+.page-wrap .champions-grid .fig-championship-poster {
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  padding:21px 16px 18px!important;background:#e7e7e7!important;color:#242526!important;
+  border:1px solid #dedede!important;border-radius:28px!important;box-shadow:none!important;
+  min-width:0!important;min-height:0!important;text-align:center!important;text-decoration:none!important;
+  gap:0!important;
+}
+.page-wrap .fig-championship-poster .champion-year {
+  font:900 clamp(30px,4vw,49px)/1.1 "Archivo Black",Inter,sans-serif!important;
+  color:#252525!important;order:0!important;margin-bottom:9px!important;
+}
+.page-wrap .fig-championship-poster .champion-label {
+  order:1!important;display:block!important;position:relative;
+  width:min(100%,250px);background:#2c2c2c!important;color:#fff!important;
+  padding:13px 10px!important;letter-spacing:.12em!important;
+  font:900 13px/1.2 "Archivo Black",Inter,sans-serif!important;
+  clip-path:polygon(0 10%,8% 10%,8% 0,92% 0,92% 10%,100% 10%,94% 50%,100% 90%,92% 90%,92% 100%,8% 100%,8% 90%,0 90%,6% 50%);
+  margin:0 0 16px!important;border-radius:0!important;
+}
+.page-wrap .fig-championship-poster .fig-champion-portrait {
+  display:block!important;order:2!important;
+  width:min(83%,235px)!important;max-width:235px!important;
+  aspect-ratio:1!important;height:auto!important;
+  object-fit:cover!important;border-radius:23px!important;
+  border:5px solid #fff!important;background:#fff!important;
+  box-shadow:0 0 0 1px #d6d6d6!important;margin:0 auto 12px!important;
+}
+.page-wrap .fig-championship-poster .champion-name {
+  order:3!important;color:#252525!important;
+  font:900 clamp(23px,3vw,33px)/1.08 "Archivo Black",Inter,sans-serif!important;
+  margin:2px 0 15px!important;overflow-wrap:anywhere!important;
+  text-transform:uppercase!important;
+}
+.page-wrap .fig-championship-poster .fig-champion-stat-row {
+  order:4!important;width:100%;display:grid!important;grid-template-columns:1fr 1fr!important;
+  gap:9px!important;margin:0 0 12px!important;
+}
+.page-wrap .fig-champion-stat-row>div {
+  display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;
+  min-width:0;min-height:84px;padding:10px 6px;background:#fff;
+  border:1px solid #dedede;border-radius:17px;
+}
+.page-wrap .fig-champion-stat-row span {
+  color:#666!important;font:850 10px/1.2 Inter,sans-serif!important;letter-spacing:.04em!important;
+}
+.page-wrap .fig-champion-stat-row strong {
+  color:#2b2b2b!important;
+  font:900 clamp(19px,2.5vw,29px)/1.05 "Archivo Black",Inter,sans-serif!important;
+}
+.page-wrap .fig-championship-poster .champion-sub {
+  order:5!important;display:flex!important;justify-content:space-between!important;
+  width:100%!important;gap:7px!important;margin:5px 0 0!important;
+  padding:8px 1px 0!important;border-top:1px solid #d1d1d1!important;
+  color:#252525!important;font:750 11px/1.3 Inter,sans-serif!important;
+}
+.page-wrap .fig-championship-poster .champion-sub span {color:#606060!important;}
+.page-wrap .fig-championship-poster .champion-sub strong {color:#252525!important;text-align:right!important;}
+.page-wrap .fig-championship-poster .champion-open {
+  order:6!important;display:block!important;margin:17px auto 0!important;
+  color:#137e62!important;font:900 11px/1.25 Inter,sans-serif!important;
+}
+
+/* Official brackets — use one consistent light palette instead of legacy navy
+   headers combined with the new page background. */
+.page-wrap .playoff-podium {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;background:transparent!important;border:0!important;
+  overflow:visible!important;margin:0 0 24px!important;
+}
+.page-wrap .playoff-podium>div {
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  gap:9px!important;min-width:0!important;padding:18px 12px!important;
+  border:1px solid #dedede!important;border-top:5px solid #38a981!important;
+  border-radius:19px!important;background:#ececec!important;color:#242626!important;
+}
+.page-wrap .playoff-podium>div:nth-child(2) {border-top-color:#a3aab0!important;border-left:1px solid #dedede!important;}
+.page-wrap .playoff-podium>div:nth-child(3) {border-top-color:#ba8948!important;border-left:1px solid #dedede!important;}
+.page-wrap .playoff-podium>div span {color:#636665!important;font-size:10px!important;font-weight:900!important;}
+.page-wrap .playoff-podium>div strong,.page-wrap .playoff-podium>div strong * {
+  font:850 15px/1.25 Inter,sans-serif!important;color:#262728!important;text-align:center!important;
+}
+.page-wrap .playoff-podium>div .fig-owner-link .fig-team-avatar {display:none!important;}
+.page-wrap .playoff-podium .fig-bracket-podium-photo {
+  display:block!important;width:95px!important;height:95px!important;border-radius:20px!important;
+  background:#fff!important;object-fit:cover!important;border:4px solid #fff!important;
+}
+.page-wrap .playoff-bracket-section {background:transparent!important;color:#242626!important;}
+.page-wrap .playoff-bracket {gap:13px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+.page-wrap .bracket-round-title {
+  color:#292b29!important;font:900 18px/1.15 "Archivo Black",Inter,sans-serif!important;
+  text-align:left!important;
+}
+.page-wrap .bracket-match,.page-wrap .bracket-bye {
+  display:block!important;background:#fff!important;color:#252525!important;
+  border:1px solid #d4d9d4!important;border-radius:16px!important;
+  box-shadow:none!important;overflow:hidden!important;
+  text-decoration:none!important;
+}
+.page-wrap .bracket-match-label {
+  color:#53645a!important;background:#ebefeb!important;
+  font:900 10px/1.2 Inter,sans-serif!important;letter-spacing:.08em!important;
+  padding:12px!important;
+}
+.page-wrap .bracket-team {
+  display:flex!important;align-items:center!important;gap:8px!important;
+  background:#fff!important;color:#292b2a!important;
+  border:0!important;border-bottom:1px solid #e1e5e1!important;
+  padding:12px 8px!important;min-width:0!important;
+}
+.page-wrap .bracket-team.winner {background:#e6f5ed!important;}
+.page-wrap .bracket-team>span {flex:1;min-width:0;overflow-wrap:anywhere;color:#272a28!important;font:800 12px/1.25 Inter,sans-serif!important;}
+.page-wrap .bracket-team>strong {color:#272a28!important;font:900 12px Inter,sans-serif!important;white-space:nowrap;}
+.page-wrap .fig-bracket-avatar {
+  display:inline-block!important;width:35px!important;height:35px!important;object-fit:cover!important;
+  flex:0 0 35px!important;border-radius:10px!important;border:1px solid #d9ded8!important;
+}
+.page-wrap .bracket-bye {display:flex!important;flex-wrap:wrap;align-items:center;gap:8px;padding:0 10px 11px!important;}
+.page-wrap .bracket-bye .bracket-match-label {flex:0 0 calc(100% + 20px);margin:0 -10px 2px!important;}
+.page-wrap .bracket-bye strong {font:800 12px Inter,sans-serif!important;color:#252525!important;}
+.page-wrap .bracket-open {background:#fff!important;color:#17795e!important;font:850 9px Inter,sans-serif!important;}
+.page-wrap .bracket-empty {color:#69726c!important;background:#ebefeb!important;border-radius:13px;padding:14px!important;}
+
+/* Provide generous visual priority to champion portraits on mobile, while
+   keeping the bracket and three finishing positions clear and scroll-free. */
+@media(max-width:900px) {
+  .page-wrap .champions-grid {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:699px) {
+  .page-wrap .ra-team-overview:not(.ra-loading) {padding:16px!important;}
+  .page-wrap .ra-team-overview h2 {font-size:30px!important;}
+  .page-wrap .ra-team-overview .ra-team-figures>div {padding:12px 8px!important;}
+  .page-wrap .ra-team-overview .ra-team-figures strong {font-size:22px!important;}
+  .page-wrap .team-record-dashboard .season-accomplishment {padding:12px 11px!important;min-height:52px!important;}
+  .page-wrap .champions-grid {grid-template-columns:minmax(0,1fr)!important;gap:18px!important;}
+  .page-wrap .champions-grid .fig-championship-poster {padding:25px 21px 20px!important;border-radius:32px!important;}
+  .page-wrap .fig-championship-poster .champion-year {font-size:45px!important;}
+  .page-wrap .fig-championship-poster .champion-label {font-size:15px!important;max-width:290px!important;}
+  .page-wrap .fig-championship-poster .fig-champion-portrait {
+    width:min(78%,260px)!important;max-width:260px!important;height:auto!important;
+  }
+  .page-wrap .fig-championship-poster .champion-name {font-size:31px!important;}
+  .page-wrap .fig-champion-stat-row strong {font-size:27px!important;}
+  .page-wrap .playoff-podium {gap:7px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .page-wrap .playoff-podium>div {padding:11px 5px!important;gap:6px!important;border-radius:14px!important;}
+  .page-wrap .playoff-podium>div span {font-size:9px!important;}
+  .page-wrap .playoff-podium>div strong,.page-wrap .playoff-podium>div strong * {font-size:11px!important;overflow-wrap:anywhere;}
+  .page-wrap .playoff-podium .fig-bracket-podium-photo {
+    width:70px!important;height:70px!important;border-radius:14px!important;
+  }
+  .page-wrap .playoff-bracket {grid-template-columns:minmax(0,1fr)!important;gap:19px!important;}
+  .page-wrap .bracket-round-title {font-size:23px!important;color:#252525!important;}
+  .page-wrap .bracket-team {padding:12px!important;}
+  .page-wrap .bracket-team>span,.page-wrap .bracket-team>strong {font-size:14px!important;}
+  .page-wrap .fig-bracket-avatar {width:41px!important;height:41px!important;flex-basis:41px!important;}
+  .page-wrap .bracket-match-label {font-size:10px!important;}
+}
