@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Stage everything the website requires for GitHub Pages.
+# Called by both the normal publisher and the scheduled data updater.
+set -euo pipefail
+
+destination="${1:?Usage: bash scripts/stage_pages.sh OUTPUT_DIRECTORY}"
+mkdir -p "$destination"
+
+# The mobile filenames change as new site versions ship. Include them automatically.
+cp index.html app.js styles.css mobile-*.css mobile-*.js manifest.webmanifest sw.js "$destination/"
+cp -R data assets resources "$destination/"
+touch "$destination/.nojekyll"
+printf 'Staged FIG website in %s\n' "$destination"
