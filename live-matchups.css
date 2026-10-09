@@ -79,3 +79,91 @@
   .fig-more-grid .fig-more-item .avatar {width:34px;height:34px;margin:0!important;}
   .fig-more-grid .fig-more-item .team-name {font-size:13px;letter-spacing:normal;}
 }
+
+
+/* v97: paired starter lineups directly on current-week scoreboards.
+   Never collapse head-to-head starters to vertical columns on a phone. */
+.fig-live-grid {grid-template-columns:minmax(0,1fr);}
+.fig-live-detail-grid {display:block!important;min-width:0;margin-top:12px;}
+.fig-live-lineup-title {display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:10px 0 8px;font:900 12px/1.35 Inter,system-ui,sans-serif;letter-spacing:.035em;color:#d8f6e9;}
+.fig-live-lineup-title span {color:#9abcb8;font:800 10px/1.3 Inter,system-ui,sans-serif;text-align:right;}
+.fig-live-lineup-comparison {min-width:0;border:1px solid #36536b;border-radius:12px;overflow:hidden;background:#12233a;}
+.fig-live-lineup-heading,.fig-live-lineup-pair {
+  display:grid;grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr);gap:8px;align-items:stretch;min-width:0;
+}
+.fig-live-lineup-heading {background:#203651;align-items:center;padding:10px;}
+.fig-live-lineup-team {display:flex;align-items:center;min-width:0;gap:7px;
+  color:#f0f8ff!important;font:850 13px/1.25 Inter,system-ui,sans-serif;text-decoration:none!important;}
+.fig-live-lineup-team>span {flex:1;min-width:0;overflow-wrap:anywhere;}
+.fig-live-lineup-team>strong {color:#93f0d4;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.fig-live-lineup-team .fig-team-avatar {width:28px!important;height:28px!important;flex:0 0 28px!important;}
+.fig-live-lineup-middle {display:grid;place-items:center;text-align:center;color:#a7bbd1;font:850 9px Inter,system-ui,sans-serif;}
+.fig-live-lineup-pair {padding:6px 8px;border-top:1px solid #29425b;}
+.fig-live-lineup-pair:nth-child(odd) {background:#192d47;}
+.fig-live-lineup-slot {align-self:center;min-height:29px;display:grid;place-items:center;
+  border-radius:7px;background:#27463e;color:#abf5dd;font:850 10px Inter,system-ui,sans-serif;
+  text-align:center;overflow-wrap:anywhere;}
+.fig-live-slot-player {display:grid;grid-template-columns:30px minmax(0,1fr) max-content;
+  gap:6px;align-items:center;min-width:0;padding:7px 8px;border-radius:8px;background:#223650;}
+.fig-live-slot-player .fig-live-nfl-photo,.fig-live-slot-player .fig-nfl-photo {
+  width:30px!important;height:30px!important;min-width:30px!important;object-fit:cover;border-radius:6px;
+}
+.fig-live-slot-info {display:block;min-width:0;overflow-wrap:anywhere;}
+.fig-live-slot-info b {display:block;color:#f0f7ff;font:800 11px/1.3 Inter,system-ui,sans-serif;}
+.fig-live-slot-info small {display:block;color:#adc2d8;font:650 9px/1.3 Inter,system-ui,sans-serif;}
+.fig-live-slot-points {color:#97edd8;font:900 12px Inter,system-ui,sans-serif;
+  white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;}
+.fig-live-lineup-empty {display:grid;place-items:center;min-height:40px;color:#9db2c7;}
+.fig-live-positive-bench {margin-top:10px;background:#17293f;border:1px solid #344d62;border-radius:10px;overflow:hidden;color:#eef6ff;}
+.fig-live-positive-bench>summary {display:flex;justify-content:space-between;gap:10px;align-items:center;
+  padding:12px;cursor:pointer;list-style:none;font:850 11px/1.4 Inter,system-ui,sans-serif;}
+.fig-live-positive-bench>summary::-webkit-details-marker {display:none;}
+.fig-live-positive-bench>summary:after {content:'⌄';font-size:16px;color:#9af2db;}
+.fig-live-positive-bench[open]>summary:after {content:'⌃';}
+.fig-live-positive-bench>summary span {font:700 10px/1.4 Inter,system-ui,sans-serif;color:#b8cadd;text-align:right;}
+.fig-live-positive-bench-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:9px;border-top:1px solid #354a61;}
+.fig-live-bench-team {min-width:0;background:#1e334d;border-radius:8px;overflow:hidden;}
+.fig-live-bench-team-title {padding:8px;color:#b8ead8;background:#27435a;font:850 11px Inter,system-ui,sans-serif;}
+.fig-live-bench-team>.fig-live-slot-player {margin:5px;}
+.fig-live-bench-empty {padding:10px;color:#b6cadd;font:700 11px/1.4 Inter,system-ui,sans-serif;}
+/* Live matchup detail pages share the same layout without embedding it in a scoreboard card. */
+#figLiveDetail .fig-live-detail-grid {max-width:1100px;margin:14px auto;}
+@media(max-width:699px) {
+ .fig-live-grid {grid-template-columns:minmax(0,1fr)!important;}
+ .fig-live-lineup-heading,.fig-live-lineup-pair {
+  grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);gap:4px;
+ }
+ .fig-live-lineup-heading {padding:7px 5px;}
+ .fig-live-lineup-team {gap:4px;font-size:10px;flex-wrap:wrap;}
+ .fig-live-lineup-team .fig-team-avatar {width:22px!important;height:22px!important;flex-basis:22px!important;}
+ .fig-live-lineup-team>strong {font-size:12px;}
+ .fig-live-lineup-title {font-size:11px;}
+ .fig-live-lineup-title span {font-size:9px;}
+ .fig-live-lineup-pair {padding:4px;gap:3px;}
+ .fig-live-lineup-slot {min-height:26px;padding:2px;font-size:8px;}
+ .fig-live-slot-player {grid-template-columns:24px minmax(0,1fr);grid-template-rows:auto auto;
+  padding:5px;gap:2px 4px;min-height:50px;}
+ .fig-live-slot-player .fig-live-nfl-photo,.fig-live-slot-player .fig-nfl-photo {
+  grid-row:1 / 3;width:24px!important;height:24px!important;min-width:24px!important;
+ }
+ .fig-live-slot-info {grid-column:2;grid-row:1;}
+ .fig-live-slot-info b {font-size:10px;}
+ .fig-live-slot-info small {font-size:8px;}
+ .fig-live-slot-points {grid-column:2;grid-row:2;text-align:left;font-size:11px;}
+ .fig-live-positive-bench-grid {gap:5px;padding:5px;}
+ .fig-live-bench-team>.fig-live-slot-player {margin:3px;}
+ .fig-live-bench-team-title {padding:7px;font-size:10px;}
+ .fig-live-positive-bench>summary {padding:10px;font-size:10px;}
+ .fig-live-positive-bench>summary span {font-size:9px;}
+}
+@media(max-width:360px) {
+ .fig-live-lineup-heading,.fig-live-lineup-pair {grid-template-columns:minmax(0,1fr) 29px minmax(0,1fr);gap:2px;}
+ .fig-live-slot-player {grid-template-columns:20px minmax(0,1fr);padding:4px;gap:2px;}
+ .fig-live-slot-player .fig-live-nfl-photo,.fig-live-slot-player .fig-nfl-photo {
+  width:20px!important;height:20px!important;min-width:20px!important;
+ }
+ .fig-live-slot-info b {font-size:9px;}
+ .fig-live-slot-points {font-size:10px;}
+ .fig-live-lineup-slot {font-size:7px;}
+}
