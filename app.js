@@ -71,12 +71,85 @@ function sortableTable(headers,rows,opts={}){
   const freeze=heads.length>=4&&['#','RANK'].includes(String(heads[0].label).trim().toUpperCase())&&
     ['TEAM','PLAYER','HOLDER','OWNER','OPPONENT'].includes(String(heads[1].label).trim().toUpperCase());
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
-  setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
+  if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
   const html=`<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
-  return freeze ? '<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>' +
-    html.replace('class="table-wrap"','class="table-wrap fig-sticky-wrap" data-fig-version="74-frozen"')
-        .replace('class="sortable"','class="sortable fig-sticky-table"') : html;
+  return freeze ? frozenTable(heads,rows,id) : html;
 }
+function frozenTable(heads, rows, id) {
+  const firstHeads = heads.slice(0, 2);
+  const statHeads = heads.slice(2);
+  const route = (location.hash.startsWith('#/') ? location.hash.slice(2) : 'home').split('/')[0];
+  const history = ['record', 'streak', 'singleseasons', 'special', 'playerweeks', 'playerbombrank', 'playerbomb'].includes(route);
+  const activeStreaks = route === 'streaks';
+  const allowed = h => {
+    if (!history && !activeStreaks) return true;
+    const title = String(h.label).trim().toUpperCase();
+    return history ? /^(VALUE|LENGTH|POINTS|SCORE|BOMBS|COUNT|TOTAL)$/.test(title) : /^(TYPE|LENGTH)$/.test(title);
+  };
+  const buildHead = (h, i) => `<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? '↕' : ''}</span></button></th>`;
+  const renderRows = (start, columns) => rows.map((r, i) => {
+    const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
+    return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td>${r[h.key] ?? ''}</td>`).join('')}</tr>`;
+  }).join('');
+  setTimeout(() => bindFrozenTable(id, heads), 0);
+  return `<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>` +
+    `<div class="fig-frozen-grid" data-fig-version="75-frozen">` +
+    `<div class="fig-frozen-identity"><table id="${id}_fixed" class="fig-frozen-identity-table" aria-label="Fixed rank and name columns"><thead><tr>${firstHeads.map((h, i) => buildHead(h, i)).join('')}</tr></thead><tbody>${renderRows(0, firstHeads)}</tbody></table></div>` +
+    `<div class="table-wrap fig-frozen-stats" data-fig-version="75-frozen" role="region" tabindex="0" aria-label="Scroll sideways for additional statistics"><table id="${id}" class="sortable fig-frozen-stats-table" aria-label="Scrollable statistics"><thead><tr>${statHeads.map((h, i) => buildHead(h, i + 2)).join('')}</tr></thead><tbody>${renderRows(2, statHeads)}</tbody></table></div></div>`;
+}
+function bindFrozenTable(id, heads) {
+  const right = document.getElementById(id), left = document.getElementById(id + '_fixed');
+  if (!right || !left) return;
+  const rightBody = right.tBodies[0], leftBody = left.tBodies[0];
+  const allHeaders = [...left.querySelectorAll('th'), ...right.querySelectorAll('th')];
+  let activeColumn = -1, descending = true;
+  const sortValue = (tr, col) => {
+    const key = heads[col].key;
+    let parsed;
+    try { parsed = JSON.parse(tr.dataset.row || '{}'); } catch { parsed = {}; }
+    return parsed[key] === undefined ? (tr.cells[col < 2 ? col : col - 2]?.textContent || '').trim() : parsed[key];
+  };
+  for (const th of allHeaders) {
+    const button = th.querySelector('button');
+    if (!button || button.disabled) continue;
+    button.addEventListener('click', () => {
+      const col = Number(th.dataset.col);
+      descending = activeColumn !== col || !descending;
+      activeColumn = col;
+      const field = heads[col]?.key || '';
+      const textual = /^(team|player|owner|holder|type|pos|status)$/i.test(field);
+      const ordered = [...rightBody.rows].sort((a, b) => {
+        const av = sortValue(a, col), bv = sortValue(b, col);
+        const an = textual ? NaN : Number(String(av).replace(/[,%$+]/g, ''));
+        const bn = textual ? NaN : Number(String(bv).replace(/[,%$+]/g, ''));
+        const cmp = Number.isFinite(an) && Number.isFinite(bn) ? an - bn :
+          String(av).localeCompare(String(bv), undefined, {numeric: true, sensitivity: 'base'});
+        return descending ? -cmp : cmp;
+      });
+      const leftById = new Map([...leftBody.rows].map(row => [row.dataset.figRow, row]));
+      for (const row of ordered) {
+        rightBody.appendChild(row);
+        const companion = leftById.get(row.dataset.figRow);
+        if (companion) leftBody.appendChild(companion);
+      }
+      for (const h of allHeaders) {
+        const selected = h === th;
+        h.removeAttribute('aria-sort');
+        const marker = h.querySelector('.sort-icon');
+        if (marker && !h.querySelector('button').disabled) marker.textContent = selected ? descending ? '↓' : '↑' : '↕';
+        if (selected) h.setAttribute('aria-sort', descending ? 'descending' : 'ascending');
+      }
+    });
+  }
+  const openRow = e => {
+    if (e.target.closest('a,button,input,select')) return;
+    const row = e.target.closest('tr[data-href]');
+    if (row && row.dataset.href) location.hash = row.dataset.href;
+  };
+  leftBody.addEventListener('click', openRow);
+  rightBody.addEventListener('click', openRow);
+}
+
 function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return;
  const route=(location.hash.startsWith('#/')?location.hash.slice(2):'home').split('/')[0];
  const historical=['record','streak','singleseasons','special','playerweeks','playerbombrank','playerbomb'].includes(route);
