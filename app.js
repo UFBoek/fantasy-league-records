@@ -13,7 +13,7 @@ const pct=n=>`${Number(n||0).toFixed(1)}%`, num=n=>Number(n||0);
 const initials=(name,id)=>displayOwnerName(name,id).replace(/[^A-Za-z0-9]/g,' ').split(/\s+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase();
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function parseMaybeJSON(v){if(Array.isArray(v))return v;try{return JSON.parse(v)}catch{return v?[String(v)]:[]}}
-async function load(keys){await Promise.all(keys.map(async k=>{if(DATA[k])return;const r=await fetch(`data/${fileMap[k]}.json`,k==='raValues'?{cache:'no-cache'}:undefined);if(!r.ok)throw new Error(`Could not load ${fileMap[k]}`);DATA[k]=await r.json()}))}
+async function load(keys){await Promise.all(keys.map(async k=>{if(DATA[k])return;const r=await fetch(`data/${fileMap[k]}.json`,k==='raValues'?{cache:'no-cache'}:undefined);if(!r.ok)throw new Error(`Could not load ${fileMap[k]}`);const payload=await r.json();if(k==='playerLog'){if(!Array.isArray(payload))throw new Error('Player Records data must be an array');DATA[k]=payload.map(x=>({...x,player_name:x.player_name||x.full_name||'',starter_points:x.starter_points??x.fantasy_points}));}else DATA[k]=payload}))}
 function navActive(route){$$('.top-nav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')===`#/${route}`))}
 function hero(eyebrow,title,copy,stats=[]){return `<section class="hero"><div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${stats.length?`<div class="hero-strip">${stats.map(s=>`<div class="hero-stat"><div class="k">${s.value}</div><div class="l">${s.label}</div></div>`).join('')}</div>`:''}</section>`}
 function section(title,body,note=''){return `<section class="section"><div class="section-head"><h2 class="section-title">${title}</h2>${note?`<div class="section-note">${note}</div>`:''}</div>${body}</section>`}
@@ -257,7 +257,7 @@ function jamesHaydenTradeArchive(mode='archive'){
  const byTrade=new Map(), receivedByTrade=new Map(), production=new Map();
  sides.forEach(x=>{let k=String(x.transaction_id);if(!byTrade.has(k))byTrade.set(k,new Set());byTrade.get(k).add(+x.franchise_id)});
  assets.filter(a=>a.asset_direction==='Received').forEach(a=>{const k=`${a.transaction_id}:${a.franchise_id}`;if(!receivedByTrade.has(k))receivedByTrade.set(k,[]);receivedByTrade.get(k).push(a)});
- weeks.filter(isCompleted).forEach(w=>{const k=`${w.franchise_id}:${w.player_id}`;if(!production.has(k))production.set(k,[]);production.get(k).push(w)});
+ weeks.filter(w=>isCompleted(w)&&w.counts_for_official_records!==false).forEach(w=>{const k=`${w.franchise_id}:${w.player_id}`;if(!production.has(k))production.set(k,[]);production.get(k).push(w)});
  for(const v of production.values())v.sort((a,b)=>+a.season-+b.season||+a.week-+b.week);
  const tradeRows=(DATA.trades||[]).filter(t=>{const ids=byTrade.get(String(t.transaction_id))||new Set();return ids.has(JAMES_ID)&&ids.has(HAYDEN_ID)}).sort((a,b)=>+b.season-+a.season||+b.week-+a.week||String(b.transaction_id).localeCompare(String(a.transaction_id)));
  const years=[...new Set(tradeRows.map(t=>String(t.season)))].sort((a,b)=>+b-+a);
