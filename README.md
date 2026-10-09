@@ -1,3 +1,14 @@
+## v93 — Player trade histories on individual NFL player profiles
+
+- **Player Archive → Player History** includes a new **Trade History** section after Franchise History and before Season History, showing all completed league trades where the player was transferred. Each row includes the archived season and week, manager/team portraits with the sending and receiving franchise, and an expandable **See Full Trade Package** showing every participating manager's received players and picks. There's also a link to the full Trades archive.
+- Records are keyed by exact Sleeper `player_id` and `transaction_id` from `data/trade_assets.json`, rather than matching names, so identical names are not conflated. A player's transfer is counted only once using the `Received` record (each asset also has a corresponding `Sent` record).
+- Supports 2-, 3-, and 4-manager trades without losing trade details, and shows a friendly empty state when a player has no recorded transactions. Season and game logs remain separate and unchanged.
+- Trade data is lazy-loaded with each opened player profile; no new API calls, backend schema, or live-week record changes.
+- **Tests:** All 374 received player assets matched the correct outgoing franchise and their complete trade package; 207 unique traded NFL players, including a nine-trade player, a no-trade player, and a verified four-team trade. App/service-worker JS syntax, responsive CSS braces and v93 Pages cache/staging checks all passed.
+- **Delivery:** `player-trades-v93.css` included in GitHub Pages staging and service worker `fig-league-shell-v93`, with `app.js?v=93`.
+
+---
+
 ## v92 — Game Archive scores fit on mobile and select an individual team
 
 - Fix the cropped trailing digits of final scores on small iPhone screens. The winner marker and entire number now form a single right-aligned `fig-archive-result` group within a **three-column** score row (portrait, flexible name, nonwrapping result). The inactive winner marker keeps both scores aligned without occupying a separate layout track. CSS adapts at 699px and 360px.
