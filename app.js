@@ -61,6 +61,41 @@ function sameRecordValue(a,b){const an=Number(a),bn=Number(b);return Number.isFi
 function tiedRowsForTop(rows,valueKey='value'){const valid=[...rows].filter(x=>num(x[valueKey])!==0).sort((a,b)=>num(a.rank)-num(b.rank)||num(b[valueKey])-num(a[valueKey]));if(!valid.length)return[];const top=valid[0];return valid.filter(x=>sameRecordValue(x[valueKey],top[valueKey]))}
 function joinedOwners(rows,nameKey='record_holder',idKey='franchise_id'){const seen=new Set();return rows.filter(x=>{const k=String(x[idKey]);if(seen.has(k))return false;seen.add(k);return true}).map(x=>ownerName(x[nameKey],x[idKey])).join(' / ')}
 
+/* Each official record is one illustrated leaderboard, with one portrait per
+   distinct franchise even if it has tied the record in multiple games/seasons. */
+function uniqueRecordManagers(rows){
+ const seen=new Set();
+ return rows.filter(x=>{
+  const id=Number(x.id);
+  const key=Number.isInteger(id)&&id>0?'franchise:'+id:'owner:'+String(x.name||'').trim().toLowerCase();
+  if(seen.has(key))return false;
+  seen.add(key);return true;
+ });
+}
+function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note=''}) {
+ const unique=uniqueRecordManagers(leaders||[]);
+ if(!unique.length)return '';
+ const top=unique[0];
+ const tied=unique.filter(x=>sameRecordValue(x.value,top.value));
+ const rivals=unique.filter(x=>!sameRecordValue(x.value,top.value)).slice(0,4);
+ const count=Math.min(tied.length,10);
+ const columns=Math.min(count,5);
+ const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tied.length}" style="--fig-portrait-cols:${columns}" aria-label="${tied.length} record holder${tied.length===1?'':'s'}">${tied.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
+ const names=tied.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
+ const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tied.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}</span><b>${esc(r.display??r.value)}</b></div>`).join('');
+ return `<a class="fig-podium-card fig-record-card fig-podium-${esc(tone)}" href="${esc(href)}">
+  <div class="fig-podium-banner">${esc(title)}</div>
+  ${pics}
+  <div class="fig-podium-name">${names}</div>
+  <div class="fig-podium-value">${esc(top.display??top.value)}</div>
+  <div class="fig-podium-label">${tied.length>1?'TIED · ':''}${esc(badge)}</div>
+  ${note?`<div class="fig-podium-note">${esc(note)}</div>`:''}
+  ${opponents?`<div class="fig-podium-rivals">${opponents}</div>`:''}
+  <div class="fig-podium-view">VIEW FULL LEADERBOARD →</div>
+ </a>`;
+}
+
+
 // Universal sortable table. Every header is clickable.
 let tableCounter=0;
 function sortableTable(headers,rows,opts={}){
