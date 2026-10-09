@@ -107,13 +107,15 @@ function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint
  const columns=Math.min(tiedManagers.length,5);
  const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tiedManagers.length}" style="--fig-portrait-cols:${columns}" aria-label="${tiedManagers.length} record holder${tiedManagers.length===1?'':'s'}">${tiedManagers.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
  const names=tiedManagers.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
- const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tiedEntries.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}${r.note?`<small>${esc(r.note)}</small>`:''}</span><b>${esc(r.display??r.value)}</b></div>`).join('');
+ const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tiedEntries.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}${r.note?`<small>${esc(r.note)}</small>`:''}</span><b class="fig-podium-rival-score">${esc(r.display??r.value)}</b></div>`).join('');
+ const valueText=String(top.display??top.value);
+ const valueSize=valueText.length>=12?'fig-record-value-xl':valueText.length>=9?'fig-record-value-long':'';
  const detailNote=note||(allowRepeat&&tiedEntries.length===1?top.note||'':'');
  return `<a class="fig-podium-card fig-record-card fig-podium-${esc(tone)}" href="${esc(href)}">
   <div class="fig-podium-banner">${esc(title)}</div>
   ${pics}
   <div class="fig-podium-name">${names}</div>
-  <div class="fig-podium-value">${esc(top.display??top.value)}</div>
+  <div class="fig-podium-value ${valueSize}">${esc(valueText)}</div>
   <div class="fig-podium-label">${tiedEntries.length>1?'TIED · ':''}${esc(badge)}</div>
   ${detailNote?`<div class="fig-podium-note">${esc(detailNote)}</div>`:''}
   ${opponents?`<div class="fig-podium-rivals">${opponents}</div>`:''}
