@@ -1,5 +1,5 @@
 /* FIG League v73 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v94';
+const CACHE_NAME = 'fig-league-shell-v95';
 const APP_SHELL = [
   './',
   './index.html',
@@ -24,9 +24,10 @@ const APP_SHELL = [
   './archive-mobile-fit-v92.css?v=92',
   './player-trades-v93.css?v=93',
   './league-detail-v94.css?v=94',
+  './history-polish-v95.css?v=95',
   './live-matchups.js?v=78',
   './mobile-v69.js?v=73',
-  './app.js?v=94',
+  './app.js?v=95',
   './manifest.webmanifest',
   './assets/icons/fig-192.png',
   './assets/icons/fig-512.png'
