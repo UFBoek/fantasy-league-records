@@ -1,3 +1,14 @@
+## v77 — compact leaderboards, performance reruns, and trade contrast
+
+- **Featured records:** Each record card shows the record-holder portrait group and at most two additional ranked entries (the top three performances/placements in total). Tied record holders each appear in the portrait group once.
+- **Repeat performances:** Highest/lowest scoring weeks and single-season records now rank individual **performances**, so the same team can legitimately occupy multiple top-three places. The card indicates season/week for scoring occurrences. Aggregate team records and streaks continue ranking distinct managers.
+- **Player Weeks history:** The Team stat cell displays only the linked franchise portrait with accessible owner name in the link label and tooltip; the team name remains available as a sortable value.
+- **Site-wide table density:** Final CSS layer `layout-v77.css` reduces oversized frozen table row heights and header padding, narrows identity columns, sizes common stat fields based on their contents, and tightens ordinary sortable tables and mobile expanded rows. Player names can wrap rather than being cut off to fit a single line.
+- **James/Hayden contrast:** Override old dark-themed mobile styles inside the trade archive, including the 12-trade counter, participant labels, all-time trade-value section, trade details, and the interactive gap panel. Dark areas use legible white text; light areas use charcoal text.
+- **Publication:** `layout-v77.css` and `app.js?v=77` are versioned in the page and offline shell and copied by the GitHub Pages stage script.
+- **Historical safeguards:** No live Sleeper scores or unfinished weeks are inserted into official records.
+
+---
 ## v76 — records and streaks in their own galleries
 
 - **Records layout:** Hall of Records all-time standings stays at the top. Below it, the Records filter displays every eligible team/statistic record as an illustrated card, rather than repeating dense tiny summary cards. Highest/lowest scoring weeks and weekly high-score/top-three awards stay under Records.

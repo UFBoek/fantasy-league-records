@@ -72,30 +72,33 @@ function uniqueRecordManagers(rows){
   seen.add(key);return true;
  });
 }
-function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note=''}) {
- const unique=uniqueRecordManagers(leaders||[]);
- if(!unique.length)return '';
- const top=unique[0];
- const tied=unique.filter(x=>sameRecordValue(x.value,top.value));
- const rivals=unique.filter(x=>!sameRecordValue(x.value,top.value)).slice(0,4);
- const count=Math.min(tied.length,10);
- const columns=Math.min(count,5);
- const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tied.length}" style="--fig-portrait-cols:${columns}" aria-label="${tied.length} record holder${tied.length===1?'':'s'}">${tied.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
- const names=tied.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
- const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tied.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}</span><b>${esc(r.display??r.value)}</b></div>`).join('');
+function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note='',allowRepeat=false}) {
+ // Individual performances may belong to the same manager more than once.
+ // For aggregate records/streaks rank each franchise once.
+ const ranked=allowRepeat?[...(leaders||[])]:uniqueRecordManagers(leaders||[]);
+ if(!ranked.length)return '';
+ const top=ranked[0];
+ const tiedEntries=ranked.filter(x=>sameRecordValue(x.value,top.value));
+ const tiedManagers=uniqueRecordManagers(tiedEntries);
+ // Leader + exactly two more historical placements at most. The tied winner
+ // portrait collage still includes every unique person at the record value.
+ const rivals=ranked.filter(x=>!sameRecordValue(x.value,top.value)).slice(0,Math.max(0,3-tiedEntries.length));
+ const columns=Math.min(tiedManagers.length,5);
+ const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tiedManagers.length}" style="--fig-portrait-cols:${columns}" aria-label="${tiedManagers.length} record holder${tiedManagers.length===1?'':'s'}">${tiedManagers.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
+ const names=tiedManagers.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
+ const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tiedEntries.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}${r.note?`<small>${esc(r.note)}</small>`:''}</span><b>${esc(r.display??r.value)}</b></div>`).join('');
+ const detailNote=note||(allowRepeat&&tiedEntries.length===1?top.note||'':'');
  return `<a class="fig-podium-card fig-record-card fig-podium-${esc(tone)}" href="${esc(href)}">
   <div class="fig-podium-banner">${esc(title)}</div>
   ${pics}
   <div class="fig-podium-name">${names}</div>
   <div class="fig-podium-value">${esc(top.display??top.value)}</div>
-  <div class="fig-podium-label">${tied.length>1?'TIED · ':''}${esc(badge)}</div>
-  ${note?`<div class="fig-podium-note">${esc(note)}</div>`:''}
+  <div class="fig-podium-label">${tiedEntries.length>1?'TIED · ':''}${esc(badge)}</div>
+  ${detailNote?`<div class="fig-podium-note">${esc(detailNote)}</div>`:''}
   ${opponents?`<div class="fig-podium-rivals">${opponents}</div>`:''}
   <div class="fig-podium-view">VIEW FULL LEADERBOARD →</div>
  </a>`;
 }
-
-
 // Universal sortable table. Every header is clickable.
 let tableCounter=0;
 function sortableTable(headers,rows,opts={}){
@@ -124,11 +127,11 @@ function frozenTable(heads, rows, id) {
   const buildHead = (h, i) => `<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? '↕' : ''}</span></button></th>`;
   const renderRows = (start, columns) => rows.map((r, i) => {
     const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
-    return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td>${r[h.key] ?? ''}</td>`).join('')}</tr>`;
+    return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td data-key="${esc(h.key)}">${r[h.key] ?? ''}</td>`).join('')}</tr>`;
   }).join('');
   setTimeout(() => bindFrozenTable(id, heads), 0);
   return `<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>` +
-    `<div class="fig-frozen-grid" data-fig-version="75-frozen">` +
+    `<div class="fig-frozen-grid" data-fig-version="77-frozen" data-page="${esc(route)}">` +
     `<div class="fig-frozen-identity"><table id="${id}_fixed" class="fig-frozen-identity-table" aria-label="Fixed rank and name columns"><thead><tr>${firstHeads.map((h, i) => buildHead(h, i)).join('')}</tr></thead><tbody>${renderRows(0, firstHeads)}</tbody></table></div>` +
     `<div class="table-wrap fig-frozen-stats" data-fig-version="75-frozen" role="region" tabindex="0" aria-label="Scroll sideways for additional statistics"><table id="${id}" class="sortable fig-frozen-stats-table" aria-label="Scrollable statistics"><thead><tr>${statHeads.map((h, i) => buildHead(h, i + 2)).join('')}</tr></thead><tbody>${renderRows(2, statHeads)}</tbody></table></div></div>`;
 }
@@ -803,14 +806,14 @@ async function records(){
      perf.push({id:+g.franchise_1,name:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});
      perf.push({id:+g.franchise_2,name:g.owner_2,value:num(g.score_2),season:g.season,week:g.week});
    });
-   const high=[...perf].sort((a,b)=>b.value-a.value).map(x=>({...x,display:money(x.value)}));
-   const low=[...perf].sort((a,b)=>a.value-b.value).map(x=>({...x,display:money(x.value)}));
+   const high=[...perf].sort((a,b)=>b.value-a.value).map(x=>({...x,display:money(x.value),note:`${x.season} W${x.week}`}));
+   const low=[...perf].sort((a,b)=>a.value-b.value).map(x=>({...x,display:money(x.value),note:`${x.season} W${x.week}`}));
    const wins=weeklySummary();
    const highWeeks=[...wins].sort((a,b)=>b.high-a.high||b.top3-a.top3).map(x=>({id:x.id,name:x.owner,value:x.high}));
    const topThree=[...wins].sort((a,b)=>b.top3-a.top3||b.high-a.high).map(x=>({id:x.id,name:x.owner,value:x.top3}));
    const items=[
-    {title:'HIGHEST SCORING WEEK',href:`#/special/teamweeks/${viewKey}`,leaders:high,badge:'SCORING RECORD',tone:'mint'},
-    {title:'LOWEST SCORING WEEK',href:`#/special/teamweeks-low/${viewKey}`,leaders:low,badge:'SCORING RECORD',tone:'coral'}
+    {title:'HIGHEST SCORING WEEK',href:`#/special/teamweeks/${viewKey}`,leaders:high,badge:'SCORING RECORD',tone:'mint',allowRepeat:true},
+    {title:'LOWEST SCORING WEEK',href:`#/special/teamweeks-low/${viewKey}`,leaders:low,badge:'SCORING RECORD',tone:'coral',allowRepeat:true}
    ];
    if(view!=='Playoffs')items.push(
     {title:'WEEKLY HIGH SCORES',href:`#/special/highscores/${viewKey}`,leaders:highWeeks,badge:'WEEKLY LEADER',tone:'blue'},
@@ -830,7 +833,7 @@ async function records(){
      const seasons=[...new Set(ties.map(x=>String(x.season||'')).filter(Boolean))];
      return recordPodiumCard({
        title:cat,href:`#/singleseasons/${encodeURIComponent(cat)}`,
-       leaders:rs.map(x=>({id:+x.franchise_id,name:x.owner_name,value:x.value,display:money(x.value)})),
+       leaders:rs.map(x=>({id:+x.franchise_id,name:x.owner_name,value:x.value,display:money(x.value),note:String(x.season||'')})),allowRepeat:true,
        badge:'SINGLE-SEASON RECORD',tone:['mint','blue','gold','coral'][i%4],
        note:seasons.join(' · ')
      });
@@ -1284,7 +1287,7 @@ async function breakdown(kind,...parts){
 }
 
 async function playerWeeks(){
- await load(['playerLog']);navActive('players');const data=[...DATA.playerLog].sort((a,b)=>num(b.starter_points)-num(a.starter_points));const rows=data.map((x,i)=>({rank:i+1,player:`<a href="#/player/${x.player_id}">${esc(x.player_name)}</a>`,pos:`<span class="pos">${x.position}</span>`,points:money(x.starter_points),team:ownerLink(x.owner_name,x.franchise_id),season:x.season,week:x.week,type:x.game_type,_sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}}));app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}],rows));
+ await load(['playerLog']);navActive('players');const data=[...DATA.playerLog].sort((a,b)=>num(b.starter_points)-num(a.starter_points));const rows=data.map((x,i)=>({rank:i+1,player:`<a href="#/player/${x.player_id}">${esc(x.player_name)}</a>`,pos:`<span class="pos">${x.position}</span>`,points:money(x.starter_points),team:`<a class="fig-playerweeks-team-photo" href="#/team/${+x.franchise_id}" aria-label="Open ${esc(displayOwnerName(x.owner_name,x.franchise_id))} team profile" title="${esc(displayOwnerName(x.owner_name,x.franchise_id))}">${ownerAvatar(x.franchise_id,'fig-playerweeks-avatar')}</a>`,season:x.season,week:x.week,type:x.game_type,_sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}}));app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}],rows));
 }
 
 async function rivalryDetail(a,b){

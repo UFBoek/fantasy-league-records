@@ -1,0 +1,209 @@
+/* FIG v77 — compact data grids, readable trade archive, top-three record lists.
+   Maintains two-pane frozen column geometry: left and right rows use equal heights. */
+
+/* Shared compact sizing outside of the physically frozen leaderboards. */
+.page-wrap .table-wrap:not(.fig-frozen-stats):not(.fig-sticky-wrap) table.sortable thead th {
+  padding:9px 10px!important;font-size:10px!important;line-height:1.3!important;
+}
+.page-wrap .table-wrap:not(.fig-frozen-stats):not(.fig-sticky-wrap) table.sortable tbody td {
+  padding:8px 10px!important;font-size:12px!important;line-height:1.3!important;
+  vertical-align:middle!important;
+}
+.page-wrap .table-wrap:not(.fig-frozen-stats):not(.fig-sticky-wrap) table.sortable .sort-head {
+  padding:3px 0!important;
+}
+.page-wrap .table-wrap:not(.fig-frozen-stats):not(.fig-sticky-wrap) table.sortable .pos {
+  min-width:26px!important;padding:3px 6px!important;font-size:10px!important;
+}
+.page-wrap .fig-frozen-grid {
+  --fig-fixed-size:198px!important;
+  border-width:3px!important;
+}
+.page-wrap .fig-frozen-identity {border-right-width:2px!important;}
+.page-wrap .fig-frozen-identity th:nth-child(1),
+.page-wrap .fig-frozen-identity td:nth-child(1) {
+  width:37px!important;min-width:37px!important;max-width:37px!important;
+}
+.page-wrap .fig-frozen-identity th:nth-child(2),
+.page-wrap .fig-frozen-identity td:nth-child(2) {
+  width:161px!important;min-width:161px!important;max-width:161px!important;
+  padding:5px 8px!important;
+}
+.page-wrap .fig-frozen-grid th {
+  height:42px!important;padding:5px 7px!important;
+  border-bottom-width:3px!important;border-right-width:2px!important;
+  line-height:1.15!important;
+}
+.page-wrap .fig-frozen-grid td {
+  height:57px!important;max-height:57px!important;
+  padding:5px 7px!important;font-size:12px!important;
+  border-bottom-width:3px!important;border-right-width:2px!important;
+  line-height:1.2!important;
+}
+.page-wrap .fig-frozen-grid .sort-head {padding:2px 0!important;}
+.page-wrap .fig-frozen-stats th,.page-wrap .fig-frozen-stats td {
+  width:88px!important;min-width:88px!important;max-width:88px!important;
+  padding-left:6px!important;padding-right:6px!important;
+}
+.page-wrap .fig-frozen-stats [data-key="pos"] {width:57px!important;min-width:57px!important;max-width:57px!important;text-align:center!important;}
+.page-wrap .fig-frozen-stats [data-key="starts"] {width:68px!important;min-width:68px!important;max-width:68px!important;}
+.page-wrap .fig-frozen-stats [data-key="season"],
+.page-wrap .fig-frozen-stats [data-key="week"] {width:69px!important;min-width:69px!important;max-width:69px!important;}
+.page-wrap .fig-frozen-stats [data-key="w"],
+.page-wrap .fig-frozen-stats [data-key="l"],
+.page-wrap .fig-frozen-stats [data-key="rank"],
+.page-wrap .fig-frozen-stats [data-key="wins"],
+.page-wrap .fig-frozen-stats [data-key="losses"] {width:57px!important;min-width:57px!important;max-width:57px!important;}
+.page-wrap .fig-frozen-stats [data-key="type"],
+.page-wrap .fig-frozen-stats [data-key="status"] {width:125px!important;min-width:125px!important;max-width:125px!important;}
+.page-wrap .fig-frozen-stats [data-key="team"] {width:105px!important;min-width:105px!important;max-width:105px!important;}
+.page-wrap .fig-frozen-grid .fig-owner-link .fig-team-avatar {
+  height:29px!important;width:29px!important;flex-basis:29px!important;
+}
+
+/* Player Weeks history: just a linked portrait in the team column. The
+   accessible link title retains the manager identity without using table width. */
+.page-wrap .fig-frozen-grid[data-page="playerweeks"] .fig-frozen-stats [data-key="team"] {
+  width:55px!important;min-width:55px!important;max-width:55px!important;
+  text-align:center!important;padding:4px!important;
+}
+.page-wrap .fig-playerweeks-team-photo {
+  display:inline-flex!important;align-items:center;justify-content:center;
+  width:32px;height:32px;max-width:100%;
+  vertical-align:middle;line-height:1;
+}
+.page-wrap .fig-playerweeks-avatar {
+  display:block!important;width:31px!important;height:31px!important;
+  border-radius:50%!important;border:1px solid #ced4d0!important;object-fit:cover!important;
+}
+
+/* James/Hayden: no dark lettering on navy panels, on desktop or phones. */
+.page-wrap .jh-archive .jh-header {
+  background:#24302e!important;color:#fff!important;border-bottom:1px solid #50665f!important;
+}
+.page-wrap .jh-archive .jh-header .jh-participant,
+.page-wrap .jh-archive .jh-header .jh-participant span,
+.page-wrap .jh-archive .jh-header .jh-summary,
+.page-wrap .jh-archive .jh-header .jh-summary strong {
+  color:#fff!important;
+}
+.page-wrap .jh-archive .jh-header .jh-summary strong {
+  font-weight:950!important;font-variant-numeric:tabular-nums;
+  text-shadow:none!important;
+}
+.page-wrap .jh-archive .jh-header .jh-summary span {color:#d5e8e0!important;}
+.page-wrap .jh-archive .jh-header .jh-versus {color:#72e9c5!important;}
+.page-wrap .jh-archive .jh-overall {
+  background:#eaf0ec!important;color:#27342e!important;
+  border:1px solid #d4ded7!important;
+}
+.page-wrap .jh-archive .jh-overall-title,
+.page-wrap .jh-archive .jh-overview-label,
+.page-wrap .jh-archive .jh-overall .jh-overview-figures strong {color:#25352c!important;}
+.page-wrap .jh-archive .jh-overall-title small,
+.page-wrap .jh-archive .jh-overall-scoring-note,
+.page-wrap .jh-archive .jh-overview-figures small {color:#586e61!important;}
+.page-wrap .jh-archive .jh-overview-team {
+  background:#fff!important;color:#26362d!important;
+  border:1px solid #d5e0d8!important;box-shadow:none!important;
+}
+.page-wrap .jh-archive .jh-trade-card {background:#fff!important;color:#26312c!important;}
+.page-wrap .jh-archive .jh-trade-card>.jh-trade-meta,
+.page-wrap .jh-archive .jh-trade-card[open]>.jh-trade-meta {
+  background:#edf0ed!important;color:#303b35!important;
+  border-bottom:1px solid #dce3dd!important;
+}
+.page-wrap .jh-archive .jh-trade-identity strong {color:#29342e!important;}
+.page-wrap .jh-archive .jh-trade-identity>span,
+.page-wrap .jh-archive .jh-trade-preview {color:#52635a!important;}
+.page-wrap .jh-archive .jh-trade-preview b {color:#166d54!important;}
+.page-wrap .jh-archive .jh-receives {background:#fff!important;color:#27352e!important;}
+.page-wrap .jh-archive .jh-market-total,
+.page-wrap .jh-archive .jh-receives+.jh-receives .jh-market-total {
+  background:#e4f1e9!important;color:#233c2d!important;
+  border-color:#c4dbcc!important;
+}
+.page-wrap .jh-archive .jh-market-total strong {color:#15563d!important;}
+.page-wrap .jh-archive .jh-market-total small {color:#526e5c!important;}
+.page-wrap .jh-archive .jh-gap-game {
+  background:#24382f!important;color:#fff!important;
+}
+.page-wrap .jh-archive .jh-gap-pitch,
+.page-wrap .jh-archive .jh-gap-pitch h3 {color:#fff!important;}
+.page-wrap .jh-archive .jh-gap-pitch p {color:#d6e8da!important;}
+.page-wrap .jh-archive .jh-gap-pitch>strong {color:#91eec3!important;}
+.page-wrap .jh-archive .jh-gap-unit {color:#d4e4d8!important;}
+.page-wrap .jh-archive .jh-gap-teaser {
+  background:#e4f2e9!important;color:#264235!important;border-color:#cae2d3!important;
+}
+.page-wrap .jh-archive .jh-gap-teaser small {color:#587261!important;}
+
+/* Three-position leaderboards keep only the runner-up and third-place rows. */
+.page-wrap .fig-record-card .fig-podium-rivals {padding-top:5px!important;}
+.page-wrap .fig-record-card .fig-podium-rival {padding:5px 0!important;}
+.page-wrap .fig-record-card .fig-podium-rival-name {
+  white-space:normal!important;overflow-wrap:anywhere!important;text-overflow:clip!important;
+  line-height:1.2!important;
+}
+.page-wrap .fig-record-card .fig-podium-rival-name small {
+  display:block;color:#777e78;font:650 9px/1.2 Inter,sans-serif;margin-top:2px;
+}
+
+@media(max-width:699px){
+  .page-wrap .fig-frozen-grid {--fig-fixed-size:150px!important;border-width:2px!important;}
+  .page-wrap .fig-frozen-identity th:nth-child(1),
+  .page-wrap .fig-frozen-identity td:nth-child(1) {
+    width:30px!important;min-width:30px!important;max-width:30px!important;
+    padding:3px 1px!important;
+  }
+  .page-wrap .fig-frozen-identity th:nth-child(2),
+  .page-wrap .fig-frozen-identity td:nth-child(2) {
+    width:120px!important;min-width:120px!important;max-width:120px!important;
+    padding:4px 5px!important;
+  }
+  .page-wrap .fig-frozen-grid th {height:43px!important;}
+  .page-wrap .fig-frozen-grid td {height:56px!important;max-height:56px!important;font-size:11px!important;}
+  .page-wrap .fig-frozen-identity td:nth-child(2) {
+    font:800 11px/1.16 Inter,sans-serif!important;overflow-wrap:anywhere!important;
+  }
+  .page-wrap .fig-frozen-grid .sort-head {font-size:9px!important;}
+  .page-wrap .fig-frozen-stats th,.page-wrap .fig-frozen-stats td {
+    width:77px!important;min-width:77px!important;max-width:77px!important;padding:4px!important;
+  }
+  .page-wrap .fig-frozen-stats [data-key="pos"] {width:48px!important;min-width:48px!important;max-width:48px!important;}
+  .page-wrap .fig-frozen-stats [data-key="starts"] {width:61px!important;min-width:61px!important;max-width:61px!important;}
+  .page-wrap .fig-frozen-stats [data-key="season"],
+  .page-wrap .fig-frozen-stats [data-key="week"] {width:61px!important;min-width:61px!important;max-width:61px!important;}
+  .page-wrap .fig-frozen-stats [data-key="w"],
+  .page-wrap .fig-frozen-stats [data-key="l"],
+  .page-wrap .fig-frozen-stats [data-key="wins"],
+  .page-wrap .fig-frozen-stats [data-key="losses"] {width:48px!important;min-width:48px!important;max-width:48px!important;}
+  .page-wrap .fig-frozen-stats [data-key="type"],
+  .page-wrap .fig-frozen-stats [data-key="status"] {width:117px!important;min-width:117px!important;max-width:117px!important;}
+  .page-wrap .fig-frozen-stats [data-key="team"] {width:84px!important;min-width:84px!important;max-width:84px!important;}
+  .page-wrap .fig-frozen-grid[data-page="playerweeks"] .fig-frozen-stats [data-key="team"] {
+    width:48px!important;min-width:48px!important;max-width:48px!important;padding:2px!important;
+  }
+  .page-wrap .fig-playerweeks-team-photo {width:28px!important;height:28px!important;}
+  .page-wrap .fig-playerweeks-avatar {width:27px!important;height:27px!important;}
+  .page-wrap .fig-frozen-stats td .pos {
+    min-width:0!important;padding:2px 4px!important;font-size:9px!important;line-height:1!important;
+    border-radius:10px!important;
+  }
+  .page-wrap .fig-frozen-grid .fig-owner-link .fig-team-avatar {
+    width:25px!important;height:25px!important;flex-basis:25px!important;
+  }
+  .page-wrap .fig-list-table table.sortable tbody tr {min-height:62px!important;padding:8px 9px!important;}
+  .page-wrap .fig-list-table .fig-expanded-stats {margin-top:6px!important;padding:8px 2px 4px!important;gap:7px 5px!important;}
+  .page-wrap .jh-archive .jh-header {padding:14px 12px!important;}
+  .page-wrap .jh-archive .jh-header .jh-summary strong {font-size:47px!important;}
+  .page-wrap .jh-archive .jh-overall {padding:13px!important;}
+  .page-wrap .jh-archive .jh-overview-team {padding:11px!important;}
+}
+@media(max-width:375px){
+  .page-wrap .fig-frozen-grid {--fig-fixed-size:140px!important;}
+  .page-wrap .fig-frozen-identity th:nth-child(1),
+  .page-wrap .fig-frozen-identity td:nth-child(1) {width:28px!important;min-width:28px!important;max-width:28px!important;}
+  .page-wrap .fig-frozen-identity th:nth-child(2),
+  .page-wrap .fig-frozen-identity td:nth-child(2) {width:112px!important;min-width:112px!important;max-width:112px!important;}
+}
