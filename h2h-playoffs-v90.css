@@ -1,0 +1,29 @@
+/* H2H v90 — distinguish regular-season vs eligible playoff comparisons. */
+.page-wrap .fig-h2h-week-head,
+.page-wrap .fig-h2h-week {
+  grid-template-columns:64px minmax(0,1fr) minmax(0,1fr) 35px!important;
+}
+.page-wrap .fig-h2h-week-id {
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:3px;min-width:0;white-space:nowrap;
+}
+.page-wrap .fig-h2h-playoff-mark {
+  display:inline-block;border-radius:5px;background:#d7eee2!important;
+  color:#17644b!important;padding:3px 5px;
+  font:900 9px/1 Inter,system-ui,sans-serif!important;
+  letter-spacing:.035em;
+}
+.page-wrap .fig-h2h-week-note {
+  margin:0!important;padding:11px 12px!important;
+  background:#e8f3ed!important;color:#365348!important;
+  border-bottom:1px solid #d4e7da!important;
+  font:750 10px/1.4 Inter,system-ui,sans-serif!important;
+}
+@media(max-width:390px) {
+ .page-wrap .fig-h2h-week-head,
+ .page-wrap .fig-h2h-week {
+   grid-template-columns:52px minmax(0,1fr) minmax(0,1fr) 32px!important;
+   gap:4px!important;
+ }
+ .page-wrap .fig-h2h-playoff-mark {font-size:8px!important;}
+}

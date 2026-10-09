@@ -1127,13 +1127,13 @@ async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseE
 }
 
 function h2hAllPlayPair(games,a,b) {
- // Replicate official all_play_seasons math: compare *completed regular-season*
- // team scores in the same season/week, regardless of scheduled opponent.
+ // H2H-only all-play: regular-season comparisons plus playoff weeks
+ // ONLY when both teams have a completed playoff matchup. Global all-play unchanged.
  const weeks=new Map();
  for(const g of games||[]){
-  if(g.game_type!=='Regular Season')continue;
-  const key=`${g.season}:${g.week}`;
-  if(!weeks.has(key))weeks.set(key,{season:+g.season,week:+g.week,teams:new Map()});
+  if(g.game_type!=='Regular Season'&&g.game_type!=='Playoffs')continue;
+  const key=`${g.season}:${g.week}:${g.game_type}`;
+  if(!weeks.has(key))weeks.set(key,{season:+g.season,week:+g.week,phase:g.game_type,teams:new Map()});
   const w=weeks.get(key);
   w.teams.set(+g.franchise_1,num(g.score_1));
   w.teams.set(+g.franchise_2,num(g.score_2));
@@ -1142,7 +1142,7 @@ function h2hAllPlayPair(games,a,b) {
   .map(w=>{
    const as=w.teams.get(+a),bs=w.teams.get(+b);
    const diff=Math.round((as-bs)*100);
-   return {season:w.season,week:w.week,a:as,b:bs,result:diff>0?'W':diff<0?'L':'T',margin:Math.abs(diff)/100};
+   return {season:w.season,week:w.week,phase:w.phase,a:as,b:bs,result:diff>0?'W':diff<0?'L':'T',margin:Math.abs(diff)/100};
   }).sort((x,y)=>y.season-x.season||y.week-x.week);
 }
 
@@ -1208,7 +1208,7 @@ async function h2h(){
  };
  app.innerHTML=hero('LEAGUE HISTORY','HEAD-TO-HEAD','Actual matchups and the games you would have won against every other team.')+
   `<section class="section fig-h2h-page">
-   <div class="fig-h2h-intro"><strong>TWO WAYS TO MEASURE A RIVALRY</strong><p><b>Head-to-head</b> counts scheduled regular-season and playoff games. <b>All-play</b> compares your completed regular-season score against that opponent's score every week, even when you weren't scheduled to play.</p></div>
+   <div class="fig-h2h-intro"><strong>TWO WAYS TO MEASURE A RIVALRY</strong><p><b>Head-to-head</b> counts scheduled regular-season and playoff games. <b>All-play</b> compares your completed scores every regular-season week, plus playoff weeks when both teams played, even if you faced different opponents.</p></div>
    <div class="control-label">CHOOSE A TEAM</div>
    ${pills('h2hTeamPills',teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)})),selected)}
    <div id="h2hResults" class="fig-h2h-results"></div>
@@ -1226,6 +1226,7 @@ async function matchupHistory(a,b){
  const actual=h2hActualPair(DATA.games,a,b);
  const allplay=h2hAllPlayPair(DATA.games,a,b);
  const totals=h2hRecord(actual),ap=h2hRecord(allplay);
+ const playoffWeeks=allplay.filter(x=>x.phase==='Playoffs').length;
  const nameA=displayOwnerName(ta.owner_name,a),nameB=displayOwnerName(tb.owner_name,b);
  const years=[...new Set([...actual,...allplay].map(x=>x.season))].sort((x,y)=>y-x);
  const summary=`<div class="fig-h2h-battle">
@@ -1235,20 +1236,23 @@ async function matchupHistory(a,b){
   </div>
   <div class="fig-h2h-summary">
    <div><span>ACTUAL HEAD-TO-HEAD</span><strong>${h2hRecordText(totals)}</strong><small>${totals.games} completed matchups · ${pct(totals.pct)} win rate</small></div>
-   <div><span>ALL-PLAY AGAINST ${esc(nameB.toUpperCase())}</span><strong>${h2hRecordText(ap)}</strong><small>${ap.games} regular-season weeks · ${pct(ap.pct)} win rate</small></div>
+   <div><span>ALL-PLAY AGAINST ${esc(nameB.toUpperCase())}</span><strong>${h2hRecordText(ap)}</strong><small>${ap.games} shared weeks (${playoffWeeks} playoff) · ${pct(ap.pct)} win rate</small></div>
   </div>`;
  const seasons=years.map(year=>{
   const games=actual.filter(x=>x.season===year),weeks=allplay.filter(x=>x.season===year);
   const ar=h2hRecord(games),pr=h2hRecord(weeks);
+  const playoffCount=weeks.filter(x=>x.phase==='Playoffs').length;
+  const regularCount=weeks.length-playoffCount;
   return `<div class="fig-h2h-season">
-   <div class="fig-h2h-season-title"><strong>${year}</strong><span>${weeks.length} completed regular-season weeks</span></div>
+   <div class="fig-h2h-season-title"><strong>${year}</strong><span>${regularCount} regular · ${playoffCount} playoff weeks</span></div>
    <div class="fig-h2h-season-stats">
     <div><span>ACTUAL H2H</span><strong>${h2hRecordText(ar)}</strong><small>${ar.games} matchups</small></div>
     <div><span>ALL-PLAY</span><strong>${h2hRecordText(pr)}</strong><small>${pct(pr.pct)} win rate</small></div>
    </div>
    <details class="fig-h2h-weeks"><summary>SEE ${year} WEEK-BY-WEEK COMPARISON <span aria-hidden="true">⌄</span></summary>
+    ${playoffCount?'<p class="fig-h2h-week-note">PO = playoff week in which both teams played a completed game.</p>':''}
     <div class="fig-h2h-week-head"><span>WEEK</span><span>${esc(nameA.toUpperCase())}</span><span>${esc(nameB.toUpperCase())}</span><span>RESULT</span></div>
-    ${weeks.sort((x,y)=>x.week-y.week).map(x=>`<div class="fig-h2h-week"><span>W${x.week}</span><span>${money(x.a)}</span><span>${money(x.b)}</span><b class="fig-h2h-result fig-h2h-result-${x.result.toLowerCase()}">${x.result}</b></div>`).join('')}
+    ${weeks.sort((x,y)=>x.week-y.week).map(x=>`<div class="fig-h2h-week"><span class="fig-h2h-week-id">W${x.week}${x.phase==='Playoffs'?'<small class="fig-h2h-playoff-mark">PO</small>':''}</span><span>${money(x.a)}</span><span>${money(x.b)}</span><b class="fig-h2h-result fig-h2h-result-${x.result.toLowerCase()}">${x.result}</b></div>`).join('')}
    </details>
   </div>`;
  }).join('');
@@ -1260,9 +1264,9 @@ async function matchupHistory(a,b){
     <div class="fig-h2h-game-view">VIEW LINEUPS →</div>
    </a>`;
  }).join('');
- app.innerHTML=hero('RIVALRY ARCHIVE',`${esc(nameA.toUpperCase())} VS ${esc(nameB.toUpperCase())}`,'Historical records from the first team’s perspective. All-play includes every completed regular-season week, not just scheduled games.')+
+ app.innerHTML=hero('RIVALRY ARCHIVE',`${esc(nameA.toUpperCase())} VS ${esc(nameB.toUpperCase())}`,'Historical records from the first team’s perspective. All-play includes regular-season weeks and playoff weeks when both teams played.')+
   `<section class="section fig-h2h-detail"><a class="fig-h2h-back" href="#/h2h">← ALL HEAD-TO-HEAD RIVALRIES</a>${summary}</section>`+
-  section('ALL-PLAY BY SEASON',`<div class="fig-h2h-seasons">${seasons}</div>`,'Compare every completed regular-season week, including weeks without a scheduled matchup.')+
+  section('ALL-PLAY BY SEASON',`<div class="fig-h2h-seasons">${seasons}</div>`,'Compare shared regular-season weeks and playoff weeks when both teams played, even if they did not meet directly.')+
   section('ACTUAL MATCHUP HISTORY',`<div class="fig-h2h-game-legend"><b>${esc(nameA)}</b> score <span>—</span> <b>${esc(nameB)}</b> score</div><div class="fig-h2h-games">${matches||'<p>No official meetings yet.</p>'}</div>`,'Tap a game to view the archived lineups and scores.');
 }
 

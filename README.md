@@ -1,3 +1,14 @@
+## v90 — H2H-only all-play counts weeks when both rivals played in the playoffs
+
+- Pairwise all-play in **More → Head-to-Head** now compares completed scores from the regular season **and** playoff weeks when *both specific franchises* recorded an official scored playoff game that week. They need not have faced one another. An absent playoff matchup or first-round bye is not counted for that team.
+- Seasons, weeks, and phase are grouped separately to avoid mixing regular-season and playoff results. A single qualifying playoff week produces exactly one comparison for the pair.
+- The H2H rivalry cards, career all-play record, season-by-season records and expandable score comparisons all use this expanded H2H-only definition. Weekly playoff comparisons are marked **PO** and the season detail counts regular versus playoff weeks.
+- **Scope:** This does not change the league-wide `data/all_play_seasons.json`, global all-play standings/records, the scheduled head-to-head matchup record, Sleeper imports, or the completed-week safeguards.
+- **Validation:** The official completed playoff archive yields **49 added unordered pair-week comparisons** across 2023–2025. The expanded counts match an independent two-teams-present-in-the-week calculation for all 45 pairs. Original regular-season totals still match the 40 published franchise-season all-play records.
+- **Delivery:** `h2h-playoffs-v90.css` and `app.js?v=90` are wired through Pages staging and the `fig-league-shell-v90` service worker cache.
+
+---
+
 ## v88 — Head-to-Head archive redesign with pairwise all-play
 
 - **Rivalry overview:** The More → Head-to-Head page now uses high-contrast portrait-led rivalry cards in place of the old hard-to-read mobile expandable table. Each card shows the directional *actual H2H W–L–T* (scheduled league and playoff matches) and *pairwise all-play W–L–T* (weekly scores against the opponent whether or not scheduled), plus official game count and shared weeks. The team filter shows nine directional rivalries; All shows every unordered franchise pairing (45).
