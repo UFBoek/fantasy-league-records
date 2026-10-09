@@ -45,7 +45,7 @@ class AllPlayRecords(unittest.TestCase):
         self.assertIn('for _record_view in ("All-Time Combined", "Regular Season")',source)
 
     def test_manifest(self):
-        self.assertEqual(data('manifest')['Records'],len(data('records')))
+        self.assertEqual(data('manifest').get('records', data('manifest').get('Records')),len(data('records')))
 
 if __name__=='__main__':
     unittest.main()
