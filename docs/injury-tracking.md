@@ -80,3 +80,44 @@ mean zero injuries actually occurred.
 Run `python scripts/build_injury_history.py` after refreshing Sleeper
 lineups and before publishing changed JSON. Do not claim a complete
 injury-luck ranking while the evidence audit is incomplete.
+
+## 2026 pilot — first reviewed evidence (October 9)
+
+The first six source-reviewed game-ending injury events have been entered into
+`data/injury_events_reviewed.json` (2026 weeks 1–4), with direct source links
+and corroboration of injury-related early game exits. **These are an initial
+sample, not a complete list of 2026 injuries.** An injury is not described as
+major without a separate, verified severity record. Week 5 is still active and
+is not eligible for official counts.
+
+The second file `data/injury_candidate_leads.json` contains 17 hand-curated
+NFL.com roundup leads from weeks 1–4 that still require game-finish review.
+`scripts/build_injury_candidates.py` matches them against completed Sleeper
+lineups, reports which team started or frequently started the player, and
+writes `data/injury_candidates.json` without publishing a single injury count.
+
+**Example of why this matters:** NFL.com reports Zay Flowers exited and did not
+return in Week 1, but subsequent reporting indicates he might have been
+available if the game had been closer. He remains a review lead rather than
+an automatically counted game-ending injury. Saquon Barkley's temporary Week 2
+stinger exit and return similarly needs an explicit normal-finish check.
+
+The site exposes the source-backed first pass at `#/injuries` from Records.
+Manager totals show only the verified cases currently in the ledger and are
+not ranked as definitive injury luck. Any unverified lead appears separately
+and is never incorporated into verified totals.
+
+### Adding new events
+
+1. Record the player's season/week, Sleeper player ID and NFL team source URL.
+2. Verify the injury directly caused early exit, including missed snaps and
+   failure to finish the game normally. Distinguish protective/blowout rest.
+3. Record `game_outcome_source_url` for a documented `did_not_return` or
+   `limited_return_no_finish` outcome. A complete full return is excluded.
+4. Leave `subsequent_nfl_games_missed: null` and severity flags false until
+   a separate source verifies a major injury.
+5. Commit the reviewed ledger. The GitHub Actions refresh regenerates the
+   injury history, candidates and safely validated site data.
+
+The injury-count logic remains independent of current-week live scores and
+will continue to use **completed fantasy weeks only**.
