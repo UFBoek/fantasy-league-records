@@ -66,11 +66,28 @@ let tableCounter=0;
 function sortableTable(headers,rows,opts={}){
   const id=`st_${++tableCounter}`;
   const heads=headers.map(h=>typeof h==='string'?{label:h,key:h}:h);
+  // Leaderboards retain their HTML tables on phones; Rank + identity stay pinned.
+  // Other dense tables still use the existing compact-card presentation.
+  const freeze=heads.length>=4&&['#','RANK'].includes(String(heads[0].label).trim().toUpperCase())&&
+    ['TEAM','PLAYER','HOLDER','OWNER','OPPONENT'].includes(String(heads[1].label).trim().toUpperCase());
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
   setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
-  return `<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
+  const html=`<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
+  return freeze ? '<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>' +
+    html.replace('class="table-wrap"','class="table-wrap fig-sticky-wrap" data-fig-version="74-frozen"')
+        .replace('class="sortable"','class="sortable fig-sticky-table"') : html;
 }
-function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return;$$('th',t).forEach(th=>{th.onclick=()=>{const idx=+th.dataset.col,key=th.dataset.key,asc=th.dataset.asc!=='true';$$('th',t).forEach(x=>{x.dataset.asc='';$('.sort-icon',x).textContent='↕'});th.dataset.asc=String(asc);$('.sort-icon',th).textContent=asc?'↑':'↓';const trs=$$('tbody tr',t);trs.sort((a,b)=>{let av,bv;try{av=JSON.parse(a.dataset.row||'{}')[key];bv=JSON.parse(b.dataset.row||'{}')[key]}catch{}if(av===undefined)av=a.children[idx].textContent.trim();if(bv===undefined)bv=b.children[idx].textContent.trim();const an=Number(String(av).replace(/[%,$+]/g,'')),bn=Number(String(bv).replace(/[%,$+]/g,''));let c=(!Number.isNaN(an)&&!Number.isNaN(bn))?an-bn:String(av).localeCompare(String(bv),undefined,{numeric:true,sensitivity:'base'});return asc?c:-c});const tb=$('tbody',t);trs.forEach(r=>tb.appendChild(r))}})}
+function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return;
+ const route=(location.hash.startsWith('#/')?location.hash.slice(2):'home').split('/')[0];
+ const historical=['record','streak','singleseasons','special','playerweeks','playerbombrank','playerbomb'].includes(route);
+ const activeStreaks=route==='streaks';
+ $('th',t).forEach(th=>{
+   if(t.classList.contains('fig-sticky-table')&&(historical||activeStreaks)){
+     const label=th.textContent.replace(/[↕↑↓]/g,'').trim().toUpperCase();
+     const allowed=historical ? /^(VALUE|LENGTH|POINTS|SCORE)$/.test(label) : /^(TYPE|LENGTH)$/.test(label);
+     if(!allowed){const button=th.querySelector('button');if(button){button.disabled=true;button.setAttribute('aria-disabled','true');}return;}
+   }
+   th.onclick=()=>{const idx=+th.dataset.col,key=th.dataset.key,asc=th.dataset.asc!=='true';$$('th',t).forEach(x=>{x.dataset.asc='';$('.sort-icon',x).textContent='↕'});th.dataset.asc=String(asc);$('.sort-icon',th).textContent=asc?'↑':'↓';const trs=$$('tbody tr',t);trs.sort((a,b)=>{let av,bv;try{av=JSON.parse(a.dataset.row||'{}')[key];bv=JSON.parse(b.dataset.row||'{}')[key]}catch{}if(av===undefined)av=a.children[idx].textContent.trim();if(bv===undefined)bv=b.children[idx].textContent.trim();const an=Number(String(av).replace(/[%,$+]/g,'')),bn=Number(String(bv).replace(/[%,$+]/g,''));let c=(!Number.isNaN(an)&&!Number.isNaN(bn))?an-bn:String(av).localeCompare(String(bv),undefined,{numeric:true,sensitivity:'base'});return asc?c:-c});const tb=$('tbody',t);trs.forEach(r=>tb.appendChild(r))}})}
 function pills(id,items,active){return `<div class="pill-row" id="${id}">${items.map(x=>`<button class="pill ${String(x.value)===String(active)?'active':''}" data-value="${esc(x.value)}">${esc(x.label)}</button>`).join('')}</div>`}
 function bindPills(id,cb){$$(`#${id} .pill`).forEach(b=>b.onclick=()=>{$$(`#${id} .pill`).forEach(x=>x.classList.remove('active'));b.classList.add('active');cb(b.dataset.value)})}
 // FLEX is an aggregate position view: RB + WR + TE, never QB.
