@@ -1,3 +1,13 @@
+## v73 — More navigation, live matchup lineups, franchise portraits
+
+- **More:** Dynasty Values and Game Archive are the first two menu tiles, with working links to `#/dynasty` and `#/games`. The remaining league pages remain available below.
+- **Current Week Matchups:** Tap a matchup card or **View Lineups** to open `#/livematch/<week>/<matchup>`. This reads the current Sleeper starters, bench, `starters_points`, `players_points`, and commissioner-adjusted total, if any. An unofficial matchup page refreshes about every 30 seconds while visible; an old bookmarked week directs visitors to the completed Game Archive.
+- **Player labels:** Use the small, automatically refreshed `data/current_roster.json` snapshot for player names. When a player is newly acquired or absent from that snapshot, show the Sleeper player ID instead of inventing an identity or downloading the full NFL players dictionary.
+- **Team pictures:** The common `ownerName`/`ownerLink` rendering helpers now include franchise-ID-keyed avatars across historical record holders, streaks, team standings, playoff scores, game archive listings, and other team references. Live matchup cards and lineups use the same stored manager portraits. Existing team directory and dynasty cards continue to use their larger existing portraits.
+- Historical records, player records, streaks, and career standings still count completed weeks only. Unfinished scores are isolated in the live matchup interface.
+
+---
+
 ## Current-week Sleeper scores (v72)
 
 The homepage has a separate **CURRENT WEEK MATCHUPS** panel. Visible home tabs read the official Sleeper public league metadata and current-week matchup points directly, about every 30 seconds. League metadata is refreshed every five minutes; hidden tabs and visitors on other pages do not continuously poll. Scores are labelled **unofficial** because the week may still be in progress or awaiting corrections. Temporary provider/network errors retain the last good displayed scores and retry after two minutes.
