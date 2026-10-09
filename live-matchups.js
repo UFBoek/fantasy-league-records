@@ -9,7 +9,7 @@
   let lastPoll = 0, retryAfter = 0, busy = false;
 
   function activeBoard() {
-    const route = (location.hash.replace(/^#\\/?/, '').split('/')[0] || 'home');
+    const route = (location.hash.startsWith('#/') ? location.hash.slice(2) : 'home').split('/')[0] || 'home';
     return !document.hidden && route === 'home' ? document.getElementById('figLiveBoard') : null;
   }
   function score(row) {
@@ -57,7 +57,7 @@
     const now = Date.now();
     if (now < retryAfter || (!force && now - lastPoll < POLL_MS - 1000)) return;
     const leagueId = board.dataset.leagueId || '';
-    if (!/^\\d{10,22}$/.test(leagueId)) return;
+    if (leagueId.length < 10 || leagueId.length > 22 || [...leagueId].some(c => c < '0' || c > '9')) return;
     busy = true;
     lastPoll = now;
     const status = document.getElementById('figLiveStatus');
