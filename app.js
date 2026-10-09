@@ -1084,7 +1084,7 @@ async function streaks(){
  const career=DATA.websiteStreaks.filter(x=>String(x.streak_mode)==='Career Games'&&num(x.length)>=2&&!['100+ Points','180+ Points','190+ Points'].includes(String(x.streak_type)));
  const active=career.filter(x=>x.active===true||String(x.active).toLowerCase()==='true');
  const types=[...new Set(career.map(x=>x.streak_type))].sort();
- const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:esc(x.streak_type),len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_href:`#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
+ const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:`<a class="fig-active-streak-link" href="#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}">${esc(x.streak_type)} <small>VIEW GAMES →</small></a>`,len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_href:`#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
  const orderedTypes=[...types].sort((a,b)=>{
    const priority=t=>t==='Winning'?0:t==='Losing'?1:2;
    return priority(a)-priority(b)||a.localeCompare(b);
@@ -1682,7 +1682,15 @@ async function breakdown(kind,...parts){
  if(kind==='streak'){
   await load(['games','standingsCareer']);const type=decodeURIComponent(parts[0]||''),mode=decodeURIComponent(parts[1]||'Career Games'),fid=+parts[2],ss=+parts[3],sw=+parts[4],es=+parts[5],ew=+parts[6];const owner=displayOwnerName('',fid);
   const all=gamesForFranchise(fid,mode==='Regular Season'?'Regular Season':mode==='Playoffs'?'Playoffs':'All-Time Combined').filter(g=>{const k=num(g.season)*100+num(g.week);return k>=ss*100+sw&&k<=es*100+ew}).sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week));
-  app.innerHTML=hero('STREAK BREAKDOWN',`${esc(owner)} • ${esc(type)}`,`${esc(mode)} • ${ss} W${sw} through ${es} W${ew} • ${all.length} qualifying games.`)+section('EVERY GAME IN THE STREAK',sortableTable([{label:'#',key:'n'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'OPPONENT',key:'opp'},{label:'PF',key:'pf'},{label:'PA',key:'pa'},{label:'RESULT',key:'result'},{label:'TYPE',key:'type'},{label:'',key:'open'}],gameRowsTable(all)));return;
+  const gameCards=all.map((g,i)=>`<a class="fig-streak-game" href="#/game/${g.season}/${g.week}/${g.matchup_id}">
+    <span class="fig-streak-game-index">#${i+1}</span>
+    <div class="fig-streak-game-when"><b>${g.season} · WEEK ${g.week}</b><small>${g.type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</small></div>
+    <div class="fig-streak-game-opponent">${ownerAvatar(g.oppId,'fig-streak-game-avatar')}<span>VS <b>${esc(displayOwnerName(g.opp,g.oppId))}</b></span></div>
+    <div class="fig-streak-game-result"><b>${money(g.pf)} – ${money(g.pa)}</b><span class="fig-season-outcome fig-season-${g.result.toLowerCase()}">${g.result}</span></div>
+    <span class="fig-streak-game-open">VIEW LINEUPS →</span>
+   </a>`).join('');
+  app.innerHTML=hero('STREAK BREAKDOWN',`${esc(owner)} • ${esc(type)}`,`${esc(mode)} • ${ss} W${sw} through ${es} W${ew} • ${all.length} qualifying completed games.`)+
+   section('EVERY GAME IN THE STREAK',`<div class="fig-streak-games">${gameCards||'<div class="empty">No qualifying games found.</div>'}</div>`,'In playing order · select any matchup to see its starting lineups and bench.');return;
  }
  if(kind==='teamrecord'){
   await load(['records','playerLog','games','standingsCareer']);const category=decodeURIComponent(parts[0]||''),view=decodeURIComponent(parts[1]||'All-Time Combined'),fid=+parts[2],owner=displayOwnerName('',fid);
