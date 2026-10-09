@@ -42,7 +42,7 @@ jobs:
         run: python -m pip install -r scripts/requirements-automation.txt
 
       - name: Check the data pipeline before contacting providers
-        run: python -m unittest discover -s tests
+        run: bash scripts/check_refresh_tests.sh
 
       - name: Rebuild Sleeper history, standings, rosters and records
         shell: bash
@@ -74,7 +74,7 @@ jobs:
         run: python scripts/validate_refresh.py
 
       - name: Run regression tests against the refreshed data
-        run: python -m unittest discover -s tests
+        run: bash scripts/check_refresh_tests.sh
 
       - name: Commit safe JSON changes
         id: commit
