@@ -1,6 +1,6 @@
 # Daily Sleeper + RosterAudit automation (GitHub Pages)
 
-**Current setup:** `.github/workflows/update-league-data.yml` refreshes the published league data each day at 12:17 UTC (usually 8:17 a.m. ET in daylight-saving time). It can also be run manually through GitHub → Actions → **Update league data** → **Run workflow**.
+**Current setup:** `.github/workflows/update-league-data.yml` refreshes published league data daily at 12:17 UTC and also schedules hourly builds on Sundays, Mondays and Thursdays (the usual NFL game days). GitHub Actions schedules are best-effort and may start late, and each build/deploy needs additional time. The workflow can also be run manually through GitHub → Actions → **Update league data** → **Run workflow**. A visible website tab checks `data/refresh_manifest.json` every five minutes, and reloads its cached JSON views only when a newer successful snapshot is published. Hidden tabs check when brought back into view. **This is not 30-second live-score polling; it is published-data refresh.**
 
 The workflow uses public APIs. No Sleeper username/password, Google Sheet, Colab runtime or RosterAudit CSV export is needed for its ordinary runs.
 
@@ -9,6 +9,8 @@ The workflow uses public APIs. No Sleeper username/password, Google Sheet, Colab
 3. Fetch current dynasty player and future-pick market values through RosterAudit's documented public endpoints via `scripts/build_rosteraudit_values.py`. The scoring key currently selected is `sf_ppr` for this ten-team Superflex PPR league; this is an approximation of its custom scoring.
 4. Run `scripts/validate_refresh.py` to reject missing or drastically truncated Sleeper history and **restore the last good RosterAudit snapshot** when a provider response is incomplete or unavailable.
 5. Only commit changed `data/*.json` files. The updater **directly publishes the latest files through GitHub Pages** after a bot commit, because bot pushes do not trigger the ordinary deployment workflow.
+
+**Historical integrity:** The Sleeper builder excludes the current in-progress league week from records and streaks; only prior completed weeks enter the official archive. The lightweight browser checker never inserts live points into official records.
 
 **Monitoring:** Open the GitHub repository → Actions → Update league data to inspect the daily run. A failed Sleeper build or invalid data stops publication; a failed RosterAudit update keeps the previous values with a warning. The current RosterAudit values may differ from the original October 8 CSV snapshot because the public API uses its live Superflex preset and optional league-size adjustment.
 
