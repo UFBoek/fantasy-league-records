@@ -1054,9 +1054,11 @@ function figInjuryNotes(){
  return '<div class="fig-injury-notice"><strong>PARTIAL EVIDENCE — NOT COMPLETE INJURY-LUCK RANKINGS</strong>'+
  '<p>These totals include only verified injuries during completed fantasy weeks. A dash means no documented case yet, not proof of zero injuries. A season-ending injury appears <b>only as Major</b>, never a second Started or Rotation count. Other Started and Rotation labels can overlap.</p></div>';
 }
-function figInjuryTeamLeads(id,year,discovery){
+function figInjuryTeamLeads(id,year,discovery,confirmed){
+ const checked=new Set((confirmed||[]).filter(e=>+e.franchise_id===id&&+e.season===+year)
+  .map(e=>String(e.week)+'|'+String(e.player_id)));
  const rows=(discovery.candidates||[]).filter(c=>+c.franchise_id===id&&String(c.season)===String(year));
- const approved=rows.filter(x=>!x.already_verified);
+ const approved=rows.filter(x=>!x.already_verified&&!checked.has(String(x.week)+'|'+String(x.player_id)));
  const top=approved.sort((a,b)=>(b.priority==='higher')-(a.priority==='higher')||+a.week-+b.week||String(a.player_name).localeCompare(String(b.player_name)));
  return '<details class="fig-team-injury-review"><summary>UNCONFIRMED SNAP-COUNT LEADS ('+top.length+')</summary>'+
   '<p>The league has approved these for further review. Low snap participation alone does not show that an injury prevented a normal game finish, so these cannot yet enter verified totals.</p>'+
@@ -1087,12 +1089,14 @@ async function injuries(yearFilter){
    '<a href="#/injuries"'+(!year?' class="active"':'')+'>ALL YEARS</a>'+
    FIG_INJURY_YEARS.map(y=>'<a href="#/injuries/season/'+y+'"'+(year===y?' class="active"':'')+'>'+y+'</a>').join('')+'</div>';
  const scan=DATA.injuryDiscovery||{};
+ const verifiedSet=new Set(all.map(e=>String(e.season)+'|'+String(e.week)+'|'+String(e.player_id)+'|'+String(e.franchise_id)));
+ const pendingCount=(scan.candidates||[]).filter(c=>!c.already_verified&&!verifiedSet.has(String(c.season)+'|'+String(c.week)+'|'+String(c.player_id)+'|'+String(c.franchise_id))).length;
  app.innerHTML=hero('FRANCHISE RECORD BOOK','INJURY HISTORY','Track how game-ending injuries affected each fantasy team, season by season.')+
  '<div class="fig-team-injury-shell">'+figInjuryNotes()+
  '<div class="fig-team-injury-overview"><h2>LEAGUE SNAPSHOT <small>'+esc(year||'2023–2026')+' · VERIFIED CASES ONLY</small></h2>'+figInjuryTotals(subset,false)+
  '<p class="fig-team-injury-helper">Select a franchise to see its injuries by season, who was started, and the game evidence.</p>'+
  seasonTabs+'</div><div class="fig-injury-team-cards">'+teamCards+'</div>'+
- '<details class="fig-team-injury-global-review"><summary>HISTORICAL RESEARCH QUEUE · '+esc(scan.candidate_count||0)+' UNVERIFIED LEADS</summary>'+
+ '<details class="fig-team-injury-global-review"><summary>HISTORICAL RESEARCH QUEUE · '+esc(pendingCount)+' UNVERIFIED LEADS</summary>'+
  '<p>The 2023–2026 automated snap-count scan is reviewed <b>team by team</b>. Select any franchise and season above to see its leads. These findings do not affect verified totals until actual game-ending impact is confirmed.</p></details></div>';
 }
 async function injuryTeamPage(franchiseId,selectedYear){
@@ -1112,7 +1116,7 @@ async function injuryTeamPage(franchiseId,selectedYear){
     figInjuryTotals(cases,true)+
     '<div class="fig-team-injury-eventlist">'+(cases.map(figInjuryEvidenceRow).join('')||
       '<p class="fig-team-injury-unknown">No injury events verified here yet. This is not a zero-injury finding.</p>')+'</div>'+
-    figInjuryTeamLeads(id,y,discovery)+'</section>';
+    figInjuryTeamLeads(id,y,discovery,all)+'</section>';
  }).join('');
  app.innerHTML='<div class="fig-team-injury-shell">'+
  '<div class="fig-team-injury-breadcrumb"><a href="#/injuries">← ALL INJURY TEAMS</a><a href="#/team/'+id+'">TEAM PROFILE ↗</a></div>'+
