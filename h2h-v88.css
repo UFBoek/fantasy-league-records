@@ -1,0 +1,155 @@
+/* v88 — Rivalry archive, pairwise all-play, mobile-first high-contrast surfaces. */
+.page-wrap .fig-h2h-page,.page-wrap .fig-h2h-detail {color:#282b29!important;}
+.page-wrap .fig-h2h-intro {
+ background:#e6f1eb;color:#283a32!important;border:1px solid #c9dfd4;
+ border-left:5px solid #159778;border-radius:18px;padding:17px 18px;margin:0 0 24px;
+}
+.page-wrap .fig-h2h-intro strong {font:900 12px/1.4 Inter,system-ui,sans-serif!important;letter-spacing:.08em;color:#167459!important;}
+.page-wrap .fig-h2h-intro p {font:600 13px/1.55 Inter,system-ui,sans-serif!important;color:#394b41!important;margin:8px 0 0;}
+.page-wrap .fig-h2h-intro b {color:#242f29!important;}
+.page-wrap .fig-h2h-toolbar {
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+ background:#e9e9e9;border:1px solid #d6d6d6;padding:12px 15px;border-radius:16px;
+ margin:22px 0 14px;
+}
+.page-wrap .fig-h2h-toolbar label {font:900 11px Inter,system-ui,sans-serif!important;color:#49524d!important;letter-spacing:.05em;}
+.page-wrap .fig-h2h-toolbar select {
+ flex:1;min-width:175px;max-width:340px;min-height:43px;width:100%;
+ background:#fff!important;color:#272c29!important;
+ border:2px solid #c8ccc9!important;border-radius:11px!important;
+ padding:9px 12px;font:850 12px Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-h2h-count {font:750 12px/1.4 Inter,system-ui,sans-serif;color:#59645c!important;margin:9px 3px 15px!important;}
+.page-wrap .fig-h2h-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;min-width:0;}
+.page-wrap .fig-h2h-tile {
+ display:flex!important;flex-direction:column;gap:14px!important;min-width:0!important;
+ padding:17px!important;border-radius:23px!important;border:1px solid #d7dad6!important;
+ background:#fff!important;color:#272b28!important;text-decoration:none!important;
+ box-shadow:none!important;opacity:1!important;
+}
+.page-wrap .fig-h2h-tile:hover,.page-wrap .fig-h2h-tile:focus-visible {border-color:#199276!important;outline-color:#199276!important;}
+.page-wrap .fig-h2h-matchup {display:grid;grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr);gap:5px;align-items:center;}
+.page-wrap .fig-h2h-person {
+ display:flex;gap:8px;align-items:center;min-width:0;max-width:100%;
+ color:#222825!important;font:900 13px/1.3 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-h2h-person>span {min-width:0;overflow-wrap:anywhere;color:#222825!important;}
+.page-wrap .fig-h2h-avatar {display:block!important;width:44px!important;height:44px!important;flex:0 0 44px!important;
+ object-fit:cover!important;border-radius:13px!important;border:2px solid #eaebea!important;background:#eaeaea!important;}
+.page-wrap .fig-h2h-vs {color:#747c76!important;font:900 10px Inter,system-ui,sans-serif;text-align:center;}
+.page-wrap .fig-h2h-tile-stats,.page-wrap .fig-h2h-summary,.page-wrap .fig-h2h-season-stats {
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;
+}
+.page-wrap .fig-h2h-tile-stats>div {
+ display:flex;flex-direction:column;gap:6px;min-width:0;
+ background:#f0f1ef!important;border:1px solid #e2e4e1!important;border-radius:15px;padding:12px 10px!important;
+}
+.page-wrap .fig-h2h-tile-stats span,.page-wrap .fig-h2h-summary span,.page-wrap .fig-h2h-season-stats span {
+ color:#5b6860!important;font:900 10px/1.3 Inter,system-ui,sans-serif!important;letter-spacing:.025em;
+}
+.page-wrap .fig-h2h-tile-stats strong,.page-wrap .fig-h2h-summary strong,.page-wrap .fig-h2h-season-stats strong {
+ color:#232926!important;font:900 clamp(18px,2.6vw,28px)/1.16 "Archivo Black",Inter,system-ui,sans-serif!important;
+ overflow-wrap:anywhere;letter-spacing:-.035em;
+}
+.page-wrap .fig-h2h-tile-stats small,.page-wrap .fig-h2h-summary small,.page-wrap .fig-h2h-season-stats small {
+ color:#657168!important;font:650 11px/1.3 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-h2h-view {border-top:1px solid #e2e4e0;padding-top:11px;text-align:right;color:#007c61!important;font:900 10px/1.3 Inter,system-ui,sans-serif!important;letter-spacing:.03em;}
+.page-wrap .fig-h2h-view span {font-size:15px;vertical-align:middle;}
+
+/* Head-to-head detail and all-play season breakdown. */
+.page-wrap .fig-h2h-back {display:inline-flex;align-items:center;margin:0 0 14px;
+ color:#14765e!important;font:900 11px/1.3 Inter,system-ui,sans-serif!important;text-decoration:none!important;}
+.page-wrap .fig-h2h-battle {
+ display:grid!important;grid-template-columns:minmax(0,1fr) 55px minmax(0,1fr)!important;
+ align-items:center;gap:8px;background:#e9e9e9;border:1px solid #d5d8d5;
+ border-radius:22px 22px 0 0;padding:23px 16px;
+}
+.page-wrap .fig-h2h-battle>div {min-width:0;display:flex;justify-content:center;}
+.page-wrap .fig-h2h-battle .fig-h2h-person {display:flex;flex-direction:column;text-align:center;gap:9px;font-size:19px!important;}
+.page-wrap .fig-h2h-battle .fig-h2h-avatar {width:102px!important;height:102px!important;flex-basis:102px!important;border-radius:22px!important;border:4px solid #fff!important;}
+.page-wrap .fig-h2h-versus {color:#6b716b!important;text-align:center;font:900 21px "Archivo Black",Inter,sans-serif!important;}
+.page-wrap .fig-h2h-summary {
+ background:#f5f5f4!important;padding:14px;border:1px solid #d8dad7;border-top:0;
+ border-radius:0 0 22px 22px;gap:12px!important;
+}
+.page-wrap .fig-h2h-summary>div {
+ min-width:0;padding:16px;background:#fff;border:1px solid #dddeda;border-radius:15px;
+ display:flex;flex-direction:column;gap:9px;
+}
+.page-wrap .fig-h2h-summary strong {font-size:clamp(24px,4vw,39px)!important;}
+.page-wrap .fig-h2h-seasons {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.page-wrap .fig-h2h-season {min-width:0;background:#fff!important;border:1px solid #d4d8d4!important;border-radius:19px!important;overflow:hidden;}
+.page-wrap .fig-h2h-season-title {
+ display:flex;justify-content:space-between;align-items:center;gap:9px;
+ background:#292b29!important;color:#fff!important;padding:15px;
+}
+.page-wrap .fig-h2h-season-title strong {font:900 23px "Archivo Black",Inter,sans-serif!important;color:#fff!important;}
+.page-wrap .fig-h2h-season-title span {color:#d7e3dc!important;font:800 10px/1.3 Inter,sans-serif!important;text-align:right;}
+.page-wrap .fig-h2h-season-stats {padding:11px!important;}
+.page-wrap .fig-h2h-season-stats>div {min-width:0;display:flex;flex-direction:column;gap:8px;
+ background:#f3f4f2;border:1px solid #e6e7e4;border-radius:13px;padding:13px 10px;}
+.page-wrap .fig-h2h-weeks {border-top:1px solid #dfdfdc!important;color:#27312b!important;}
+.page-wrap .fig-h2h-weeks summary {
+ display:flex;justify-content:space-between;gap:7px;align-items:center;cursor:pointer;list-style:none;
+ padding:13px 15px;color:#10765a!important;background:#fff!important;
+ font:900 10px/1.3 Inter,sans-serif!important;
+}
+.page-wrap .fig-h2h-weeks summary::-webkit-details-marker {display:none;}
+.page-wrap .fig-h2h-weeks summary span {font-size:17px!important;}
+.page-wrap .fig-h2h-weeks[open] summary span {transform:rotate(180deg);}
+.page-wrap .fig-h2h-week-head,.page-wrap .fig-h2h-week {
+ display:grid;grid-template-columns:42px minmax(0,1fr) minmax(0,1fr) 35px;
+ gap:5px;align-items:center;
+}
+.page-wrap .fig-h2h-week-head {background:#edf0ed;color:#53655a!important;padding:10px 12px!important;font:850 9px/1.25 Inter,sans-serif!important;}
+.page-wrap .fig-h2h-week {padding:10px 12px!important;border-bottom:1px solid #e7e9e6!important;color:#29302b!important;font:750 11px/1.3 Inter,sans-serif!important;font-variant-numeric:tabular-nums;}
+.page-wrap .fig-h2h-week:nth-child(even) {background:#fafaf9!important;}
+.page-wrap .fig-h2h-week span {min-width:0;overflow-wrap:anywhere;}
+.page-wrap .fig-h2h-result {display:inline-grid;place-items:center;
+ width:27px;height:26px;border-radius:8px;font:900 11px Inter,sans-serif!important;}
+.page-wrap .fig-h2h-result-w {background:#d8f0e4!important;color:#176b49!important;}
+.page-wrap .fig-h2h-result-l {background:#fbe4e1!important;color:#a13c34!important;}
+.page-wrap .fig-h2h-result-t {background:#e7e8e5!important;color:#58625b!important;}
+.page-wrap .fig-h2h-game-legend {margin-bottom:12px;color:#616a63;font:750 11px Inter,sans-serif;}
+.page-wrap .fig-h2h-game-legend b {color:#272e29;}
+.page-wrap .fig-h2h-games {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.page-wrap .fig-h2h-actual-game {
+ display:flex;flex-direction:column;min-width:0;gap:10px;padding:15px;border-radius:17px;
+ border:1px solid #dce0dc!important;background:#fff!important;color:#252c27!important;
+ text-decoration:none!important;
+}
+.page-wrap .fig-h2h-game-when {display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.page-wrap .fig-h2h-game-when strong {color:#29352d!important;font:900 12px Inter,sans-serif!important;}
+.page-wrap .fig-h2h-game-when span {color:#6a746d!important;font:750 10px Inter,sans-serif!important;}
+.page-wrap .fig-h2h-game-score {display:flex;align-items:center;gap:7px;font:900 18px "Archivo Black",Inter,sans-serif!important;color:#303b33!important;font-variant-numeric:tabular-nums;}
+.page-wrap .fig-h2h-game-score small {color:#8e9a91!important;}
+.page-wrap .fig-h2h-game-score .fig-h2h-game-winner {color:#168362!important;}
+.page-wrap .fig-h2h-game-score .fig-h2h-result {margin-left:auto;flex:0 0 auto;}
+.page-wrap .fig-h2h-game-view {border-top:1px solid #e4e7e3;padding-top:9px;color:#147960!important;font:900 10px Inter,sans-serif!important;}
+@media(max-width:850px){
+ .page-wrap .fig-h2h-grid,.page-wrap .fig-h2h-seasons,.page-wrap .fig-h2h-games {grid-template-columns:minmax(0,1fr)!important;}
+}
+@media(max-width:699px){
+ .page-wrap .fig-h2h-intro {padding:14px!important;}
+ .page-wrap .fig-h2h-toolbar {align-items:stretch;flex-direction:column!important;gap:8px;}
+ .page-wrap .fig-h2h-toolbar select {max-width:none!important;}
+ .page-wrap .fig-h2h-tile {padding:13px!important;border-radius:18px!important;}
+ .page-wrap .fig-h2h-matchup {gap:5px!important;}
+ .page-wrap .fig-h2h-person {font-size:12px!important;gap:6px!important;}
+ .page-wrap .fig-h2h-avatar {width:36px!important;height:36px!important;flex-basis:36px!important;border-radius:11px!important;}
+ .page-wrap .fig-h2h-tile-stats>div {padding:10px!important;}
+ .page-wrap .fig-h2h-tile-stats strong {font-size:24px!important;}
+ .page-wrap .fig-h2h-tile-stats span {font-size:9px!important;}
+ .page-wrap .fig-h2h-battle {grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr)!important;padding:17px 10px;}
+ .page-wrap .fig-h2h-battle .fig-h2h-person {font-size:15px!important;}
+ .page-wrap .fig-h2h-battle .fig-h2h-avatar {width:85px!important;height:85px!important;flex-basis:85px!important;}
+ .page-wrap .fig-h2h-versus {font-size:16px!important;}
+ .page-wrap .fig-h2h-summary {padding:8px!important;gap:8px!important;}
+ .page-wrap .fig-h2h-summary>div {padding:12px 9px!important;gap:7px;}
+ .page-wrap .fig-h2h-summary strong {font-size:26px!important;}
+ .page-wrap .fig-h2h-summary span {font-size:9px!important;}
+ .page-wrap .fig-h2h-summary small {font-size:10px!important;}
+ .page-wrap .fig-h2h-season-title {padding:12px!important;}
+ .page-wrap .fig-h2h-game-score {font-size:16px!important;}
+}
