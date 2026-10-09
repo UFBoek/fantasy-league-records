@@ -239,3 +239,34 @@
  .page-wrap .fig-lineup-bench-slot {flex-basis:16px;}
  .page-wrap .fig-roster-summary {grid-template-columns:repeat(2,minmax(0,1fr));}
 }
+
+
+/* All completed games contributing to an active streak, with direct lineup links. */
+.page-wrap .fig-active-streak-link {display:inline-flex;flex-wrap:wrap;align-items:center;gap:7px;color:#243229!important;font-weight:900;text-decoration:none!important;}
+.page-wrap .fig-active-streak-link small {color:#137b5b!important;font:900 10px Inter,sans-serif!important;}
+.page-wrap .fig-streak-games {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;min-width:0;}
+.page-wrap .fig-streak-game {
+ display:grid;grid-template-columns:34px minmax(0,1fr) minmax(0,1fr);
+ column-gap:10px;row-gap:10px;align-items:center;min-width:0;
+ border:1px solid #d9deda;background:#fff!important;color:#2a322c!important;
+ border-radius:17px;padding:13px;text-decoration:none!important;
+}
+.page-wrap .fig-streak-game-index {grid-row:1/3;display:grid;place-items:center;align-self:stretch;
+ border-radius:9px;background:#e4e9e4;color:#36453a;font:900 11px Inter,sans-serif;}
+.page-wrap .fig-streak-game-when {display:flex;flex-direction:column;gap:5px;min-width:0;}
+.page-wrap .fig-streak-game-when b {color:#26332a;font:900 12px Inter,sans-serif;}
+.page-wrap .fig-streak-game-when small {color:#5e6f62;font:780 9px Inter,sans-serif;}
+.page-wrap .fig-streak-game-opponent {display:flex;align-items:center;gap:7px;min-width:0;}
+.page-wrap .fig-streak-game-avatar {width:35px;height:35px;border-radius:9px;border:1px solid #dde3de;object-fit:cover;}
+.page-wrap .fig-streak-game-opponent span {color:#596b60;font:800 10px Inter,sans-serif;overflow-wrap:anywhere;}
+.page-wrap .fig-streak-game-opponent b {color:#22342a!important;}
+.page-wrap .fig-streak-game-result {display:flex;align-items:center;gap:7px;justify-content:flex-end;min-width:0;}
+.page-wrap .fig-streak-game-result b {color:#21332a;font:900 14px Inter,sans-serif;white-space:nowrap;}
+.page-wrap .fig-streak-game-open {grid-column:2/4;border-top:1px solid #e4eae4;padding-top:10px;color:#0f805f!important;font:900 10px Inter,sans-serif!important;text-align:right;}
+@media(max-width:880px){.page-wrap .fig-streak-games {grid-template-columns:minmax(0,1fr);}}
+@media(max-width:699px){
+ .page-wrap .fig-streak-game {grid-template-columns:27px minmax(0,1fr) minmax(0,1fr);gap:8px;padding:10px;}
+ .page-wrap .fig-streak-game-avatar {width:30px;height:30px;}
+ .page-wrap .fig-streak-game-result b {font-size:11px;}
+ .page-wrap .fig-streak-game-when b {font-size:11px;}
+}
