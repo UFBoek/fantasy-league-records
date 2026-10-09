@@ -134,9 +134,9 @@ function sortableTable(headers,rows,opts={}){
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
   if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
   const html=`<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
-  return freeze ? frozenTable(heads,rows,id) : html;
+  return freeze ? frozenTable(heads,rows,id,opts) : html;
 }
-function frozenTable(heads, rows, id) {
+function frozenTable(heads, rows, id, opts={}) {
   const firstHeads = heads.slice(0, 2);
   const statHeads = heads.slice(2);
   const route = (location.hash.startsWith('#/') ? location.hash.slice(2) : 'home').split('/')[0];
@@ -152,13 +152,13 @@ function frozenTable(heads, rows, id) {
     const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
     return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td data-key="${esc(h.key)}">${r[h.key] ?? ''}</td>`).join('')}</tr>`;
   }).join('');
-  setTimeout(() => bindFrozenTable(id, heads), 0);
+  setTimeout(() => bindFrozenTable(id, heads, opts), 0);
   return `<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>` +
     `<div class="fig-frozen-grid" data-fig-version="77-frozen" data-page="${esc(route)}">` +
     `<div class="fig-frozen-identity"><table id="${id}_fixed" class="fig-frozen-identity-table" aria-label="Fixed rank and name columns"><thead><tr>${firstHeads.map((h, i) => buildHead(h, i)).join('')}</tr></thead><tbody>${renderRows(0, firstHeads)}</tbody></table></div>` +
     `<div class="table-wrap fig-frozen-stats" data-fig-version="75-frozen" role="region" tabindex="0" aria-label="Scroll sideways for additional statistics"><table id="${id}" class="sortable fig-frozen-stats-table" aria-label="Scrollable statistics"><thead><tr>${statHeads.map((h, i) => buildHead(h, i + 2)).join('')}</tr></thead><tbody>${renderRows(2, statHeads)}</tbody></table></div></div>`;
 }
-function bindFrozenTable(id, heads) {
+function bindFrozenTable(id, heads, opts={}) {
   const right = document.getElementById(id), left = document.getElementById(id + '_fixed');
   if (!right || !left) return;
   const rightBody = right.tBodies[0], leftBody = left.tBodies[0];
@@ -177,6 +177,7 @@ function bindFrozenTable(id, heads) {
       const col = Number(th.dataset.col);
       descending = activeColumn !== col || !descending;
       activeColumn = col;
+      if(typeof opts.onSort === 'function') { opts.onSort(heads[col]?.key, descending); return; }
       const field = heads[col]?.key || '';
       const textual = /^(team|player|owner|holder|type|pos|status)$/i.test(field);
       const ordered = [...rightBody.rows].sort((a, b) => {
@@ -209,6 +210,49 @@ function bindFrozenTable(id, heads) {
   };
   leftBody.addEventListener('click', openRow);
   rightBody.addEventListener('click', openRow);
+}
+
+/* Render at most 100 historical performances at first, with opt-in
+   increments of 100. Changing points sort applies to ALL archived performances,
+   not only the first visible page. Frozen identity/stat panes stay synchronized. */
+function pagedWeekHistory(headers, sortedRows, makeRow, opts={}) {
+ const pageSize=100, id=`fig_history_${++tableCounter}`;
+ const firstDescending=opts.initialDescending!==false;
+ let descending=firstDescending, shown=Math.min(pageSize,sortedRows.length);
+ let ordered=sortedRows;
+ const label=opts.label||'performances';
+ const tableMarkup=()=>{
+  const rows=ordered.slice(0,shown).map((record,i)=>makeRow(record,i));
+  const t=sortableTable(headers,rows,{onSort:(key,d)=>{
+    if(key!=='points'&&key!=='score')return;
+    descending=d;
+    ordered=descending===firstDescending?sortedRows:[...sortedRows].reverse();
+    shown=Math.min(pageSize,ordered.length);
+    update();
+  }});
+  const remaining=ordered.length-shown;
+  return t+`<div class="fig-history-paging">
+   <p class="fig-history-count" role="status" aria-live="polite">Showing ${shown.toLocaleString()} of ${ordered.length.toLocaleString()} ${esc(label)}</p>
+   ${remaining>0?`<button type="button" class="fig-history-more" data-fig-more>SHOW 100 MORE <span aria-hidden="true">↓</span></button><span class="fig-history-remaining">${remaining.toLocaleString()} remaining</span>`:'<span class="fig-history-complete">All entries shown</span>'}
+  </div>`;
+ };
+ const update=()=>{
+  const root=document.getElementById(id);
+  if(!root)return;
+  root.innerHTML=tableMarkup();
+  root.querySelector('[data-fig-more]')?.addEventListener('click',()=>{
+    shown=Math.min(shown+pageSize,ordered.length);
+    update();
+  });
+ };
+ setTimeout(()=>{
+  const root=document.getElementById(id);
+  root?.querySelector('[data-fig-more]')?.addEventListener('click',()=>{
+    shown=Math.min(shown+pageSize,ordered.length);
+    update();
+  });
+ },0);
+ return `<div class="fig-history-list" id="${id}">${tableMarkup()}</div>`;
 }
 
 function bindSortable(id,heads){const t=document.getElementById(id);if(!t)return;
