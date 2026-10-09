@@ -357,3 +357,34 @@ body {font-family:Inter,system-ui,sans-serif;line-height:1.45;}
 .page-wrap .fig-sticky-table tbody td:nth-child(3),
 .page-wrap .fig-sticky-table tbody td:nth-child(4),
 .page-wrap .fig-sticky-table tbody td:nth-child(5) {font-variant-numeric:tabular-nums;}
+
+/* Team profile record dashboard: convert the old navy inset panels as a unit
+   so dark text tokens never land on a dark background after the theme change. */
+@media(max-width:699px) {
+ .page-wrap .team-record-dashboard,.page-wrap .team-single-season-section {
+   background:#ececec!important;color:#242526!important;border:1px solid #dcdcdc!important;
+   border-radius:20px!important;
+ }
+ .page-wrap .team-record-dashboard .records-dashboard-head,
+ .page-wrap .team-record-dashboard .records-dashboard-head h2,
+ .page-wrap .team-record-dashboard h3 {color:#262829!important;border-color:#d0d0d0!important;}
+ .page-wrap .team-record-dashboard .records-dashboard-head span {color:#187d65!important;}
+ .page-wrap .team-record-dashboard .mini-record-list,
+ .page-wrap .team-record-dashboard .season-accomplishments,
+ .page-wrap .team-single-season-section .single-season-team-grid {
+   background:#e5e5e5!important;border-color:#dedede!important;
+ }
+ .page-wrap .team-record-dashboard .mini-record,
+ .page-wrap .team-record-dashboard .season-accomplishment {
+   background:#fff!important;color:#272829!important;
+   border-bottom:2px solid #dfdfdf!important;border-left-color:#42b997!important;
+ }
+ .page-wrap .team-record-dashboard .mini-record b {color:#272829!important;}
+ .page-wrap .team-record-dashboard .mini-record span {color:#167a65!important;}
+ .page-wrap .team-single-season-section .single-season-team-record {background:#fff!important;color:#292929!important;}
+ .page-wrap .team-single-season-section .single-season-team-record b,
+ .page-wrap .team-single-season-section .single-season-team-record strong {color:#292929!important;}
+ .page-wrap .team-single-season-section .single-season-team-record span {color:#606869!important;}
+ .page-wrap .team-single-season-section .snapshot-empty,
+ .page-wrap .team-record-dashboard .snapshot-empty {background:#fff!important;color:#61676a!important;}
+}
