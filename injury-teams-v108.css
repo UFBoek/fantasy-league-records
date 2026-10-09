@@ -1,0 +1,78 @@
+/* v108 — team-first injury book; robust against inherited mobile dark overrides */
+.page-wrap .fig-team-injury-shell{max-width:1180px;margin:0 auto 50px;display:grid;gap:15px;color:#243e30}
+.page-wrap .fig-team-injury-shell .fig-injury-notice{margin:0}
+.page-wrap .fig-team-injury-overview,.page-wrap .fig-team-injury-season,.page-wrap .fig-injury-incident{
+ border:1px solid #d5e2d9;background:#fff;border-radius:14px;padding:16px;min-width:0;color:#253e30}
+.page-wrap .fig-team-injury-overview h2{font:900 18px/1.3 Inter,system-ui,sans-serif;color:#1b3e29;display:flex;flex-wrap:wrap;gap:7px 12px;align-items:baseline;margin:0 0 13px}
+.page-wrap .fig-team-injury-overview h2 small{font:800 11px/1.4 Inter,system-ui,sans-serif;color:#536b59}
+.page-wrap .fig-team-injury-helper{color:#4e6b58;font:650 12px/1.5 Inter,system-ui,sans-serif;margin:14px 0 8px}
+.page-wrap .fig-injury-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.page-wrap .fig-injury-kpis>div{border:1px solid #d3e2d7;background:#f1f8f3;border-radius:10px;padding:13px 9px;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:center;text-align:center}
+.page-wrap .fig-injury-kpis strong{font:900 28px/1 Inter,system-ui,sans-serif;color:#194d31;font-variant-numeric:tabular-nums}
+.page-wrap .fig-injury-kpis small{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#4c6754;overflow-wrap:anywhere}
+.page-wrap .fig-injury-kpis.compact{gap:5px}
+.page-wrap .fig-injury-kpis.compact>div{padding:10px 5px;border-radius:8px}
+.page-wrap .fig-injury-kpis.compact strong{font-size:21px}
+.page-wrap .fig-injury-kpis.compact small{font-size:9px}
+.page-wrap .fig-injury-season-filter{display:flex;gap:5px;flex-wrap:wrap;margin-top:14px}
+.page-wrap .fig-injury-season-filter a{padding:8px 11px;border:1px solid #cadbd0;color:#325640;background:#f3f8f4;border-radius:7px;font:850 11px/1.2 Inter,system-ui,sans-serif;text-decoration:none}
+.page-wrap .fig-injury-season-filter a.active{background:#174d34;color:#fff;border-color:#174d34}
+.page-wrap .fig-injury-team-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.page-wrap .fig-injury-team-card{border:1px solid #d3e2d8;border-radius:13px;background:#fff;padding:13px;display:grid;gap:12px;min-width:0}
+.page-wrap .fig-injury-team-card-head{display:flex;align-items:center;gap:11px;color:#1b4330;text-decoration:none;border-bottom:1px solid #e3ebe5;padding-bottom:10px}
+.page-wrap .fig-injury-team-avatar,.page-wrap .fig-team-injury-header-avatar{object-fit:cover;flex:0 0 51px;width:51px;height:51px;border:2px solid #d4e5da;border-radius:50%;background:#e5f1e9}
+.page-wrap .fig-injury-team-title{display:flex;flex-direction:column;gap:5px;min-width:0}
+.page-wrap .fig-injury-team-title strong{font:900 18px/1.25 Inter,system-ui,sans-serif;color:#204832}
+.page-wrap .fig-injury-team-title small{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#397450}
+.page-wrap .fig-injury-season-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.page-wrap .fig-injury-season-link{display:flex;justify-content:space-between;gap:4px;padding:8px 7px;border-radius:7px;border:1px solid #dee7df;background:#f7faf7;text-decoration:none;color:#496751;font:800 11px/1.1 Inter,system-ui,sans-serif}
+.page-wrap .fig-injury-season-link b{color:#214c33}
+.page-wrap .fig-team-injury-global-review,.page-wrap .fig-team-injury-review{border:1px solid #d9e5dc;background:#f7faf7;border-radius:10px;padding:12px 13px;color:#30503c}
+.page-wrap .fig-team-injury-global-review summary,.page-wrap .fig-team-injury-review summary{cursor:pointer;font:850 12px/1.4 Inter,system-ui,sans-serif;color:#266042}
+.page-wrap .fig-team-injury-global-review p,.page-wrap .fig-team-injury-review p{margin:10px 0 2px;font:650 11px/1.55 Inter,system-ui,sans-serif;color:#516858}
+.page-wrap .fig-team-injury-breadcrumb{display:flex;gap:16px;flex-wrap:wrap;font:800 12px/1.3 Inter,system-ui,sans-serif}
+.page-wrap .fig-team-injury-breadcrumb a{color:#258154;text-decoration:underline;text-underline-offset:4px}
+.page-wrap .fig-team-injury-header{display:flex;gap:16px;align-items:center;border:1px solid #d3e4d9;background:#ecf5ef;border-radius:13px;padding:18px}
+.page-wrap .fig-team-injury-header-avatar{height:70px;width:70px;flex-basis:70px}
+.page-wrap .fig-team-injury-header span{color:#3c7150;font:850 11px/1.3 Inter,system-ui,sans-serif;letter-spacing:.06em}
+.page-wrap .fig-team-injury-header h1{font:900 clamp(25px,4vw,38px)/1.15 Inter,system-ui,sans-serif;color:#17432a;margin:4px 0}
+.page-wrap .fig-team-injury-header p{margin:0;color:#3d5b48;font:700 12px/1.4 Inter,system-ui,sans-serif}
+.page-wrap .fig-team-injury-season-list{display:grid;gap:12px}
+.page-wrap .fig-team-injury-season-heading{display:flex;justify-content:space-between;align-items:center;gap:9px;text-decoration:none;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #e1e9e3}
+.page-wrap .fig-team-injury-season-heading strong{font:900 17px/1.3 Inter,system-ui,sans-serif;color:#204a32}
+.page-wrap .fig-team-injury-season-heading span{font:800 11px/1.3 Inter,system-ui,sans-serif;color:#39704d}
+.page-wrap .fig-team-injury-eventlist{display:grid;margin:10px 0}
+.page-wrap .fig-team-injury-event{display:flex;align-items:center;gap:12px;border-bottom:1px solid #e1e8e3;padding:11px 3px;text-decoration:none;color:#254534;min-width:0}
+.page-wrap .fig-team-injury-event:hover{background:#f0f8f2}
+.page-wrap .fig-team-injury-event:focus-visible,.page-wrap .fig-injury-team-card a:focus-visible{outline:3px solid #348e5b;outline-offset:3px}
+.page-wrap .fig-team-injury-event-week{display:flex;flex-direction:column;align-items:center;gap:3px;background:#ecf4ed;border:1px solid #d7e5da;border-radius:7px;padding:7px;min-width:48px}
+.page-wrap .fig-team-injury-event-week b{font:900 14px/1 Inter,system-ui,sans-serif;color:#25533a}
+.page-wrap .fig-team-injury-event-week span{font:750 9px Inter,system-ui,sans-serif;color:#5b7861}
+.page-wrap .fig-team-injury-event-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.page-wrap .fig-team-injury-event-copy strong{font:900 13px/1.25 Inter,system-ui,sans-serif;color:#214831}
+.page-wrap .fig-team-injury-event-copy>span{font:650 11px/1.45 Inter,system-ui,sans-serif;color:#52675a;overflow-wrap:anywhere}
+.page-wrap .fig-team-injury-event-copy small{font:850 9px/1.3 Inter,system-ui,sans-serif;color:#258154}
+.page-wrap .fig-team-injury-chevron{font-size:24px;color:#35664b;flex:0 0 14px}
+.page-wrap .fig-team-injury-unknown{font:650 12px/1.6 Inter,system-ui,sans-serif;color:#617665;padding:10px 0}
+.page-wrap .fig-team-injury-lead{display:flex;gap:8px 12px;justify-content:space-between;align-items:start;padding:9px 0;border-top:1px solid #e0e9e2}
+.page-wrap .fig-team-injury-lead>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.page-wrap .fig-team-injury-lead b{color:#284934;font:850 12px Inter,system-ui,sans-serif}
+.page-wrap .fig-team-injury-lead small{color:#5a725e;font:750 10px/1.3 Inter,system-ui,sans-serif}
+.page-wrap .fig-team-injury-lead span{color:#607466;font:650 10px/1.4 Inter,system-ui,sans-serif}
+.page-wrap .fig-team-injury-lead a{color:#22724a;font:800 10px/1.3 Inter,system-ui,sans-serif;text-decoration:underline;white-space:nowrap}
+.page-wrap .fig-injury-incident-overline{font:850 11px Inter,system-ui,sans-serif;color:#39724e}
+.page-wrap .fig-injury-incident h1{font:900 clamp(23px,4vw,35px)/1.2 Inter,system-ui,sans-serif;color:#1c472f;margin:8px 0 14px}
+.page-wrap .fig-injury-incident-labels{display:flex;gap:8px;flex-wrap:wrap}
+.page-wrap .fig-injury-incident-labels span{padding:6px 8px;background:#e1f0e6;border:1px solid #bbdbc5;border-radius:6px;color:#236440;font:850 10px/1.2 Inter,system-ui,sans-serif}
+.page-wrap .fig-injury-incident>p{font:650 13px/1.6 Inter,system-ui,sans-serif;color:#415b49;margin:16px 0}
+.page-wrap .fig-injury-incident dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.page-wrap .fig-injury-incident dl>div{background:#f2f8f4;border-radius:9px;padding:11px}
+.page-wrap .fig-injury-incident dt{font:850 10px/1.4 Inter,system-ui,sans-serif;color:#597660}
+.page-wrap .fig-injury-incident dd{font:850 13px/1.3 Inter,system-ui,sans-serif;color:#214831;margin:4px 0 0}
+.page-wrap .fig-injury-incident-sources{margin-top:18px;display:flex;flex-wrap:wrap;gap:9px}
+.page-wrap .fig-injury-incident-sources h2{width:100%;font:900 14px Inter,system-ui,sans-serif;color:#234b32}
+.page-wrap .fig-injury-incident-sources a{display:inline-block;padding:9px 12px;color:#fff;background:#236744;border-radius:8px;font:850 11px Inter,system-ui,sans-serif;text-decoration:none}
+.page-wrap .fig-team-injury-link,.page-wrap .fig-team-season-injury-link a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;margin:9px 0;border:1px solid #b6d9c3;border-radius:10px;background:#edf7ef;color:#19533a;font:900 12px/1.4 Inter,system-ui,sans-serif;text-decoration:none;flex-wrap:wrap}
+.page-wrap .fig-team-injury-link span{font:750 11px/1.4 Inter,system-ui,sans-serif;color:#49745b}
+@media(max-width:760px){.page-wrap .fig-injury-team-cards{grid-template-columns:minmax(0,1fr)}.page-wrap .fig-injury-team-card{gap:9px;padding:11px}.page-wrap .fig-injury-team-title strong{font-size:16px}.page-wrap .fig-injury-kpis strong{font-size:23px}.page-wrap .fig-team-injury-overview,.page-wrap .fig-team-injury-season,.page-wrap .fig-injury-incident{padding:12px}.page-wrap .fig-team-injury-header{padding:13px;gap:11px}.page-wrap .fig-team-injury-header-avatar{height:52px;width:52px;flex-basis:52px}.page-wrap .fig-team-injury-season-heading strong{font-size:15px}.page-wrap .fig-injury-incident dl{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:400px){.page-wrap .fig-injury-kpis>div{padding:8px 4px}.page-wrap .fig-injury-kpis small{font-size:8px}.page-wrap .fig-injury-kpis.compact strong{font-size:19px}.page-wrap .fig-injury-season-link{padding:7px 5px;font-size:10px}}
