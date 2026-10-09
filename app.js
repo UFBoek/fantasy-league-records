@@ -918,7 +918,7 @@ async function team(id){
  };
 
  const renderRecords=()=>{
-   const activeHtml=activeStreaks.length?activeStreaks.map(s=>`<a class="mini-record accent-streak" href="#/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}"><b>${esc(s.streak_type)}</b><span>${s.length} ACTIVE</span></a>`).join(''):'<div class="snapshot-empty">No active qualifying streaks.</div>';
+   const activeHtml=activeStreaks.length?activeStreaks.map(s=>`<a class="mini-record accent-streak" href="#/breakdown/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}/${s.franchise_id}/${s.start_season}/${s.start_week}/${s.end_season}/${s.end_week}"><b>${esc(s.streak_type)}</b><span>${s.length} ACTIVE · VIEW GAMES →</span></a>`).join(''):'<div class="snapshot-empty">No active qualifying streaks.</div>';
    const recordHtml=teamTopRecords.length?teamTopRecords.map(r=>{const when=(r.season&&r.week)?` <small>• ${esc(r.season)} W${esc(r.week)}</small>`:'';return `<a class="mini-record accent-record" href="${r.href||`#/record/team/${encodeURIComponent(r.label)}/${encodeURIComponent(r.view)}`}"><b>${tiedRankLabel(r.rank,r.tied)} ${esc(r.label)}</b><span>${typeof r.value==='number'?money(r.value):esc(r.value)}${when}</span></a>`}).join(''):'<div class="snapshot-empty">No qualifying team records.</div>';
    const streakUnique=[];const seen=new Set();for(const s of streakTop){const k=`${s.streak_type}-${s._rank}-${s.length}`;if(!seen.has(k)){seen.add(k);streakUnique.push(s)}}
    const streakHtml=streakUnique.length?streakUnique.map(s=>`<a class="mini-record accent-streak" href="#/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}"><b>${tiedRankLabel(s._rank,s._tied)} ${esc(s.streak_type)}</b><span>${s.length}</span></a>`).join(''):'<div class="snapshot-empty">No top-3 streak records.</div>';
@@ -1042,7 +1042,7 @@ async function streaks(){
  const career=DATA.websiteStreaks.filter(x=>String(x.streak_mode)==='Career Games'&&num(x.length)>=2&&!['100+ Points','180+ Points','190+ Points'].includes(String(x.streak_type)));
  const active=career.filter(x=>x.active===true||String(x.active).toLowerCase()==='true');
  const types=[...new Set(career.map(x=>x.streak_type))].sort();
- const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:esc(x.streak_type),len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
+ const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:esc(x.streak_type),len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_href:`#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
  const orderedTypes=[...types].sort((a,b)=>{
    const priority=t=>t==='Winning'?0:t==='Losing'?1:2;
    return priority(a)-priority(b)||a.localeCompare(b);
@@ -1209,20 +1209,27 @@ async function playerBombLeaderboard(bombEnc,seasonEnc,viewEnc){
 
 async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseEnc){
  await load(['playerLog','standingsCareer']);navActive('players');
- const bomb=decodeURIComponent(bombEnc||'');
- const season=decodeURIComponent(seasonEnc||'all');
- const view=decodeURIComponent(viewEnc||'All-Time Combined');
- const franchise=decodeURIComponent(franchiseEnc||'all');
+ const bomb=decodeURIComponent(bombEnc||''),season=decodeURIComponent(seasonEnc||'all');
+ const view=decodeURIComponent(viewEnc||'All-Time Combined'),franchise=decodeURIComponent(franchiseEnc||'all');
  let logs=(DATA.playerLog||[]).filter(x=>String(x.player_id)===String(playerId)&&bombMatch(bomb,x.starter_points));
  if(season!=='all')logs=logs.filter(x=>String(x.season)===String(season));
  if(view==='Regular Season')logs=logs.filter(x=>x.game_type==='Regular Season');
- else if(view==='Playoffs')logs=logs.filter(x=>x.game_type==='Postseason'||x.game_type==='Playoffs'||x.game_type!=='Regular Season');
+ else if(view==='Playoffs')logs=logs.filter(x=>x.game_type!=='Regular Season');
  if(franchise!=='all')logs=logs.filter(x=>+x.franchise_id===+franchise);
  logs.sort((a,b)=>num(b.season)-num(a.season)||num(b.week)-num(a.week)||num(b.starter_points)-num(a.starter_points));
  const playerName=logs[0]?.player_name||((DATA.playerLog||[]).find(x=>String(x.player_id)===String(playerId))?.player_name)||'Player';
- const context=[];if(season!=='all')context.push(season);if(view!=='All-Time Combined')context.push(view);if(franchise!=='all')context.push(displayOwnerName('',franchise));
- const rows=logs.map((x,i)=>({n:i+1,season:x.season,week:x.week,team:ownerLink(x.owner_name,x.franchise_id),pos:`<span class="pos">${esc(x.position)}</span>`,points:money(x.starter_points),type:x.game_type,_sort:{n:i+1,season:num(x.season),week:num(x.week),team:displayOwnerName(x.owner_name,x.franchise_id),pos:x.position,points:num(x.starter_points),type:x.game_type}}));
- app.innerHTML=hero('PLAYER BOMB BREAKDOWN',`${esc(playerName)} • ${esc(bomb)}`,`${context.length?context.join(' • ')+' • ':''}${logs.length} qualifying started performances.`)+section('EVERY BOMB',sortableTable([{label:'#',key:'n'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TEAM',key:'team'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TYPE',key:'type'}],rows));
+ const context=[];if(season!=='all')context.push(season);if(view!=='All-Time Combined')context.push(view);
+ if(franchise!=='all')context.push(displayOwnerName('',franchise));
+ const cards=logs.map((x,i)=>`<article class="fig-bomb-entry">
+   <span class="fig-bomb-rank" aria-label="Entry ${i+1}">#${i+1}</span>
+   <div class="fig-bomb-owner">${ownerAvatar(x.franchise_id,'fig-bomb-avatar')}<div>
+    <b>${esc(displayOwnerName(x.owner_name,x.franchise_id))}</b>
+    <span>${esc(x.season)} · WEEK ${esc(x.week)} · ${x.game_type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</span>
+   </div></div>
+   <div class="fig-bomb-points"><strong>${money(x.starter_points)}</strong><small>POINTS · ${esc(x.position)}</small></div>
+  </article>`).join('');
+ app.innerHTML=hero('PLAYER BOMB BREAKDOWN',`${esc(playerName)} • ${esc(bomb)}`,`${context.length?context.join(' • ')+' • ':''}${logs.length} qualifying started performances.`)+
+  section('EVERY BOMB',`<div class="fig-bomb-list">${cards||'<div class="empty">No qualifying performances.</div>'}</div>`,'Each number is the entry in this selected history, newest first.');
 }
 
 function h2hAllPlayPair(games,a,b) {
@@ -1541,7 +1548,7 @@ async function breakdown(kind,...parts){
  }
  if(kind==='streak'){
   await load(['games','standingsCareer']);const type=decodeURIComponent(parts[0]||''),mode=decodeURIComponent(parts[1]||'Career Games'),fid=+parts[2],ss=+parts[3],sw=+parts[4],es=+parts[5],ew=+parts[6];const owner=displayOwnerName('',fid);
-  const all=gamesForFranchise(fid,'All-Time Combined').filter(g=>{const k=num(g.season)*100+num(g.week);return k>=ss*100+sw&&k<=es*100+ew});
+  const all=gamesForFranchise(fid,mode==='Regular Season'?'Regular Season':mode==='Playoffs'?'Playoffs':'All-Time Combined').filter(g=>{const k=num(g.season)*100+num(g.week);return k>=ss*100+sw&&k<=es*100+ew}).sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week));
   app.innerHTML=hero('STREAK BREAKDOWN',`${esc(owner)} • ${esc(type)}`,`${esc(mode)} • ${ss} W${sw} through ${es} W${ew} • ${all.length} qualifying games.`)+section('EVERY GAME IN THE STREAK',sortableTable([{label:'#',key:'n'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'OPPONENT',key:'opp'},{label:'PF',key:'pf'},{label:'PA',key:'pa'},{label:'RESULT',key:'result'},{label:'TYPE',key:'type'},{label:'',key:'open'}],gameRowsTable(all)));return;
  }
  if(kind==='teamrecord'){
