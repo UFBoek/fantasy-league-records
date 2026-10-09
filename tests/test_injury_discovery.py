@@ -42,6 +42,10 @@ class StructuredInjuryDiscovery(unittest.TestCase):
         self.assertEqual(lead["season"], 2026)
         self.assertEqual(lead["week"], 1)
         self.assertEqual(lead["priority"], "higher")
+        self.assertEqual(lead["inference_tier"], "automated_estimate")
+        self.assertFalse(lead["counts_toward_verified_injuries"])
+        self.assertEqual(result["schema_version"], 2)
+        self.assertEqual(result["automatic_estimate_count"], 1)
         self.assertEqual(lead["review_status"], "candidate_unverified_do_not_count")
         self.assertFalse(result["counts_toward_injuries"])
         self.assertTrue(lead["starter"])
@@ -59,6 +63,35 @@ class StructuredInjuryDiscovery(unittest.TestCase):
         rosters, snaps, reports = self.base()
         snaps[2026][0] = snap(1, 0.91)
         self.assertEqual(scan.find_review_candidates(rosters, snaps, reports, [])["candidate_count"], 0)
+
+    def test_questionable_status_is_archived_not_counted(self):
+        rosters, snaps, reports = self.base()
+        reports[2026][0]["report_status"] = "Questionable"
+        result = scan.find_review_candidates(rosters, snaps, reports, [])
+        self.assertEqual(result["candidate_count"], 1)
+        self.assertEqual(result["automatic_estimate_count"], 0)
+        self.assertEqual(result["automatically_archived_count"], 1)
+        self.assertEqual(result["candidates"][0]["inference_tier"], "archived_weak_signal")
+
+    def test_out_two_weeks_later_is_not_strong_automatic_signal(self):
+        rosters, snaps, reports = self.base()
+        reports[2026][0]["week"] = "3"
+        result = scan.find_review_candidates(rosters, snaps, reports, [])
+        self.assertEqual(result["automatic_estimate_count"], 0)
+
+    def test_illness_excluded_from_auto_injury_estimate(self):
+        rosters, snaps, reports = self.base()
+        reports[2026][0]["report_primary_injury"] = "Illness"
+        result = scan.find_review_candidates(rosters, snaps, reports, [])
+        self.assertEqual(result["automatic_estimate_count"], 0)
+
+    def test_short_exit_and_full_normal_finish_cannot_be_verified(self):
+        # Both strong snapshots can still describe a coaching benching or
+        # a temporary return; estimation is never an official injury event.
+        rosters, snaps, reports = self.base()
+        result = scan.find_review_candidates(rosters, snaps, reports, [])
+        self.assertFalse(result["counts_toward_injuries"])
+        self.assertFalse(result["candidates"][0]["counts_toward_verified_injuries"])
 
     def test_benched_regular_rotation_still_matched(self):
         rosters = [roster(1), roster(2), roster(3, starter=False)]
