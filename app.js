@@ -224,7 +224,7 @@ function pagedWeekHistory(headers, sortedRows, makeRow, opts={}) {
  let ordered=sortedRows;
  const label=opts.label||'performances';
  const tableMarkup=()=>{
-  const rows=ordered.slice(0,shown).map((record,i)=>makeRow(record,i));
+  const rows=ordered.slice(0,shown).map((record,i)=>makeRow(record,descending===firstDescending?i:sortedRows.length-1-i));
   const t=sortableTable(headers,rows,{sortState,onSort:(key,d)=>{
     if(key!=='points'&&key!=='score')return;
     descending=d;
