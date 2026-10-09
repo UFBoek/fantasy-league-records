@@ -1,3 +1,13 @@
+## Current-week Sleeper scores (v72)
+
+The homepage has a separate **CURRENT WEEK MATCHUPS** panel. Visible home tabs read the official Sleeper public league metadata and current-week matchup points directly, about every 30 seconds. League metadata is refreshed every five minutes; hidden tabs and visitors on other pages do not continuously poll. Scores are labelled **unofficial** because the week may still be in progress or awaiting corrections. Temporary provider/network errors retain the last good displayed scores and retry after two minutes.
+
+**Historical records, streaks, standings and player records do not use these browser-fetched matchup points.** They continue to use the verified completed-week JSON snapshots from the GitHub Actions data pipeline. A newly published snapshot is still checked every five minutes independently of the live scores.
+
+The mobile `+ Stats` cards use dark hover, tap and expanded states to prevent iOS touch hover from revealing the inherited pale-green desktop row highlight. `mobile-v70.css` overrides only mobile presentation.
+
+---
+
 # Daily Sleeper + RosterAudit automation (GitHub Pages)
 
 **Current setup:** `.github/workflows/update-league-data.yml` refreshes published league data daily at 12:17 UTC and also schedules hourly builds on Sundays, Mondays and Thursdays (the usual NFL game days). GitHub Actions schedules are best-effort and may start late, and each build/deploy needs additional time. The workflow can also be run manually through GitHub → Actions → **Update league data** → **Run workflow**. A visible website tab checks `data/refresh_manifest.json` every five minutes, and reloads its cached JSON views only when a newer successful snapshot is published. Hidden tabs check when brought back into view. **This is not 30-second live-score polling; it is published-data refresh.**
