@@ -12,7 +12,7 @@ const OWNER_AVATAR_BY_ID={1:'assets/avatars/boek.webp',2:'assets/avatars/fru.web
 function playerHeadshot(id,name,cls='fig-nfl-photo'){
  const safeId=String(id??'').trim();
  const visible=String(name||'').trim();
- const letters=visible.split(/\\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'NFL';
+ const letters=visible.split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'NFL';
  const src=/^[0-9]{1,12}$/.test(safeId)&&safeId!=='0'
    ? 'https://sleepercdn.com/content/nfl/players/thumb/'+safeId+'.jpg' : '';
  return `<span class="fig-nfl-photo ${esc(cls)}" aria-hidden="true"><span class="fig-nfl-photo-fallback">${esc(letters)}</span>${src?`<img src="${src}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`:''}</span>`;
@@ -25,6 +25,7 @@ document.addEventListener('error',event=>{
  const img=event.target;
  if(img?.tagName==='IMG'&&img.closest?.('.fig-nfl-photo'))img.remove();
 },true);
+window.playerHeadshot=playerHeadshot;
 function ownerAvatar(id,cls){const url=OWNER_AVATAR_BY_ID[+id];return url?`<img class="${cls}" src="${url}" alt="${esc(displayOwnerName('',id))} avatar" loading="lazy" decoding="async">`:`<div class="${cls}" aria-label="No avatar available"></div>`;}
 const OWNER_DISPLAY_BY_RAW={jackboek1:'Boek',jackboek:'Boek',mattboek21:'Fru',mattboek:'Fru',eph99:'Fromm',Jdub95:'Sack',jdub95:'Sack',lbracke:'Leyton',HaydenM:'Hayden',haydenm:'Hayden',LionelColl:'Line',lionelcoll:'Line',Wincollins2:'Winston',wincollins2:'Winston',nolanfm13:'CamNol',nolanfm:'CamNol',Jamest33:'James',jamest33:'James'};
 function displayOwnerName(name,id){return OWNER_DISPLAY_BY_ID[+id]||OWNER_DISPLAY_BY_RAW[String(name||'')]||OWNER_DISPLAY_BY_RAW[String(name||'').toLowerCase()]||String(name||'')}
@@ -743,7 +744,7 @@ async function team(id){
  const slotClass=x=>{const raw=String(x.lineup_slot||x.position||'bn').toLowerCase().replace('_','-');return `slot-${raw}`};
  const rosterGroup=(title,rows,kind)=>{
    const ordered=kind==='starters'?[...rows].sort((a,b)=>num(a.lineup_order)-num(b.lineup_order)):rosterSort(rows);
-   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span>${playerHeadshot(x.player_id,x.player_name)}<span class="sleeper-player-main"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'')}</small></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
+   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
  };
 
  const renderRoster=()=>{
