@@ -1,0 +1,105 @@
+/* v93 — NFL player profile: complete league trade timeline. */
+.page-wrap .fig-player-trade-heading {
+ display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+ padding:11px 14px;margin-bottom:13px;border:1px solid #d9dfd9;
+ border-radius:12px;background:#edf0ed!important;
+}
+.page-wrap .fig-player-trade-heading b {
+ color:#313d35!important;font:900 12px Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trade-heading a {
+ color:#08795c!important;text-decoration:none!important;
+ font:900 11px Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trades-empty {
+ background:#f1f3f0!important;border:1px solid #d8ded8;border-radius:16px;
+ padding:23px 19px;color:#49574d!important;font:750 13px/1.5 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trade-grid {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0;
+}
+.page-wrap .fig-player-trade-card {
+ background:#fff!important;border:1px solid #d8ded8!important;border-radius:19px!important;
+ overflow:hidden;min-width:0;max-width:100%;color:#292e2a!important;
+}
+.page-wrap .fig-player-trade-top {
+ padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+ background:#2a2d2a!important;color:#fff!important;
+}
+.page-wrap .fig-player-trade-top span {
+ color:#edf5ef!important;font:850 11px/1.25 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trade-top span:first-child {font-size:12px!important;}
+.page-wrap .fig-player-trade-top b {color:#9de4c4!important;}
+.page-wrap .fig-player-trade-top span:last-child {
+ background:#414942;border-radius:8px;padding:6px 8px;font-size:9px!important;letter-spacing:.04em;
+}
+.page-wrap .fig-player-trade-transfer {
+ display:grid;grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr);gap:8px;
+ align-items:center;padding:18px 14px;
+}
+.page-wrap .fig-player-trade-direction {
+ min-width:0;display:flex;flex-direction:column;gap:11px;
+}
+.page-wrap .fig-player-trade-direction small {
+ color:#66736a!important;font:900 10px/1.25 Inter,system-ui,sans-serif!important;letter-spacing:.025em;
+}
+.page-wrap .fig-player-trade-arrow {
+ color:#178363!important;font:900 24px/1 Inter,system-ui,sans-serif!important;text-align:center;
+}
+.page-wrap .fig-player-trade-card .fig-owner-link,
+.page-wrap .fig-player-trade-card .fig-team-identity {
+ display:inline-flex!important;align-items:center!important;gap:6px!important;
+ min-width:0!important;max-width:100%!important;text-decoration:none!important;
+}
+.page-wrap .fig-player-trade-card .fig-owner-link {color:#252d27!important;}
+.page-wrap .fig-player-trade-card .fig-team-identity-name {
+ color:#252d27!important;font:900 12px/1.3 Inter,system-ui,sans-serif!important;
+ min-width:0;overflow-wrap:anywhere;
+}
+.page-wrap .fig-player-trade-card .fig-team-avatar {
+ width:36px!important;height:36px!important;flex:0 0 36px!important;object-fit:cover!important;
+ border:2px solid #e5e9e5;border-radius:10px;
+}
+.page-wrap .fig-player-trade-details {border-top:1px solid #e2e6e2!important;}
+.page-wrap .fig-player-trade-details summary {
+ list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;
+ padding:14px 15px;background:#edf3ee!important;
+ color:#08785b!important;font:900 11px/1.3 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trade-details summary::-webkit-details-marker {display:none;}
+.page-wrap .fig-player-trade-details summary span {font-size:17px!important;}
+.page-wrap .fig-player-trade-details[open] summary span {transform:rotate(180deg);}
+.page-wrap .fig-player-trade-packages {
+ display:grid;grid-template-columns:minmax(0,1fr);gap:12px;
+ padding:12px!important;background:#f7f8f6!important;
+}
+.page-wrap .fig-player-trade-package {
+ min-width:0;background:#fff!important;border:1px solid #dce2dc;border-radius:12px;
+ padding:12px;color:#2b362d!important;
+}
+.page-wrap .fig-player-trade-package-owner {
+ display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+ border-bottom:1px solid #e2e6e1;padding-bottom:9px;margin-bottom:9px;
+}
+.page-wrap .fig-player-trade-package-owner>span {
+ color:#657568!important;font:900 10px Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trade-package .fig-team-avatar {
+ width:28px!important;height:28px!important;flex-basis:28px!important;
+}
+.page-wrap .fig-player-trade-assets {
+ margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;
+ color:#3a473d!important;font:700 12px/1.45 Inter,system-ui,sans-serif!important;
+}
+.page-wrap .fig-player-trade-assets li {overflow-wrap:anywhere;}
+@media(max-width:850px) {
+ .page-wrap .fig-player-trade-grid {grid-template-columns:minmax(0,1fr)!important;}
+}
+@media(max-width:390px) {
+ .page-wrap .fig-player-trade-transfer {padding:16px 10px;gap:6px;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);}
+ .page-wrap .fig-player-trade-direction {gap:8px;}
+ .page-wrap .fig-player-trade-card .fig-team-avatar {width:30px!important;height:30px!important;flex-basis:30px!important;}
+ .page-wrap .fig-player-trade-card .fig-team-identity-name {font-size:11px!important;}
+ .page-wrap .fig-player-trade-arrow {font-size:18px!important;}
+}
