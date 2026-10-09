@@ -113,4 +113,6 @@
     if (!document.hidden) refresh();
   });
   setInterval(() => refresh(), POLL_MS);
+  // Also handle a home view rendered before this deferred script was evaluated.
+  refresh();
 })();
