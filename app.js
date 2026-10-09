@@ -107,7 +107,12 @@ function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint
  const columns=Math.min(tiedManagers.length,5);
  const pics=`<div class="fig-podium-photo fig-tie-photos" data-tied="${tiedManagers.length}" style="--fig-portrait-cols:${columns}" aria-label="${tiedManagers.length} record holder${tiedManagers.length===1?'':'s'}">${tiedManagers.map(x=>ownerAvatar(x.id,'fig-podium-avatar')).join('')}</div>`;
  const names=tiedManagers.map(x=>esc(displayOwnerName(x.name,x.id))).join(' · ');
- const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${tiedEntries.length+i+1}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}${r.note?`<small>${esc(r.note)}</small>`:''}</span><b class="fig-podium-rival-score">${esc(r.display??r.value)}</b></div>`).join('');
+ const displayPlacement=(entry)=>{
+  const first=ranked.findIndex(x=>sameRecordValue(x.value,entry.value));
+  const isTied=ranked.some((x,i)=>i!==first&&sameRecordValue(x.value,entry.value));
+  return `${isTied?'T':''}${first+1}`;
+ };
+ const opponents=rivals.map((r,i)=>`<div class="fig-podium-rival"><span class="fig-podium-rank">${displayPlacement(r)}</span><span class="fig-podium-rival-name">${esc(displayOwnerName(r.name,r.id))}${r.note?`<small>${esc(r.note)}</small>`:''}</span><b class="fig-podium-rival-score">${esc(r.display??r.value)}</b></div>`).join('');
  const valueText=String(top.display??top.value);
  const valueSize=valueText.length>=12?'fig-record-value-xl':valueText.length>=9?'fig-record-value-long':'';
  const detailNote=note||(allowRepeat&&tiedEntries.length===1?top.note||'':'');
