@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
-RULES_VERSION = 2
+RULES_VERSION = 3
 
 
 def read_json(path):
@@ -78,12 +78,9 @@ def compute_injuries(events, weekly_rosters):
             missed_games = event.get("subsequent_nfl_games_missed")
             missed_games = None if missed_games is None else int(missed_games)
             severity_source = verified_url(event.get("severity_source_url"))
-            # Major may also be verified by documented IR or season-ending status.
-            major = (
-                (missed_games is not None and missed_games >= 4)
-                or event.get("season_ending") is True
-                or event.get("placed_on_ir") is True
-            ) and severity_source
+            # "Major" means an independently documented season-ending injury.
+            # IR placement or 4+ missed games are NOT enough by themselves.
+            major = event.get("season_ending") is True and severity_source
             # One physical injury is one event regardless of fantasy owners.
             if event_id in seen:
                 raise ValueError("duplicate event ID")
@@ -113,13 +110,13 @@ def compute_injuries(events, weekly_rosters):
                 manager = int(row["franchise_id"])
                 started = row.get("starter_status") == "Starter"
                 established = rotation_starts(completed, season, manager, player, week) >= 2
-                # Game-end status was verified above; full finishes never count.
-                # Only fantasy STARTERS contribute to the in-game leaderboard.
-                in_game = bool(started)
-                # Regular fantasy rotation members also count when benched.
-                rotation = bool(established)
-                if not (in_game or rotation):
+                # A season-ending event has a SINGLE category: Major.
+                # Never double-credit that incident as started or rotation.
+                if not (started or established):
                     continue
+                major_case = bool(major)
+                in_game = bool(started and not major_case)
+                rotation = bool(established and not major_case)
                 valid.append({
                     "event_id": event_id, "season": season, "week": week,
                     "franchise_id": manager, "owner_name": str(row.get("owner_name") or ""),
@@ -128,7 +125,9 @@ def compute_injuries(events, weekly_rosters):
                     "position": str(row.get("position") or ""),
                     "started": bool(started), "established_rotation": bool(established),
                     "started_in_game_injury": in_game, "rotation_injury": rotation,
-                    "major_injury": bool(major),
+                    "major_injury": major_case,
+                    "season_ending": major_case,
+                    "category": "major" if major_case else ("started" if started else "rotation"),
                     "injury_description": str(event.get("injury_description") or ""),
                     "missed_snaps_confirmed": missed_snaps,
                     "injury_game_outcome": outcome,
@@ -140,14 +139,21 @@ def compute_injuries(events, weekly_rosters):
         except (KeyError, TypeError, ValueError) as exc:
             rejected.append({"event_id": str(event.get("event_id") if isinstance(event, dict) else ""),
                              "reason": str(exc)})
-    totals = defaultdict(lambda: {"started_in_game_injuries": 0,
-                                  "rotation_injuries": 0,
-                                  "major_rotation_injuries": 0})
+    def blank_totals():
+        return {"injury_events": 0, "started_in_game_injuries": 0,
+                "rotation_injuries": 0, "major_injuries": 0,
+                "major_rotation_injuries": 0}
+    totals = defaultdict(blank_totals)
+    by_season = defaultdict(blank_totals)
     for row in valid:
-        key = str(row["franchise_id"])
-        totals[key]["started_in_game_injuries"] += int(row["started_in_game_injury"])
-        totals[key]["rotation_injuries"] += int(row["rotation_injury"])
-        totals[key]["major_rotation_injuries"] += int(row["rotation_injury"] and row["major_injury"])
+        for group in (totals[str(row["franchise_id"])],
+                      by_season[f'{row["franchise_id"]}:{row["season"]}']):
+            group["injury_events"] += 1
+            group["started_in_game_injuries"] += int(row["started_in_game_injury"])
+            group["rotation_injuries"] += int(row["rotation_injury"])
+            group["major_injuries"] += int(row["major_injury"])
+            # Legacy alias (for older clients), now identical to major count.
+            group["major_rotation_injuries"] += int(row["major_injury"])
     valid.sort(key=lambda row: (-row["season"], -row["week"], row["franchise_id"], row["player_name"]))
     return {
         "schema_version": RULES_VERSION,
@@ -158,12 +164,14 @@ def compute_injuries(events, weekly_rosters):
         "rejected_unverified_events": rejected,
         "excluded_verified_events": excluded,
         "definitions": {
-            "started_in_game_injury": "Fantasy starter whose verified in-game injury caused missed snaps and prevented normal completion of the NFL game. Full return and normal finish excluded.",
-            "rotation_injury": "Started >=2 of prior 4 completed fantasy weeks for this manager; verified injury-limited game ending counts even if benched that week.",
-            "major_rotation_injury": "Qualifying rotation injury with >=4 subsequent NFL games missed, injured reserve or season-ending absence, supported by evidence.",
-            "non_additive": "A single injury may qualify for multiple categories; do not sum category totals.",
+            "started_in_game_injury": "Verified non-season-ending in-game injury to a fantasy starter that prevented normal NFL game completion.",
+            "rotation_injury": "Verified non-season-ending in-game injury to an established rotation player (at least two starts in prior four completed fantasy weeks), including bench weeks.",
+            "major_injury": "Verified season-ending in-game injury affecting a fantasy starter or established rotation player. Requires independent source confirming season end, not merely IR or four missed games.",
+            "major_rotation_injury": "Legacy alias of major_injury, regardless of fantasy starter/rotation status.",
+            "non_additive": "Major is exclusive of Started and Rotation. Non-major Started and Rotation can overlap for an established starter; injury_events is the unique event total.",
         },
         "by_franchise": dict(sorted(totals.items(), key=lambda item: int(item[0]))),
+        "by_franchise_season": dict(sorted(by_season.items())),
         "events": valid,
     }
 
