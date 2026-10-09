@@ -3,7 +3,9 @@
 
 The input is a reviewed NFL injury-event ledger. NFL injury reports, fantasy
 points and snap-count anomalies are leads, never proof of a missed-snap exit.
-Only explicit, cited, completed-week events contribute to published counts.
+Only explicit, cited, completed-week events with injury-limited game endings
+contribute to published counts. Temporary exits followed by a full game finish
+do not qualify, regardless of whether a few snaps were missed.
 """
 import json
 from collections import defaultdict
@@ -12,7 +14,7 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
-RULES_VERSION = 1
+RULES_VERSION = 2
 
 
 def read_json(path):
@@ -53,6 +55,7 @@ def compute_injuries(events, weekly_rosters):
 
     valid = []
     rejected = []
+    excluded = []
     seen = set()
     for event in events:
         try:
@@ -64,6 +67,14 @@ def compute_injuries(events, weekly_rosters):
             has_source = verified_url(event.get("source_url"))
             missed_snaps = event.get("missed_snaps_confirmed") is True
             exited = event.get("exited_due_to_injury") is True
+            # Event-level finish status must be supported by a report of an
+            # injury-related inability to complete normal game participation.
+            # Returning for a handful of snaps then shutting down counts;
+            # fully returning and finishing does NOT, even after missed snaps.
+            outcome = str(event.get("injury_game_outcome") or "")
+            finish_source = verified_url(event.get("game_outcome_source_url"))
+            qualifying_outcome = outcome in ("did_not_return", "limited_return_no_finish")
+            full_finish = outcome == "returned_full_and_finished"
             missed_games = event.get("subsequent_nfl_games_missed")
             missed_games = None if missed_games is None else int(missed_games)
             severity_source = verified_url(event.get("severity_source_url"))
@@ -78,10 +89,23 @@ def compute_injuries(events, weekly_rosters):
                 raise ValueError("duplicate event ID")
             seen.add(event_id)
             if not (verified and has_source and season >= 2023 and 1 <= week <= 18
-                    and player and (exited and missed_snaps or major)):
-                raise ValueError("insufficient verified game exit or major injury evidence")
+                    and player and finish_source and outcome in (
+                        "did_not_return", "limited_return_no_finish",
+                        "returned_full_and_finished", "unknown"
+                    )):
+                raise ValueError("missing verified injury event or game-finish evidence")
             if missed_games is not None and missed_games < 0:
                 raise ValueError("negative NFL games missed")
+            # Don't treat a temporary injury timeout, routine substitution,
+            # blowout rest, or unclear finish as a qualifying game-ending injury.
+            # Major injuries still require a qualifying in-game outcome here.
+            if full_finish or not (exited and missed_snaps and qualifying_outcome):
+                excluded.append({
+                    "event_id": event_id,
+                    "reason": "returned and finished at full participation"
+                    if full_finish else "injury-limited game ending not verified",
+                })
+                continue
             participants = roster_index.get((season, week, player), [])
             if not participants:
                 raise ValueError("no matched completed-week fantasy roster")
@@ -89,11 +113,11 @@ def compute_injuries(events, weekly_rosters):
                 manager = int(row["franchise_id"])
                 started = row.get("starter_status") == "Starter"
                 established = rotation_starts(completed, season, manager, player, week) >= 2
-                # In-game totals require an actual missed-snap injury while STARTED.
-                in_game = bool(started and exited and missed_snaps)
-                # Rotation totals include previously regular starters when benched,
-                # but only if they suffered a meaningful verified injury.
-                rotation = bool(established and (exited and missed_snaps or major))
+                # Game-end status was verified above; full finishes never count.
+                # Only fantasy STARTERS contribute to the in-game leaderboard.
+                in_game = bool(started)
+                # Regular fantasy rotation members also count when benched.
+                rotation = bool(established)
                 if not (in_game or rotation):
                     continue
                 valid.append({
@@ -107,6 +131,8 @@ def compute_injuries(events, weekly_rosters):
                     "major_injury": bool(major),
                     "injury_description": str(event.get("injury_description") or ""),
                     "missed_snaps_confirmed": missed_snaps,
+                    "injury_game_outcome": outcome,
+                    "game_outcome_source_url": str(event["game_outcome_source_url"]),
                     "nfl_games_missed": missed_games,
                     "source_url": str(event["source_url"]),
                     "severity_source_url": str(event.get("severity_source_url") or ""),
@@ -130,10 +156,11 @@ def compute_injuries(events, weekly_rosters):
         "source_event_count": len(events),
         "verified_fantasy_injury_events": len(valid),
         "rejected_unverified_events": rejected,
+        "excluded_verified_events": excluded,
         "definitions": {
-            "started_in_game_injury": "Fantasy starter, documented injury-related exit, and confirmed missed NFL game snaps.",
-            "rotation_injury": "Started >=2 of prior 4 completed fantasy weeks for this manager; meaningful verified injury even if benched this week.",
-            "major_rotation_injury": "Rotation injury resulting in >=4 NFL games missed, injured reserve or season-ending absence, supported by evidence.",
+            "started_in_game_injury": "Fantasy starter whose verified in-game injury caused missed snaps and prevented normal completion of the NFL game. Full return and normal finish excluded.",
+            "rotation_injury": "Started >=2 of prior 4 completed fantasy weeks for this manager; verified injury-limited game ending counts even if benched that week.",
+            "major_rotation_injury": "Qualifying rotation injury with >=4 subsequent NFL games missed, injured reserve or season-ending absence, supported by evidence.",
             "non_additive": "A single injury may qualify for multiple categories; do not sum category totals.",
         },
         "by_franchise": dict(sorted(totals.items(), key=lambda item: int(item[0]))),
