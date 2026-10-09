@@ -1,3 +1,15 @@
+## v79 — Restore official champions, score-linked playoff brackets, and legible team cards
+
+- **Root cause:** `data/playoffs.json` contains bracket roster pairs, seasons, rounds and categories, *not* `champion`, `runner_up`, `third_place`, `owner_name` or `franchise_id` summary fields. The former Champions and Playoffs pages read those missing fields, displaying dashes or generic team numbers.
+- **Source-aware join:** `playoffSeasonResults()` uses the bracket file to select the championship path, and pairs each matchup with a real finalized `data/games.json` playoff score by **season + week + unordered franchise/roster pair**, because `bracket_matchup_id` is not the weekly game `matchup_id`. Champion and runner-up are derived from the scored championship match; third place comes from the scored third-place match. Playoff bracket links use the actual weekly `matchup_id` for lineup drill-downs.
+- **Checked historical results:** 2023 Sack champion / Hayden runner / CamNol third (six bracket games); 2024 Hayden champion / Boek runner / Leyton third (six games); 2025 Hayden champion / Boek runner / Fru third (five games).
+- **Champion posters:** Large manager-portrait banners, season year, champion badge, displayed manager, regular-season record and season-specific points/game, plus the correct runner-up and third-place names. Posters link to the corresponding season bracket.
+- **Playoff detail:** Real names, portraits, scored games, winners, correct first-round byes and category-labeled title/third-place games. All game cards link to their actual archive matchup. A missing result, if any, shows an explicit unavailable state instead of guessing.
+- **Contrast:** Light, charcoal-text styling for the Dynasty Market Value overview, actual tracked numbers and pick/player subtotals; explicitly dark achievement text on light team-accomplishment rows; legible mobile playoff round headings and bracket panels.
+- **Delivery:** New final `playoffs-v79.css` stylesheet and versioned `app.js?v=79`, refreshed service-worker cache and GitHub Pages staging script.
+- **Data safety:** Sleeper refresh logic and historical finished-week filters are unchanged.
+
+---
 ## v78 — NFL player headshots
 
 - **Source:** Sleeper's existing CDN player images, `https://sleepercdn.com/content/nfl/players/thumb/<player_id>.jpg`, indexed directly by the already-published Sleeper NFL player IDs. No extra Sleeper API requests, player-directory downloads, tokens, or background jobs are required.
