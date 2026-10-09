@@ -257,7 +257,7 @@ function jamesHaydenTradeArchive(mode='archive'){
  const byTrade=new Map(), receivedByTrade=new Map(), production=new Map();
  sides.forEach(x=>{let k=String(x.transaction_id);if(!byTrade.has(k))byTrade.set(k,new Set());byTrade.get(k).add(+x.franchise_id)});
  assets.filter(a=>a.asset_direction==='Received').forEach(a=>{const k=`${a.transaction_id}:${a.franchise_id}`;if(!receivedByTrade.has(k))receivedByTrade.set(k,[]);receivedByTrade.get(k).push(a)});
- weeks.filter(isCompleted).forEach(w=>{const k=`${w.franchise_id}:${w.player_id}`;if(!production.has(k))production.set(k,[]);production.get(k).push(w)});
+ weeks.filter(w=>isCompleted(w)&&w.counts_for_official_records!==false).forEach(w=>{const k=`${w.franchise_id}:${w.player_id}`;if(!production.has(k))production.set(k,[]);production.get(k).push(w)});
  for(const v of production.values())v.sort((a,b)=>+a.season-+b.season||+a.week-+b.week);
  const tradeRows=(DATA.trades||[]).filter(t=>{const ids=byTrade.get(String(t.transaction_id))||new Set();return ids.has(JAMES_ID)&&ids.has(HAYDEN_ID)}).sort((a,b)=>+b.season-+a.season||+b.week-+a.week||String(b.transaction_id).localeCompare(String(a.transaction_id)));
  const years=[...new Set(tradeRows.map(t=>String(t.season)))].sort((a,b)=>+b-+a);
