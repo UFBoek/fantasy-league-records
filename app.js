@@ -241,7 +241,10 @@ function pagedWeekHistory(headers, sortedRows, makeRow, opts={}) {
  const update=()=>{
   const root=document.getElementById(id);
   if(!root)return;
+  const previousScroll=root.querySelector('.fig-frozen-stats')?.scrollLeft??0;
   root.innerHTML=tableMarkup();
+  const rightPane=root.querySelector('.fig-frozen-stats');
+  if(rightPane)rightPane.scrollLeft=previousScroll;
   root.querySelector('[data-fig-more]')?.addEventListener('click',()=>{
     shown=Math.min(shown+pageSize,ordered.length);
     update();
