@@ -124,3 +124,31 @@
   grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important;gap:2px!important;
  }
 }
+
+
+/* Mobile leaderboard repair: retain the real (tie-aware) rank text.
+   Older phone styling drew a second counter over the rank cell. */
+@media(max-width:699px) {
+ .page-wrap .fig-list-table table.sortable tbody td.fig-rank {
+  font:800 13px/1.4 Inter,system-ui,sans-serif!important;
+  color:#293832!important;
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+ }
+ .page-wrap .fig-list-table table.sortable tbody td.fig-rank::before,
+ .page-wrap .fig-list-table table.sortable tbody td.fig-rank::after {
+  content:none!important;display:none!important;
+ }
+ .page-wrap .fig-list-table .fig-table-controls,
+ .page-wrap .fig-list-table .fig-sort-controls {
+  color:#243a32!important;
+ }
+ .page-wrap .fig-list-table .fig-table-controls label,
+ .page-wrap .fig-list-table .fig-sort-controls label,
+ .page-wrap .fig-list-table label {
+  color:#243a32!important;
+ }
+ .page-wrap .fig-list-table table.sortable tbody tr {
+  min-height:0!important;
+ }
+}
