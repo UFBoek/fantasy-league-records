@@ -1173,8 +1173,7 @@ async function h2h(){
  await load(['standingsCareer','h2h','games']);navActive('');
  const teams=[...(DATA.standingsCareer||[])].sort((a,b)=>+a.franchise_id-+b.franchise_id);
  const byId=new Map(teams.map(t=>[+t.franchise_id,t]));
- let selected='all',sortBy='series';
- const pairs=(DATA.h2h||[]).filter(x=>+x.franchise_id<+x.opponent_franchise_id);
+ let selected=String(teams[0]?.franchise_id??'');
  const comparisons=new Map();
  const compare=(a,b)=>{
   const key=`${a}:${b}`;
@@ -1185,17 +1184,12 @@ async function h2h(){
   return comparisons.get(key);
  };
  const list=()=>{
-  const records=(selected==='all'?pairs:(DATA.h2h||[]).filter(x=>+x.franchise_id===+selected)).map(x=>{
+  const records=(DATA.h2h||[]).filter(x=>+x.franchise_id===+selected).map(x=>{
    const a=+x.franchise_id,b=+x.opponent_franchise_id;
    return {...x,a,b,ap:compare(a,b),winRate:num(x.games)?100*(num(x.wins)+num(x.ties)/2)/num(x.games):0};
   });
-  const sorters={
-   series:(a,b)=>b.winRate-a.winRate||num(b.wins)-num(a.wins),
-   allplay:(a,b)=>b.ap.pct-a.ap.pct||b.ap.wins-a.ap.wins,
-   meetings:(a,b)=>num(b.games)-num(a.games),
-   name:(a,b)=>displayOwnerName(a.owner,a.a).localeCompare(displayOwnerName(b.owner,b.a))||displayOwnerName(a.opponent,a.b).localeCompare(displayOwnerName(b.opponent,b.b))
-  };
-  return records.sort((a,b)=>sorters[sortBy](a,b)||a.a-b.a||a.b-b.b);
+  // Always show the selected team's strongest actual head-to-head rivalries first.
+  return records.sort((a,b)=>b.winRate-a.winRate||num(b.wins)-num(a.wins)||num(b.games)-num(a.games)||a.b-b.b);
  };
  const render=()=>{
   const records=list();
@@ -1210,18 +1204,16 @@ async function h2h(){
      <div class="fig-h2h-view">VIEW RIVALRY HISTORY <span aria-hidden="true">→</span></div>
    </a>`;
   }).join('');
-  $('#h2hResults').innerHTML=`<div class="fig-h2h-count">${records.length} rivalries · records shown from ${selected==='all'?'the left-hand team’s':esc(displayOwnerName(byId.get(+selected)?.owner_name,+selected))+'’s'} perspective</div><div class="fig-h2h-grid">${cards||'<div class="empty">No matchups found.</div>'}</div>`;
+  $('#h2hResults').innerHTML=`<div class="fig-h2h-count">${records.length} rivalries for ${esc(displayOwnerName(byId.get(+selected)?.owner_name,+selected))} · highest head-to-head win % first</div><div class="fig-h2h-grid">${cards||'<div class="empty">No matchups found.</div>'}</div>`;
  };
  app.innerHTML=hero('LEAGUE HISTORY','HEAD-TO-HEAD','Actual matchups and the games you would have won against every other team.')+
   `<section class="section fig-h2h-page">
    <div class="fig-h2h-intro"><strong>TWO WAYS TO MEASURE A RIVALRY</strong><p><b>Head-to-head</b> counts scheduled regular-season and playoff games. <b>All-play</b> compares your completed regular-season score against that opponent's score every week, even when you weren't scheduled to play.</p></div>
    <div class="control-label">CHOOSE A TEAM</div>
-   ${pills('h2hTeamPills',[{value:'all',label:'ALL'},...teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}))],selected)}
-   <div class="fig-h2h-toolbar"><label for="h2hSort">SORT RIVALRIES</label><select id="h2hSort"><option value="series">HEAD-TO-HEAD WIN %</option><option value="allplay">ALL-PLAY WIN %</option><option value="meetings">MOST MATCHUPS</option><option value="name">TEAM NAME</option></select></div>
+   ${pills('h2hTeamPills',teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)})),selected)}
    <div id="h2hResults" class="fig-h2h-results"></div>
   </section>`;
  bindPills('h2hTeamPills',v=>{selected=v;render()});
- $('#h2hSort').addEventListener('change',e=>{sortBy=e.target.value;render()});
  render();
 }
 
