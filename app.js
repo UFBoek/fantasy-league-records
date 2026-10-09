@@ -1563,7 +1563,7 @@ async function gameDetail(season,week,matchup){
    });
  };
  const left=roster(g.franchise_1),right=roster(g.franchise_2),a=starters(left),b=starters(right);
- const bench=rows=>rows.filter(x=>x.starter_status!=='Starter').sort((a,b)=>num(b.fantasy_points)-num(a.fantasy_points)||String(a.position).localeCompare(String(b.position)));
+ const bench=rows=>rows.filter(x=>x.starter_status!=='Starter'&&num(x.fantasy_points)>0).sort((a,b)=>num(b.fantasy_points)-num(a.fantasy_points)||String(a.position).localeCompare(String(b.position)));
  const benA=bench(left),benB=bench(right);
  const slotOrder=slot=>{
   const x=String(slot).replace(/\d+$/,'');
@@ -1587,7 +1587,7 @@ async function gameDetail(season,week,matchup){
  </div>`).join('');
  const benchColumn=(rows,id)=>`<div class="fig-lineup-bench-team">
   <div class="fig-lineup-bench-team-title">${ownerAvatar(id,'fig-lineup-bench-avatar')}<span>${esc(displayOwnerName('',id))} · ${rows.length}</span></div>
-  ${rows.map(x=>`<div class="fig-lineup-bench-entry"><span class="fig-lineup-bench-slot">${esc(x.lineup_slot||'BN')}</span>${fmtPlayer(x)}</div>`).join('')||'<div class="fig-lineup-bench-empty">No bench players recorded</div>'}
+  ${rows.map(x=>`<div class="fig-lineup-bench-entry"><span class="fig-lineup-bench-slot">${esc(x.lineup_slot||'BN')}</span>${fmtPlayer(x)}</div>`).join('')||'<div class="fig-lineup-bench-empty">No bench players above 0 points</div>'}
  </div>`;
  const startA=a.reduce((sum,x)=>sum+num(x.fantasy_points),0),startB=b.reduce((sum,x)=>sum+num(x.fantasy_points),0);
  const margin=Math.abs(num(g.score_1)-num(g.score_2));
@@ -1601,12 +1601,12 @@ async function gameDetail(season,week,matchup){
    </div>
    <div class="fig-lineup-section-head"><h2>STARTING LINEUPS</h2><span>PLAYER vs PLAYER · BY SLOT</span></div>
    <div class="fig-lineup-summary"><div><b>${a.length} STARTERS</b><strong>${money(startA)} PTS</strong></div><span>VS</span><div><b>${b.length} STARTERS</b><strong>${money(startB)} PTS</strong></div></div>
-   <p class="fig-lineup-guide">Starters are compared side by side in corresponding lineup slots. The bench is shown separately below.</p>
+   <p class="fig-lineup-guide">Starters are compared side by side in corresponding lineup slots. Only bench players who scored above 0 points appear below.</p>
    <div class="fig-lineup-comparison">
     <div class="fig-lineup-side-label"><span>${esc(displayOwnerName(g.owner_1,g.franchise_1))}</span><span>POSITION</span><span>${esc(displayOwnerName(g.owner_2,g.franchise_2))}</span></div>
     ${lineups||'<div class="fig-lineup-bench-empty">Starter details unavailable for this matchup.</div>'}
    </div>
-   <div class="fig-lineup-section-head fig-lineup-bench-heading"><h2>BENCH & FULL ROSTERS</h2><span>POINTS SHOWN SEPARATELY FROM STARTERS</span></div>
+   <div class="fig-lineup-section-head fig-lineup-bench-heading"><h2>BENCH SCORERS</h2><span>ONLY PLAYERS ABOVE 0 POINTS</span></div>
    <div class="fig-lineup-bench-grid">${benchColumn(benA,g.franchise_1)}${benchColumn(benB,g.franchise_2)}</div>
   </section>`;
 }
