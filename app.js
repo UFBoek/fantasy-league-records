@@ -886,7 +886,7 @@ async function team(id){
  const slotClass=x=>{const raw=String(x.lineup_slot||x.position||'bn').toLowerCase().replace('_','-');return `slot-${raw}`};
  const rosterGroup=(title,rows,kind)=>{
    const ordered=kind==='starters'?[...rows].sort((a,b)=>num(a.lineup_order)-num(b.lineup_order)):rosterSort(rows);
-   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
+   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'UNKNOWN')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
  };
 
  const renderRoster=()=>{
@@ -895,7 +895,8 @@ async function team(id){
   const reserve=currentRoster.filter(x=>bool(x.is_reserve));
   const taxi=currentRoster.filter(x=>bool(x.is_taxi));
   const bench=currentRoster.filter(x=>!bool(x.is_starter)&&!bool(x.is_reserve)&&!bool(x.is_taxi));
-  const rosterPositions=['QB','RB','WR','TE','K','DEF'].map(pos=>({pos,count:currentRoster.filter(x=>String(x.position).toUpperCase()===pos).length})).filter(x=>x.count);
+  const knownPositions=['QB','RB','WR','TE','K','DEF'];
+  const rosterPositions=[...knownPositions,'OTHER'].map(pos=>({pos,count:currentRoster.filter(x=>pos==='OTHER'?!knownPositions.includes(String(x.position||'').toUpperCase()):String(x.position).toUpperCase()===pos).length})).filter(x=>x.count);
   const valued=currentRoster.map(x=>raPlayer(x.player_id)).filter(x=>x!==null&&Number.isFinite(+x));
   const starterValue=starter.map(x=>raPlayer(x.player_id)).filter(x=>x!==null&&Number.isFinite(+x)).reduce((total,v)=>total+num(v),0);
   const totalValue=valued.reduce((total,v)=>total+num(v),0);
@@ -914,12 +915,12 @@ async function team(id){
      return `<div class="fig-roster-pick"><span>ROUND ${p.round}</span><b>${esc(displayOwnerName('',p.original_franchise_id))} ORIGINAL</b>${value.value!==null?`<strong>~${money(value.value)} VALUE</strong>`:''}</div>`}).join('')}
    </div></div>`).join('');
   const draw=()=>{
-   const visible=rows=>filterPosition==='ALL'?rows:rows.filter(x=>String(x.position).toUpperCase()===filterPosition);
+   const visible=rows=>filterPosition==='ALL'?rows:rows.filter(x=>filterPosition==='OTHER'?!knownPositions.includes(String(x.position||'').toUpperCase()):String(x.position).toUpperCase()===filterPosition);
    $('#teamTabBody').innerHTML=`<section class="fig-roster-dashboard">
     <div class="fig-roster-title"><div><span>CURRENT SLEEPER ROSTER</span><h2>${latest} TEAM ROSTER</h2></div><strong>${currentRoster.length} PLAYERS</strong></div>
     <div class="fig-roster-summary">${summary.map(m=>`<div class="fig-roster-stat"><span>${esc(m.label)}</span><strong>${esc(m.value)}</strong></div>`).join('')}</div>
     <div class="fig-roster-mix" aria-label="Roster players by position"><strong>POSITION MIX</strong>${rosterPositions.map(p=>`<span><b>${esc(p.pos)}</b> ${p.count}</span>`).join('')}</div>
-    <div class="fig-roster-position"><span>FILTER PLAYERS BY POSITION</span>${pills('rosterPos',['ALL','QB','RB','WR','TE','K','DEF'].map(pos=>({value:pos,label:pos})),filterPosition)}</div>
+    <div class="fig-roster-position"><span>FILTER PLAYERS BY POSITION</span>${pills('rosterPos',['ALL','QB','RB','WR','TE','K','DEF','OTHER'].map(pos=>({value:pos,label:pos})),filterPosition)}</div>
     <div class="fig-roster-boards">
      ${rosterGroup('STARTING LINEUP · '+visible(starter).length,visible(starter),'starters')}
      ${rosterGroup('BENCH · '+visible(bench).length,visible(bench),'bench')}
