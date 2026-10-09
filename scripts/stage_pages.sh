@@ -6,8 +6,21 @@ set -euo pipefail
 destination="${1:?Usage: bash scripts/stage_pages.sh OUTPUT_DIRECTORY}"
 mkdir -p "$destination"
 
-# The mobile filenames change as new site versions ship. Include them automatically.
-cp index.html app.js styles.css editorial-v74.css layout-v75.css layout-v76.css layout-v77.css player-headshots-v78.css playoffs-v79.css trade-contrast-v80.css record-fit-v81.css history-paging-v82.css h2h-v88.css h2h-playoffs-v90.css archive-explore-v91.css archive-mobile-fit-v92.css player-trades-v93.css league-detail-v94.css history-polish-v95.css mobile-*.css mobile-*.js live-matchups.css live-matchups.js manifest.webmanifest sw.js "$destination/"
+# Ship all site-root stylesheets and scripts. A manual allowlist silently
+# excluded newly added CSS (including the mobile trade archive redesign), even
+# though index.html correctly referenced the stylesheet.
+# Only static root-level CSS/JS is present; backend code stays under scripts/.
+cp index.html ./*.css ./*.js manifest.webmanifest sw.js "$destination/"
+
+# Fail publishing if the HTML references a root-level versioned asset that did
+# not make it into the artifact. This prevents future "deployed but unchanged" UI.
+while IFS= read -r asset; do
+  [[ -z "$asset" ]] && continue
+  if [[ ! -f "$destination/$asset" ]]; then
+    printf 'Missing published asset: %s\n' "$asset" >&2
+    exit 1
+  fi
+done < <(grep -oE '(href|src)="[^"]+\.(css|js)\?v=[0-9]+"' index.html | cut -d '"' -f 2 | cut -d '?' -f 1)
 cp -R data assets resources "$destination/"
 touch "$destination/.nojekyll"
 printf 'Staged FIG website in %s\n' "$destination"
