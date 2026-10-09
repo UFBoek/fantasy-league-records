@@ -890,15 +890,47 @@ async function team(id){
  };
 
  const renderRoster=()=>{
-   const starters=currentRoster.filter(x=>bool(x.is_starter));
-   const reserve=currentRoster.filter(x=>bool(x.is_reserve));
-   const taxi=currentRoster.filter(x=>bool(x.is_taxi));
-   const bench=currentRoster.filter(x=>!bool(x.is_starter)&&!bool(x.is_reserve)&&!bool(x.is_taxi));
-   const picksByYear={};currentPicks.forEach(x=>(picksByYear[x.pick_season]??=[]).push(x));
-   const picksHtml=Object.entries(picksByYear).map(([y,ps])=>`<div class="future-pick-year"><h3>${y} DRAFT PICKS</h3><div class="future-pick-list">${ps.map(p=>`<span class="future-pick"><b>R${p.round}</b><small>from ${displayOwnerName('',p.original_franchise_id)}</small>${raPickValuation(p.pick_season,p.round,p.original_franchise_id).value!==null?`<em class="ra-pick-value" title="${esc(raPickValuation(p.pick_season,p.round,p.original_franchise_id).label)}">~${money(raPickValuation(p.pick_season,p.round,p.original_franchise_id).value)}${+p.original_franchise_id===JAMES_PICK_ORIGIN?' ★':''}</em>`:''}</span>`).join('')}</div></div>`).join('');
-   $('#teamTabBody').innerHTML=`<section class="team-roster-panel"><div class="roster-panel-title"><div><span>CURRENT TEAM</span><h2>${latest} ROSTER</h2></div><small>${currentRoster.length} PLAYERS</small></div><div class="sleeper-roster-stack">${rosterGroup('STARTERS',starters,'starters')}${rosterGroup('BENCH',bench,'bench')}${rosterGroup('INJURED RESERVE',reserve,'reserve')}${rosterGroup('TAXI',taxi,'taxi')}</div></section><section class="future-picks-panel"><div class="section-head"><h2 class="section-title">FUTURE PICKS</h2><div class="section-note">Only undrafted classes. ★ James-origin picks use 2027 early; Hayden/Boek originals use own-year late.</div></div>${picksHtml||'<div class="snapshot-empty">No future picks found.</div>'}</section>`;
+  let filterPosition='ALL';
+  const starter=currentRoster.filter(x=>bool(x.is_starter));
+  const reserve=currentRoster.filter(x=>bool(x.is_reserve));
+  const taxi=currentRoster.filter(x=>bool(x.is_taxi));
+  const bench=currentRoster.filter(x=>!bool(x.is_starter)&&!bool(x.is_reserve)&&!bool(x.is_taxi));
+  const valued=currentRoster.map(x=>raPlayer(x.player_id)).filter(x=>x!==null&&Number.isFinite(+x));
+  const starterValue=starter.map(x=>raPlayer(x.player_id)).filter(x=>x!==null&&Number.isFinite(+x)).reduce((total,v)=>total+num(v),0);
+  const totalValue=valued.reduce((total,v)=>total+num(v),0);
+  const summary=[
+   {label:'STARTERS',value:starter.length},
+   {label:'BENCH',value:bench.length},
+   {label:'INJURED RESERVE',value:reserve.length},
+   {label:'TAXI',value:taxi.length},
+   {label:'PLAYERS VALUED',value:`${valued.length}/${currentRoster.length}`},
+   {label:'STARTER VALUE',value:money(starterValue)},
+   {label:'ROSTER VALUE',value:money(totalValue)}
+  ];
+  const picksByYear={};currentPicks.forEach(x=>(picksByYear[x.pick_season]??=[]).push(x));
+  const picksHtml=Object.entries(picksByYear).sort((a,b)=>+a[0]-+b[0]).map(([year,picks])=>`<div class="fig-roster-pick-year"><h3>${year} DRAFT PICKS <span>${picks.length}</span></h3><div class="fig-roster-picks-grid">
+    ${picks.map(p=>{const value=raPickValuation(p.pick_season,p.round,p.original_franchise_id);
+     return `<div class="fig-roster-pick"><span>ROUND ${p.round}</span><b>${esc(displayOwnerName('',p.original_franchise_id))} ORIGINAL</b>${value.value!==null?`<strong>~${money(value.value)} VALUE</strong>`:''}</div>`}).join('')}
+   </div></div>`).join('');
+  const draw=()=>{
+   const visible=rows=>filterPosition==='ALL'?rows:rows.filter(x=>String(x.position).toUpperCase()===filterPosition);
+   $('#teamTabBody').innerHTML=`<section class="fig-roster-dashboard">
+    <div class="fig-roster-title"><div><span>CURRENT SLEEPER ROSTER</span><h2>${latest} TEAM ROSTER</h2></div><strong>${currentRoster.length} PLAYERS</strong></div>
+    <div class="fig-roster-summary">${summary.map(m=>`<div class="fig-roster-stat"><span>${esc(m.label)}</span><strong>${esc(m.value)}</strong></div>`).join('')}</div>
+    <div class="fig-roster-position"><span>FILTER PLAYERS BY POSITION</span>${pills('rosterPos',['ALL','QB','RB','WR','TE','K','DEF'].map(pos=>({value:pos,label:pos})),filterPosition)}</div>
+    <div class="fig-roster-boards">
+     ${rosterGroup('STARTING LINEUP · '+visible(starter).length,visible(starter),'starters')}
+     ${rosterGroup('BENCH · '+visible(bench).length,visible(bench),'bench')}
+     ${rosterGroup('INJURED RESERVE · '+visible(reserve).length,visible(reserve),'reserve')}
+     ${rosterGroup('TAXI SQUAD · '+visible(taxi).length,visible(taxi),'taxi')}
+    </div>
+    <p class="fig-roster-value-note">Market values use the latest RosterAudit snapshot. Player totals exclude future picks; empty values are not estimated.</p>
+   </section>
+   <section class="fig-roster-picks-panel"><div class="fig-roster-picks-title"><h2>FUTURE DRAFT PICKS</h2><span>${currentPicks.length} PICKS</span></div>
+   ${picksHtml||'<div class="empty">No undrafted future picks found.</div>'}</section>`;
+   bindPills('rosterPos',v=>{filterPosition=v;draw()});
+  };draw();
  };
-
  const renderPlayers=()=>{
    let pos='ALL',q='';
    const draw=()=>{
