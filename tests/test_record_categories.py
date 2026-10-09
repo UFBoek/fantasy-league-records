@@ -35,4 +35,4 @@ class RemovedScoringAverageRecords(unittest.TestCase):
     def test_manifest_matches_record_count(self):
         manifest = json.loads((ROOT / 'data' / 'manifest.json').read_text())
         records = json.loads((ROOT / 'data' / 'records.json').read_text())
-        self.assertEqual(manifest['Records'], len(records))
+        self.assertEqual(manifest.get('records', manifest.get('Records')), len(records))

@@ -70,6 +70,25 @@ jobs:
             git restore -- data/rosteraudit_values.json
           fi
 
+      - name: Diagnose RosterAudit public pick response format
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from scripts.build_rosteraudit_values import get_json, parse_picks
+          try:
+              obj = get_json('picks')
+              print('RosterAudit public picks root type:', type(obj).__name__)
+              if isinstance(obj, dict):
+                  print('Root keys:', list(obj.keys())[:25])
+              elif isinstance(obj, list):
+                  print('Root list length:', len(obj))
+              print('Public response sample:', json.dumps(obj, ensure_ascii=False)[:1800])
+              print('Recognized SF pick tiers:', len(parse_picks(obj, 'sf')))
+          except Exception as exc:
+              print('Pick response diagnosis unavailable:', type(exc).__name__, exc)
+          PY
+
       - name: Validate the complete snapshot before publishing
         run: python scripts/validate_refresh.py
 
