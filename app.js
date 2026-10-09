@@ -886,7 +886,7 @@ async function team(id){
  const slotClass=x=>{const raw=String(x.lineup_slot||x.position||'bn').toLowerCase().replace('_','-');return `slot-${raw}`};
  const rosterGroup=(title,rows,kind)=>{
    const ordered=kind==='starters'?[...rows].sort((a,b)=>num(a.lineup_order)-num(b.lineup_order)):rosterSort(rows);
-   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
+   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'UNKNOWN')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
  };
 
  const renderRoster=()=>{
@@ -895,6 +895,8 @@ async function team(id){
   const reserve=currentRoster.filter(x=>bool(x.is_reserve));
   const taxi=currentRoster.filter(x=>bool(x.is_taxi));
   const bench=currentRoster.filter(x=>!bool(x.is_starter)&&!bool(x.is_reserve)&&!bool(x.is_taxi));
+  const knownPositions=['QB','RB','WR','TE','K','DEF'];
+  const rosterPositions=[...knownPositions,'OTHER'].map(pos=>({pos,count:currentRoster.filter(x=>pos==='OTHER'?!knownPositions.includes(String(x.position||'').toUpperCase()):String(x.position).toUpperCase()===pos).length})).filter(x=>x.count);
   const valued=currentRoster.map(x=>raPlayer(x.player_id)).filter(x=>x!==null&&Number.isFinite(+x));
   const starterValue=starter.map(x=>raPlayer(x.player_id)).filter(x=>x!==null&&Number.isFinite(+x)).reduce((total,v)=>total+num(v),0);
   const totalValue=valued.reduce((total,v)=>total+num(v),0);
@@ -913,11 +915,12 @@ async function team(id){
      return `<div class="fig-roster-pick"><span>ROUND ${p.round}</span><b>${esc(displayOwnerName('',p.original_franchise_id))} ORIGINAL</b>${value.value!==null?`<strong>~${money(value.value)} VALUE</strong>`:''}</div>`}).join('')}
    </div></div>`).join('');
   const draw=()=>{
-   const visible=rows=>filterPosition==='ALL'?rows:rows.filter(x=>String(x.position).toUpperCase()===filterPosition);
+   const visible=rows=>filterPosition==='ALL'?rows:rows.filter(x=>filterPosition==='OTHER'?!knownPositions.includes(String(x.position||'').toUpperCase()):String(x.position).toUpperCase()===filterPosition);
    $('#teamTabBody').innerHTML=`<section class="fig-roster-dashboard">
     <div class="fig-roster-title"><div><span>CURRENT SLEEPER ROSTER</span><h2>${latest} TEAM ROSTER</h2></div><strong>${currentRoster.length} PLAYERS</strong></div>
     <div class="fig-roster-summary">${summary.map(m=>`<div class="fig-roster-stat"><span>${esc(m.label)}</span><strong>${esc(m.value)}</strong></div>`).join('')}</div>
-    <div class="fig-roster-position"><span>FILTER PLAYERS BY POSITION</span>${pills('rosterPos',['ALL','QB','RB','WR','TE','K','DEF'].map(pos=>({value:pos,label:pos})),filterPosition)}</div>
+    <div class="fig-roster-mix" aria-label="Roster players by position"><strong>POSITION MIX</strong>${rosterPositions.map(p=>`<span><b>${esc(p.pos)}</b> ${p.count}</span>`).join('')}</div>
+    <div class="fig-roster-position"><span>FILTER PLAYERS BY POSITION</span>${pills('rosterPos',['ALL','QB','RB','WR','TE','K','DEF','OTHER'].map(pos=>({value:pos,label:pos})),filterPosition)}</div>
     <div class="fig-roster-boards">
      ${rosterGroup('STARTING LINEUP · '+visible(starter).length,visible(starter),'starters')}
      ${rosterGroup('BENCH · '+visible(bench).length,visible(bench),'bench')}
@@ -964,7 +967,7 @@ async function team(id){
    return `<a class="fig-season-preview" href="#/teamseason/${id}/${year}">
     <div class="fig-season-preview-head"><strong>${year}</strong><span>${z.season_complete?'FINAL':'IN PROGRESS'}</span></div>
     <div class="fig-season-preview-lead"><strong>${num(z.wins)}–${num(z.losses)}</strong><span>WIN % ${pct(z.win_pct)} · FINISH #${z.regular_season_finish||'—'}</span></div>
-    <div class="fig-season-preview-metrics"><div><small>POINTS FOR</small><b>${money(z.points_for)}</b></div><div><small>MAX PF</small><b>${money(z.max_pf)}</b></div><div><small>ALL-PLAY</small><b>${num(z.all_play_wins)}–${num(z.all_play_losses)}</b></div><div><small>HIGH WEEKS</small><b>${num(z.weekly_high_scores)}</b></div></div>
+    <div class="fig-season-preview-metrics"><div><small>POINTS FOR</small><b>${money(z.points_for)}</b></div><div><small>MAX PF</small><b>${money(z.max_pf)}</b></div><div><small>ALL-PLAY</small><b>${num(z.all_play_wins)}–${num(z.all_play_losses)}${num(z.all_play_ties)?'–'+num(z.all_play_ties):''}</b></div><div><small>HIGH WEEKS</small><b>${num(z.weekly_high_scores)}</b></div><div><small>AVG SCORE</small><b>${money(z.points_per_game)}</b></div><div><small>POINT DIFF</small><b>${num(z.point_differential)>0?'+':''}${money(z.point_differential)}</b></div></div>
     <div class="fig-season-preview-open">VIEW SEASON, OPPONENTS & GAMES →</div></a>`;
   }).join('');
   $('#teamTabBody').innerHTML=section('SEASON ARCHIVE',`<div class="fig-season-previews">${cards}</div>`,'Tap any year for detailed statistics, all-play against all nine teams, scoring leaders and every game.');
@@ -1177,7 +1180,8 @@ async function player(id){
  await load(['playerCareers','playerSeasons','franchiseCareer','playerLog','tradeAssets','trades','tradeSides']);navActive('players');const c=DATA.playerCareers.find(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined');if(!c){app.innerHTML='<div class="empty">Player not found.</div>';return}const seasons=DATA.playerSeasons.filter(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined').sort((a,b)=>+b.season-+a.season),fr=DATA.franchiseCareer.filter(x=>String(x.player_id)===String(id)).sort((a,b)=>b.total_starter_points-a.total_starter_points),logs=DATA.playerLog.filter(x=>String(x.player_id)===String(id));
  const exactBombs=(rows)=>{const b={b5:0,b20:0,b30:0,b40:0,b50:0};rows.forEach(r=>{const p=num(r.starter_points);if(p>=0&&p<10)b.b5++;if(p>=20&&p<30)b.b20++;if(p>=30&&p<40)b.b30++;if(p>=40&&p<50)b.b40++;if(p>=50)b.b50++});return b};
  const careerBombs=exactBombs(logs);
- app.innerHTML=hero('PLAYER ARCHIVE',esc(c.full_name),`${c.position} • ${c.starts} official starts • ${c.fantasy_franchises} fantasy franchise${c.fantasy_franchises===1?'':'s'}`,[{value:money(c.total_points),label:'CAREER POINTS'},{value:money(c.average_points),label:'PTS / START'},{value:money(c.highest_score),label:'BEST GAME'},{value:careerBombs.b30,label:'30 BOMBS'}]).replace('class="hero"','class="hero fig-player-profile-hero"').replace('</h1>',`</h1>${playerHeadshot(c.player_id,c.full_name,'fig-nfl-photo-large')}`);
+ const tradeCount=playerTradeEntries(c.player_id,DATA.tradeAssets,DATA.trades,DATA.tradeSides).length;
+ app.innerHTML=hero('PLAYER ARCHIVE',esc(c.full_name),`${c.position} • ${c.starts} official starts • ${c.fantasy_franchises} fantasy franchise${c.fantasy_franchises===1?'':'s'} • ${tradeCount} recorded trade${tradeCount===1?'':'s'}`,[{value:money(c.total_points),label:'CAREER POINTS'},{value:money(c.average_points),label:'PTS / START'},{value:money(c.highest_score),label:'BEST GAME'},{value:careerBombs.b30,label:'30 BOMBS'}]).replace('class="hero"','class="hero fig-player-profile-hero"').replace('</h1>',`</h1>${playerHeadshot(c.player_id,c.full_name,'fig-nfl-photo-large')}`);
  const frows=fr.map(x=>{const b=exactBombs(logs.filter(r=>+r.franchise_id===+x.franchise_id));return{team:ownerLink(x.owner_name,x.franchise_id),starts:x.starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_game),g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50,_sort:{team:displayOwnerName(x.owner_name,x.franchise_id),starts:x.starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_game,g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50}}});
  const srows=seasons.map(x=>({year:x.season,starts:x.starts,points:money(x.total_points),pps:money(x.average_points),best:money(x.highest_score),teams:x.fantasy_franchises,_sort:{year:x.season,starts:x.starts,points:x.total_points,pps:x.average_points,best:x.highest_score,teams:x.fantasy_franchises}}));
  const grows=logs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week).map(x=>({year:x.season,week:x.week,type:x.game_type,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.starter_points),_sort:{year:x.season,week:x.week,type:x.game_type,team:displayOwnerName(x.owner_name,x.franchise_id),points:x.starter_points}}));
@@ -1263,7 +1267,7 @@ async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseE
  const context=[];if(season!=='all')context.push(season);if(view!=='All-Time Combined')context.push(view);
  if(franchise!=='all')context.push(displayOwnerName('',franchise));
  const cards=logs.map((x,i)=>`<article class="fig-bomb-entry">
-   <span class="fig-bomb-rank" aria-label="Entry ${i+1}">#${i+1}</span>
+   <span class="fig-bomb-rank" aria-label="Performance ${i+1} of ${logs.length}">${String(i+1).padStart(2,'0')}</span>
    <div class="fig-bomb-owner">${ownerAvatar(x.franchise_id,'fig-bomb-avatar')}<div>
     <b>${esc(displayOwnerName(x.owner_name,x.franchise_id))}</b>
     <span>${esc(x.season)} · WEEK ${esc(x.week)} · ${x.game_type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</span>
@@ -1585,6 +1589,7 @@ async function gameDetail(season,week,matchup){
   <div class="fig-lineup-bench-team-title">${ownerAvatar(id,'fig-lineup-bench-avatar')}<span>${esc(displayOwnerName('',id))} · ${rows.length}</span></div>
   ${rows.map(x=>`<div class="fig-lineup-bench-entry"><span class="fig-lineup-bench-slot">${esc(x.lineup_slot||'BN')}</span>${fmtPlayer(x)}</div>`).join('')||'<div class="fig-lineup-bench-empty">No bench players recorded</div>'}
  </div>`;
+ const startA=a.reduce((sum,x)=>sum+num(x.fantasy_points),0),startB=b.reduce((sum,x)=>sum+num(x.fantasy_points),0);
  const margin=Math.abs(num(g.score_1)-num(g.score_2));
  const winner=num(g.score_1)===num(g.score_2)?'TIE':esc(displayOwnerName(g.winner_name,g.winner_franchise_id))+' WON BY '+money(margin);
  app.innerHTML=hero(`${esc(season)} · WEEK ${esc(week)}`,'MATCHUP LINEUPS',`${esc(g.game_type)} · FINAL · ${winner}`)+
@@ -1595,6 +1600,8 @@ async function gameDetail(season,week,matchup){
      <a href="#/team/${g.franchise_2}" class="fig-lineup-team">${ownerAvatar(g.franchise_2,'fig-lineup-owner-avatar')}<span>${esc(displayOwnerName(g.owner_2,g.franchise_2))}</span><strong>${money(g.score_2)}</strong></a>
    </div>
    <div class="fig-lineup-section-head"><h2>STARTING LINEUPS</h2><span>PLAYER vs PLAYER · BY SLOT</span></div>
+   <div class="fig-lineup-summary"><div><b>${a.length} STARTERS</b><strong>${money(startA)} PTS</strong></div><span>VS</span><div><b>${b.length} STARTERS</b><strong>${money(startB)} PTS</strong></div></div>
+   <p class="fig-lineup-guide">Starters are compared side by side in corresponding lineup slots. The bench is shown separately below.</p>
    <div class="fig-lineup-comparison">
     <div class="fig-lineup-side-label"><span>${esc(displayOwnerName(g.owner_1,g.franchise_1))}</span><span>POSITION</span><span>${esc(displayOwnerName(g.owner_2,g.franchise_2))}</span></div>
     ${lineups||'<div class="fig-lineup-bench-empty">Starter details unavailable for this matchup.</div>'}
@@ -1680,7 +1687,9 @@ async function breakdown(kind,...parts){
   return;
  }
  if(kind==='streak'){
-  await load(['games','standingsCareer']);const type=decodeURIComponent(parts[0]||''),mode=decodeURIComponent(parts[1]||'Career Games'),fid=+parts[2],ss=+parts[3],sw=+parts[4],es=+parts[5],ew=+parts[6];const owner=displayOwnerName('',fid);
+  await load(['games','standingsCareer','websiteStreaks']);const type=decodeURIComponent(parts[0]||''),mode=decodeURIComponent(parts[1]||'Career Games'),fid=+parts[2],ss=+parts[3],sw=+parts[4],es=+parts[5],ew=+parts[6];const owner=displayOwnerName('',fid);
+  const entry=(DATA.websiteStreaks||[]).find(s=>+s.franchise_id===fid&&s.streak_type===type&&s.streak_mode===mode&&+s.start_season===ss&&+s.start_week===sw&&+s.end_season===es&&+s.end_week===ew);
+  const isActive=entry&&(entry.active===true||String(entry.active).toLowerCase()==='true');
   const all=gamesForFranchise(fid,mode==='Regular Season'?'Regular Season':mode==='Playoffs'?'Playoffs':'All-Time Combined').filter(g=>{const k=num(g.season)*100+num(g.week);return k>=ss*100+sw&&k<=es*100+ew}).sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week));
   const gameCards=all.map((g,i)=>`<a class="fig-streak-game" href="#/game/${g.season}/${g.week}/${g.matchup_id}">
     <span class="fig-streak-game-index">#${i+1}</span>
@@ -1689,7 +1698,7 @@ async function breakdown(kind,...parts){
     <div class="fig-streak-game-result"><b>${money(g.pf)} – ${money(g.pa)}</b><span class="fig-season-outcome fig-season-${g.result.toLowerCase()}">${g.result}</span></div>
     <span class="fig-streak-game-open">VIEW LINEUPS →</span>
    </a>`).join('');
-  app.innerHTML=hero('STREAK BREAKDOWN',`${esc(owner)} • ${esc(type)}`,`${esc(mode)} • ${ss} W${sw} through ${es} W${ew} • ${all.length} qualifying completed games.`)+
+  app.innerHTML=hero(isActive?'ACTIVE STREAK':'STREAK BREAKDOWN',`${esc(owner)} • ${esc(type)}`,`${esc(mode)} • ${ss} W${sw} through ${es} W${ew} • ${all.length} qualifying completed games.`)+
    section('EVERY GAME IN THE STREAK',`<div class="fig-streak-games">${gameCards||'<div class="empty">No qualifying games found.</div>'}</div>`,'In playing order · select any matchup to see its starting lineups and bench.');return;
  }
  if(kind==='teamrecord'){

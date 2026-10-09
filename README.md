@@ -1,3 +1,16 @@
+## v95 — Readable player histories, richer team seasons and audited archive detail
+
+- **Player record breakdowns:** Performance cards use explicit, two-digit chronological entry numbers (`01`, `02`, `03`) in a small fixed rank badge. This avoids visually garbled rank symbols on narrow phones. Larger, higher-contrast manager labels and metadata, compact spacing and aligned points keep each performance clear.
+- **NFL player histories:** Trade history was added in v93 and is retained, with every Sleeper player-ID-matched completed trade, transfer direction, year/week and expandable full trade packages. The player overview now also states the number of recorded trades. Verified Travis Kelce's player ID `1466` has one archived transfer, 2026 Week 4, and the transaction is not double-counted.
+- **Team seasons:** The v94 season cards and tap-through season pages are retained. Each season card now displays six stats, adding average score and point differential alongside PF, Max PF, all-play W–L–T and high-scoring weeks. Tapping a season opens season metrics, all-play W–L–T against each of the other **nine teams**, expandable week scores, scoring leaders and archived games.
+- **Roster dashboard:** Current starters, bench, injured reserve, taxi, player values and future picks remain grouped. Add a readable position-mix summary and an **Other** filter, including the two archived roster entries with unusual/missing position values instead of omitting them.
+- **Active streaks:** Existing clickable active-streak records link to the individual completed games making up each run. The streak breakdown now labels active entries explicitly.
+- **Game lineups:** Existing v94 side-by-side starters by position and two-column bench rosters now also show the starters' summed points and counts above their head-to-head slot comparisons, plus clear viewing guidance. Readability and minimum-width mobile rules are refined down to a 360px display.
+- **Validation:** Travis Kelce player trade ID joins verified; all **40 team-season all-play totals** match the published data, and each team's season detail renders nine opponents. All **20 active streaks** reconcile exactly to the archived game counts. Synthetic matchup renders show two side-by-side starting slots, both bench teams and correct starter totals. Travis Kelce's qualifying 5-Bomb breakdown renders numbered entries 01, 02, 03, etc. Client JS, CSS balance, Pages staging and service-worker version checks passed.
+- **Safety:** No historical score, standings, season-complete filtering, Sleeper fetch cadence or data export changes. Files staged via `history-polish-v95.css?v=95`, `app.js?v=95` and `fig-league-shell-v95`. Mobile Safari visual QA remains after deployment.
+
+---
+
 ## v94 — Better team-season, roster, player and matchup archives
 
 - **Player bomb history:** The older mobile-converted sortable table created ambiguous/malformed numbers in the left-hand column (e.g. on Travis Kelce's 5 BOMBS page). Replace it with numbered, high-contrast performance cards showing clear **#1, #2, #3…** labels, the franchise photo, season/week, position and exact fantasy points.
