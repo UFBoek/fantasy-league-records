@@ -1,4 +1,4 @@
-"""Regression tests for weekly high-score and top-three league scoring streaks."""
+"""Regression tests for league scoring streaks, including weekly medians."""
 import json
 import sys
 import unittest
@@ -51,6 +51,34 @@ class ScoringStreakTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_scoring_streaks(week(2026, 4) + incomplete)
 
+
+    def test_median_split_and_strict_ties(self):
+        both = week(2024, 1) + week(2024, 2)
+        runs = build_scoring_streaks(both)
+        above = [x for x in runs if x["streak_type"] == "Above Median"]
+        below = [x for x in runs if x["streak_type"] == "Below Median"]
+        self.assertEqual({x["franchise_id"] for x in above}, set(range(1, 6)))
+        self.assertEqual({x["franchise_id"] for x in below}, set(range(6, 11)))
+        self.assertTrue(all(x["length"] == 2 and x["active"] for x in above + below))
+
+        tied = week(2024, 1) + week(2024, 2)
+        for row in tied:
+            row["points_for"] = 100
+        tied_runs = build_scoring_streaks(tied)
+        self.assertFalse([x for x in tied_runs if x["streak_type"] in ("Above Median", "Below Median")])
+
+    def test_median_run_crosses_seasons_and_breaks_on_reversal(self):
+        data = week(2025, 14) + week(2026, 1) + week(2026, 2)
+        for row in data:
+            if row["week"] == 2 and row["franchise_id"] == 1:
+                row["points_for"] = 0
+        runs = build_scoring_streaks(data)
+        prior = [x for x in runs if x["streak_type"] == "Above Median" and x["franchise_id"] == 1]
+        self.assertEqual(len(prior), 1)
+        self.assertEqual(prior[0]["length"], 2)
+        self.assertEqual((prior[0]["start_season"], prior[0]["end_season"]), ("2025", "2026"))
+        self.assertFalse(prior[0]["active"])
+
     def test_current_published_snapshot(self):
         ranks = json.loads((ROOT / "data/weekly_scoring_ranks.json").read_text())
         website = json.loads((ROOT / "data/website_streaks.json").read_text())
@@ -70,6 +98,9 @@ class ScoringStreakTests(unittest.TestCase):
     def test_ui_streak_details_load_rank_history(self):
         frontend = (ROOT / "app.js").read_text()
         self.assertIn("type==='Weekly High Score'||type==='Top-3 Scoring Weeks'",frontend)
+        self.assertIn("type==='Above Median'||type==='Below Median'",frontend)
+        self.assertIn("LEAGUE MEDIAN",frontend)
+        self.assertIn("medianByWeek.set(key,(scores[4]+scores[5])/2)",frontend)
         self.assertIn("'weeklyRanks'",frontend)
         self.assertIn("rankedWeeks.has(String(g.season)+'|'+String(g.week))",frontend)
         self.assertIn("LEAGUE RANK #",frontend)

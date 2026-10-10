@@ -1153,7 +1153,7 @@ async function streaks(){
  const types=[...new Set(career.map(x=>x.streak_type))].sort();
  const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:`<a class="fig-active-streak-link" href="#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}">${esc(x.streak_type)} <small>VIEW GAMES →</small></a>`,len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_href:`#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
  const orderedTypes=[...types].sort((a,b)=>{
-   const priority=t=>t==='Winning'?0:t==='Losing'?1:t==='Weekly High Score'?2:t==='Top-3 Scoring Weeks'?3:4;
+   const priority=t=>t==='Winning'?0:t==='Losing'?1:t==='Weekly High Score'?2:t==='Top-3 Scoring Weeks'?3:t==='Above Median'?4:t==='Below Median'?5:6;
    return priority(a)-priority(b)||a.localeCompare(b);
  });
  const topCards=orderedTypes.map((type,i)=>{
@@ -1163,7 +1163,7 @@ async function streaks(){
    const ranked=career.filter(x=>x.streak_type===type)
      .sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points));
    return recordPodiumCard({
-     title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type==='Weekly High Score'?'WEEKLY HIGH-SCORE STREAK':type==='Top-3 Scoring Weeks'?'TOP-3 SCORING STREAK':type.toUpperCase(),
+     title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type==='Weekly High Score'?'WEEKLY HIGH-SCORE STREAK':type==='Top-3 Scoring Weeks'?'TOP-3 SCORING STREAK':type==='Above Median'?'ABOVE-MEDIAN STREAK':type==='Below Median'?'BELOW-MEDIAN STREAK':type.toUpperCase(),
      badge:'STREAK RECORD',tone:['mint','coral','blue','gold'][i%4],
      href:`#/streak/${encodeURIComponent(type)}/Career%20Games`,
      leaders:ranked.map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)})),
@@ -2146,14 +2146,33 @@ async function breakdown(kind,...parts){
   await load(['games','standingsCareer','websiteStreaks','weeklyRanks']);const type=decodeURIComponent(parts[0]||''),mode=decodeURIComponent(parts[1]||'Career Games'),fid=+parts[2],ss=+parts[3],sw=+parts[4],es=+parts[5],ew=+parts[6];const owner=displayOwnerName('',fid);
   const entry=(DATA.websiteStreaks||[]).find(s=>+s.franchise_id===fid&&s.streak_type===type&&s.streak_mode===mode&&+s.start_season===ss&&+s.start_week===sw&&+s.end_season===es&&+s.end_week===ew);
   const isActive=entry&&(entry.active===true||String(entry.active).toLowerCase()==='true');
-  const scoringStreak=type==='Weekly High Score'||type==='Top-3 Scoring Weeks';
-  const rankedWeeks=new Map();
+  const medianStreak=type==='Above Median'||type==='Below Median';
+  const scoringStreak=medianStreak||type==='Weekly High Score'||type==='Top-3 Scoring Weeks';
+  const rankedWeeks=new Map(),medianByWeek=new Map();
+  if(medianStreak){
+   const scoresByWeek=new Map();
+   (DATA.weeklyRanks||[]).forEach(x=>{
+    const key=String(x.season)+'|'+String(x.week);
+    if(!scoresByWeek.has(key))scoresByWeek.set(key,[]);
+    scoresByWeek.get(key).push(num(x.points_for));
+   });
+   scoresByWeek.forEach((scores,key)=>{
+    if(scores.length!==10)return;
+    scores.sort((a,b)=>a-b);
+    medianByWeek.set(key,(scores[4]+scores[5])/2);
+   });
+  }
   if(scoringStreak){
    (DATA.weeklyRanks||[]).filter(x=>+x.franchise_id===fid).forEach(x=>{
+    const key=String(x.season)+'|'+String(x.week);
+    const median=medianByWeek.get(key);
     const meets=type==='Weekly High Score'?
      (x.weekly_high_score===true||String(x.weekly_high_score).toLowerCase()==='true'):
-     (x.weekly_top_3===true||String(x.weekly_top_3).toLowerCase()==='true');
-    if(meets)rankedWeeks.set(String(x.season)+'|'+String(x.week),Number(x.weekly_score_rank));
+     type==='Top-3 Scoring Weeks'?
+     (x.weekly_top_3===true||String(x.weekly_top_3).toLowerCase()==='true'):
+     type==='Above Median'?median!==undefined&&num(x.points_for)>median:
+     median!==undefined&&num(x.points_for)<median;
+    if(meets)rankedWeeks.set(key,Number(x.weekly_score_rank));
    });
   }
   const all=gamesForFranchise(fid,scoringStreak?'Regular Season':mode==='Regular Season'?'Regular Season':mode==='Playoffs'?'Playoffs':'All-Time Combined').filter(g=>{
@@ -2162,7 +2181,7 @@ async function breakdown(kind,...parts){
   }).sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week));
   const gameCards=all.map((g,i)=>`<a class="fig-streak-game" href="#/game/${g.season}/${g.week}/${g.matchup_id}">
     <span class="fig-streak-game-index">#${i+1}</span>
-    <div class="fig-streak-game-when"><b>${g.season} · WEEK ${g.week}</b><small>${scoringStreak?'LEAGUE RANK #'+rankedWeeks.get(String(g.season)+'|'+String(g.week)):g.type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</small></div>
+    <div class="fig-streak-game-when"><b>${g.season} · WEEK ${g.week}</b><small>${medianStreak?'LEAGUE MEDIAN '+money(medianByWeek.get(String(g.season)+'|'+String(g.week))):scoringStreak?'LEAGUE RANK #'+rankedWeeks.get(String(g.season)+'|'+String(g.week)):g.type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</small></div>
     <div class="fig-streak-game-opponent">${ownerAvatar(g.oppId,'fig-streak-game-avatar')}<span>VS <b>${esc(displayOwnerName(g.opp,g.oppId))}</b></span></div>
     <div class="fig-streak-game-result"><b>${money(g.pf)} – ${money(g.pa)}</b><span class="fig-season-outcome fig-season-${g.result.toLowerCase()}">${g.result}</span></div>
     <span class="fig-streak-game-open">VIEW LINEUPS →</span>

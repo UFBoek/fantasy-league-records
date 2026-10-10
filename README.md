@@ -1,3 +1,13 @@
+## v126 — Above/below weekly median streak records
+
+- Added **Above-Median Streak** and **Below-Median Streak** based on a franchise's completed regular-season score versus the ten-team weekly scoring median (average of the 5th and 6th ranked scores).
+- Only strictly higher/lower scores qualify. Exact median ties qualify for neither; unfinished weeks and playoff weeks are excluded.
+- Two or more consecutive qualifying weeks create a streak. The last regular-season week and next season's Week 1 are consecutive for career streak purposes; missing week data breaks runs.
+- Both have the existing Streaks podiums, full historical and active run leaderboards, team highlights, and click-through matchup/lineup breakdowns showing the weekly median.
+- Recalculated the historical archive and added automated rebuilding and median-specific regression cases. Previously implemented high-score, top-three, and 30-bomb records are retained.
+
+---
+
 ## v125 — Weekly scoring streak records
 
 - Added **Weekly High Score** and **Top-3 Scoring Weeks** as genuine franchise scoring streaks. The first requires weekly league rank #1; the second requires rank #1–3, for at least two consecutive completed regular-season weeks.

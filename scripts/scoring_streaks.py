@@ -10,6 +10,8 @@ from collections import defaultdict
 SCORING_STREAK_FIELDS = {
     "Weekly High Score": "weekly_high_score",
     "Top-3 Scoring Weeks": "weekly_top_3",
+    "Above Median": None,
+    "Below Median": None,
 }
 FRANCHISE_IDS = frozenset(range(1, 11))
 
@@ -28,7 +30,7 @@ def _next_week(previous, current):
 
 
 def build_scoring_streaks(weekly_ranks, owner_names=None):
-    """Generate length >= 2 runs of #1 and top-three league-wide weekly finishes."""
+    """Generate consecutive league-rank and above/below-median streaks."""
     owner_names = owner_names or {}
     weeks = defaultdict(dict)
     for item in weekly_ranks:
@@ -45,6 +47,13 @@ def build_scoring_streaks(weekly_ranks, owner_names=None):
     for key, franchises in weeks.items():
         if set(franchises) != FRANCHISE_IDS:
             raise ValueError(f"Incomplete weekly scoring leaderboard for {key}")
+
+    # Ten franchises: median is the mean of the 5th and 6th highest
+    # scores. A score exactly equal to the median is neither above nor below.
+    medians = {}
+    for key, franchises in weeks.items():
+        scores = sorted(float(x["points_for"]) for x in franchises.values())
+        medians[key] = (scores[4] + scores[5]) / 2
 
     ordered_weeks = sorted(weeks)
     latest = ordered_weeks[-1]
@@ -83,7 +92,13 @@ def build_scoring_streaks(weekly_ranks, owner_names=None):
                     flush()
                     run = []
                 row = weeks[week_key][franchise]
-                if _true(row.get(field)):
+                if field is not None:
+                    qualifies = _true(row.get(field))
+                elif streak_type == "Above Median":
+                    qualifies = float(row["points_for"]) > medians[week_key]
+                else:
+                    qualifies = float(row["points_for"]) < medians[week_key]
+                if qualifies:
                     run.append(row)
                 else:
                     flush()
