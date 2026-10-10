@@ -1700,13 +1700,13 @@ async function draft(selectedYear){
  if(!years.length){app.innerHTML=hero('LEAGUE ARCHIVE','DRAFT RANKINGS','')+'<div class="empty">No draft history available.</div>';return}
  const year=years.includes(String(selectedYear))?String(selectedYear):'all';
  const startup=year==='2023';
- const scoped=year==='all'?all:all.filter(x=>String(x.draft_season)===year);
+ const scoped=year==='all'?all.filter(x=>String(x.draft_season)!=='2023'):all.filter(x=>String(x.draft_season)===year);
  const picks=scoped.slice().sort((a,b)=>+a.pick_no-+b.pick_no);
  const origins=figDraftAuditMap(DATA.draftAudit||[]);
  const total=figDraftGradeSummary(scoped);
  const counts=new Map(years.map(y=>[y,all.filter(x=>String(x.draft_season)===y).length]));
  const nav='<nav class="fig-draft-rank-nav" aria-label="Draft ranking seasons">'+
-  '<a class="fig-draft-rank-year'+(year==='all'?' active':'')+'" href="#/draft">ALL-TIME</a>'+
+  '<a class="fig-draft-rank-year'+(year==='all'?' active':'')+'" href="#/draft">ALL ROOKIES</a>'+
   years.filter(y=>y!=='2023').map(y=>'<a class="fig-draft-rank-year'+(year===y?' active':'')+'" href="#/draft/'+encodeURIComponent(y)+'">'+esc(y)+' ROOKIES</a>').join('')+
   (years.includes('2023')?'<a class="fig-draft-rank-year fig-draft-startup-filter'+(startup?' active':'')+'" href="#/draft/2023">2023 STARTUP</a>':'')+'</nav>';
  const byTeam=Array.from({length:10},(_,i)=>i+1).map(id=>{
@@ -1736,7 +1736,7 @@ async function draft(selectedYear){
   if(!host)return;
   host.innerHTML=sorted.map((t,i)=>{
    const z=t.grade,visible=z.valued>0;
-   return '<a class="fig-draft-rank-row" href="#/team/'+t.id+'/drafts'+(year==='all'?'':'/'+encodeURIComponent(year))+'">'+
+   return '<a class="fig-draft-rank-row" href="#/draft/team/'+t.id+(year==='all'?'':'/'+encodeURIComponent(year))+'">'+
     '<span class="fig-draft-rank-place">'+(i+1)+'</span>'+
     ownerAvatar(t.id,'fig-draft-rank-avatar')+
     '<span class="fig-draft-rank-info"><strong>'+esc(t.name)+'</strong>'+
@@ -1763,13 +1763,23 @@ async function draft(selectedYear){
      '<div class="fig-draft-focus-person">'+playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
       '<small>'+esc(pick.position||pick.draft_position||'—')+' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
      '<div class="fig-draft-focus-pick-owner">'+ownerAvatar(id,'fig-draft-focus-owner-avatar')+
-      '<span><a href="#/team/'+id+'/drafts/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>'+
+      '<span><a href="#/draft/team/'+id+'/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>'+
       '<small>'+(origin&&origin!==id?'Originally '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'Drafting franchise')+'</small></span></div>'+
       figDraftGradeStrip(pick)+'</article>';
    }).join('')+'</div></section>';
  }).join('');
  const jumps=rounds.length>4?'<nav class="fig-draft-focus-round-links" aria-label="Jump to draft round"><span>ROUND</span>'+
   rounds.map(r=>'<button type="button" data-round="'+r+'">'+r+'</button>').join('')+'</nav>':'';
+ if(startup){
+  app.innerHTML=hero('FOUNDING DRAFT','2023 STARTUP','')+
+   '<div class="fig-draft-archive fig-draft-focus fig-draft-rank-page">'+nav+
+   '<section class="fig-draft-startup-only"><div><h2>2023 STARTUP DRAFT</h2><span>250 PICKS · 25 ROUNDS</span></div>'+
+   '<div class="fig-draft-startup-only-board">'+jumps+'<div class="fig-draft-focus-board">'+board+'</div></div></section></div>';
+  $$('.fig-draft-focus-round-links button').forEach(button=>{
+   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  return;
+ }
  const boardDetail=year==='all'?'':'<details class="fig-draft-rank-board"><summary><span><strong>COMPLETE '+year+(startup?' STARTUP':' ROOKIE')+' DRAFT BOARD</strong>'+
   '<small>'+picks.length+' selections · '+rounds.length+' rounds</small></span><span>VIEW PICKS ▾</span></summary>'+
   '<div class="fig-draft-rank-board-body">'+jumps+'<div class="fig-draft-focus-board">'+board+'</div></div></details>';
@@ -1777,7 +1787,7 @@ async function draft(selectedYear){
   '<div class="fig-draft-archive fig-draft-focus fig-draft-rank-page">'+nav+
   '<section class="fig-draft-rank-main"><div class="fig-draft-rank-head"><div><span class="eyebrow">'+(year==='all'?'ALL SEASONS':startup?'FOUNDING STARTUP':'ROOKIE DRAFT')+'</span>'+
    '<h2>TEAM DRAFT VALUE RANKINGS</h2>'+
-   '<small>'+scoped.length+' picks · '+total.valued+' valued'+(year==='all'||startup?' · 2023 slots provisional':'')+'</small></div>'+
+   '<small>'+scoped.length+' picks · '+total.valued+' valued</small></div>'+
    '<div class="fig-draft-rank-overall"><b>'+money(total.current)+'</b><small>LEAGUE DRAFT VALUE</small></div></div>'+
   '<div class="fig-draft-rank-toolbar"><span>SORT BY</span>'+
    metricOptions.map(([value,label])=>'<button type="button" class="fig-draft-rank-sort'+(value==='value'?' active':'')+'" data-sort="'+value+'" aria-pressed="'+(value==='value'?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
@@ -2173,7 +2183,7 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft(parts[1]);else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft'){if(parts[1]==='team')await draftTeamRanking(parts[2],parts[3]);else await draft(parts[1]);}else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
