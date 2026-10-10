@@ -103,3 +103,12 @@
  .fig-draft-team-pick-numbers small{font-size:7px}
  .fig-draft-team-pick-grade{font-size:17px;padding:8px 3px}
 }
+
+
+/* v120 — Show numeric average return in team grading and ranking tiles. */
+.fig-draft-grade-overview-score strong.fig-avg-return{font:900 clamp(18px,2.2vw,26px)/1.12 Inter,system-ui,sans-serif;color:#20583a;max-width:100%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.fig-draft-rank-metrics b.fig-draft-rank-avg-return{font-size:12px;line-height:1.2;color:#255b3e;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:740px){
+ .fig-draft-rank-metrics b.fig-draft-rank-avg-return{font-size:10px}
+ .fig-draft-grade-overview-score strong.fig-avg-return{font-size:clamp(17px,4vw,24px)}
+}
