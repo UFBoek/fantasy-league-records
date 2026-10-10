@@ -1,3 +1,20 @@
+## v117 — Rankings-first draft archive and new S–F grading with startup projections
+
+- The Draft page is now **Draft Rankings**. It ranks all ten teams by the current value of players they personally drafted, defaulting to current value with working options for value gain, return % and average grade. Season filters include all-time, each 2024–26 rookie draft, and the separate 2023 startup. Every ranking links to the selected franchise’s draft history, and each annual board remains available via an expandable full-board view.
+- Individual FIG draft grades now combine the player's current market standing and the absolute gain above slot cost; no longer grade A/B based on return percentage alone. Rules:
+  - S: market value >= 6,500 and gain >= 3,000.
+  - A: market value >= 2,300 and gain >= 1,400.
+  - B: market value >= 1,100 and gain >= 400.
+  - C: market value >= 300 and gain >= 0, OR value >= 800 and at least 80% of slot retained.
+  - F: value <= 50, OR value below 20% of slot value where initial slot >= 400.
+  - D: other valued selections. Unavailable market values: ungraded.
+- Representative verified player examples: Brock Bowers S (1.07 in 2024); Bucky Irving A (4.06 in 2024); Braelon Allen C (4.09 in 2024).
+- Startup grades cover all 250 picks from 2023. The 25-round startup pick-slot value curve is **PROVISIONAL**, not approved league data: round-one pick 1.01 starts at 9,500, then uses a monotone interpolated round-based scale down to roughly 185 at 25.10. The explicit 26 round anchor values are in app.js as FIG_STARTUP_SLOT_ANCHORS and should be replaced or calibrated after league discussion. Missing market values (88 of 250) are not graded or assigned invented zero values.
+- Team grade summaries are mean grade point scores (S=5, A=4, B=3, C=2, D=1, F=0) over valued selections; value gain and return % are computed only for the selections with current market values. All drafted values belong to the franchise that originally made the selection, rather than current fantasy roster holders.
+- Existing normal rookie slot costs remain unchanged; James-origin future draft pick special prices continue to apply exclusively to Dynasty Values.
+
+---
+
 ## v116 — Dynasty-only fixed values for James-origin future picks, simplified captions
 
 - **Draft grades:** Every manager, including James, receives the standard rookie slot benchmark for the actual 1.01–4.10 selection. No manager-specific overrides affect grade letters or draft-class grades.
