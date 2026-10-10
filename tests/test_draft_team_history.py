@@ -82,10 +82,22 @@ class DraftByFranchiseTests(unittest.TestCase):
 
     def test_frontend_includes_routed_team_draft_history(self):
         app = (ROOT / "app.js").read_text(encoding="utf-8")
-        self.assertIn("async function draft(selectedYear,subview,selectedTeam)", app)
-        self.assertIn("await draft(parts[1],parts[2],parts[3])", app)
-        self.assertIn("DRAFT HISTORY BY FRANCHISE", app)
-        self.assertIn("ORIGINAL PICKS DRAFTED BY OTHER TEAMS", app)
+        self.assertIn("async function draft(selectedYear)", app)
+        self.assertIn("await draft(parts[1])", app)
+        self.assertIn("async function team(id,selectedTab,selectedDraftYear)", app)
+        self.assertIn("await team(parts[1],parts[2],parts[3])", app)
+        self.assertIn('data-tab="drafts">DRAFT HISTORY', app)
+        self.assertIn("ALL YEARS", app)
+        self.assertIn("SELECT A FRANCHISE", app)
+        self.assertIn("figDraftFranchiseHistory(id,selectedDraftYear)", app)
+        self.assertIn("figDraftTeamTotals(all,+id,origins)", app)
+        self.assertIn("ROSTERAUDIT DRAFT GRADES", app)
+        self.assertIn("RA CURRENT VALUE", app)
+        self.assertIn("franchise_starter_points", app)
+        self.assertIn("ORIGINAL PICKS USED BY OTHER TEAMS", app)
+        # We do not invent RosterAudit provider letter grades from live
+        # player market values; their documented API does not expose grades.
+        self.assertIn("not a historical draft grade", app)
 
 
 if __name__ == "__main__":
