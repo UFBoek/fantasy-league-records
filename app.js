@@ -1579,7 +1579,7 @@ function figDraftGradeLetter(current,slot,pick){
  if(current>=6500&&gain>=3000)return 'S';
  if(current>=2300&&gain>=1400)return 'A';
  if((current>=1100&&gain>=400)||(String(pick?.draft_class||'').toLowerCase()==='rookie'&&+pick.round>=3&&+pick.round<=4&&current>=550&&gain>=200))return 'B';
- if((current>=300&&gain>=0)||(current>=800&&ratio>=.8))return 'C';
+ if((current>=300&&gain>=0)||(current>=800&&ratio>=.8)||(Number(pick?.round)>=3&&Number(pick?.round)<=4&&gain>0))return 'C';
  if(current<=50||ratio<.2&&slot>=400)return 'F';
  return 'D';
 }
