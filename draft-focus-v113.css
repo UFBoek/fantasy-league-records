@@ -20,8 +20,8 @@
 .fig-draft-focus-teams>.fig-draft-franchise-grid{padding:14px}
 .fig-draft-focus-round-links{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #dbe7de;border-radius:11px;padding:10px 13px;overflow-x:auto;scrollbar-width:thin}
 .fig-draft-focus-round-links span{flex:none;font:900 10px/1.3 Inter,system-ui,sans-serif;color:#547362;margin-right:7px}
-.fig-draft-focus-round-links a{flex:none;min-width:28px;text-align:center;border-radius:7px;padding:8px 9px;background:#ecf5ee;color:#25583b;text-decoration:none;font:900 11px/1.2 Inter,system-ui,sans-serif}
-.fig-draft-focus-round-links a:hover{background:#285c3f;color:#fff}
+.fig-draft-focus-round-links button{flex:none;min-width:28px;text-align:center;border-radius:7px;padding:8px 9px;background:#ecf5ee;color:#25583b;text-decoration:none;font:900 11px/1.2 Inter,system-ui,sans-serif}
+.fig-draft-focus-round-links button:hover{background:#285c3f;color:#fff}
 .fig-draft-focus-board{display:grid;gap:16px}
 .fig-draft-focus-round{padding:18px;background:#fff;border:1px solid #dbe7de;border-radius:13px;scroll-margin-top:25px}
 .fig-draft-focus-round-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #e0eae3}
@@ -47,3 +47,6 @@
 .fig-draft-focus a:focus-visible,.fig-draft-focus summary:focus-visible{outline:3px solid #378759;outline-offset:3px}
 @media(max-width:840px){.fig-draft-focus-picks{grid-template-columns:1fr}}
 @media(max-width:690px){.fig-draft-focus{gap:10px}.fig-draft-focus-years{gap:5px;padding:9px}.fig-draft-focus-years a{flex:1 1 0;min-width:0;padding:9px 4px}.fig-draft-focus-years a strong{font-size:16px}.fig-draft-focus-years a small{font-size:8px}.fig-draft-focus-header{padding:14px}.fig-draft-focus-header h2{font-size:29px}.fig-draft-focus-header .fig-draft-board-badge{display:none}.fig-draft-focus-teams summary{padding:12px}.fig-draft-focus-teams summary>span:last-child{font-size:9px}.fig-draft-focus-round{padding:12px}.fig-draft-focus-round-heading h3{font-size:17px}.fig-draft-focus-pick{grid-template-columns:64px minmax(0,1fr);padding:9px;gap:7px 8px}.fig-draft-focus-pick-no b{font-size:15px}.fig-draft-focus-pick-no small{font-size:8px}.fig-draft-focus-person .fig-draft-player-link .fig-nfl-photo{width:35px;height:35px;flex-basis:35px}.fig-draft-focus-person .fig-draft-player-link .fig-player-person-name{font-size:12px}.fig-draft-focus-person>small{padding-left:43px;font-size:9px}}
+
+.fig-draft-focus-round-links button{border:0;cursor:pointer}
+.fig-draft-focus-round-links button:focus-visible{outline:3px solid #378759;outline-offset:3px}
