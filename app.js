@@ -841,9 +841,9 @@ async function teams(){
 }
 
 
-async function team(id){
+async function team(id,selectedTab,selectedDraftYear){
  id=+id;
- await load(['standingsCareer','teamSeasonMaster','franchiseCareer','positions','currentRoster','currentPicks','websiteStreaks','teamSeasonTop3','completedAccomplishments','singleSeasonRecords','records','playerLog','games','weeklyRanks','raValues','draftPicks']);
+ await load(['standingsCareer','teamSeasonMaster','franchiseCareer','positions','currentRoster','currentPicks','websiteStreaks','teamSeasonTop3','completedAccomplishments','singleSeasonRecords','records','playerLog','games','weeklyRanks','raValues','draftPicks','draftAudit','draftValue']);
  navActive('teams');
  const c=DATA.standingsCareer.find(x=>+x.franchise_id===id);
  if(!c){app.innerHTML='<div class="empty">Unknown franchise.</div>';return}
@@ -920,7 +920,7 @@ async function team(id){
   {label:'TOP-3 WEEKS',value:meWeekly.top3,rank:rankValue(weeklyCareerRows,id,x=>num(x.top3)),accent:'coral'}
  ];
  const careerStatsHtml=careerStats.map(x=>`<div class="team-stat-tile stat-${x.accent}"><span>${x.label}</span><strong>${x.value}</strong>${x.rank?`<em>RANK: #${x.rank}</em>`:''}</div>`).join('');
- const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button></div></section><div id="teamTabBody"></div>`;
+ const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button><button data-tab="drafts">DRAFT HISTORY</button></div></section><div id="teamTabBody"></div>`;
  app.innerHTML=teamHeader;
 
  const rosterSort=(rows)=>{
@@ -1021,9 +1021,15 @@ async function team(id){
 
  const renderPositions=()=>{const rows=DATA.positions.filter(x=>+x.franchise_id===id).map(x=>({pos:x.position,players:x.unique_players_started,starts:x.total_starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_single_game),_sort:{pos:x.position,players:x.unique_players_started,starts:x.total_starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_single_game}}));$('#teamTabBody').innerHTML=section('POSITION HISTORY',sortableTable([{label:'POS',key:'pos'},{label:'PLAYERS',key:'players'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'}],rows))};
 
- const renderers={records:renderRecords,roster:renderRoster,players:renderPlayers,seasons:renderSeasons};
+ const renderDrafts=()=>{
+   $('#teamTabBody').innerHTML=figDraftFranchiseHistory(id,selectedDraftYear);
+ };
+ const renderers={records:renderRecords,roster:renderRoster,players:renderPlayers,seasons:renderSeasons,drafts:renderDrafts};
  $$('#teamTabs button').forEach(b=>b.onclick=()=>{$$('#teamTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderers[b.dataset.tab]()});
- renderRecords();
+ const initialTab=selectedTab==='drafts'?'drafts':'records';
+ const chosen=$('#teamTabs button[data-tab="'+initialTab+'"]');
+ if(chosen){$('#teamTabs button').forEach(x=>x.classList.toggle('active',x===chosen));}
+ renderers[initialTab]();
 }
 
 
@@ -1999,7 +2005,7 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft(parts[1]);else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft(parts[1]);else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
