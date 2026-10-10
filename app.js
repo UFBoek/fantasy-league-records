@@ -1588,11 +1588,13 @@ function figDraftFranchiseHistory(id,preferredYear){
  const valued=teamPicks.map(x=>raPlayers[String(x.player_id)]?.value).filter(x=>Number.isFinite(+x));
  const currentMarketTotal=valued.reduce((v,x)=>v+Number(x),0);
  const valueTimestamp=ra.updated_at?new Date(ra.updated_at).toLocaleDateString():'last available refresh';
- const legend='<div class="fig-team-draft-note"><strong>How to read the grades and values</strong>'+
-   '<p><a href="https://rosteraudit.com/draft-grades/" target="_blank" rel="noopener noreferrer">RosterAudit Draft Grades ↗</a> scores draft decisions against player value at the time. Its official letter grades are not included in its published API, so they are not reproduced here. <b>RA current value</b> is a live market estimate, not a draft-day grade. <b>Production</b> is actual starter points scored for the franchise that drafted the player, as captured in completed fantasy weeks.</p></div>';
+ const legend='<div class="fig-team-draft-note"><strong>FIG rookie draft grade system</strong>'+
+   '<p>Our draft grades reflect current player value divided by league-assigned rookie slot value, not draft-day value. A: at least 150%, B: 110–149%, C: 80–109%, D: 50–79%, F: below 50%. Unvalued players stay ungraded. James’s rookie selections use fixed values by round (6,300 / 1,600 / 464 / 146). The 2023 startup draft has no rookie grades. Production means completed-week fantasy starter points.</p></div>';
  const yearLinks='<nav class="fig-team-draft-filter" aria-label="Filter draft history by year">'+
    '<a href="#/team/'+id+'/drafts"'+(!selected?' class="active"':'')+'>ALL YEARS</a>'+
-   years.map(y=>'<a href="#/team/'+id+'/drafts/'+y+'"'+(selected===y?' class="active"':'')+'>'+y+'</a>').join('')+'</nav>';
+   '<span class="fig-team-draft-filter-label">ROOKIE</span>'+
+   years.filter(y=>y!=='2023').map(y=>'<a href="#/team/'+id+'/drafts/'+y+'"'+(selected===y?' class="active"':'')+'>'+y+'</a>').join('')+
+   (years.includes('2023')?'<span class="fig-team-draft-filter-label">STARTUP</span><a href="#/team/'+id+'/drafts/2023"'+(selected==='2023'?' class="active"':'')+'>2023</a>':'')+'</nav>';
  const totals='<div class="fig-team-draft-metrics">'+
    [['TOTAL PICKS MADE',stats.owned.length],['ACQUIRED PICKS USED',stats.acquired.length],
     ['FANTASY STARTS FROM PICKS',careerStarts],['STARTER POINTS FROM PICKS',money(careerPoints)]].map(([label,val])=>
@@ -1605,12 +1607,15 @@ function figDraftFranchiseHistory(id,preferredYear){
   const pickedMetrics=yearPicks.map(x=>valueMap.get(String(x.draft_id)+'|'+String(x.pick_no))).filter(Boolean);
   const starts=pickedMetrics.reduce((n,x)=>n+Number(x.franchise_starts||0),0);
   const pts=pickedMetrics.reduce((n,x)=>n+Number(x.franchise_starter_points||0),0);
+  const yearGrade=figDraftGradeSummary(yearPicks);
+  const startup=year==='2023';
   const rounds=[...new Set(yearPicks.map(x=>+x.round))].sort((a,b)=>a-b);
   const originalCount=tradedAway.length;
   return '<section class="fig-team-draft-year"><div class="fig-team-draft-year-top"><div><span>'+esc(yearPicks[0]?.draft_class||otherPicks[0]?.draft_class||'Draft')+' DRAFT</span>'+
      '<h3>'+year+' · '+esc(OWNER_DISPLAY_BY_ID[+id])+'</h3></div><a href="#/draft/'+year+'">FULL '+year+' BOARD ↗</a></div>'+
     '<div class="fig-team-draft-year-figures"><span><b>'+yearPicks.length+'</b> selections</span><span><b>'+acquired.length+'</b> acquired picks</span>'+
-     '<span><b>'+starts+'</b> franchise starts</span><span><b>'+money(pts)+'</b> points produced</span></div>'+
+     '<span><b>'+starts+'</b> franchise starts</span><span><b>'+money(pts)+'</b> points produced</span>'+ 
+     (startup?'<span>STARTUP · NOT GRADED</span>':'<span class="fig-draft-year-grade"><b>'+esc(yearGrade.letter)+'</b> FIG GRADE · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED</span>')+'</div>'+
     (rounds.map(round=>'<div class="fig-team-draft-round"><h4>ROUND '+round+'</h4>'+
       yearPicks.filter(x=>+x.round===round).map(pick=>{
        const key=String(pick.draft_id)+'|'+String(pick.pick_no),prod=valueMap.get(key)||{};
@@ -1623,7 +1628,7 @@ function figDraftFranchiseHistory(id,preferredYear){
         '<span>'+esc(pick.position||pick.draft_position||'')+' · '+esc(pick.draft_nfl_team||'')+note+'</span></div>'+
         '<div class="fig-team-draft-pick-values"><div><b>'+(raValue!=null&&Number.isFinite(+raValue)?money(raValue):'—')+'</b><small>RA CURRENT VALUE</small></div>'+
         '<div><b>'+money(prod.franchise_starter_points||0)+'</b><small>FRANCHISE PTS</small></div>'+
-        '<div><b>'+num(prod.franchise_starts||0)+'</b><small>FANTASY STARTS</small></div></div></article>';
+        '<div><b>'+num(prod.franchise_starts||0)+'</b><small>FANTASY STARTS</small></div></div>'+figDraftGradeStrip(pick)+'</article>';
       }).join('')+'</div>').join('')||'<p class="fig-team-draft-none">No selections made in this draft. This does not remove the year from the franchise history.</p>')+
     '<details class="fig-team-draft-traded"><summary>ORIGINAL PICKS USED BY OTHER TEAMS ('+originalCount+')</summary>'+
       (tradedAway.map(x=>'<div class="fig-team-draft-gone"><b>'+esc(figDraftPickLabel(x))+'</b> · '+
@@ -1633,10 +1638,10 @@ function figDraftFranchiseHistory(id,preferredYear){
  }).join('');
  return '<section class="fig-team-draft-history"><div class="fig-team-draft-intro">'+
   '<div><h2>FRANCHISE DRAFT HISTORY</h2><p>Every pick '+esc(OWNER_DISPLAY_BY_ID[+id])+' made, across the entire league archive. Selections are attributed to the franchise that drafted each player, even when that pick was acquired in a trade.</p></div>'+
-  '<a href="https://rosteraudit.com/draft-grades/" target="_blank" rel="noopener noreferrer">OPEN ROSTERAUDIT DRAFT GRADES ↗</a></div>'+
-  totals+
+  '</div>'+ 
+  totals+figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS')+
   '<div class="fig-team-draft-market"><div><strong>'+money(currentMarketTotal)+'</strong><span>COMBINED CURRENT RA VALUE OF VALUED PICKS</span></div>'+
-  '<p>'+valued.length+' of '+teamPicks.length+' selections have a current RosterAudit player value · snapshot '+esc(valueTimestamp)+'. This total is not a historical draft grade and excludes players without an available current value.</p></div>'+
+  '<p>'+valued.length+' of '+teamPicks.length+' selections have a current RosterAudit player value · snapshot '+esc(valueTimestamp)+'. This includes startup picks; FIG rookie grades do not. Missing player values are never estimated.</p></div>'+
   legend+yearLinks+classes+'</section>';
 }
 async function draft(selectedYear){
