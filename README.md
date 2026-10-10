@@ -1,3 +1,13 @@
+## v125 — Weekly scoring streak records
+
+- Added **Weekly High Score** and **Top-3 Scoring Weeks** as genuine franchise scoring streaks. The first requires weekly league rank #1; the second requires rank #1–3, for at least two consecutive completed regular-season weeks.
+- Carries an unbroken run from a season's final regular-season week to Week 1 of the next season (matching other career streaks); missing weekly standings or an unqualified week ends the streak. Playoff games never count towards weekly rankings.
+- Added 31 verified historical streak runs from the existing 2023–2026 official scoring rank snapshots. Complete leaderboards, active streak tracking, franchise snapshots, and game-by-game drilldowns all reuse the existing Streaks UI. Drilldowns show each week's league rank and open the matchup and lineup.
+- The rebuild now regenerates these additional streaks from official completed regular-season rankings with ten-team integrity checking; unfinished live scores are excluded.
+- Removed no other streaks or 30-bomb records.
+
+---
+
 ## v124 — Third- and fourth-round rookie picks returning 200% earn B or higher
 
 - Any round-three or round-four rookie pick with current value at least 2× its FIG draft-slot cost receives a minimum B, including lower-value late picks.

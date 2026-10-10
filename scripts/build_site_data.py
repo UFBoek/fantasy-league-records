@@ -22555,6 +22555,19 @@ website_streaks_df = (
     )
 )
 
+# Merge weekly ranking streaks into the existing public streak archive.
+# Ranking rows are completed regular-season weeks only, including the
+# requirement that all ten franchises have official scores each week.
+from scoring_streaks import build_scoring_streaks
+weekly_scoring_streaks = build_scoring_streaks(
+    weekly_scoring_rank_df.to_dict("records"),
+    owner_names=name_lookup,
+)
+website_streaks_df = pd.concat(
+    [website_streaks_df, pd.DataFrame(weekly_scoring_streaks)],
+    ignore_index=True,
+)
+
 
 # ============================================================
 # 28. CURRENT FUTURE DRAFT PICKS
