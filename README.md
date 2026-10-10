@@ -1,3 +1,15 @@
+## v115 — Separate startup and rookie drafts; league-defined slot value grades
+
+- The Draft tab isolates the 2023 founding startup (250 picks, 25 rounds) from the 2024–2026 rookie draft selector (40 picks per year). Complete boards and team-specific histories remain linked.
+- All 40 rookie pick slots (1.01–4.10) have custom value benchmarks set by the league; James selections always use round-based slot values: 6,300 / 1,600 / 464 / 146, regardless of their position within the round.
+- FIG letter grades measure current RosterAudit player market value divided by the original league-assigned rookie slot value: A ≥150%, B ≥110%, C ≥80%, D ≥50%, F below 50%. A missing current value means an ungraded pick rather than assuming zero. Combined grades use sums for only the picks with available current values, alongside coverage counts. Grades are current-value snapshots, not historical draft-day grades.
+- Startup picks are explicitly ungraded, and the old external RosterAudit draft-grades link is removed. Independent RosterAudit player market-value attribution remains.
+- Correct the source draft-label bug where overall picks 11–20 were rendered as 2.11–2.20 instead of 2.01–2.10; all displayed draft round slots now normalize to 01–10.
+- Verified all ten team profiles and draft histories, the four complete annual draft boards (370 selections), all 40 slot benchmarks and each of James’s four round overrides; six rookie picks have unavailable current value.
+- No source draft data, league scoring, Sleeper automation, trade history, record calculations, or RosterAudit ingestion altered. App and service-worker cache advance to v115.
+
+---
+
 ## v113 — Team navigation restored; Draft tab now prioritizes full draft boards
 
 - **Critical navigation repair:** Team tab activation now uses the correct all-element selector, allowing every franchise card to open its profile again.
