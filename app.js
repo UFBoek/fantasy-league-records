@@ -429,13 +429,25 @@ function raPickValuation(year,round,originalFranchiseId){
   label:`${originalName?`${originalName}-origin pick · `:''}${sourceDescription}`
  };
 }
+// FIG dynasty-only valuation for James-origin FUTURE picks. Historical trades
+// retain their existing market-comparable logic.
+const FIG_JAMES_DYNASTY_FUTURE_ROUNDS=[6300,1600,464,146];
+function raDynastyPickValuation(year,round,originalFranchiseId){
+ const r=Number(round),origin=Number(originalFranchiseId);
+ if(origin===JAMES_PICK_ORIGIN&&Number.isInteger(r)&&r>=1&&r<=4){
+  return {value:FIG_JAMES_DYNASTY_FUTURE_ROUNDS[r-1],tier:'league',isJames:true,
+   isLateOrigin:false,sourceYear:null,isProxy:false,
+   label:'James original · Round '+r+' · FIG fixed dynasty value'};
+ }
+ return raPickValuation(year,round,originalFranchiseId);
+}
 const raValueText=n=>n===null||n===undefined?'Not valued':money(n);
 function raTeamData(id){
  const roster=[...new Map((DATA.currentRoster||[]).filter(x=>+x.franchise_id===+id).map(x=>[String(x.player_id),x])).values()];
  const draftYear=Math.max(2026,...(DATA.draftPicks||[]).filter(x=>x.draft_status==='complete'&&x.draft_type==='rookie').map(x=>+x.draft_season));
  const picks=(DATA.currentPicks||[]).filter(x=>+x.current_franchise_id===+id&&+x.pick_season>draftYear);
  const known=roster.map(x=>raPlayer(x.player_id)).filter(x=>x!==null);
- const knownPickValues=picks.map(x=>raPickValuation(x.pick_season,x.round,x.original_franchise_id).value).filter(x=>x!==null);
+ const knownPickValues=picks.map(x=>raDynastyPickValuation(x.pick_season,x.round,x.original_franchise_id).value).filter(x=>x!==null);
  const playerValue=known.reduce((s,x)=>s+x,0),pickValue=knownPickValues.reduce((s,x)=>s+x,0);
  return {roster,picks,playersMatched:known.length,picksMatched:knownPickValues.length,playerValue,pickValue,knownTotal:playerValue+pickValue,allValued:known.length===roster.length&&knownPickValues.length===picks.length};
 }
@@ -957,7 +969,7 @@ async function team(id,selectedTab,selectedDraftYear){
   ];
   const picksByYear={};currentPicks.forEach(x=>(picksByYear[x.pick_season]??=[]).push(x));
   const picksHtml=Object.entries(picksByYear).sort((a,b)=>+a[0]-+b[0]).map(([year,picks])=>`<div class="fig-roster-pick-year"><h3>${year} DRAFT PICKS <span>${picks.length}</span></h3><div class="fig-roster-picks-grid">
-    ${picks.map(p=>{const value=raPickValuation(p.pick_season,p.round,p.original_franchise_id);
+    ${picks.map(p=>{const value=raDynastyPickValuation(p.pick_season,p.round,p.original_franchise_id);
      return `<div class="fig-roster-pick"><span>ROUND ${p.round}</span><b>${esc(displayOwnerName('',p.original_franchise_id))} ORIGINAL</b>${value.value!==null?`<strong>~${money(value.value)} VALUE</strong>`:''}</div>`}).join('')}
    </div></div>`).join('');
   const draw=()=>{
@@ -973,7 +985,7 @@ async function team(id,selectedTab,selectedDraftYear){
      ${rosterGroup('INJURED RESERVE · '+visible(reserve).length,visible(reserve),'reserve')}
      ${rosterGroup('TAXI SQUAD · '+visible(taxi).length,visible(taxi),'taxi')}
     </div>
-    <p class="fig-roster-value-note">Market values use the latest RosterAudit snapshot. Player totals exclude future picks; empty values are not estimated.</p>
+    <p class="fig-roster-value-note">RosterAudit snapshot · Future picks shown separately</p>
    </section>
    <section class="fig-roster-picks-panel"><div class="fig-roster-picks-title"><h2>FUTURE DRAFT PICKS</h2><span>${currentPicks.length} PICKS</span></div>
    ${picksHtml||'<div class="empty">No undrafted future picks found.</div>'}</section>`;
@@ -1016,7 +1028,7 @@ async function team(id,selectedTab,selectedDraftYear){
     <div class="fig-season-preview-metrics"><div><small>POINTS FOR</small><b>${money(z.points_for)}</b></div><div><small>MAX PF</small><b>${money(z.max_pf)}</b></div><div><small>ALL-PLAY</small><b>${num(z.all_play_wins)}–${num(z.all_play_losses)}${num(z.all_play_ties)?'–'+num(z.all_play_ties):''}</b></div><div><small>HIGH WEEKS</small><b>${num(z.weekly_high_scores)}</b></div><div><small>AVG SCORE</small><b>${money(z.points_per_game)}</b></div><div><small>POINT DIFF</small><b>${num(z.point_differential)>0?'+':''}${money(z.point_differential)}</b></div></div>
     <div class="fig-season-preview-open">VIEW SEASON, OPPONENTS & GAMES →</div></a>`;
   }).join('');
-  $('#teamTabBody').innerHTML=section('SEASON ARCHIVE',`<div class="fig-season-previews">${cards}</div>`,'Tap any year for detailed statistics, all-play against all nine teams, scoring leaders and every game.');
+  $('#teamTabBody').innerHTML=section('SEASON ARCHIVE',`<div class="fig-season-previews">${cards}</div>`);
  };
 
  const renderPositions=()=>{const rows=DATA.positions.filter(x=>+x.franchise_id===id).map(x=>({pos:x.position,players:x.unique_players_started,starts:x.total_starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_single_game),_sort:{pos:x.position,players:x.unique_players_started,starts:x.total_starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_single_game}}));$('#teamTabBody').innerHTML=section('POSITION HISTORY',sortableTable([{label:'POS',key:'pos'},{label:'PLAYERS',key:'players'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'}],rows))};
@@ -1160,7 +1172,7 @@ async function streaks(){
  }).join('');
  app.innerHTML=hero('STREAK ARCHIVE','STREAKS','Active runs and the league records that actually matter.')+
  section('ACTIVE STREAKS',activeRows.length?sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'TYPE',key:'type'},{label:'LENGTH',key:'len'},{label:'START',key:'start'},{label:'LAST',key:'last'}],activeRows):'<div class="empty">No active qualifying streaks.</div>')+
- section('ALL-TIME STREAK RECORDS',`<div class="fig-podium-grid fig-streak-gallery">${topCards}</div>`,'Records belong here · select a category for the complete history');
+ section('ALL-TIME STREAK RECORDS',`<div class="fig-podium-grid fig-streak-gallery">${topCards}</div>`,'');
 }
 
 
@@ -1327,7 +1339,7 @@ async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseE
    <div class="fig-bomb-points"><strong>${money(x.starter_points)}</strong><small>POINTS · ${esc(x.position)}</small></div>
   </article>`).join('');
  app.innerHTML=hero('PLAYER BOMB BREAKDOWN',`${esc(playerName)} • ${esc(bomb)}`,`${context.length?context.join(' • ')+' • ':''}${logs.length} qualifying started performances.`)+
-  section('EVERY BOMB',`<div class="fig-bomb-list">${cards||'<div class="empty">No qualifying performances.</div>'}</div>`,'Each number is the entry in this selected history, newest first.');
+  section('EVERY BOMB',`<div class="fig-bomb-list">${cards||'<div class="empty">No qualifying performances.</div>'}</div>`,'');
 }
 
 function h2hAllPlayPair(games,a,b) {
@@ -1471,7 +1483,7 @@ async function matchupHistory(a,b){
  app.innerHTML=hero('RIVALRY ARCHIVE',`${esc(nameA.toUpperCase())} VS ${esc(nameB.toUpperCase())}`,'Historical records from the first team’s perspective. All-play includes regular-season weeks and playoff weeks when both teams played.')+
   `<section class="section fig-h2h-detail"><a class="fig-h2h-back" href="#/h2h">← ALL HEAD-TO-HEAD RIVALRIES</a>${summary}</section>`+
   section('ALL-PLAY BY SEASON',`<div class="fig-h2h-seasons">${seasons}</div>`,'Compare shared regular-season weeks and playoff weeks when both teams played, even if they did not meet directly.')+
-  section('ACTUAL MATCHUP HISTORY',`<div class="fig-h2h-game-legend"><b>${esc(nameA)}</b> score <span>—</span> <b>${esc(nameB)}</b> score</div><div class="fig-h2h-games">${matches||'<p>No official meetings yet.</p>'}</div>`,'Tap a game to view the archived lineups and scores.');
+  section('ACTUAL MATCHUP HISTORY',`<div class="fig-h2h-game-legend"><b>${esc(nameA)}</b> score <span>—</span> <b>${esc(nameB)}</b> score</div><div class="fig-h2h-games">${matches||'<p>No official meetings yet.</p>'}</div>`,'');
 }
 
 
@@ -1540,13 +1552,11 @@ const FIG_ROOKIE_SLOT_VALUES=[
  [464,423,381,340,300,270,240,210,189,168],
  [146,125,121,118,114,110,105,102,98,95]
 ];
-const FIG_JAMES_ROOKIE_VALUES=[6300,1600,464,146];
 function figDraftSlotValue(pick){
  if(String(pick?.draft_season)==='2023'||String(pick?.draft_class||'').toLowerCase()!=='rookie')return null;
  const round=Number(pick.round),slot=figDraftRoundSlot(pick);
  if(!Number.isInteger(round)||round<1||round>4||!Number.isInteger(slot)||slot<1||slot>10)return null;
- // The James override follows the *drafting team*, not the original pick holder.
- return +pick.franchise_id===10?FIG_JAMES_ROOKIE_VALUES[round-1]:FIG_ROOKIE_SLOT_VALUES[round-1][slot-1];
+ return FIG_ROOKIE_SLOT_VALUES[round-1][slot-1];
 }
 function figDraftGradeLetter(ratio){
  if(ratio===null||!Number.isFinite(ratio))return '—';
@@ -1557,7 +1567,7 @@ function figDraftGrade(pick){
  if(slot===null)return null;
  const current=raPlayer(pick.player_id);
  const ratio=current===null?null:current/slot;
- return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(ratio),james:+pick.franchise_id===10};
+ return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(ratio)};
 }
 function figDraftGradeStrip(pick){
  const z=figDraftGrade(pick);
@@ -1565,7 +1575,7 @@ function figDraftGradeStrip(pick){
  const valid=z.current!==null;
  return '<div class="fig-draft-grade-strip '+(valid?'grade-'+z.letter.toLowerCase():'grade-unknown')+'">'+
   '<span class="fig-draft-grade-letter"><b>'+esc(z.letter)+'</b><small>FIG GRADE</small></span>'+
-  '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE'+(z.james?' · JAMES':'')+'</small></span>'+
+  '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE</small></span>'+
   '<span><b>'+(valid?money(z.current):'—')+'</b><small>CURRENT VALUE</small></span>'+
   '<span><b>'+(valid?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE CHANGE</small></span>'+
   '<span><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>VALUE RETAINED</small></span></div>';
@@ -1580,7 +1590,7 @@ function figDraftGradeOverview(picks,label){
  const z=figDraftGradeSummary(picks);
  return '<div class="fig-draft-grade-overview"><div class="fig-draft-grade-overview-intro">'+
   '<span>FIG LEAGUE DRAFT GRADES</span><h3>'+esc(label)+'</h3>'+
-  '<p>We compare each rookie selection’s current player market value with its original draft-slot value. A ≥150%, B 110–149%, C 80–109%, D 50–79%, F below 50%. Picks without available current values remain ungraded.</p></div>'+
+  '<p>Current value ÷ slot value · A ≥150% · B ≥110% · C ≥80% · D ≥50% · F below 50%.</p></div>'+
   '<div class="fig-draft-grade-overview-score"><strong>'+esc(z.letter)+'</strong><span>COMBINED GRADE</span>'+
   '<small>'+(z.ratio!==null?Math.round(z.ratio*100)+'% value retained':'Awaiting values')+'</small></div>'+
   '<div class="fig-draft-grade-overview-stats"><span><b>'+money(z.slot)+'</b> GRADED SLOT VALUE</span>'+
@@ -1603,7 +1613,7 @@ function figDraftFranchiseHistory(id,preferredYear){
  const currentMarketTotal=valued.reduce((v,x)=>v+Number(x),0);
  const valueTimestamp=ra.updated_at?new Date(ra.updated_at).toLocaleDateString():'last available refresh';
  const legend='<div class="fig-team-draft-note"><strong>FIG rookie draft grade system</strong>'+
-   '<p>Our draft grades reflect current player value divided by league-assigned rookie slot value, not draft-day value. A: at least 150%, B: 110–149%, C: 80–109%, D: 50–79%, F: below 50%. Unvalued players stay ungraded. James’s rookie selections use fixed values by round (6,300 / 1,600 / 464 / 146). The 2023 startup draft has no rookie grades. Production means completed-week fantasy starter points.</p></div>';
+   '<p>All teams use normal draft-slot values. Missing values stay ungraded; 2023 startup picks are separate.</p></div>';
  const yearLinks='<nav class="fig-team-draft-filter" aria-label="Filter draft history by year">'+
    '<a href="#/team/'+id+'/drafts"'+(!selected?' class="active"':'')+'>ALL YEARS</a>'+
    '<span class="fig-team-draft-filter-label">ROOKIE</span>'+
@@ -1651,11 +1661,11 @@ function figDraftFranchiseHistory(id,preferredYear){
        '<p>No original picks from this year are confirmed as used by other teams.</p>')+'</details></section>';
  }).join('');
  return '<section class="fig-team-draft-history"><div class="fig-team-draft-intro">'+
-  '<div><h2>FRANCHISE DRAFT HISTORY</h2><p>Every pick '+esc(OWNER_DISPLAY_BY_ID[+id])+' made, across the entire league archive. Selections are attributed to the franchise that drafted each player, even when that pick was acquired in a trade.</p></div>'+
+  '<div><h2>FRANCHISE DRAFT HISTORY</h2><p>All draft selections by '+esc(OWNER_DISPLAY_BY_ID[+id])+'.</p></div>'+
   '</div>'+ 
-  totals+(selected==='2023'?'<div class="fig-draft-startup-notice"><strong>STARTUP ARCHIVE · UNGRADED</strong><p>2023 selections are separate from the rookie-grade system. The rookie slot scale does not apply to the founding draft.</p></div>':figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS'))+
+  totals+(selected==='2023'?'<div class="fig-draft-startup-notice"><strong>STARTUP ARCHIVE · UNGRADED</strong><p>2023 startup picks are not graded.</p></div>':figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS'))+
   '<div class="fig-team-draft-market"><div><strong>'+money(currentMarketTotal)+'</strong><span>COMBINED CURRENT RA VALUE OF VALUED PICKS</span></div>'+
-  '<p>'+valued.length+' of '+teamPicks.length+' selections have a current RosterAudit player value · snapshot '+esc(valueTimestamp)+'. This includes startup picks; FIG rookie grades do not. Missing player values are never estimated.</p></div>'+
+  '<p>'+valued.length+'/'+teamPicks.length+' valued · '+esc(valueTimestamp)+' · Includes startup</p></div>'+
   legend+yearLinks+classes+'</section>';
 }
 async function draft(selectedYear){
@@ -1705,7 +1715,7 @@ async function draft(selectedYear){
    }).join('')+'</div></section>';
  }).join('');
  const intro=startup?'<div class="fig-draft-startup-notice"><strong>2023 FOUNDING STARTUP DRAFT</strong>'+
-  '<p>This full 25-round startup draft has its own archive. Rookie slot value benchmarks do not apply, so no rookie draft grades are assigned to these picks.</p></div>':
+  '<p>25 rounds · Startup picks are ungraded.</p></div>':
    figDraftGradeOverview(picks,'LEAGUE-WIDE '+year+' ROOKIE DRAFT RETURNS');
  app.innerHTML=hero('WAR ROOM','THE DRAFT','Browse the complete rookie draft boards and our league draft grades. The 2023 founding startup is archived separately.')+
   '<div class="fig-draft-archive fig-draft-focus">'+tabs+
@@ -1714,11 +1724,11 @@ async function draft(selectedYear){
    '<p>'+picks.length+' selections · '+rounds.length+' rounds · 10 franchises</p></div>'+
    '<span class="fig-draft-board-badge">COMPLETE DRAFT</span></div>'+
   '<details class="fig-draft-focus-teams"><summary><span><strong>EXPLORE BY FRANCHISE</strong>'+
-   '<small>Optional: open a team’s draft history in the Teams tab</small></span>'+
+   '<small>Team draft history</small></span>'+
    '<span>CHOOSE A TEAM ▾</span></summary>'+
    '<div class="fig-draft-franchise-grid">'+teamCards+'</div></details>'+
   intro+jumps+'<div class="fig-draft-focus-board">'+board+'</div>'+
-  '<p class="fig-draft-focus-endnote">FIG rookie grades are based on the current market value snapshot, which changes over time. Player values are sourced from RosterAudit; grade rules and slot benchmarks are defined by the league.</p>'+
+  '<p class="fig-draft-focus-endnote">Player values: RosterAudit · Rookie grades: FIG</p>'+
   '</div>';
  $$('.fig-draft-focus-round-links button').forEach(button=>{
   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1737,7 +1747,7 @@ async function trades(){
 }
 async function dynastyValues(){
  await load(['raValues','currentRoster','currentPicks','draftPicks','standingsCareer']);navActive('dynasty');
- const explanation=`<p class="ra-explain">${esc(raFormat())} · Updated ${esc(raDate())} · ${raCredit()}</p>`;
+ const explanation=`<p class="ra-explain">James-origin future picks: FIG round values · ${esc(raDate())} · ${raCredit()}</p>`;
  if(!raReady()){
   app.innerHTML=hero('CURRENT DYNASTY MARKET','ROSTER VALUES','')+section('LEAGUE RANKINGS',`<div class="ra-pending"><strong>Waiting for first RosterAudit update</strong><p>The GitHub Actions job will retrieve live values and populate this leaderboard after deployment. No values are fabricated.</p>${raCredit()}</div>`);
   return;
@@ -1843,9 +1853,9 @@ async function teamSeason(teamId,year){
  app.innerHTML=hero('TEAM SEASON',`${esc(displayOwnerName(team.owner_name,fid))} • ${esc(season)}`,`${summary.season_complete?'COMPLETED SEASON':'SEASON IN PROGRESS'} · #${summary.regular_season_finish||'—'} REGULAR-SEASON FINISH`)+
   `<div class="fig-season-back"><a href="#/team/${fid}">← BACK TO TEAM PROFILE</a></div>`+
   section('SEASON AT A GLANCE',statsHtml,'Official regular-season statistics. Playoffs appear in the game log below.')+
-  section('ALL-PLAY VS EVERY TEAM',`<p class="fig-season-explainer">How this team scored against each opponent in the same completed regular-season weeks — even when they were not scheduled to face each other. Tap a team to inspect every comparison.</p><div class="fig-season-opponents">${pairCards}</div>`,'Regular season only · ranked by all-play win percentage')+
-  section('SEASON SCORING LEADERS',`<div class="fig-season-players">${playerCards||'<div class="empty">No finished starts yet.</div>'}</div>`,'Official starting lineup points')+
-  section('EVERY GAME',`<div class="fig-season-games">${gameCards||'<div class="empty">No completed games yet.</div>'}</div>`,'Regular season and playoff games · tap for full lineups');
+  section('ALL-PLAY VS EVERY TEAM',`<p class="fig-season-explainer">How this team scored against each opponent in the same completed regular-season weeks — even when they were not scheduled to face each other. Tap a team to inspect every comparison.</p><div class="fig-season-opponents">${pairCards}</div>`,'Regular season only')+
+  section('SEASON SCORING LEADERS',`<div class="fig-season-players">${playerCards||'<div class="empty">No finished starts yet.</div>'}</div>`,'')+
+  section('EVERY GAME',`<div class="fig-season-games">${gameCards||'<div class="empty">No completed games yet.</div>'}</div>`,'');
 }
 async function gameDetail(season,week,matchup){
  await load(['allGames','weeklyRosters']);navActive('');
