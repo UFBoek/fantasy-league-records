@@ -1,3 +1,13 @@
+## v116 — Dynasty-only fixed values for James-origin future picks, simplified captions
+
+- **Draft grades:** Every manager, including James, receives the standard rookie slot benchmark for the actual 1.01–4.10 selection. No manager-specific overrides affect grade letters or draft-class grades.
+- **Dynasty Values:** James-origin future picks have fixed league valuations per round: first 6,300; second 1,600; third 464; fourth 146. These values apply regardless of which franchise currently owns the James-origin pick and flow through franchise rankings and future-pick lists.
+- **Separation:** Historical trade market comparable logic remains unchanged; the dynasty-only override does not rewrite historical trade valuations.
+- **Readability:** Reduced repetitive descriptions, footnotes, and captions on draft, team season, roster and record views. The essential grade formula and market-value attribution remain visible.
+- **Validation:** Checked James's actual 2026 selection at 1.04 against 3,940 for grades and his 2027 original first-round future pick at 6,300 for Dynasty Values. All 10 team profiles and all 4 draft boards render, and existing recorded selections remain intact.
+
+---
+
 ## v115 — Separate startup and rookie drafts; league-defined slot value grades
 
 - The Draft tab isolates the 2023 founding startup (250 picks, 25 rounds) from the 2024–2026 rookie draft selector (40 picks per year). Complete boards and team-specific histories remain linked.
