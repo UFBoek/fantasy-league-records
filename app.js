@@ -1469,9 +1469,115 @@ async function matchupHistory(a,b){
 }
 
 
-async function draft(){
- await load(['draftPicks']);navActive('draft');const years=[...new Set(DATA.draftPicks.map(x=>x.draft_season))].sort((a,b)=>b-a);let year=years[0];app.innerHTML=hero('WAR ROOM','THE DRAFT','Startup history and every official rookie pick. Click a year instead of digging through a dropdown.')+`<section class="section">${pills('draftYears',years.map(y=>({value:y,label:y})),year)}<div id="draftBody" class="control-output"></div></section>`;
- const render=()=>{const picks=DATA.draftPicks.filter(x=>String(x.draft_season)===String(year)).sort((a,b)=>a.pick_no-b.pick_no),rounds=[...new Set(picks.map(x=>x.round))];$('#draftBody').innerHTML=rounds.map(r=>`<div class="record-category"><h3>ROUND ${r}</h3><div class="draft-board">${picks.filter(x=>x.round===r).map(x=>`<a class="draft-pick clickable" href="#/team/${x.franchise_id}"><div class="pick">${x.pick_label}</div><div class="player fig-draft-player">${playerHeadshot(x.player_id,x.player_name)}<span>${esc(x.player_name)}</span></div><div class="owner">${ownerName(x.owner_name,x.franchise_id)}</div><div class="position">${x.position} • ${esc(x.draft_nfl_team||'')}</div></a>`).join('')}</div></div>`).join('')};bindPills('draftYears',v=>{year=v;render()});render();
+// Draft selections are credited to the fantasy franchise that actually MADE
+// each pick, not its original pick-slot holder. The separate audit resolves
+// original ownership for traded rookie choices (and supported startup picks).
+function figDraftAuditMap(rows){
+ const map=new Map();
+ for(const row of rows||[]){
+  const key=String(row.draft_id)+'|'+String(row.pick_no);
+  if(row.resolution_status==='DIRECT_DRAFT_SLOT_MATCH'||
+     row.resolution_status==='UNIQUE_OWNER_ROUND_MATCH'){
+   const original=Number(row.original_franchise);
+   if(Number.isInteger(original)&&original>=1&&original<=10)map.set(key,original);
+  }
+ }
+ return map;
+}
+function figDraftOriginal(pick,map){
+ return map.get(String(pick.draft_id)+'|'+String(pick.pick_no))||null;
+}
+function figDraftTeamTotals(picks,teamId,origins){
+ const owned=picks.filter(x=>+x.franchise_id===teamId);
+ const acquired=owned.filter(x=>figDraftOriginal(x,origins)!==null&&figDraftOriginal(x,origins)!==teamId);
+ const sent=picks.filter(x=>figDraftOriginal(x,origins)===teamId&&+x.franchise_id!==teamId);
+ return {owned,acquired,sent};
+}
+function figDraftPlayerName(x){return String(x.draft_full_name||x.player_name||'Unknown selection')}
+function figDraftPickLabel(x){return String(x.pick_label||('Round '+x.round+' · Overall '+x.pick_no))}
+function figDraftPersonRow(pick,originals,includeTeam=false){
+ const player=figDraftPlayerName(pick),by=Number(pick.franchise_id),original=figDraftOriginal(pick,originals);
+ const different=original&&original!==by;
+ return '<div class="fig-draft-selection">'+
+  '<div class="fig-draft-selection-num"><strong>'+esc(figDraftPickLabel(pick))+'</strong><span>OVERALL #'+esc(pick.pick_no)+'</span></div>'+
+  '<div class="fig-draft-selection-main">'+
+    playerLink(String(pick.player_id||''),player,'fig-draft-player-link')+
+    '<div class="fig-draft-selection-meta">'+esc(pick.position||pick.draft_position||'—')+
+    ' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+
+    (different?' · <span class="fig-draft-pick-traded">ORIG. '+esc(OWNER_DISPLAY_BY_ID[original])+'</span>':'')+
+    (includeTeam?' · SELECTED BY '+esc(OWNER_DISPLAY_BY_ID[by]):'')+
+    '</div></div>'+
+  (includeTeam?'<a class="fig-draft-selection-team" href="#/draft/'+encodeURIComponent(pick.draft_season)+'/team/'+by+'">VIEW '+esc(OWNER_DISPLAY_BY_ID[by])+' ›</a>':
+    '<a class="fig-draft-selection-team" href="#/player/'+encodeURIComponent(pick.player_id||'')+'">PLAYER ›</a>')+
+ '</div>';
+}
+async function draft(selectedYear,subview,selectedTeam){
+ await load(['draftPicks','draftAudit']);navActive('draft');
+ const all=DATA.draftPicks||[];
+ const years=[...new Set(all.map(x=>String(x.draft_season)))].sort((a,b)=>Number(b)-Number(a));
+ if(!years.length){app.innerHTML=hero('WAR ROOM','THE DRAFT','')+'<div class="empty">No completed drafts have been archived.</div>';return}
+ const year=years.includes(String(selectedYear))?String(selectedYear):years[0];
+ const picks=all.filter(x=>String(x.draft_season)===year).sort((a,b)=>Number(a.pick_no)-Number(b.pick_no));
+ const origins=figDraftAuditMap(DATA.draftAudit);
+ const teamId=subview==='team'?Number(selectedTeam):null;
+ const selected=Number.isInteger(teamId)&&teamId>=1&&teamId<=10?teamId:null;
+ const franchise=Array.from({length:10},(_,i)=>i+1);
+ const draftType=picks[0]?.draft_class||'Draft';
+ const yearTabs='<div class="fig-draft-year-tabs" role="group" aria-label="Select draft season">'+
+  years.map(y=>'<a class="'+(y===year?'active':'')+'" href="#/draft/'+y+(selected?'/team/'+selected:'')+'">'+y+'</a>').join('')+'</div>';
+ const teamTiles=franchise.map(id=>{
+  const stats=figDraftTeamTotals(picks,id,origins);
+  return '<a class="fig-draft-team-tile'+(selected===id?' active':'')+'" href="#/draft/'+year+'/team/'+id+'">'+
+    ownerAvatar(id,'fig-draft-team-avatar')+
+    '<span class="fig-draft-team-copy"><strong>'+esc(OWNER_DISPLAY_BY_ID[id])+'</strong>'+
+      '<small>'+stats.owned.length+' PICK'+(stats.owned.length===1?'':'S')+' MADE</small></span>'+
+    '<span class="fig-draft-team-arrow" aria-hidden="true">›</span></a>';
+ }).join('');
+ const tabs='<div class="fig-draft-page-tabs"><a href="#/draft/'+year+'"'+(!selected?' class="active"':'')+'>FULL DRAFT BOARD</a>'+
+   '<span>'+esc(picks.length)+' TOTAL PICKS · '+esc(new Set(picks.map(x=>+x.round)).size)+' ROUNDS</span></div>';
+ let detail='';
+ if(selected){
+  const stats=figDraftTeamTotals(picks,selected,origins);
+  const roundGroups=[...new Set(stats.owned.map(x=>Number(x.round)))].sort((a,b)=>a-b);
+  const roundHtml=roundGroups.map(r=>{
+   const rows=stats.owned.filter(x=>Number(x.round)===r);
+   return '<section class="fig-draft-team-round"><h3>ROUND '+r+' <span>'+rows.length+' PICK'+(rows.length===1?'':'S')+'</span></h3>'+
+    '<div class="fig-draft-team-selections">'+rows.map(x=>figDraftPersonRow(x,origins)).join('')+'</div></section>';
+  }).join('');
+  const tradedAway=stats.sent.sort((a,b)=>+a.pick_no-+b.pick_no).map(x=>figDraftPersonRow(x,origins,true)).join('');
+  detail='<section class="fig-draft-team-detail"><div class="fig-draft-team-detail-head"><div class="fig-draft-team-identity">'+
+    ownerAvatar(selected,'fig-draft-detail-avatar')+
+    '<div><span>'+esc(year)+' '+esc(draftType.toUpperCase())+' DRAFT</span><h2>'+esc(OWNER_DISPLAY_BY_ID[selected])+' DRAFT HISTORY</h2>'+
+    '<p>Players selected by this franchise — including acquired draft choices.</p></div></div>'+
+    '<a href="#/team/'+selected+'">TEAM PROFILE ↗</a></div>'+
+    '<div class="fig-draft-team-stats"><div><strong>'+stats.owned.length+'</strong><span>PICKS MADE</span></div>'+
+    '<div><strong>'+stats.acquired.length+'</strong><span>ACQUIRED PICKS USED</span></div>'+
+    '<div><strong>'+stats.sent.length+'</strong><span>ORIGINAL PICKS USED ELSEWHERE</span></div></div>'+
+    (roundHtml||'<div class="fig-draft-no-picks">This franchise did not make a selection in the '+esc(year)+' draft. Its original choices may have been traded to other teams.</div>')+
+    '<details class="fig-draft-original-moved"><summary>ORIGINAL PICKS DRAFTED BY OTHER TEAMS ('+stats.sent.length+')</summary>'+
+      '<p>Players another franchise selected using a choice originally belonging to '+esc(OWNER_DISPLAY_BY_ID[selected])+'. These were <b>not</b> picks made by '+esc(OWNER_DISPLAY_BY_ID[selected])+'.</p>'+
+      (tradedAway||'<div class="fig-draft-empty-trades">No transferred original selections identified in the available draft audit.</div>')+
+    '</details></section>';
+ }else{
+  const rounds=[...new Set(picks.map(x=>+x.round))].sort((a,b)=>a-b);
+  detail='<section class="fig-draft-full-board"><h2>COMPLETE '+esc(year)+' DRAFT BOARD <small>SELECT A FRANCHISE ABOVE TO VIEW ITS PICKS</small></h2>'+
+    rounds.map(round=>'<div class="record-category fig-draft-round"><h3>ROUND '+round+'</h3>'+
+      '<div class="draft-board">'+picks.filter(x=>+x.round===round).map(x=>{
+       const by=+x.franchise_id,original=figDraftOriginal(x,origins);
+       return '<div class="draft-pick fig-draft-board-pick"><div class="pick">'+esc(figDraftPickLabel(x))+' · #'+esc(x.pick_no)+'</div>'+
+        playerLink(String(x.player_id||''),figDraftPlayerName(x),'fig-draft-player-link')+
+        '<a class="fig-draft-board-owner" href="#/draft/'+year+'/team/'+by+'">'+esc(OWNER_DISPLAY_BY_ID[by])+' ↗</a>'+
+        '<div class="position">'+esc(x.position||x.draft_position||'')+' · '+esc(x.draft_nfl_team||'')+'</div>'+
+        (original&&original!==by?'<div class="fig-draft-original-note">Orig. '+esc(OWNER_DISPLAY_BY_ID[original])+'</div>':'')+
+       '</div>';
+      }).join('')+'</div></div>').join('')+'</section>';
+ }
+ app.innerHTML=hero('WAR ROOM','THE DRAFT','Every official startup and rookie selection, organized by draft year and the franchise that made the pick.')+
+ '<section class="fig-draft-archive"><div class="fig-draft-season-controls"><div><h2>DRAFT YEAR</h2>'+yearTabs+'</div>'+
+ '<div class="fig-draft-season-desc"><strong>'+esc(year)+' · '+esc(draftType.toUpperCase())+'</strong><span>'+picks.length+' selections recorded</span></div></div>'+
+ '<section class="fig-draft-franchise-section"><div class="fig-draft-directory-heading"><h2>DRAFT HISTORY BY FRANCHISE</h2>'+
+ '<p>Choose any team to view every pick it made in this draft. Teams with no selections are included.</p></div>'+
+ '<div class="fig-draft-franchise-grid">'+teamTiles+'</div></section>'+tabs+detail+'</section>';
 }
 
 // Present stable team identities for draft-pick origins; preserve raw Sleeper labels in JSON.
@@ -1857,7 +1963,7 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft(parts[1],parts[2],parts[3]);else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
