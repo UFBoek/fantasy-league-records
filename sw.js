@@ -1,5 +1,5 @@
 /* FIG League v73 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v117';
+const CACHE_NAME = 'fig-league-shell-v118';
 const APP_SHELL = [
   './',
   './index.html',
@@ -30,10 +30,11 @@ const APP_SHELL = [
   './draft-focus-v113.css?v=114',
   './draft-grades-v115.css?v=115',
   './draft-rankings-v117.css?v=117',
+  './draft-breakdowns-v118.css?v=118',
   './james-hayden-compact-v100.css?v=101',
   './live-matchups.js?v=99',
   './mobile-v69.js?v=73',
-  './app.js?v=117',
+  './app.js?v=118',
   './manifest.webmanifest',
   './assets/icons/fig-192.png',
   './assets/icons/fig-512.png'
