@@ -1645,21 +1645,24 @@ function figDraftFranchiseHistory(id,preferredYear){
   legend+yearLinks+classes+'</section>';
 }
 async function draft(selectedYear){
- await load(['draftPicks','draftAudit']);navActive('draft');
+ await load(['draftPicks','draftAudit','raValues']);navActive('draft');
  const all=DATA.draftPicks||[];
  const years=[...new Set(all.map(x=>String(x.draft_season)))].sort((a,b)=>+b-+a);
  if(!years.length){app.innerHTML=hero('WAR ROOM','THE DRAFT','')+'<div class="empty">No draft history found.</div>';return}
- // The full draft board is the main view; franchise-specific histories remain
- // reachable from each pick and from an optional, collapsed franchise browser.
- const year=years.includes(String(selectedYear))?String(selectedYear):years[0];
+ const year=years.includes(String(selectedYear))?String(selectedYear):years.filter(y=>y!=='2023')[0]||years[0];
+ const startup=year==='2023';
  const picks=all.filter(x=>String(x.draft_season)===year).sort((a,b)=>+a.pick_no-+b.pick_no);
  const rounds=[...new Set(picks.map(x=>+x.round))].sort((a,b)=>a-b);
- const kinds=[...new Set(picks.map(x=>x.draft_class||'Draft'))].join(' · ');
  const origins=figDraftAuditMap(DATA.draftAudit||[]);
  const counts=new Map(years.map(y=>[y,all.filter(x=>String(x.draft_season)===y).length]));
- const tabs='<nav class="fig-draft-focus-years" aria-label="Choose a draft year">'+
-   years.map(y=>'<a href="#/draft/'+encodeURIComponent(y)+'"'+(y===year?' class="active" aria-current="page"':'')+
-    '><strong>'+esc(y)+'</strong><small>'+counts.get(y)+' PICKS</small></a>').join('')+'</nav>';
+ // The startup archive is independent of the year selector for rookie drafts.
+ const tabs='<div class="fig-draft-type-navigation">'+
+  '<section class="fig-draft-rookie-years"><div class="fig-draft-type-heading"><strong>ROOKIE DRAFTS</strong><small>FOUR ROUNDS · 2024–PRESENT</small></div>'+
+  '<nav class="fig-draft-focus-years" aria-label="Choose a rookie draft year">'+
+   years.filter(y=>y!=='2023').map(y=>'<a href="#/draft/'+encodeURIComponent(y)+'"'+(y===year?' class="active" aria-current="page"':'')+
+    '><strong>'+esc(y)+'</strong><small>'+counts.get(y)+' PICKS</small></a>').join('')+'</nav></section>'+
+   (years.includes('2023')?'<a class="fig-draft-startup-year'+(startup?' active':'')+'" href="#/draft/2023">'+
+    '<span>FOUNDING LEAGUE DRAFT</span><strong>2023 STARTUP</strong><small>'+counts.get('2023')+' PICKS · 25 ROUNDS ↗</small></a>':'')+'</div>';
  const teamCards=Array.from({length:10},(_,i)=>i+1).map(id=>{
   const count=picks.filter(x=>+x.franchise_id===id).length;
   return '<a class="fig-draft-team-tile" href="#/team/'+id+'/drafts/'+encodeURIComponent(year)+'">'+
@@ -1684,21 +1687,24 @@ async function draft(selectedYear){
      '<div class="fig-draft-focus-pick-owner">'+ownerAvatar(id,'fig-draft-focus-owner-avatar')+
       '<span><a href="#/team/'+id+'/drafts/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>'+
       '<small>'+(traded?'Originally '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'Drafting franchise')+
-      '</small></span></div></article>';
+      '</small></span></div>'+figDraftGradeStrip(pick)+'</article>';
    }).join('')+'</div></section>';
  }).join('');
- app.innerHTML=hero('WAR ROOM','THE DRAFT','Every selection, every round, every season. Full draft boards first, franchise draft histories one click away.')+
+ const intro=startup?'<div class="fig-draft-startup-notice"><strong>2023 FOUNDING STARTUP DRAFT</strong>'+
+  '<p>This full 25-round startup draft has its own archive. Rookie slot value benchmarks do not apply, so no rookie draft grades are assigned to these picks.</p></div>':
+   figDraftGradeOverview(picks,'LEAGUE-WIDE '+year+' ROOKIE DRAFT RETURNS');
+ app.innerHTML=hero('WAR ROOM','THE DRAFT','Browse the complete rookie draft boards and our league draft grades. The 2023 founding startup is archived separately.')+
   '<div class="fig-draft-archive fig-draft-focus">'+tabs+
-  '<div class="fig-draft-focus-header"><div><div class="eyebrow">'+esc(kinds.toUpperCase())+' DRAFT</div>'+
-   '<h2>'+esc(year)+' DRAFT BOARD</h2>'+
+  '<div class="fig-draft-focus-header"><div><div class="eyebrow">'+(startup?'FOUNDING STARTUP':'YEARLY ROOKIE')+' DRAFT</div>'+
+   '<h2>'+esc(year)+(startup?' STARTUP':' ROOKIE')+' DRAFT</h2>'+
    '<p>'+picks.length+' selections · '+rounds.length+' rounds · 10 franchises</p></div>'+
    '<span class="fig-draft-board-badge">COMPLETE DRAFT</span></div>'+
   '<details class="fig-draft-focus-teams"><summary><span><strong>EXPLORE BY FRANCHISE</strong>'+
    '<small>Optional: open a team’s draft history in the Teams tab</small></span>'+
    '<span>CHOOSE A TEAM ▾</span></summary>'+
    '<div class="fig-draft-franchise-grid">'+teamCards+'</div></details>'+
-  jumps+'<div class="fig-draft-focus-board">'+board+'</div>'+
-  '<p class="fig-draft-focus-endnote">Team names lead to each franchise’s draft history, including individual selections, pick origins, production and available RosterAudit values.</p>'+
+  intro+jumps+'<div class="fig-draft-focus-board">'+board+'</div>'+
+  '<p class="fig-draft-focus-endnote">FIG rookie grades are based on the current market value snapshot, which changes over time. Player values are sourced from RosterAudit; grade rules and slot benchmarks are defined by the league.</p>'+
   '</div>';
  $$('.fig-draft-focus-round-links button').forEach(button=>{
   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
