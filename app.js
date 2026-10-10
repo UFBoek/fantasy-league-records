@@ -1586,27 +1586,25 @@ function figDraftGradeStrip(pick){
   '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE</small></span>'+
   '<span><b>'+(valid?money(z.current):'—')+'</b><small>CURRENT VALUE</small></span>'+
   '<span><b>'+(valid?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE CHANGE</small></span>'+
-  '<span class="fig-draft-grade-ratio"><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>RETURN</small></span></div>';
+  '<span class="fig-draft-grade-ratio"><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>RETURN %</small></span></div>';
 }
 function figDraftGradeSummary(picks){
  const scoped=picks.map(figDraftGrade).filter(Boolean),valued=scoped.filter(x=>x.current!==null);
  const slot=valued.reduce((sum,x)=>sum+x.slot,0),current=valued.reduce((sum,x)=>sum+x.current,0);
  const ratio=slot?current/slot:null,delta=current-slot;
- // Mean of individual pick returns; distinct from value-weighted combined return.
- const avgReturn=valued.length?valued.reduce((sum,x)=>sum+x.ratio,0)/valued.length:null;
  const counts={S:0,A:0,B:0,C:0,D:0,F:0};
  valued.forEach(x=>counts[x.letter]++);
  const score=valued.length?valued.reduce((sum,x)=>sum+FIG_GRADE_POINTS[x.letter],0)/valued.length:null;
  const letter=score===null?'—':score>=4.5?'S':score>=3.5?'A':score>=2.5?'B':score>=1.5?'C':score>=.5?'D':'F';
- return {eligible:scoped.length,valued:valued.length,slot,current,ratio,avgReturn,delta,counts,score,letter};
+ return {eligible:scoped.length,valued:valued.length,slot,current,ratio,delta,counts,score,letter};
 }
 function figDraftGradeOverview(picks,label){
  const z=figDraftGradeSummary(picks);
  if(!z.eligible)return '';
  return '<div class="fig-draft-grade-overview"><div class="fig-draft-grade-overview-intro">'+
   '<span>FIG ROOKIE DRAFT RETURNS</span><h3>'+esc(label)+'</h3></div>'+
-  '<div class="fig-draft-grade-overview-score"><strong class="fig-avg-return">'+(z.avgReturn===null?'—':Math.round(z.avgReturn*100)+'%')+'</strong><span>AVG RETURN</span>'+
-  '<small>PER VALUED PICK</small></div>'+
+  '<div class="fig-draft-grade-overview-score"><strong class="fig-return-pct">'+(z.ratio===null?'—':Math.round(z.ratio*100)+'%')+'</strong><span>RETURN %</span>'+
+  '<small>TOTAL VALUE / SLOT COST</small></div>'+
   '<div class="fig-draft-grade-overview-stats"><span><b>'+money(z.slot)+'</b> SLOT VALUE</span>'+
   '<span><b>'+money(z.current)+'</b> CURRENT VALUE</span>'+
   '<span><b>'+(z.delta>0?'+':'')+money(z.delta)+'</b> VALUE GAIN</span>'+
@@ -1654,7 +1652,7 @@ function figDraftFranchiseHistory(id,preferredYear){
      '<h3>'+year+' · '+esc(OWNER_DISPLAY_BY_ID[+id])+'</h3></div><a href="#/draft/'+year+'">FULL '+year+' BOARD ↗</a></div>'+
     '<div class="fig-team-draft-year-figures"><span><b>'+yearPicks.length+'</b> selections</span><span><b>'+acquired.length+'</b> acquired picks</span>'+
      '<span><b>'+starts+'</b> franchise starts</span><span><b>'+money(pts)+'</b> points produced</span>'+ 
-     (startup?'':'<span class="fig-draft-year-grade"><b>'+(yearGrade.avgReturn===null?'—':Math.round(yearGrade.avgReturn*100)+'%')+'</b> AVG RETURN · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED</span>')+'</div>'+
+     (startup?'':'<span class="fig-draft-year-grade"><b>'+(yearGrade.ratio===null?'—':Math.round(yearGrade.ratio*100)+'%')+'</b> RETURN % · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED</span>')+'</div>'+
     (rounds.map(round=>'<div class="fig-team-draft-round"><h4>ROUND '+round+'</h4>'+
       yearPicks.filter(x=>+x.round===round).map(pick=>{
        const key=String(pick.draft_id)+'|'+String(pick.pick_no),prod=valueMap.get(key)||{};
@@ -1701,20 +1699,18 @@ async function draft(selectedYear){
   const selections=scoped.filter(p=>+p.franchise_id===id);
   return {id,name:OWNER_DISPLAY_BY_ID[id]||'Team '+id,picks:selections.length,grade:figDraftGradeSummary(selections)};
  });
- const metricOptions=[['value','CURRENT VALUE'],['gain','VALUE GAIN'],['return','TOTAL RETURN'],['average','AVG RETURN']];
+ const metricOptions=[['value','CURRENT VALUE'],['gain','VALUE GAIN'],['return','RETURN %']];
  let sort='value';
  const sortNumber=(t,key)=>{
   const z=t.grade;
   if(key==='gain')return z.valued?z.delta:-Infinity;
   if(key==='return')return z.ratio===null?-Infinity:z.ratio;
-  if(key==='average')return z.avgReturn===null?-Infinity:z.avgReturn;
   return z.valued?z.current:-Infinity;
  };
  const sortLabel=(z,key)=>{
   if(!z.valued)return '—';
   if(key==='gain')return (z.delta>0?'+':'')+money(z.delta);
   if(key==='return')return Math.round(z.ratio*100)+'%';
-  if(key==='average')return Math.round(z.avgReturn*100)+'%';
   return money(z.current);
  };
  const renderRanks=()=>{
@@ -1732,8 +1728,7 @@ async function draft(selectedYear){
     '<span class="fig-draft-rank-metrics">'+
      '<span><b>'+ (visible?money(z.current):'—')+'</b><small>VALUE NOW</small></span>'+
      '<span><b>'+ (visible?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE GAIN</small></span>'+
-     '<span><b>'+ (visible?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN</small></span>'+
-     '<span><b class="fig-draft-rank-avg-return">'+(z.avgReturn===null?'—':Math.round(z.avgReturn*100)+'%')+'</b><small>AVG RETURN</small></span>'+
+     '<span><b class="fig-draft-rank-return-pct">'+(z.ratio===null?'—':Math.round(z.ratio*100)+'%')+'</b><small>RETURN %</small></span>'+
     '</span>'+
     '<span class="fig-draft-rank-feature"><strong>'+esc(sortLabel(z,sort))+'</strong><small>'+esc(metricOptions.find(x=>x[0]===sort)[1])+'</small></span>'+
     '<span class="fig-draft-rank-open" aria-hidden="true">›</span></a>';
@@ -1801,8 +1796,7 @@ async function draftTeamRanking(teamId,requestedYear){
   ['CURRENT VALUE',summary.valued?money(summary.current):'—'],
   ['DRAFT SLOT COST',summary.valued?money(summary.slot):'—'],
   ['VALUE GAIN',summary.valued?(summary.delta>0?'+':'')+money(summary.delta):'—'],
-  ['RETURN',summary.ratio===null?'—':Math.round(summary.ratio*100)+'%'],
-  ['AVG RETURN',summary.avgReturn===null?'—':Math.round(summary.avgReturn*100)+'%'],
+  ['RETURN %',summary.ratio===null?'—':Math.round(summary.ratio*100)+'%'],
   ['PICKS VALUED',summary.valued+' / '+summary.eligible]
  ];
  const metricCards='<div class="fig-draft-team-kpis">'+metrics.map(([label,value])=>
@@ -1814,7 +1808,7 @@ async function draftTeamRanking(teamId,requestedYear){
   const z=figDraftGradeSummary(teamPicks.filter(p=>String(p.draft_season)===y));
   return '<a class="fig-draft-team-season-card" href="#/draft/team/'+id+'/'+y+'"><strong>'+y+'</strong>'+
    '<b>'+ (z.valued?money(z.current):'—')+'</b><span>'+z.valued+'/'+z.eligible+' valued</span>'+
-   '<small>'+(z.avgReturn===null?'—':Math.round(z.avgReturn*100)+'%')+' AVG RETURN · '+(z.valued?(z.delta>0?'+':'')+money(z.delta):'—')+' GAIN</small></a>';
+   '<small>'+(z.ratio===null?'—':Math.round(z.ratio*100)+'%')+' RETURN % · '+(z.valued?(z.delta>0?'+':'')+money(z.delta):'—')+' GAIN</small></a>';
  }).join('');
  const valued=scores.filter(x=>x.grade&&x.grade.current!==null);
  const hits=valued.slice().sort((a,b)=>b.grade.delta-a.grade.delta||b.grade.current-a.grade.current).slice(0,3);
@@ -1852,7 +1846,7 @@ async function draftTeamRanking(teamId,requestedYear){
        '<span><b>'+ (z.slot!==null&&z.slot!==undefined?money(z.slot):'—')+'</b><small>SLOT</small></span>'+
        '<span><b>'+ (available?money(z.current):'—')+'</b><small>NOW</small></span>'+
        '<span><b class="'+(z.delta>0?'fig-draft-positive':z.delta<0?'fig-draft-negative':'')+'">'+change+'</b><small>GAIN</small></span>'+
-       '<span><b>'+ (available?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN</small></span>'+
+       '<span><b>'+ (available?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN %</small></span>'+
      '</div><span class="fig-draft-team-pick-grade grade-'+(available?String(z.letter).toLowerCase():'unknown')+'">'+esc(available?z.letter:'—')+'</span></article>';
   }).join('')||'<div class="fig-draft-team-empty">No matching picks.</div>';
  };

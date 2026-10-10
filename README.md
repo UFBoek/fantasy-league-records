@@ -1,3 +1,12 @@
+## v123 — One draft Return % metric (value-weighted)
+
+- Removed the average of individual pick returns, which overemphasized late-round hits.
+- Rookie draft ranking lists now show a single **RETURN %** and offer a single return-based sort instead of both total return and average return.
+- Team draft history, ranking drill-downs, year tiles, and grade overviews all use **RETURN % = sum of current values for valued picks / sum of their original slot costs × 100**.
+- Preserved FIG draft grades and the 2023 startup history; only the return presentation and sorting changed.
+
+---
+
 ## v122 — Rookie-only Draft Rankings
 
 - Removed the 2023 startup selection tab and standalone startup board from Draft Rankings. The ranking hub and individual-year boards now include only selections explicitly marked Rookie.

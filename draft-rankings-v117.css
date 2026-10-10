@@ -27,7 +27,7 @@
 .fig-draft-rank-info{display:flex;flex-direction:column;gap:4px;min-width:0}
 .fig-draft-rank-info strong{font:900 13px/1.3 Inter,system-ui,sans-serif;color:#254c37;overflow-wrap:anywhere}
 .fig-draft-rank-info small{font:750 10px/1.45 Inter,system-ui,sans-serif;color:#6a816e}
-.fig-draft-rank-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;min-width:0}
+.fig-draft-rank-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0}
 .fig-draft-rank-metrics>span{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;min-width:0}
 .fig-draft-rank-metrics b{font:900 11px/1.2 Inter,system-ui,sans-serif;color:#2c593d;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .fig-draft-rank-metrics small{font:850 8px/1.3 Inter,system-ui,sans-serif;color:#6a8572;white-space:nowrap}
