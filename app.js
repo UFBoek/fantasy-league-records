@@ -1519,6 +1519,61 @@ function figDraftPersonRow(pick,originals,includeTeam=false){
 }
 // The Draft tab is an all-years directory; franchise history lives under Teams.
 // A year's complete draft board expands in place rather than replacing other years.
+// League-defined rookie draft grades. Startup picks do not have rookie baselines.
+const FIG_ROOKIE_SLOT_VALUES=[
+ [6300,5510,4725,3940,3520,3100,2680,2265,2045,1925],
+ [1600,1375,1105,992,878,765,700,635,570,505],
+ [464,423,381,340,300,270,240,210,189,168],
+ [146,125,121,118,114,110,105,102,98,95]
+];
+const FIG_JAMES_ROOKIE_VALUES=[6300,1600,464,146];
+function figDraftSlotValue(pick){
+ if(String(pick?.draft_season)==='2023'||String(pick?.draft_class||'').toLowerCase()!=='rookie')return null;
+ const round=Number(pick.round),slot=Number(pick.pick_in_round);
+ if(!Number.isInteger(round)||round<1||round>4||!Number.isInteger(slot)||slot<1||slot>10)return null;
+ // The James override follows the *drafting team*, not the original pick holder.
+ return +pick.franchise_id===10?FIG_JAMES_ROOKIE_VALUES[round-1]:FIG_ROOKIE_SLOT_VALUES[round-1][slot-1];
+}
+function figDraftGradeLetter(ratio){
+ if(ratio===null||!Number.isFinite(ratio))return '—';
+ return ratio>=1.5?'A':ratio>=1.1?'B':ratio>=.8?'C':ratio>=.5?'D':'F';
+}
+function figDraftGrade(pick){
+ const slot=figDraftSlotValue(pick);
+ if(slot===null)return null;
+ const current=raPlayer(pick.player_id);
+ const ratio=current===null?null:current/slot;
+ return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(ratio),james:+pick.franchise_id===10};
+}
+function figDraftGradeStrip(pick){
+ const z=figDraftGrade(pick);
+ if(!z)return '';
+ const valid=z.current!==null;
+ return '<div class="fig-draft-grade-strip '+(valid?'grade-'+z.letter.toLowerCase():'grade-unknown')+'">'+
+  '<span class="fig-draft-grade-letter"><b>'+esc(z.letter)+'</b><small>FIG GRADE</small></span>'+
+  '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE'+(z.james?' · JAMES':'')+'</small></span>'+
+  '<span><b>'+(valid?money(z.current):'—')+'</b><small>CURRENT VALUE</small></span>'+
+  '<span><b>'+(valid?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE CHANGE</small></span>'+
+  '<span><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>VALUE RETAINED</small></span></div>';
+}
+function figDraftGradeSummary(picks){
+ const scoped=picks.map(figDraftGrade).filter(Boolean),valued=scoped.filter(x=>x.current!==null);
+ const slot=valued.reduce((sum,x)=>sum+x.slot,0),current=valued.reduce((sum,x)=>sum+x.current,0);
+ const ratio=slot?current/slot:null;
+ return {eligible:scoped.length,valued:valued.length,slot,current,ratio,letter:figDraftGradeLetter(ratio)};
+}
+function figDraftGradeOverview(picks,label){
+ const z=figDraftGradeSummary(picks);
+ return '<div class="fig-draft-grade-overview"><div class="fig-draft-grade-overview-intro">'+
+  '<span>FIG LEAGUE DRAFT GRADES</span><h3>'+esc(label)+'</h3>'+
+  '<p>We compare each rookie selection’s current player market value with its original draft-slot value. A ≥150%, B 110–149%, C 80–109%, D 50–79%, F below 50%. Picks without available current values remain ungraded.</p></div>'+
+  '<div class="fig-draft-grade-overview-score"><strong>'+esc(z.letter)+'</strong><span>COMBINED GRADE</span>'+
+  '<small>'+(z.ratio!==null?Math.round(z.ratio*100)+'% value retained':'Awaiting values')+'</small></div>'+
+  '<div class="fig-draft-grade-overview-stats"><span><b>'+money(z.slot)+'</b> GRADED SLOT VALUE</span>'+
+  '<span><b>'+money(z.current)+'</b> CURRENT VALUE</span>'+
+  '<span><b>'+z.valued+'/'+z.eligible+'</b> PICKS VALUED</span></div></div>';
+}
+
 function figDraftFranchiseHistory(id,preferredYear){
  const all=DATA.draftPicks||[],origins=figDraftAuditMap(DATA.draftAudit||[]);
  const valueMap=new Map((DATA.draftValue||[]).map(x=>[String(x.draft_id)+'|'+String(x.pick_no),x]));
