@@ -146,3 +146,8 @@
 .fig-team-draft-history a:focus-visible,.fig-draft-all-years a:focus-visible{outline:3px solid #35855a;outline-offset:3px}
 @media(max-width:830px){.fig-team-draft-pick{grid-template-columns:78px minmax(0,1fr);gap:6px}.fig-team-draft-pick-values{grid-column:2;max-width:360px}.fig-team-draft-pick-player>span{padding-left:38px}}
 @media(max-width:690px){.fig-draft-all-year{padding:12px}.fig-draft-all-year-head h2{font-size:25px}.fig-draft-all-year-head p{font-size:10px}.fig-draft-year-board{padding:9px}.fig-draft-year-board .fig-draft-full-board{padding:8px}.fig-team-draft-intro h2{font-size:17px}.fig-team-draft-intro>a{width:100%;text-align:center}.fig-team-draft-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.fig-team-draft-metrics strong{font-size:21px}.fig-team-draft-year{padding:11px}.fig-team-draft-pick{grid-template-columns:69px minmax(0,1fr);gap:6px}.fig-team-draft-pick-no{padding:7px 4px}.fig-team-draft-pick-no b{font-size:11px}.fig-team-draft-pick-no small{font-size:8px}.fig-team-draft-pick-player>span{font-size:9px}.fig-team-draft-pick-values b{font-size:12px}.fig-team-draft-pick-values small{font-size:7.5px}.fig-team-draft-year-figures span{font-size:9px;padding:6px}.fig-team-draft-filter a{font-size:11px;padding:8px 10px}}
+
+/* Five team profile tabs should remain usable even on narrow devices. */
+.team-profile-tabs{gap:20px;max-width:100%;overflow-x:auto;scrollbar-width:thin;justify-content:flex-start;-webkit-overflow-scrolling:touch}
+.team-profile-tabs button{white-space:nowrap;flex:0 0 auto}
+@media(max-width:690px){.team-profile-tabs{gap:15px}.team-profile-tabs button{font-size:11px;padding:14px 0 12px}.fig-team-draft-history{gap:10px}}
