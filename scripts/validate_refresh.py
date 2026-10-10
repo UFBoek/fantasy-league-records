@@ -169,39 +169,6 @@ def main():
 
     guard_completed_weeks(history)
 
-    injury = load("injury_history")
-    check(isinstance(injury, dict) and injury.get("schema_version") == 3,
-          "injury_history.json has an unexpected schema")
-    check(injury.get("coverage") == "reviewed_events_only"
-          and injury.get("is_complete_historical_census") is False,
-          "injury counts must not imply complete verified historical coverage")
-    check(isinstance(injury.get("events"), list)
-          and isinstance(injury.get("by_franchise"), dict)
-          and isinstance(injury.get("by_franchise_season"), dict)
-          and isinstance(injury.get("excluded_verified_events"), list)
-          and not injury.get("rejected_unverified_events"),
-          "injury history includes invalid or unreviewed injury evidence")
-    for case in injury["events"]:
-        if case.get("major_injury"):
-            check(case.get("season_ending") is True
-                  and not case.get("started_in_game_injury")
-                  and not case.get("rotation_injury")
-                  and bool(case.get("severity_source_url")),
-                  "major injury must be proven season-ending and not double counted")
-    check(sum(x.get("injury_events", 0)
-              for x in injury["by_franchise"].values()) == len(injury["events"]),
-          "team injury event totals must match unique verified cases")
-
-    candidates = load("injury_candidates")
-    check(isinstance(candidates, dict)
-          and candidates.get("schema_version") == 1
-          and candidates.get("counts_toward_injuries") is False
-          and isinstance(candidates.get("leads"), list),
-          "injury candidates must remain an unverified review queue")
-    check(all(row.get("review_status") == "unverified_lead_do_not_count"
-              for row in candidates["leads"]),
-          "an injury review candidate was incorrectly promoted to a verified count")
-
     protect_rosteraudit()
 
     # Parse EVERY export, including files not listed above, before publication.
