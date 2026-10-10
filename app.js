@@ -1664,7 +1664,7 @@ function figDraftFranchiseHistory(id,preferredYear){
      '<h3>'+year+' · '+esc(OWNER_DISPLAY_BY_ID[+id])+'</h3></div><a href="#/draft/'+year+'">FULL '+year+' BOARD ↗</a></div>'+
     '<div class="fig-team-draft-year-figures"><span><b>'+yearPicks.length+'</b> selections</span><span><b>'+acquired.length+'</b> acquired picks</span>'+
      '<span><b>'+starts+'</b> franchise starts</span><span><b>'+money(pts)+'</b> points produced</span>'+ 
-     (startup?'<span>STARTUP · NOT GRADED</span>':'<span class="fig-draft-year-grade"><b>'+esc(yearGrade.letter)+'</b> FIG GRADE · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED</span>')+'</div>'+
+     '<span class="fig-draft-year-grade"><b>'+esc(yearGrade.letter)+'</b> FIG GRADE · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED'+(startup?' · PROVISIONAL':'')+'</span>'+'</div>'+
     (rounds.map(round=>'<div class="fig-team-draft-round"><h4>ROUND '+round+'</h4>'+
       yearPicks.filter(x=>+x.round===round).map(pick=>{
        const key=String(pick.draft_id)+'|'+String(pick.pick_no),prod=valueMap.get(key)||{};
@@ -1678,7 +1678,7 @@ function figDraftFranchiseHistory(id,preferredYear){
         '<div class="fig-team-draft-pick-values"><div><b>'+(raValue!=null&&Number.isFinite(+raValue)?money(raValue):'—')+'</b><small>RA CURRENT VALUE</small></div>'+
         '<div><b>'+money(prod.franchise_starter_points||0)+'</b><small>FRANCHISE PTS</small></div>'+
         '<div><b>'+num(prod.franchise_starts||0)+'</b><small>FANTASY STARTS</small></div></div>'+figDraftGradeStrip(pick)+'</article>';
-      }).join('')+'</div>').join('')||'<p class="fig-team-draft-none">No selections made in this draft. This does not remove the year from the franchise history.</p>')+
+      }).join('')+'</div>').join('')||'<p class="fig-team-draft-none">No selections in this draft.</p>')+
     '<details class="fig-team-draft-traded"><summary>ORIGINAL PICKS USED BY OTHER TEAMS ('+originalCount+')</summary>'+
       (tradedAway.map(x=>'<div class="fig-team-draft-gone"><b>'+esc(figDraftPickLabel(x))+'</b> · '+
         playerLink(x.player_id,figDraftPlayerName(x),'fig-draft-gone-player')+
@@ -1688,7 +1688,7 @@ function figDraftFranchiseHistory(id,preferredYear){
  return '<section class="fig-team-draft-history"><div class="fig-team-draft-intro">'+
   '<div><h2>FRANCHISE DRAFT HISTORY</h2></div>'+
   '</div>'+ 
-  totals+(selected==='2023'?'':figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS'))+
+  totals+figDraftGradeOverview(selected?teamPicks.filter(p=>String(p.draft_season)===selected):teamPicks,selected==='2023'?'2023 STARTUP RETURNS':selected?'YEAR '+selected+' DRAFT RETURNS':'ALL-TIME DRAFT RETURNS')+
   '<div class="fig-team-draft-market"><div><strong>'+money(currentMarketTotal)+'</strong><span>COMBINED CURRENT RA VALUE OF VALUED PICKS</span></div>'+
   '<p>'+valued.length+'/'+teamPicks.length+' valued · '+esc(valueTimestamp)+' · Includes startup</p></div>'+
   yearLinks+classes+'</section>';
