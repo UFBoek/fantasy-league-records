@@ -1608,7 +1608,7 @@ async function draft(selectedYear){
    '<span class="fig-draft-team-arrow" aria-hidden="true">›</span></a>';
  }).join('');
  const jumps=rounds.length>4?'<nav class="fig-draft-focus-round-links" aria-label="Jump to draft round"><span>JUMP TO ROUND</span>'+
-  rounds.map(r=>'<a href="#draft-round-'+r+'">'+r+'</a>').join('')+'</nav>':'';
+  rounds.map(r=>'<button type="button" data-round="'+r+'">'+r+'</button>').join('')+'</nav>':'';
  const board=rounds.map(round=>{
   const selections=picks.filter(x=>+x.round===round);
   return '<section class="fig-draft-focus-round" id="draft-round-'+round+'">'+
@@ -1640,6 +1640,9 @@ async function draft(selectedYear){
   jumps+'<div class="fig-draft-focus-board">'+board+'</div>'+
   '<p class="fig-draft-focus-endnote">Team names lead to each franchise’s draft history, including individual selections, pick origins, production and available RosterAudit values.</p>'+
   '</div>';
+ $$('.fig-draft-focus-round-links button').forEach(button=>{
+  button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
+ });
 }
 // Present stable team identities for draft-pick origins; preserve raw Sleeper labels in JSON.
 function tradeArchiveAssetLabel(value){
