@@ -1,0 +1,85 @@
+/* v117 — Rankings-first league draft archive, S-grade presentation. */
+.fig-draft-rank-page{display:grid;gap:13px}
+.fig-draft-rank-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.fig-draft-rank-year{display:inline-flex;align-items:center;justify-content:center;text-align:center;flex:1 1 auto;border:1px solid #d6e3d9;border-radius:10px;padding:12px 15px;background:#fff;color:#305943;font:900 11px/1.3 Inter,system-ui,sans-serif;text-decoration:none;white-space:nowrap}
+.fig-draft-rank-year:hover,.fig-draft-rank-year.active{border-color:#286342;background:#285d3e;color:#fff}
+.fig-draft-startup-filter{background:#e7eef1;color:#28576a;border-color:#d0dfe5}
+.fig-draft-startup-filter.active,.fig-draft-startup-filter:hover{background:#285568;color:#fff;border-color:#285568}
+.fig-draft-rank-main{min-width:0;display:grid;gap:12px;padding:19px;background:#fff;border:1px solid #d7e5db;border-radius:14px}
+.fig-draft-rank-head{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.fig-draft-rank-head .eyebrow{color:#558167;font:900 10px/1.3 Inter,system-ui,sans-serif;letter-spacing:.06em}
+.fig-draft-rank-head h2{font:900 clamp(21px,3.1vw,32px)/1.13 Inter,system-ui,sans-serif;color:#244c35;margin:5px 0 6px}
+.fig-draft-rank-head small{font:750 11px/1.4 Inter,system-ui,sans-serif;color:#698272}
+.fig-draft-rank-overall{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none;padding:8px 4px;text-align:right}
+.fig-draft-rank-overall b{font:900 24px/1 Inter,system-ui,sans-serif;color:#255d3f;font-variant-numeric:tabular-nums}
+.fig-draft-rank-overall small{font:850 9px/1.3 Inter,system-ui,sans-serif;color:#5a7a64}
+.fig-draft-rank-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:10px;background:#f3f8f4;border:1px solid #deebe0;border-radius:10px}
+.fig-draft-rank-toolbar>span{font:900 10px/1.2 Inter,system-ui,sans-serif;color:#657f6c;margin:0 5px;flex:none}
+.fig-draft-rank-sort{appearance:none;cursor:pointer;border:1px solid #d4e3d8;background:#fff;color:#376249;border-radius:7px;padding:9px 12px;font:850 10px/1.3 Inter,system-ui,sans-serif;white-space:nowrap}
+.fig-draft-rank-sort:hover,.fig-draft-rank-sort.active{background:#285e40;color:#fff;border-color:#285e40}
+.fig-draft-rank-list{display:grid;gap:7px}
+.fig-draft-rank-row{display:grid;grid-template-columns:28px 46px minmax(125px,1.25fr) minmax(0,2.6fr) minmax(100px,.75fr) 18px;align-items:center;gap:12px;min-width:0;padding:13px 14px;border:1px solid #dae7dd;border-radius:11px;background:#f9fbf9;color:#2a4936;text-decoration:none}
+.fig-draft-rank-row:hover{background:#eef6f0;border-color:#b8d5c3}
+.fig-draft-rank-row:first-child{background:#edf7ee;border-color:#bcdac5}
+.fig-draft-rank-place{font:900 20px/1 Inter,system-ui,sans-serif;color:#547660;text-align:center;font-variant-numeric:tabular-nums}
+.fig-draft-rank-row:first-child .fig-draft-rank-place{color:#215b37}
+.fig-draft-rank-avatar{width:45px;height:45px;object-fit:cover;border-radius:50%;border:2px solid #d0e2d4;flex:none}
+.fig-draft-rank-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fig-draft-rank-info strong{font:900 13px/1.3 Inter,system-ui,sans-serif;color:#254c37;overflow-wrap:anywhere}
+.fig-draft-rank-info small{font:750 10px/1.45 Inter,system-ui,sans-serif;color:#6a816e}
+.fig-draft-rank-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;min-width:0}
+.fig-draft-rank-metrics>span{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;min-width:0}
+.fig-draft-rank-metrics b{font:900 11px/1.2 Inter,system-ui,sans-serif;color:#2c593d;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig-draft-rank-metrics small{font:850 8px/1.3 Inter,system-ui,sans-serif;color:#6a8572;white-space:nowrap}
+.fig-draft-rank-metrics .fig-draft-rank-grade{font-size:20px}
+.fig-draft-rank-feature{min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+.fig-draft-rank-feature strong{font:900 19px/1.15 Inter,system-ui,sans-serif;color:#255b3e;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig-draft-rank-feature small{font:850 8px/1.3 Inter,system-ui,sans-serif;color:#718975}
+.fig-draft-rank-open{font:900 24px/1 Inter,system-ui,sans-serif;color:#648c71;text-align:center}
+.fig-draft-rank-board{background:#fff;border:1px solid #d5e4d9;border-radius:13px;min-width:0}
+.fig-draft-rank-board>summary{padding:17px 19px;display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer}
+.fig-draft-rank-board>summary::-webkit-details-marker{display:none}
+.fig-draft-rank-board>summary strong{display:block;font:900 14px/1.3 Inter,system-ui,sans-serif;color:#285b3e}
+.fig-draft-rank-board>summary small{display:block;font:800 10px/1.3 Inter,system-ui,sans-serif;color:#65816d;margin-top:4px}
+.fig-draft-rank-board>summary>span:last-child{font:900 11px/1.2 Inter,system-ui,sans-serif;color:#2c704b;white-space:nowrap}
+.fig-draft-rank-board[open]>summary{border-bottom:1px solid #dfe9e1}
+.fig-draft-rank-board-body{display:grid;gap:12px;padding:14px}
+.fig-draft-grade-strip.grade-s .fig-draft-grade-letter{background:#f8ebbc}
+.fig-draft-grade-strip.grade-s .fig-draft-grade-letter b{color:#896018}
+.fig-draft-year-grade b{font-size:13px}
+@media(max-width:1060px){
+ .fig-draft-rank-row{grid-template-columns:24px 38px minmax(115px,1fr) minmax(0,1.65fr) minmax(90px,.8fr) 12px;gap:8px;padding:12px 10px}
+ .fig-draft-rank-avatar{width:37px;height:37px}
+ .fig-draft-rank-info strong{font-size:12px}
+ .fig-draft-rank-feature strong{font-size:16px}
+ .fig-draft-rank-metrics{gap:3px}
+ .fig-draft-rank-metrics b{font-size:10px}
+ .fig-draft-rank-metrics small{font-size:7px}
+}
+@media(max-width:740px){
+ .fig-draft-rank-page{gap:9px}
+ .fig-draft-rank-main{padding:11px;gap:9px}
+ .fig-draft-rank-nav{gap:5px}
+ .fig-draft-rank-year{flex:1 1 29%;font-size:10px;padding:10px 7px;white-space:normal}
+ .fig-draft-rank-head{align-items:flex-start}
+ .fig-draft-rank-head h2{font-size:20px}
+ .fig-draft-rank-overall b{font-size:17px}
+ .fig-draft-rank-overall small{font-size:7px}
+ .fig-draft-rank-toolbar{padding:8px;gap:5px}
+ .fig-draft-rank-sort{padding:8px;font-size:9px;flex:1 1 auto}
+ .fig-draft-rank-row{grid-template-columns:23px 37px minmax(0,1fr) minmax(72px,auto);gap:6px 9px;padding:10px}
+ .fig-draft-rank-avatar{width:36px;height:36px}
+ .fig-draft-rank-info strong{font-size:12px}
+ .fig-draft-rank-info small{font-size:9px}
+ .fig-draft-rank-metrics{grid-column:2/-1;grid-row:2;background:#fff;border:1px solid #e2ede3;border-radius:7px;padding:8px 3px;gap:3px}
+ .fig-draft-rank-metrics b{font-size:11px}
+ .fig-draft-rank-metrics small{font-size:7px}
+ .fig-draft-rank-feature{grid-column:4;grid-row:1}
+ .fig-draft-rank-feature strong{font-size:17px}
+ .fig-draft-rank-feature small{font-size:7px}
+ .fig-draft-rank-open{display:none}
+ .fig-draft-rank-board>summary{padding:14px}
+ .fig-draft-rank-board>summary strong{font-size:11px}
+ .fig-draft-rank-board>summary>span:last-child{font-size:9px}
+ .fig-draft-rank-board-body{padding:8px}
+}
