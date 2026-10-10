@@ -1500,7 +1500,21 @@ function figDraftTeamTotals(picks,teamId,origins){
  return {owned,acquired,sent};
 }
 function figDraftPlayerName(x){return String(x.draft_full_name||x.player_name||'Unknown selection')}
-function figDraftPickLabel(x){return String(x.pick_label||('Round '+x.round+' · Overall '+x.pick_no))}
+// The Sleeper export labels rounds 2+ as 2.11, 2.12, etc. because its
+// pick_in_round is actually the overall pick. Derive the true 01–10 slot.
+function figDraftRoundSlot(pick){
+ const round=Number(pick?.round),overall=Number(pick?.pick_no);
+ if(Number.isInteger(round)&&round>=1&&Number.isInteger(overall)&&overall>=1){
+  const slot=overall-(round-1)*10;
+  if(slot>=1&&slot<=10)return slot;
+ }
+ const fallback=Number(pick?.pick_in_round);
+ return Number.isInteger(fallback)&&fallback>=1&&fallback<=10?fallback:null;
+}
+function figDraftPickLabel(x){
+ const slot=figDraftRoundSlot(x);
+ return slot!==null?Number(x.round)+'.'+String(slot).padStart(2,'0'):String(x.pick_label||('Round '+x.round+' · Overall '+x.pick_no));
+}
 function figDraftPersonRow(pick,originals,includeTeam=false){
  const player=figDraftPlayerName(pick),by=Number(pick.franchise_id),original=figDraftOriginal(pick,originals);
  const different=original&&original!==by;
@@ -1529,7 +1543,7 @@ const FIG_ROOKIE_SLOT_VALUES=[
 const FIG_JAMES_ROOKIE_VALUES=[6300,1600,464,146];
 function figDraftSlotValue(pick){
  if(String(pick?.draft_season)==='2023'||String(pick?.draft_class||'').toLowerCase()!=='rookie')return null;
- const round=Number(pick.round),slot=Number(pick.pick_in_round);
+ const round=Number(pick.round),slot=figDraftRoundSlot(pick);
  if(!Number.isInteger(round)||round<1||round>4||!Number.isInteger(slot)||slot<1||slot>10)return null;
  // The James override follows the *drafting team*, not the original pick holder.
  return +pick.franchise_id===10?FIG_JAMES_ROOKIE_VALUES[round-1]:FIG_ROOKIE_SLOT_VALUES[round-1][slot-1];
