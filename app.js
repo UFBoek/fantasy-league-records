@@ -1562,9 +1562,11 @@ function figDraftSlotValue(pick){
 function figDraftGradeLetter(current,slot,pick){
  if(current===null||slot===null||!Number.isFinite(current)||!Number.isFinite(slot))return '—';
  const gain=current-slot,ratio=slot>0?current/slot:0;
+ const lateRookie=String(pick?.draft_class||'').toLowerCase()==='rookie'&&+pick.round>=3&&+pick.round<=4;
  if(current>=6500&&gain>=3000)return 'S';
  if(current>=2300&&gain>=1400)return 'A';
- if((current>=1100&&gain>=400)||(String(pick?.draft_class||'').toLowerCase()==='rookie'&&+pick.round>=3&&+pick.round<=4&&current>=550&&gain>=200))return 'B';
+ // A 3rd/4th-round rookie returning at least twice its slot cost earns B or better.
+ if((current>=1100&&gain>=400)||(lateRookie&&(ratio>=2||(current>=550&&gain>=200))))return 'B';
  if((current>=300&&gain>=0)||(current>=800&&ratio>=.8)||(Number(pick?.round)>=3&&Number(pick?.round)<=4&&gain>0))return 'C';
  if(current<=50||ratio<.2&&slot>=400)return 'F';
  return 'D';

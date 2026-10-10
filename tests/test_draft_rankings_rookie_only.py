@@ -1,5 +1,7 @@
 """Rookie draft rankings must never include the 2023 startup draft."""
 import json
+import shutil
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -60,6 +62,36 @@ class RookieDraftRankingsTests(unittest.TestCase):
         mean_individual = sum(current / slot for slot, current in picks) / len(picks)
         self.assertAlmostEqual(aggregate, 2000 / 1100)
         self.assertLess(aggregate, mean_individual)
+
+    def test_third_and_fourth_round_200_percent_return_is_at_least_b(self):
+        # Execute the actual frontend grading function, not a reimplementation.
+        if not shutil.which("node"):
+            self.skipTest("Node.js is not installed")
+        source = self.app.split("function figDraftGradeLetter(current,slot,pick){", 1)[1].split(
+            "\\nconst FIG_GRADE_POINTS", 1
+        )[0]
+        function_source = "function figDraftGradeLetter(current,slot,pick){" + source
+        javascript = function_source + """
+const cases = [
+  [376,188,{round:3,draft_class:'Rookie'},'B'],  // exactly 200%, under 550
+  [200,100,{round:4,draft_class:'Rookie'},'B'],  // exactly 200%, under 550
+  [375,188,{round:3,draft_class:'Rookie'},'C'],  // less than 200%
+  [199,100,{round:4,draft_class:'Rookie'},'C'],  // less than 200%
+  [1010,505,{round:2,draft_class:'Rookie'},'C'], // no late-round rule
+  [200,100,{round:4,draft_class:'Startup'},'C'],// no startup rule
+  [3000,100,{round:4,draft_class:'Rookie'},'A'] // higher grade still wins
+];
+for (const [current,slot,pick,expected] of cases) {
+  const actual = figDraftGradeLetter(current,slot,pick);
+  if (actual !== expected) {
+    throw new Error(JSON.stringify({current,slot,pick,expected,actual}));
+  }
+}
+"""
+        result = subprocess.run(
+            ["node", "-e", javascript], capture_output=True, text=True, check=False
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,12 @@
+## v124 — Third- and fourth-round rookie picks returning 200% earn B or higher
+
+- Any round-three or round-four rookie pick with current value at least 2× its FIG draft-slot cost receives a minimum B, including lower-value late picks.
+- S and A thresholds still take precedence, and existing higher-value B rules remain unchanged. Other rounds and startup selections do not receive this special rule.
+- 200% return means current value / slot cost = 2.00, not a +200% profit.
+- Rookie rankings, individual pick grades, and franchise summaries continue to use the shared grade calculation.
+
+---
+
 ## v123 — One draft Return % metric (value-weighted)
 
 - Removed the average of individual pick returns, which overemphasized late-round hits.
