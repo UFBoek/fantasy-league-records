@@ -1545,29 +1545,51 @@ function figDraftPersonRow(pick,originals,includeTeam=false){
 }
 // The Draft tab is an all-years directory; franchise history lives under Teams.
 // A year's complete draft board expands in place rather than replacing other years.
-// League-defined rookie draft grades. Startup picks do not have rookie baselines.
+// League slot baselines. Rookie values are owner-supplied and fixed.
 const FIG_ROOKIE_SLOT_VALUES=[
  [6300,5510,4725,3940,3520,3100,2680,2265,2045,1925],
  [1600,1375,1105,992,878,765,700,635,570,505],
  [464,423,381,340,300,270,240,210,189,168],
  [146,125,121,118,114,110,105,102,98,95]
 ];
+// PROVISIONAL startup market-value curve for the 2023 25-round snake draft.
+// Anchors correspond to each round's first overall pick, plus an end point;
+// interpolate within each round. Replace with league-approved exact slots later.
+const FIG_STARTUP_SLOT_ANCHORS=[
+ 9500,7800,6600,5600,4800,4200,3700,3250,2850,2500,
+ 2200,1950,1700,1490,1300,1130,980,840,720,610,
+ 510,425,350,285,230,180
+];
 function figDraftSlotValue(pick){
- if(String(pick?.draft_season)==='2023'||String(pick?.draft_class||'').toLowerCase()!=='rookie')return null;
- const round=Number(pick.round),slot=figDraftRoundSlot(pick);
- if(!Number.isInteger(round)||round<1||round>4||!Number.isInteger(slot)||slot<1||slot>10)return null;
+ const round=Number(pick?.round),slot=figDraftRoundSlot(pick);
+ if(!Number.isInteger(round)||!Number.isInteger(slot)||slot<1||slot>10)return null;
+ if(String(pick.draft_season)==='2023'&&String(pick.draft_class||'').toLowerCase()==='startup'){
+  if(round<1||round>25)return null;
+  const begin=FIG_STARTUP_SLOT_ANCHORS[round-1],end=FIG_STARTUP_SLOT_ANCHORS[round];
+  return Math.round((begin+(end-begin)*(slot-1)/10)/5)*5;
+ }
+ if(String(pick.draft_class||'').toLowerCase()!=='rookie'||round<1||round>4)return null;
  return FIG_ROOKIE_SLOT_VALUES[round-1][slot-1];
 }
-function figDraftGradeLetter(ratio){
- if(ratio===null||!Number.isFinite(ratio))return '—';
- return ratio>=1.5?'A':ratio>=1.1?'B':ratio>=.8?'C':ratio>=.5?'D':'F';
+// Both asset quality and the actual market-value gain matter. A good
+// late-round percentage alone cannot create an S/A/B grade.
+function figDraftGradeLetter(current,slot){
+ if(current===null||slot===null||!Number.isFinite(current)||!Number.isFinite(slot))return '—';
+ const gain=current-slot,ratio=slot>0?current/slot:0;
+ if(current>=6500&&gain>=3000)return 'S';
+ if(current>=2300&&gain>=1400)return 'A';
+ if(current>=1100&&gain>=400)return 'B';
+ if((current>=300&&gain>=0)||(current>=800&&ratio>=.8))return 'C';
+ if(current<=50||ratio<.2&&slot>=400)return 'F';
+ return 'D';
 }
+const FIG_GRADE_POINTS={S:5,A:4,B:3,C:2,D:1,F:0};
 function figDraftGrade(pick){
  const slot=figDraftSlotValue(pick);
  if(slot===null)return null;
  const current=raPlayer(pick.player_id);
  const ratio=current===null?null:current/slot;
- return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(ratio)};
+ return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(current,slot)};
 }
 function figDraftGradeStrip(pick){
  const z=figDraftGrade(pick);
@@ -1578,24 +1600,29 @@ function figDraftGradeStrip(pick){
   '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE</small></span>'+
   '<span><b>'+(valid?money(z.current):'—')+'</b><small>CURRENT VALUE</small></span>'+
   '<span><b>'+(valid?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE CHANGE</small></span>'+
-  '<span><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>VALUE RETAINED</small></span></div>';
+  '<span class="fig-draft-grade-ratio"><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>RETURN</small></span></div>';
 }
 function figDraftGradeSummary(picks){
  const scoped=picks.map(figDraftGrade).filter(Boolean),valued=scoped.filter(x=>x.current!==null);
  const slot=valued.reduce((sum,x)=>sum+x.slot,0),current=valued.reduce((sum,x)=>sum+x.current,0);
- const ratio=slot?current/slot:null;
- return {eligible:scoped.length,valued:valued.length,slot,current,ratio,letter:figDraftGradeLetter(ratio)};
+ const ratio=slot?current/slot:null,delta=current-slot;
+ const counts={S:0,A:0,B:0,C:0,D:0,F:0};
+ valued.forEach(x=>counts[x.letter]++);
+ const score=valued.length?valued.reduce((sum,x)=>sum+FIG_GRADE_POINTS[x.letter],0)/valued.length:null;
+ const letter=score===null?'—':score>=4.5?'S':score>=3.5?'A':score>=2.5?'B':score>=1.5?'C':score>=.5?'D':'F';
+ return {eligible:scoped.length,valued:valued.length,slot,current,ratio,delta,counts,score,letter};
 }
 function figDraftGradeOverview(picks,label){
- const z=figDraftGradeSummary(picks);
+ const z=figDraftGradeSummary(picks),isStartup=picks.some(x=>String(x.draft_season)==='2023');
  return '<div class="fig-draft-grade-overview"><div class="fig-draft-grade-overview-intro">'+
-  '<span>FIG LEAGUE DRAFT GRADES</span><h3>'+esc(label)+'</h3>'+
-  '<p>Current value ÷ slot value · A ≥150% · B ≥110% · C ≥80% · D ≥50% · F below 50%.</p></div>'+
-  '<div class="fig-draft-grade-overview-score"><strong>'+esc(z.letter)+'</strong><span>COMBINED GRADE</span>'+
-  '<small>'+(z.ratio!==null?Math.round(z.ratio*100)+'% value retained':'Awaiting values')+'</small></div>'+
-  '<div class="fig-draft-grade-overview-stats"><span><b>'+money(z.slot)+'</b> GRADED SLOT VALUE</span>'+
+  '<span>FIG DRAFT GRADES</span><h3>'+esc(label)+'</h3>'+
+  (isStartup?'<p>2023 startup slots use provisional round-based values.</p>':'<p>Grades consider player quality and value gained.</p>')+'</div>'+
+  '<div class="fig-draft-grade-overview-score"><strong>'+esc(z.letter)+'</strong><span>AVG GRADE</span>'+
+  '<small>'+(z.score!==null?z.score.toFixed(2)+' / 5':'Awaiting values')+'</small></div>'+
+  '<div class="fig-draft-grade-overview-stats"><span><b>'+money(z.slot)+'</b> SLOT VALUE</span>'+
   '<span><b>'+money(z.current)+'</b> CURRENT VALUE</span>'+
-  '<span><b>'+z.valued+'/'+z.eligible+'</b> PICKS VALUED</span></div></div>';
+  '<span><b>'+(z.delta>0?'+':'')+money(z.delta)+'</b> VALUE GAIN</span>'+
+  '<span><b>'+z.valued+'/'+z.eligible+'</b> VALUED</span></div></div>';
 }
 
 function figDraftFranchiseHistory(id,preferredYear){
