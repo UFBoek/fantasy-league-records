@@ -1,3 +1,13 @@
+## v122 — Rookie-only Draft Rankings
+
+- Removed the 2023 startup selection tab and standalone startup board from Draft Rankings. The ranking hub and individual-year boards now include only selections explicitly marked Rookie.
+- Preserved the 2024–2026 rookie year filters, FIG slot costs, S–F draft grades, current values, gains, returns, average returns, and in-depth team ranking breakdowns.
+- Historical `#/draft/2023` links now redirect to rookie rankings; historical `#/draft/team/{franchise}/2023` links redirect to that franchise's rookie draft breakdown.
+- The 2023 startup draft remains available as ungraded history under Teams → Draft History; no startup selections enter ranking totals.
+- Bumped the app-script and service-worker cache versions to 122.
+
+---
+
 ## v121 — Only rookie drafts receive slot valuations, grades, and team rankings
 
 - Removed speculative 2023 startup slot-cost curve entirely. FIG slot values and S–F draft grades apply only to completed rookie selections (2024 onward).

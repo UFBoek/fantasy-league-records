@@ -1684,21 +1684,19 @@ function figDraftFranchiseHistory(id,preferredYear){
   yearLinks+classes+'</section>';
 }
 async function draft(selectedYear){
+ if(String(selectedYear)==='2023'){location.hash='#/draft';return;}
  await load(['draftPicks','draftAudit','raValues']);navActive('draft');
- const all=DATA.draftPicks||[];
+ const all=(DATA.draftPicks||[]).filter(p=>String(p.draft_class||'').toLowerCase()==='rookie');
  const years=[...new Set(all.map(x=>String(x.draft_season)))].sort((a,b)=>+b-+a);
- if(!years.length){app.innerHTML=hero('LEAGUE ARCHIVE','DRAFT RANKINGS','')+'<div class="empty">No draft history available.</div>';return}
+ if(!years.length){app.innerHTML=hero('LEAGUE ARCHIVE','DRAFT RANKINGS','')+'<div class="empty">No rookie draft history available.</div>';return}
  const year=years.includes(String(selectedYear))?String(selectedYear):'all';
- const startup=year==='2023';
- const scoped=year==='all'?all.filter(x=>String(x.draft_season)!=='2023'):all.filter(x=>String(x.draft_season)===year);
+ const scoped=year==='all'?all:all.filter(x=>String(x.draft_season)===year);
  const picks=scoped.slice().sort((a,b)=>+a.pick_no-+b.pick_no);
  const origins=figDraftAuditMap(DATA.draftAudit||[]);
  const total=figDraftGradeSummary(scoped);
- const counts=new Map(years.map(y=>[y,all.filter(x=>String(x.draft_season)===y).length]));
  const nav='<nav class="fig-draft-rank-nav" aria-label="Draft ranking seasons">'+
   '<a class="fig-draft-rank-year'+(year==='all'?' active':'')+'" href="#/draft">ALL ROOKIES</a>'+
-  years.filter(y=>y!=='2023').map(y=>'<a class="fig-draft-rank-year'+(year===y?' active':'')+'" href="#/draft/'+encodeURIComponent(y)+'">'+esc(y)+' ROOKIES</a>').join('')+
-  (years.includes('2023')?'<a class="fig-draft-rank-year fig-draft-startup-filter'+(startup?' active':'')+'" href="#/draft/2023">2023 STARTUP</a>':'')+'</nav>';
+  years.map(y=>'<a class="fig-draft-rank-year'+(year===y?' active':'')+'" href="#/draft/'+encodeURIComponent(y)+'">'+esc(y)+' ROOKIES</a>').join('')+'</nav>';
  const byTeam=Array.from({length:10},(_,i)=>i+1).map(id=>{
   const selections=scoped.filter(p=>+p.franchise_id===id);
   return {id,name:OWNER_DISPLAY_BY_ID[id]||'Team '+id,picks:selections.length,grade:figDraftGradeSummary(selections)};
@@ -1753,29 +1751,19 @@ async function draft(selectedYear){
      '<div class="fig-draft-focus-person">'+playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
       '<small>'+esc(pick.position||pick.draft_position||'—')+' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
      '<div class="fig-draft-focus-pick-owner">'+ownerAvatar(id,'fig-draft-focus-owner-avatar')+
-      '<span>'+(startup?'<strong>'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+'</strong>':'<a href="#/draft/team/'+id+'/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>')+
+      '<span><a href="#/draft/team/'+id+'/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>'+
       '<small>'+(origin&&origin!==id?'Originally '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'Drafting franchise')+'</small></span></div>'+
       figDraftGradeStrip(pick)+'</article>';
    }).join('')+'</div></section>';
  }).join('');
  const jumps=rounds.length>4?'<nav class="fig-draft-focus-round-links" aria-label="Jump to draft round"><span>ROUND</span>'+
   rounds.map(r=>'<button type="button" data-round="'+r+'">'+r+'</button>').join('')+'</nav>':'';
- if(startup){
-  app.innerHTML=hero('FOUNDING DRAFT','2023 STARTUP','')+
-   '<div class="fig-draft-archive fig-draft-focus fig-draft-rank-page">'+nav+
-   '<section class="fig-draft-startup-only"><div><h2>2023 STARTUP DRAFT</h2><span>250 PICKS · 25 ROUNDS</span></div>'+
-   '<div class="fig-draft-startup-only-board">'+jumps+'<div class="fig-draft-focus-board">'+board+'</div></div></section></div>';
-  $$('.fig-draft-focus-round-links button').forEach(button=>{
-   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
-  });
-  return;
- }
- const boardDetail=year==='all'?'':'<details class="fig-draft-rank-board"><summary><span><strong>COMPLETE '+year+(startup?' STARTUP':' ROOKIE')+' DRAFT BOARD</strong>'+
+ const boardDetail=year==='all'?'':'<details class="fig-draft-rank-board"><summary><span><strong>COMPLETE '+year+' ROOKIE DRAFT BOARD</strong>'+
   '<small>'+picks.length+' selections · '+rounds.length+' rounds</small></span><span>VIEW PICKS ▾</span></summary>'+
   '<div class="fig-draft-rank-board-body">'+jumps+'<div class="fig-draft-focus-board">'+board+'</div></div></details>';
  app.innerHTML=hero('DRAFT ARCHIVE','DRAFT RANKINGS','')+
   '<div class="fig-draft-archive fig-draft-focus fig-draft-rank-page">'+nav+
-  '<section class="fig-draft-rank-main"><div class="fig-draft-rank-head"><div><span class="eyebrow">'+(year==='all'?'ALL SEASONS':startup?'FOUNDING STARTUP':'ROOKIE DRAFT')+'</span>'+
+  '<section class="fig-draft-rank-main"><div class="fig-draft-rank-head"><div><span class="eyebrow">'+(year==='all'?'ALL ROOKIE DRAFTS':'ROOKIE DRAFT')+'</span>'+
    '<h2>TEAM DRAFT VALUE RANKINGS</h2>'+
    '<small>'+scoped.length+' picks · '+total.valued+' valued</small></div>'+
    '<div class="fig-draft-rank-overall"><b>'+money(total.current)+'</b><small>LEAGUE DRAFT VALUE</small></div></div>'+
@@ -1792,16 +1780,16 @@ async function draft(selectedYear){
 }
 // Team drill-down in the Draft area (not the Teams profile).
 async function draftTeamRanking(teamId,requestedYear){
- if(String(requestedYear)==='2023'){location.hash='#/draft/2023';return;}
+ if(String(requestedYear)==='2023'){location.hash='#/draft/team/'+encodeURIComponent(teamId||'');return;}
  await load(['draftPicks','draftAudit','raValues']);navActive('draft');
  const id=Number(teamId);
  if(!Number.isInteger(id)||id<1||id>10){app.innerHTML=hero('DRAFT RANKINGS','TEAM NOT FOUND','');return}
- const all=DATA.draftPicks||[];
+ const all=(DATA.draftPicks||[]).filter(p=>String(p.draft_class||'').toLowerCase()==='rookie');
  const years=[...new Set(all.map(p=>String(p.draft_season)))].sort((a,b)=>Number(a)-Number(b));
- const rookieYears=years.filter(y=>y!=='2023');
+ const rookieYears=years;
  const year=rookieYears.includes(String(requestedYear))?String(requestedYear):'all';
  const teamPicks=all.filter(p=>Number(p.franchise_id)===id);
- const scoped=teamPicks.filter(p=>year==='all'?String(p.draft_season)!=='2023':String(p.draft_season)===year);
+ const scoped=year==='all'?teamPicks:teamPicks.filter(p=>String(p.draft_season)===year);
  const scores=scoped.map(p=>({pick:p,grade:figDraftGrade(p)}));
  const summary=figDraftGradeSummary(scoped);
  const name=OWNER_DISPLAY_BY_ID[id]||'Team '+id,origins=figDraftAuditMap(DATA.draftAudit||[]);
