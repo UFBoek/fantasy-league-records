@@ -1612,8 +1612,6 @@ function figDraftFranchiseHistory(id,preferredYear){
  const valued=teamPicks.map(x=>raPlayers[String(x.player_id)]?.value).filter(x=>x!==null&&x!==undefined&&Number.isFinite(+x));
  const currentMarketTotal=valued.reduce((v,x)=>v+Number(x),0);
  const valueTimestamp=ra.updated_at?new Date(ra.updated_at).toLocaleDateString():'last available refresh';
- const legend='<div class="fig-team-draft-note"><strong>FIG rookie draft grade system</strong>'+
-   '<p>All teams use normal draft-slot values. Missing values stay ungraded; 2023 startup picks are separate.</p></div>';
  const yearLinks='<nav class="fig-team-draft-filter" aria-label="Filter draft history by year">'+
    '<a href="#/team/'+id+'/drafts"'+(!selected?' class="active"':'')+'>ALL YEARS</a>'+
    '<span class="fig-team-draft-filter-label">ROOKIE</span>'+
@@ -1661,12 +1659,12 @@ function figDraftFranchiseHistory(id,preferredYear){
        '<p>No original picks from this year are confirmed as used by other teams.</p>')+'</details></section>';
  }).join('');
  return '<section class="fig-team-draft-history"><div class="fig-team-draft-intro">'+
-  '<div><h2>FRANCHISE DRAFT HISTORY</h2><p>All draft selections by '+esc(OWNER_DISPLAY_BY_ID[+id])+'.</p></div>'+
+  '<div><h2>FRANCHISE DRAFT HISTORY</h2></div>'+
   '</div>'+ 
-  totals+(selected==='2023'?'<div class="fig-draft-startup-notice"><strong>STARTUP ARCHIVE · UNGRADED</strong><p>2023 startup picks are not graded.</p></div>':figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS'))+
+  totals+(selected==='2023'?'':figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS'))+
   '<div class="fig-team-draft-market"><div><strong>'+money(currentMarketTotal)+'</strong><span>COMBINED CURRENT RA VALUE OF VALUED PICKS</span></div>'+
   '<p>'+valued.length+'/'+teamPicks.length+' valued · '+esc(valueTimestamp)+' · Includes startup</p></div>'+
-  legend+yearLinks+classes+'</section>';
+  yearLinks+classes+'</section>';
 }
 async function draft(selectedYear){
  await load(['draftPicks','draftAudit','raValues']);navActive('draft');
