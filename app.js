@@ -1573,12 +1573,12 @@ function figDraftSlotValue(pick){
 }
 // Both asset quality and the actual market-value gain matter. A good
 // late-round percentage alone cannot create an S/A/B grade.
-function figDraftGradeLetter(current,slot){
+function figDraftGradeLetter(current,slot,pick){
  if(current===null||slot===null||!Number.isFinite(current)||!Number.isFinite(slot))return '—';
  const gain=current-slot,ratio=slot>0?current/slot:0;
  if(current>=6500&&gain>=3000)return 'S';
  if(current>=2300&&gain>=1400)return 'A';
- if(current>=1100&&gain>=400)return 'B';
+ if((current>=1100&&gain>=400)||(String(pick?.draft_class||'').toLowerCase()==='rookie'&&+pick.round>=3&&+pick.round<=4&&current>=550&&gain>=200))return 'B';
  if((current>=300&&gain>=0)||(current>=800&&ratio>=.8))return 'C';
  if(current<=50||ratio<.2&&slot>=400)return 'F';
  return 'D';
@@ -1589,7 +1589,7 @@ function figDraftGrade(pick){
  if(slot===null)return null;
  const current=raPlayer(pick.player_id);
  const ratio=current===null?null:current/slot;
- return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(current,slot)};
+ return {slot,current,ratio,delta:current===null?null:current-slot,letter:figDraftGradeLetter(current,slot,pick)};
 }
 function figDraftGradeStrip(pick){
  const z=figDraftGrade(pick);
