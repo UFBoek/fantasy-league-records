@@ -1,6 +1,6 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const app=$('#app'), DATA={};
-const fileMap={league:'league_history',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',injuryHistory:'injury_history',injuryCandidates:'injury_candidates',injuryDiscovery:'injury_discovery_candidates',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
+const fileMap={league:'league_history',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
 const JACK_ID=1,HAYDEN_ID=6;
 const OWNER_DISPLAY_BY_ID={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 // Permanent, franchise-ID keyed images; independent of Sleeper refreshes.
@@ -920,7 +920,7 @@ async function team(id){
   {label:'TOP-3 WEEKS',value:meWeekly.top3,rank:rankValue(weeklyCareerRows,id,x=>num(x.top3)),accent:'coral'}
  ];
  const careerStatsHtml=careerStats.map(x=>`<div class="team-stat-tile stat-${x.accent}"><span>${x.label}</span><strong>${x.value}</strong>${x.rank?`<em>RANK: #${x.rank}</em>`:''}</div>`).join('');
- const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<a class="fig-team-injury-link" href="#/injuries/team/${id}">INJURY HISTORY <span>All seasons · verified game exits ↗</span></a><div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button></div></section><div id="teamTabBody"></div>`;
+ const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button></div></section><div id="teamTabBody"></div>`;
  app.innerHTML=teamHeader;
 
  const rosterSort=(rows)=>{
@@ -1027,137 +1027,6 @@ async function team(id){
 }
 
 
-/* Team-first injury records. Source-reviewed incidents count, machine-scanned
-   low-snap anomalies remain separate and never enter official totals. */
-const FIG_INJURY_YEARS=[2026,2025,2024,2023];
-function figInjurySummary(items){
- const cases=items||[];
- return {events:cases.length,started:cases.filter(e=>e.started_in_game_injury).length,
-  rotation:cases.filter(e=>e.rotation_injury).length,major:cases.filter(e=>e.major_injury).length};
-}
-function figInjuryTotals(items,small){
- const z=figInjurySummary(items);
- const columns=[['CASES',z.events],['STARTED',z.started],['ROTATION',z.rotation],['SEASON-ENDING',z.major]];
- return '<div class="fig-injury-kpis'+(small?' compact':'')+'">'+columns.map(([label,value])=>
-  '<div><strong>'+esc(value||'—')+'</strong><small>'+label+'</small></div>').join('')+'</div>';
-}
-function figInjuryEvidenceRow(e){
- const major=e.major_injury===true;
- const roles=major?['SEASON-ENDING · MAJOR']:[e.started_in_game_injury?'STARTED IN-GAME':'',e.rotation_injury?'ROTATIONAL PLAYER':''].filter(Boolean);
- return '<a class="fig-team-injury-event" href="#/injuries/event/'+encodeURIComponent(e.event_id)+'">'+
-  '<div class="fig-team-injury-event-week"><b>W'+esc(e.week)+'</b><span>'+esc(e.season)+'</span></div>'+
-  '<div class="fig-team-injury-event-copy"><strong>'+esc(e.player_name)+'</strong><span>'+esc(e.injury_description||'Verified in-game exit')+'</span><small>'+esc(roles.join(' · '))+'</small></div>'+
-  '<span class="fig-team-injury-chevron" aria-hidden="true">›</span></a>';
-}
-function figInjuryTeamName(id){return OWNER_DISPLAY_BY_ID[Number(id)]||'Unknown franchise'}
-function figInjuryNotes(){
- return '<div class="fig-injury-notice"><strong>PARTIAL EVIDENCE — NOT COMPLETE INJURY-LUCK RANKINGS</strong>'+
- '<p>These totals include only verified injuries during completed fantasy weeks. A dash means no documented case yet, not proof of zero injuries. A season-ending injury appears <b>only as Major</b>, never a second Started or Rotation count. Other Started and Rotation labels can overlap.</p></div>';
-}
-function figInjuryDataEstimates(id,year,discovery,confirmed){
- const documented=new Set((confirmed||[]).filter(e=>+e.franchise_id===id&&(+year===0||+e.season===+year))
-  .map(e=>String(e.season)+'|'+String(e.week)+'|'+String(e.player_id)));
- return (discovery.candidates||[]).filter(c=>+c.franchise_id===id&&(!year||+c.season===+year)
-  &&c.inference_tier==='automated_estimate'&&!c.already_verified
-  &&!documented.has(String(c.season)+'|'+String(c.week)+'|'+String(c.player_id)));
-}
-function figInjuryTeamLeads(id,year,discovery,confirmed){
- const inferred=figInjuryDataEstimates(id,year,discovery,confirmed);
- if(!inferred.length)return '';
- const rows=[...inferred].sort((a,b)=>+b.week-+a.week||String(a.player_name).localeCompare(String(b.player_name)));
- return '<section class="fig-auto-injury-section"><div class="fig-auto-injury-heading"><strong>DATA-BACKED INJURY ESTIMATES</strong><span>'+rows.length+' AUTOMATIC MATCH'+(rows.length===1?'':'ES')+'</span></div>'+
- '<p>Automatically matched from a major NFL snap-count drop, documented game participation, and a following-week Out/Doubtful injury report. No case-by-case review needed for this estimate. These are <b>not confirmed early exits</b> and are separate from verified counts.</p>'+
- rows.map(c=>'<div class="fig-team-injury-lead fig-auto-injury-row"><div><b>'+esc(c.player_name)+'</b><small>W'+esc(c.week)+' · '+(c.starter?'FANTASY STARTER':'FANTASY ROTATION')+
- ' · ESTIMATED</small><span>'+esc('NFL offense: '+Math.round(Number(c.offense_pct)*100)+'% vs usual '+Math.round(Number(c.reference_offense_pct)*100)+'%; following report: '+String(c.injury_report_detail?.injury||'injury')+' ('+String(c.injury_report_detail?.status||'')+')')+
- '</span></div><a target="_blank" rel="noopener noreferrer" href="'+esc(c.injury_report_source_url)+'">Source data ↗</a></div>').join('')+
- '</section>';
-}
-async function injuries(yearFilter){
- await load(['injuryHistory','injuryDiscovery']);navActive('records');
- const data=DATA.injuryHistory||{},all=data.events||[];
- const year=FIG_INJURY_YEARS.includes(+yearFilter)?+yearFilter:null;
- const subset=year?all.filter(e=>+e.season===year):all;
- const franchise=Array.from({length:10},(_,i)=>i+1);
- const teamCards=franchise.map(id=>{
-  const cases=subset.filter(e=>+e.franchise_id===id);
-  const total=figInjurySummary(cases);
-  const estimated=figInjuryDataEstimates(id,year,DATA.injuryDiscovery||{},all).length;
-  const byYear=FIG_INJURY_YEARS.map(y=>{
-   const val=figInjurySummary(all.filter(e=>+e.franchise_id===id&&+e.season===y)).events;
-   return '<a href="#/injuries/team/'+id+'/'+y+'" class="fig-injury-season-link">'+y+'<b>'+ (val||'—')+'</b></a>';
-  }).join('');
-  return '<article class="fig-injury-team-card"><a href="#/injuries/team/'+id+'" class="fig-injury-team-card-head">'+
-    ownerAvatar(id,'fig-injury-team-avatar')+'<span class="fig-injury-team-title"><strong>'+esc(figInjuryTeamName(id))+'</strong><small>OPEN TEAM INJURY HISTORY ↗</small></span></a>'+
-    figInjuryTotals(cases,true)+'<p class="fig-auto-injury-counter">'+estimated+' automatic data-backed estimate'+(estimated===1?'':'s')+' · separate from verified totals</p><div class="fig-injury-season-strip">'+byYear+'</div></article>';
- }).join('');
- const global=figInjurySummary(subset);
- const seasonTabs='<div class="fig-injury-season-filter" role="group" aria-label="Filter team injury overview by season">'+
-   '<a href="#/injuries"'+(!year?' class="active"':'')+'>ALL YEARS</a>'+
-   FIG_INJURY_YEARS.map(y=>'<a href="#/injuries/season/'+y+'"'+(year===y?' class="active"':'')+'>'+y+'</a>').join('')+'</div>';
- const scan=DATA.injuryDiscovery||{};
- const verifiedSet=new Set(all.map(e=>String(e.season)+'|'+String(e.week)+'|'+String(e.player_id)+'|'+String(e.franchise_id)));
- const pendingCount=(scan.candidates||[]).filter(c=>!c.already_verified&&!verifiedSet.has(String(c.season)+'|'+String(c.week)+'|'+String(c.player_id)+'|'+String(c.franchise_id))&&c.inference_tier==='automated_estimate'&&(!year||+c.season===year)).length;
- app.innerHTML=hero('FRANCHISE RECORD BOOK','INJURY HISTORY','Track how game-ending injuries affected each fantasy team, season by season.')+
- '<div class="fig-team-injury-shell">'+figInjuryNotes()+
- '<div class="fig-team-injury-overview"><h2>LEAGUE SNAPSHOT <small>'+esc(year||'2023–2026')+' · VERIFIED CASES ONLY</small></h2>'+figInjuryTotals(subset,false)+
- '<p class="fig-team-injury-helper">Select a franchise to see its injuries by season, who was started, and the game evidence.</p>'+
- seasonTabs+'</div><div class="fig-injury-team-cards">'+teamCards+'</div>'+
- '<div class="fig-team-injury-global-review"><strong>'+esc(pendingCount)+' AUTOMATIC INJURY ESTIMATES</strong>'+
- '<p>The daily NFL data scan now automatically archives weak signals. Only stronger data-backed estimates appear under the affected team and season. Those estimates are not added to verified injury totals, and do not require a manual review queue.</p></div></div>';
-}
-async function injuryTeamPage(franchiseId,selectedYear){
- await load(['injuryHistory','injuryDiscovery']);navActive('teams');
- const id=Number(franchiseId),year=FIG_INJURY_YEARS.includes(+selectedYear)?+selectedYear:null;
- if(!Number.isInteger(id)||id<1||id>10){app.innerHTML='<div class="empty">Unknown franchise.</div>';return}
- const data=DATA.injuryHistory||{},all=(data.events||[]).filter(e=>+e.franchise_id===id);
- const discovery=DATA.injuryDiscovery||{};
- const tabs='<div class="fig-injury-season-filter">'+
-  '<a href="#/injuries/team/'+id+'"'+(!year?' class="active"':'')+'>ALL YEARS</a>'+
-  FIG_INJURY_YEARS.map(y=>'<a href="#/injuries/team/'+id+'/'+y+'"'+(year===y?' class="active"':'')+'>'+y+'</a>').join('')+'</div>';
- const seasons=(year?[year]:FIG_INJURY_YEARS).map(y=>{
-  const cases=all.filter(e=>+e.season===y).sort((a,b)=>+b.week-+a.week||String(a.player_name).localeCompare(String(b.player_name)));
-  const stats=figInjurySummary(cases);
-  const estimates=figInjuryDataEstimates(id,y,discovery,all).length;
-  return '<section class="fig-team-injury-season"><a class="fig-team-injury-season-heading" href="#/injuries/team/'+id+'/'+y+'"><strong>'+y+' SEASON</strong>'+
-    '<span>'+stats.events+' VERIFIED · '+estimates+' ESTIMATED ›</span></a>'+
-    figInjuryTotals(cases,true)+
-    '<div class="fig-team-injury-eventlist">'+(cases.map(figInjuryEvidenceRow).join('')||
-      '<p class="fig-team-injury-unknown">No injury events verified here yet. This is not a zero-injury finding.</p>')+'</div>'+
-    figInjuryTeamLeads(id,y,discovery,all)+'</section>';
- }).join('');
- app.innerHTML='<div class="fig-team-injury-shell">'+
- '<div class="fig-team-injury-breadcrumb"><a href="#/injuries">← ALL INJURY TEAMS</a><a href="#/team/'+id+'">TEAM PROFILE ↗</a></div>'+
- '<div class="fig-team-injury-header">'+ownerAvatar(id,'fig-team-injury-header-avatar')+
- '<div><span>FRANCHISE INJURY FILE</span><h1>'+esc(figInjuryTeamName(id))+'</h1><p>2023–2026 injury evidence and fantasy lineup impact</p></div></div>'+
- figInjuryNotes()+'<section class="fig-team-injury-overview"><h2>TEAM TOTALS <small>'+esc(year||'ALL SEASONS')+' · VERIFIED ONLY</small></h2>'+
- figInjuryTotals(year?all.filter(e=>+e.season===year):all,false)+tabs+'</section>'+
- '<div class="fig-team-injury-season-list">'+seasons+'</div></div>';
-}
-async function injuryEventPage(rawId){
- await load(['injuryHistory']);navActive('teams');
- const value=decodeURIComponent(rawId||'');
- const event=(DATA.injuryHistory?.events||[]).find(e=>String(e.event_id)===value);
- if(!event){app.innerHTML='<div class="empty">Injury evidence not found.</div>';return}
- const id=+event.franchise_id,y=+event.season,major=event.major_injury===true;
- const labels=major?['MAJOR · SEASON-ENDING']:
-  [event.started_in_game_injury?'STARTED IN-GAME':'',event.rotation_injury?'ROTATION PLAYER':''].filter(Boolean);
- const links=[['Game exit report',event.game_outcome_source_url],['Injury evidence',event.source_url],
-   ['Season-ending verification',event.severity_source_url]].filter(([label,url])=>url);
- app.innerHTML='<div class="fig-team-injury-shell"><div class="fig-team-injury-breadcrumb">'+
- '<a href="#/injuries/team/'+id+'/'+y+'">← '+esc(figInjuryTeamName(id))+' · '+y+'</a>'+
- '<a href="#/injuries">ALL TEAMS</a></div>'+
- '<div class="fig-injury-incident"><span class="fig-injury-incident-overline">'+y+' · NFL WEEK '+esc(event.week)+'</span>'+
- '<h1>'+esc(figInjuryTeamName(id))+' — '+esc(event.player_name)+'</h1>'+
- '<div class="fig-injury-incident-labels">'+labels.map(label=>'<span>'+esc(label)+'</span>').join('')+'</div>'+
- '<p>'+esc(event.injury_description||'Verified game-ending NFL injury')+'</p>'+
- '<dl><div><dt>FANTASY TEAM</dt><dd>'+esc(figInjuryTeamName(id))+'</dd></div>'+
- '<div><dt>WEEKLY LINEUP</dt><dd>'+(event.started?'STARTED':'BENCH · ROTATION')+'</dd></div>'+
- '<div><dt>NFL GAME OUTCOME</dt><dd>'+esc(event.injury_game_outcome==='did_not_return'?'Left game and did not return':'Returned briefly but could not finish normally')+'</dd></div>'+
- '<div><dt>SEASON-ENDING</dt><dd>'+(major?'CONFIRMED':'NOT CONFIRMED')+'</dd></div></dl>'+
- '<div class="fig-injury-incident-sources"><h2>VERIFY THIS INCIDENT</h2>'+
- links.map(([label,url])=>'<a target="_blank" rel="noopener noreferrer" href="'+esc(url)+'">'+esc(label)+' ↗</a>').join('')+'</div></div>'+
- figInjuryNotes()+'</div>';
-}
 async function records(){
  await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog']);navActive('records');
  let view='All-Time Combined';
@@ -1178,7 +1047,6 @@ async function records(){
     {label:'3RD',key:'bronze'},{label:'WIN %',key:'win'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PF',key:'pf'}],rows),
    'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','League bests, record holders and the full historical leaderboard.')+
- `<div class="fig-injury-entry"><a href="#/injuries"><strong>INJURY AUDIT · 2023–2026</strong><span>Verified exits and historical injury research ↗</span></a></div>`+
  hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`;
  const gamesForView=()=>DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);
  const weeklySummary=()=>{const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});const perf=[];gamesForView().forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});return Object.values(out)};
@@ -1724,7 +1592,6 @@ async function teamSeason(teamId,year){
  const playerCards=topPlayers.map((p,i)=>`<a class="fig-season-player" href="#/player/${encodeURIComponent(p.id)}"><span class="fig-season-player-rank">${i+1}</span>${playerHeadshot(p.id,p.name)}<span class="fig-season-player-name"><b>${esc(p.name)}</b><small>${esc(p.pos)} · ${p.starts} STARTS</small></span><strong>${money(p.points)}<small>PTS</small></strong></a>`).join('');
  app.innerHTML=hero('TEAM SEASON',`${esc(displayOwnerName(team.owner_name,fid))} • ${esc(season)}`,`${summary.season_complete?'COMPLETED SEASON':'SEASON IN PROGRESS'} · #${summary.regular_season_finish||'—'} REGULAR-SEASON FINISH`)+
   `<div class="fig-season-back"><a href="#/team/${fid}">← BACK TO TEAM PROFILE</a></div>`+
-  `<div class="fig-team-season-injury-link"><a href="#/injuries/team/${fid}/${season}">VIEW ${esc(season)} INJURIES FOR ${esc(displayOwnerName(team.owner_name,fid))} ↗</a></div>`+
   section('SEASON AT A GLANCE',statsHtml,'Official regular-season statistics. Playoffs appear in the game log below.')+
   section('ALL-PLAY VS EVERY TEAM',`<p class="fig-season-explainer">How this team scored against each opponent in the same completed regular-season weeks — even when they were not scheduled to face each other. Tap a team to inspect every comparison.</p><div class="fig-season-opponents">${pairCards}</div>`,'Regular season only · ranked by all-play win percentage')+
   section('SEASON SCORING LEADERS',`<div class="fig-season-players">${playerCards||'<div class="empty">No finished starts yet.</div>'}</div>`,'Official starting lineup points')+
@@ -1990,7 +1857,7 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='injuries'){if(parts[1]==='team')await injuryTeamPage(parts[2],parts[3]);else if(parts[1]==='event')await injuryEventPage(parts[2]);else await injuries(parts[1]==='season'?parts[2]:null);}else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft();else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
