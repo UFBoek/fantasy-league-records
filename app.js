@@ -1599,7 +1599,7 @@ function figDraftFranchiseHistory(id,preferredYear){
  const allMetrics=teamPicks.map(x=>valueMap.get(String(x.draft_id)+'|'+String(x.pick_no))).filter(Boolean);
  const careerStarts=allMetrics.reduce((v,x)=>v+Number(x.franchise_starts||0),0);
  const careerPoints=allMetrics.reduce((v,x)=>v+Number(x.franchise_starter_points||0),0);
- const valued=teamPicks.map(x=>raPlayers[String(x.player_id)]?.value).filter(x=>Number.isFinite(+x));
+ const valued=teamPicks.map(x=>raPlayers[String(x.player_id)]?.value).filter(x=>x!==null&&x!==undefined&&Number.isFinite(+x));
  const currentMarketTotal=valued.reduce((v,x)=>v+Number(x),0);
  const valueTimestamp=ra.updated_at?new Date(ra.updated_at).toLocaleDateString():'last available refresh';
  const legend='<div class="fig-team-draft-note"><strong>FIG rookie draft grade system</strong>'+
@@ -1653,7 +1653,7 @@ function figDraftFranchiseHistory(id,preferredYear){
  return '<section class="fig-team-draft-history"><div class="fig-team-draft-intro">'+
   '<div><h2>FRANCHISE DRAFT HISTORY</h2><p>Every pick '+esc(OWNER_DISPLAY_BY_ID[+id])+' made, across the entire league archive. Selections are attributed to the franchise that drafted each player, even when that pick was acquired in a trade.</p></div>'+
   '</div>'+ 
-  totals+figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS')+
+  totals+(selected==='2023'?'<div class="fig-draft-startup-notice"><strong>STARTUP ARCHIVE · UNGRADED</strong><p>2023 selections are separate from the rookie-grade system. The rookie slot scale does not apply to the founding draft.</p></div>':figDraftGradeOverview(teamPicks.filter(p=>String(p.draft_season)!=='2023'),'ROOKIE DRAFT RETURNS'))+
   '<div class="fig-team-draft-market"><div><strong>'+money(currentMarketTotal)+'</strong><span>COMBINED CURRENT RA VALUE OF VALUED PICKS</span></div>'+
   '<p>'+valued.length+' of '+teamPicks.length+' selections have a current RosterAudit player value · snapshot '+esc(valueTimestamp)+'. This includes startup picks; FIG rookie grades do not. Missing player values are never estimated.</p></div>'+
   legend+yearLinks+classes+'</section>';
