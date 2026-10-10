@@ -12,6 +12,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/update-league-data.yml'
+      - 'tests/test_draft_team_history.py'
+      - 'scripts/check_refresh_tests.sh'
 
 # Use the same deployment queue as the website publisher.
 concurrency:
