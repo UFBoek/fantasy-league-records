@@ -1028,7 +1028,7 @@ async function team(id,selectedTab,selectedDraftYear){
  $$('#teamTabs button').forEach(b=>b.onclick=()=>{$$('#teamTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderers[b.dataset.tab]()});
  const initialTab=selectedTab==='drafts'?'drafts':'records';
  const chosen=$('#teamTabs button[data-tab="'+initialTab+'"]');
- if(chosen){$('#teamTabs button').forEach(x=>x.classList.toggle('active',x===chosen));}
+ if(chosen){$$('#teamTabs button').forEach(x=>x.classList.toggle('active',x===chosen));}
  renderers[initialTab]();
 }
 
