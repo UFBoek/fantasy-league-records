@@ -1,0 +1,105 @@
+/* v118: compact Draft Rankings team drilldowns and startup-only archive. */
+.fig-draft-startup-only{background:#fff;border:1px solid #d9e5dc;border-radius:13px;padding:15px;min-width:0}
+.fig-draft-startup-only>div:first-child{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid #e2eae3;padding:4px 4px 12px;margin-bottom:13px}
+.fig-draft-startup-only h2{font:900 clamp(20px,3vw,31px)/1.15 Inter,system-ui,sans-serif;color:#245336;margin:0}
+.fig-draft-startup-only>div:first-child span{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#66806e}
+.fig-draft-startup-only-board{display:grid;gap:13px;min-width:0}
+.fig-draft-team-detail{display:grid;gap:12px;max-width:1180px;margin:18px auto 48px;color:#284c35}
+.fig-draft-team-back{width:fit-content;color:#285e40;font:900 11px/1.35 Inter,system-ui,sans-serif;text-decoration:none;padding:9px 0}
+.fig-draft-team-back:hover{text-decoration:underline}
+.fig-draft-team-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.fig-draft-team-kpi{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;background:#fff;border:1px solid #dbe7df;border-radius:10px;padding:15px}
+.fig-draft-team-kpi strong{color:#275a3e;font:900 clamp(19px,2.7vw,29px)/1.1 Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig-draft-team-kpi small{color:#647d6d;font:850 9px/1.3 Inter,system-ui,sans-serif;letter-spacing:.03em}
+.fig-draft-team-summary,.fig-draft-team-years,.fig-draft-team-selections{background:#fff;border:1px solid #d9e5dd;border-radius:12px;padding:17px;min-width:0}
+.fig-draft-team-summary h2,.fig-draft-team-years h2,.fig-draft-team-selections h2{font:900 17px/1.25 Inter,system-ui,sans-serif;color:#28553a;margin:0 0 13px}
+.fig-draft-team-grades{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.fig-draft-team-grade-item{background:#f3f7f3;border:1px solid #dce9df;border-radius:8px;padding:11px 5px;text-align:center;display:flex;flex-direction:column;gap:5px}
+.fig-draft-team-grade-item b{font:900 20px/1 Inter,system-ui,sans-serif;color:#305d42}
+.fig-draft-team-grade-item span{font:900 11px/1 Inter,system-ui,sans-serif;color:#5a7d65}
+.fig-draft-team-grade-item.grade-s{background:#fff4d5;border-color:#efdfab}
+.fig-draft-team-grade-item.grade-s b,.fig-draft-team-grade-item.grade-s span{color:#865c17}
+.fig-draft-team-grade-item.grade-a{background:#e4f5e8}
+.fig-draft-team-grade-item.grade-f{background:#fbeae8}
+.fig-draft-team-years-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.fig-draft-team-season-card{background:#f5f9f6;border:1px solid #d9e8dd;border-radius:9px;padding:13px;display:flex;flex-direction:column;gap:5px;color:#28553a;text-decoration:none}
+.fig-draft-team-season-card:hover{background:#e9f5ec;border-color:#a4d1b2}
+.fig-draft-team-season-card strong{font:900 12px/1.2 Inter,system-ui,sans-serif;color:#5f7d67}
+.fig-draft-team-season-card b{font:900 24px/1.2 Inter,system-ui,sans-serif;color:#245f40}
+.fig-draft-team-season-card span{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#65806a}
+.fig-draft-team-season-card small{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#3b6b4d}
+.fig-draft-team-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fig-draft-team-highlights{background:#fff;border:1px solid #d8e7db;border-radius:12px;padding:13px;display:grid;gap:5px;align-content:start}
+.fig-draft-team-highlights h3{font:900 14px/1.35 Inter,system-ui,sans-serif;color:#28573c;margin:0 0 5px}
+.fig-draft-team-highlights a{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;color:#2e5540;text-decoration:none;border-top:1px solid #edf1ed;padding:9px 4px}
+.fig-draft-team-highlights a:hover{background:#f3faf4}
+.fig-draft-team-highlights a strong{grid-column:1;grid-row:1;font:900 12px/1.3 Inter,system-ui,sans-serif}
+.fig-draft-team-highlights a span{grid-column:1;grid-row:2;font:750 10px/1.4 Inter,system-ui,sans-serif;color:#728275}
+.fig-draft-team-highlights a b{grid-column:2;grid-row:1/span 2;font:900 14px/1.2 Inter,system-ui,sans-serif;color:#2b6544;font-variant-numeric:tabular-nums}
+.fig-draft-team-highlights:last-child a b{color:#956245}
+.fig-draft-team-highlights p{font:700 12px/1.3 Inter,system-ui,sans-serif;color:#778778;margin:0}
+.fig-draft-team-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fig-draft-team-section-title small{font:850 9px/1.3 Inter,system-ui,sans-serif;color:#698474}
+.fig-draft-team-sort{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px;background:#f4f8f4;border-radius:9px;border:1px solid #e2eae3}
+.fig-draft-team-sort>span{font:900 10px/1.2 Inter,system-ui,sans-serif;color:#66836e;margin-right:7px}
+.fig-draft-team-sort-btn,.fig-draft-team-filter{border:1px solid #d6e5db;color:#3a6750;background:#fff;border-radius:7px;padding:8px 11px;font:850 10px/1.2 Inter,system-ui,sans-serif;cursor:pointer}
+.fig-draft-team-sort-btn.active,.fig-draft-team-filter.active,.fig-draft-team-sort-btn:hover,.fig-draft-team-filter:hover{background:#285f42;color:#fff;border-color:#285f42}
+.fig-draft-team-filters{display:flex;gap:5px;flex-wrap:wrap;padding:11px 0 2px}
+.fig-draft-team-filter{min-width:37px;padding:8px}
+.fig-draft-team-pick-list{display:grid;gap:8px}
+.fig-draft-team-pick-item{display:grid;grid-template-columns:70px minmax(150px,1fr) minmax(230px,1.35fr) 42px;gap:12px;align-items:center;background:#f9fbf9;border:1px solid #deebe1;border-radius:10px;padding:12px;min-width:0}
+.fig-draft-team-pick-spot{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid #dae8dc;background:#eef6ef;border-radius:8px;padding:8px 3px}
+.fig-draft-team-pick-spot b{font:900 15px/1.15 Inter,system-ui,sans-serif;color:#2b5d3c}
+.fig-draft-team-pick-spot small{font:850 9px/1.3 Inter,system-ui,sans-serif;color:#5c8167}
+.fig-draft-team-pick-person{min-width:0}
+.fig-draft-team-pick-person .fig-draft-player-link{gap:7px;margin:0}
+.fig-draft-team-pick-person .fig-draft-player-link .fig-nfl-photo{width:37px;height:37px;flex-basis:37px}
+.fig-draft-team-pick-person .fig-draft-player-link .fig-player-person-name{font:900 13px/1.3 Inter,system-ui,sans-serif}
+.fig-draft-team-pick-person>small{display:block;color:#69806c;font:750 9px/1.35 Inter,system-ui,sans-serif;padding-left:43px;margin-top:3px}
+.fig-draft-team-pick-numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.fig-draft-team-pick-numbers>span{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center}
+.fig-draft-team-pick-numbers b{font:900 12px/1.2 Inter,system-ui,sans-serif;color:#335e46;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.fig-draft-team-pick-numbers small{font:850 8px/1.2 Inter,system-ui,sans-serif;color:#7b8b7c}
+.fig-draft-team-pick-numbers .fig-draft-positive{color:#267b46}
+.fig-draft-team-pick-numbers .fig-draft-negative{color:#a05d40}
+.fig-draft-team-pick-grade{display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#e8ede9;color:#41644c;font:900 21px/1 Inter,system-ui,sans-serif;padding:10px 3px}
+.fig-draft-team-pick-grade.grade-s{background:#fff0c7;color:#865a13}
+.fig-draft-team-pick-grade.grade-a{background:#dcf1e1;color:#246e42}
+.fig-draft-team-pick-grade.grade-b{background:#e6f4e9;color:#3d7450}
+.fig-draft-team-pick-grade.grade-c{background:#e8eef0;color:#506773}
+.fig-draft-team-pick-grade.grade-d{background:#fff0d4;color:#976b25}
+.fig-draft-team-pick-grade.grade-f{background:#f9e4e1;color:#b14e42}
+.fig-draft-team-empty{padding:17px;text-align:center;color:#667a6c;font:750 12px/1.5 Inter,system-ui,sans-serif}
+@media(max-width:920px){
+ .fig-draft-team-pick-item{grid-template-columns:62px minmax(0,1fr) 42px;gap:8px}
+ .fig-draft-team-pick-numbers{grid-column:2/4;grid-row:2;padding:6px 0}
+ .fig-draft-team-pick-grade{grid-column:3;grid-row:1}
+}
+@media(max-width:650px){
+ .fig-draft-startup-only{padding:9px}
+ .fig-draft-team-detail{margin:12px auto 35px;gap:9px}
+ .fig-draft-team-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .fig-draft-team-kpi{padding:10px;gap:5px}
+ .fig-draft-team-kpi strong{font-size:20px}
+ .fig-draft-team-summary,.fig-draft-team-years,.fig-draft-team-selections{padding:10px}
+ .fig-draft-team-grades{gap:3px}
+ .fig-draft-team-grade-item{padding:8px 2px}
+ .fig-draft-team-grade-item b{font-size:16px}
+ .fig-draft-team-grade-item span{font-size:9px}
+ .fig-draft-team-years-grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px}
+ .fig-draft-team-season-card{padding:10px}
+ .fig-draft-team-season-card b{font-size:17px}
+ .fig-draft-team-feature-grid{grid-template-columns:1fr;gap:7px}
+ .fig-draft-team-sort{gap:4px}
+ .fig-draft-team-sort-btn{flex:1 1 40%;font-size:9px;padding:8px 5px}
+ .fig-draft-team-pick-item{grid-template-columns:51px minmax(0,1fr) 35px;padding:9px 6px}
+ .fig-draft-team-pick-spot{padding:6px 2px}
+ .fig-draft-team-pick-spot b{font-size:12px}
+ .fig-draft-team-pick-person .fig-draft-player-link .fig-nfl-photo{width:30px;height:30px;flex-basis:30px}
+ .fig-draft-team-pick-person .fig-draft-player-link .fig-player-person-name{font-size:11px}
+ .fig-draft-team-pick-person>small{padding-left:37px;font-size:8px}
+ .fig-draft-team-pick-numbers{gap:3px}
+ .fig-draft-team-pick-numbers b{font-size:10px}
+ .fig-draft-team-pick-numbers small{font-size:7px}
+ .fig-draft-team-pick-grade{font-size:17px;padding:8px 3px}
+}
