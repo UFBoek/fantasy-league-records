@@ -1,3 +1,14 @@
+## v120 — Team average return replaces team average grade
+
+- Draft Rankings team cards and sorting now display **AVG RETURN** instead of average letter grade.
+- AVG RETURN is the arithmetic mean of each valued selection's current-value-to-slot-value percentage; unvalued players are excluded.
+- TOTAL RETURN remains the value-weighted total current value divided by total slot cost, keeping it separate from average pick return.
+- Team draft drilldowns and year-by-year summary tiles show average return; the franchise Teams tab's draft history summaries also use numeric average return instead of team-wide letter grade.
+- Individual pick S–F grades, grade distribution, rookie/startup selection pages, league-grade thresholds, and James-origin future-pick values are unchanged.
+- Tested the ranking sort and every franchise breakdown across all four draft years; the mean-of-pick calculation differs correctly from aggregate total return when costs vary.
+
+---
+
 ## v118 — Startup draft standalone; franchise draft ranking drill-downs
 
 - The 2023 Startup tab now shows the full 250-selection, 25-round draft directly, without a team ranking leaderboard. Individual 2023 pick grades remain visible.
