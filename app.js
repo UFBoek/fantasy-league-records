@@ -1163,7 +1163,7 @@ async function streaks(){
    const ranked=career.filter(x=>x.streak_type===type)
      .sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points));
    return recordPodiumCard({
-     title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type.toUpperCase(),
+     title:type==='Winning'?'WINNING STREAK':type==='Losing'?'LOSING STREAK':type==='Weekly High Score'?'WEEKLY HIGH-SCORE STREAK':type==='Top-3 Scoring Weeks'?'TOP-3 SCORING STREAK':type.toUpperCase(),
      badge:'STREAK RECORD',tone:['mint','coral','blue','gold'][i%4],
      href:`#/streak/${encodeURIComponent(type)}/Career%20Games`,
      leaders:ranked.map(x=>({id:+x.franchise_id,name:x.owner,value:num(x.length)})),
