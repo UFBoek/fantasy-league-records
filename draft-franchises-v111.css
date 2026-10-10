@@ -1,0 +1,79 @@
+/* v111: franchise draft histories; click a season then a team. */
+.fig-draft-archive{max-width:1180px;margin:0 auto 42px;display:grid;gap:18px;color:#23372d}
+.fig-draft-archive a{transition:background-color .12s ease,border-color .12s ease}
+.fig-draft-season-controls{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:17px 19px;background:#fff;border:1px solid #d8e2da;border-radius:14px}
+.fig-draft-season-controls h2{font:900 11px/1.3 Inter,system-ui,sans-serif;letter-spacing:.04em;color:#596b60;margin:0 0 9px}
+.fig-draft-year-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.fig-draft-year-tabs a{font:900 13px/1.2 Inter,system-ui,sans-serif;color:#285139;background:#f0f6f1;text-decoration:none;border:1px solid #cbdccf;padding:10px 14px;border-radius:8px;min-width:65px;text-align:center}
+.fig-draft-year-tabs a.active,.fig-draft-year-tabs a:hover{background:#204e36;color:#fff;border-color:#204e36}
+.fig-draft-season-desc{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.fig-draft-season-desc strong{font:900 13px/1.2 Inter,system-ui,sans-serif;color:#214d34}
+.fig-draft-season-desc span{font:750 11px/1.4 Inter,system-ui,sans-serif;color:#5a7160}
+.fig-draft-franchise-section{background:#fff;border:1px solid #d8e2da;border-radius:14px;padding:17px}
+.fig-draft-directory-heading{margin-bottom:14px}
+.fig-draft-directory-heading h2{font:900 18px/1.3 Inter,system-ui,sans-serif;color:#234631;margin:0 0 5px}
+.fig-draft-directory-heading p{font:650 12px/1.5 Inter,system-ui,sans-serif;color:#617269;margin:0}
+.fig-draft-franchise-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.fig-draft-team-tile{display:flex;align-items:center;gap:9px;background:#f8faf8;color:#234b34;border:1px solid #e0e8e2;border-radius:11px;padding:11px;min-width:0;text-decoration:none}
+.fig-draft-team-tile:hover{background:#ecf7ef;border-color:#8cbda0}
+.fig-draft-team-tile.active{background:#e2f1e7;border:2px solid #357f55;padding:10px}
+.fig-draft-team-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e4ece6;border:1px solid #ccdbd0}
+.fig-draft-team-copy{min-width:0;display:flex;flex-direction:column;gap:4px;flex:1}
+.fig-draft-team-copy strong{font:900 13px/1.2 Inter,system-ui,sans-serif;color:#204831;overflow-wrap:anywhere}
+.fig-draft-team-copy small{font:800 10px/1.25 Inter,system-ui,sans-serif;color:#5b7865;letter-spacing:.015em}
+.fig-draft-team-arrow{font-size:21px;font-weight:800;color:#488564}
+.fig-draft-page-tabs{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fig-draft-page-tabs a{border:1px solid #c2d9c8;background:#e7f3ea;color:#20593a;text-decoration:none;font:900 12px/1.3 Inter,system-ui,sans-serif;padding:10px 14px;border-radius:9px}
+.fig-draft-page-tabs a.active{background:#255a3e;color:#fff;border-color:#255a3e}
+.fig-draft-page-tabs span{color:#617168;font:850 11px/1.3 Inter,system-ui,sans-serif}
+.fig-draft-team-detail,.fig-draft-full-board{border:1px solid #d9e3db;border-radius:14px;background:#fff;padding:19px;min-width:0;color:#253a2d}
+.fig-draft-team-detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:17px}
+.fig-draft-team-identity{display:flex;align-items:center;gap:13px;min-width:0}
+.fig-draft-detail-avatar{width:66px;height:66px;flex:0 0 66px;object-fit:cover;border-radius:50%;background:#e8f3ea;border:2px solid #c7dfcf}
+.fig-draft-team-identity>div{min-width:0}
+.fig-draft-team-identity span{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#548064;letter-spacing:.03em}
+.fig-draft-team-identity h2{font:900 clamp(20px,2.8vw,29px)/1.15 Inter,system-ui,sans-serif;color:#214630;margin:4px 0}
+.fig-draft-team-identity p{font:650 12px/1.45 Inter,system-ui,sans-serif;color:#5c6d60;margin:5px 0 0}
+.fig-draft-team-detail-head>a{color:#236543;border:1px solid #cae0cf;border-radius:8px;background:#f2faf4;padding:9px 11px;font:850 11px/1.2 Inter,system-ui,sans-serif;text-decoration:none}
+.fig-draft-team-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:20px}
+.fig-draft-team-stats>div{padding:13px;border-radius:10px;border:1px solid #d9e8dd;background:#f3f8f4;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
+.fig-draft-team-stats strong{font:900 27px/1 Inter,system-ui,sans-serif;color:#23553a;font-variant-numeric:tabular-nums}
+.fig-draft-team-stats span{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#54705d;overflow-wrap:anywhere}
+.fig-draft-team-round{margin:15px 0 21px}
+.fig-draft-team-round h3{border-bottom:1px solid #dfe8e0;padding-bottom:9px;margin:0 0 5px;display:flex;justify-content:space-between;gap:7px;font:900 14px/1.4 Inter,system-ui,sans-serif;color:#224e36}
+.fig-draft-team-round h3 span{font:800 10px/1.5 Inter,system-ui,sans-serif;color:#668072}
+.fig-draft-team-selections{display:grid;gap:2px}
+.fig-draft-selection{display:grid;grid-template-columns:120px minmax(0,1fr) auto;align-items:center;gap:12px;min-width:0;border-bottom:1px solid #e8eee9;padding:10px 3px}
+.fig-draft-selection-num{display:flex;flex-direction:column;gap:4px;background:#f1f7f3;border:1px solid #dae8dd;border-radius:7px;padding:8px 10px}
+.fig-draft-selection-num strong{font:900 13px/1.2 Inter,system-ui,sans-serif;color:#27563a}
+.fig-draft-selection-num span{font:800 9px/1.25 Inter,system-ui,sans-serif;color:#728577}
+.fig-draft-selection-main{display:flex;min-width:0;flex-direction:column;gap:4px}
+.fig-draft-player-link{display:flex;align-items:center;gap:9px;min-width:0;color:#243e2e;text-decoration:none}
+.fig-draft-player-link:hover .fig-player-person-name{text-decoration:underline;text-underline-offset:3px}
+.fig-draft-player-link .fig-nfl-photo{flex:0 0 38px;width:38px;height:38px;border-radius:8px}
+.fig-draft-player-link .fig-player-person-name{font:850 13px/1.3 Inter,system-ui,sans-serif;color:#204933;overflow-wrap:anywhere}
+.fig-draft-selection-meta{padding-left:47px;color:#577363;font:700 10px/1.4 Inter,system-ui,sans-serif}
+.fig-draft-pick-traded{color:#815521;font-weight:850}
+.fig-draft-selection-team{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#236443;text-decoration:none;white-space:nowrap}
+.fig-draft-selection-team:hover{text-decoration:underline}
+.fig-draft-original-moved{margin-top:18px;border:1px solid #d5e3d9;background:#f9faf8;border-radius:10px;padding:14px}
+.fig-draft-original-moved summary{font:900 12px/1.5 Inter,system-ui,sans-serif;color:#275e3d;cursor:pointer}
+.fig-draft-original-moved>p{font:650 12px/1.5 Inter,system-ui,sans-serif;color:#5d6d60;margin:10px 0}
+.fig-draft-empty-trades,.fig-draft-no-picks{border:1px dashed #cadccf;border-radius:9px;background:#f8fbf9;padding:18px;color:#596e5f;font:700 12px/1.55 Inter,system-ui,sans-serif}
+.fig-draft-full-board>h2{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px 14px;font:900 19px/1.3 Inter,system-ui,sans-serif;color:#1f4b34;margin:0 0 22px}
+.fig-draft-full-board>h2 small{color:#698071;font:800 10px/1.4 Inter,system-ui,sans-serif}
+.fig-draft-archive .fig-draft-round{margin-bottom:20px}
+.fig-draft-archive .fig-draft-round h3{font:900 15px/1.3 Inter,system-ui,sans-serif;margin:0 0 10px;color:#2d543c}
+.fig-draft-archive .draft-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;overflow:visible;padding-bottom:0}
+.fig-draft-archive .fig-draft-board-pick{display:flex;flex-direction:column;gap:4px;background:#f8faf8;border:1px solid #dbe7df;border-radius:10px;min-height:112px;padding:10px;min-width:0}
+.fig-draft-archive .fig-draft-board-pick .pick{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#6a7a6c}
+.fig-draft-archive .fig-draft-board-pick .fig-draft-player-link{margin:3px 0;gap:6px}
+.fig-draft-archive .fig-draft-board-pick .fig-nfl-photo{width:30px;height:30px;flex-basis:30px}
+.fig-draft-archive .fig-draft-board-pick .fig-player-person-name{font-size:12px}
+.fig-draft-board-owner{font:850 11px/1.2 Inter,system-ui,sans-serif;color:#226444;text-decoration:none}
+.fig-draft-board-owner:hover{text-decoration:underline}
+.fig-draft-archive .fig-draft-board-pick .position{font:750 10px/1.4 Inter,system-ui,sans-serif;color:#5e7165;margin:0}
+.fig-draft-original-note{font:800 9px/1.3 Inter,system-ui,sans-serif;color:#805720}
+.fig-draft-archive a:focus-visible,.fig-draft-original-moved summary:focus-visible{outline:3px solid #358c5b;outline-offset:3px}
+@media(max-width:980px){.fig-draft-franchise-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.fig-draft-archive .draft-board{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:690px){.fig-draft-archive{gap:10px;margin-bottom:27px}.fig-draft-season-controls,.fig-draft-franchise-section,.fig-draft-team-detail,.fig-draft-full-board{padding:12px;border-radius:11px}.fig-draft-season-desc{align-items:flex-start}.fig-draft-season-controls{align-items:flex-start}.fig-draft-franchise-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.fig-draft-team-tile{padding:8px;gap:6px}.fig-draft-team-tile.active{padding:7px}.fig-draft-team-avatar{width:31px;height:31px;flex-basis:31px}.fig-draft-team-copy strong{font-size:11px}.fig-draft-team-copy small{font-size:9px}.fig-draft-directory-heading h2{font-size:15px}.fig-draft-team-identity h2{font-size:19px}.fig-draft-detail-avatar{width:48px;height:48px;flex-basis:48px}.fig-draft-team-stats{gap:5px}.fig-draft-team-stats>div{padding:9px 5px}.fig-draft-team-stats strong{font-size:21px}.fig-draft-team-stats span{font-size:9px}.fig-draft-selection{grid-template-columns:83px minmax(0,1fr);gap:8px}.fig-draft-selection-num{padding:8px 5px}.fig-draft-selection-num strong{font-size:11px}.fig-draft-selection-num span{font-size:8px}.fig-draft-selection-team{grid-column:2;justify-self:start;font-size:10px}.fig-draft-player-link{gap:6px}.fig-draft-player-link .fig-nfl-photo{width:29px;height:29px;flex-basis:29px}.fig-draft-player-link .fig-player-person-name{font-size:11px}.fig-draft-selection-meta{padding-left:35px;font-size:9px}.fig-draft-archive .draft-board{grid-template-columns:repeat(2,minmax(0,1fr))}.fig-draft-year-tabs a{padding:9px 12px;font-size:12px;min-width:55px}.fig-draft-page-tabs span{font-size:10px}}
