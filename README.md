@@ -1,3 +1,13 @@
+## v113 — Team navigation restored; Draft tab now prioritizes full draft boards
+
+- **Critical navigation repair:** Team tab activation now uses the correct all-element selector, allowing every franchise card to open its profile again.
+- **Draft-first layout:** Choose any season from 2023 to 2026 and view every pick directly by round; the 25-round 2023 startup draft has round-jump links. Current archive totals: 370 picks.
+- **Optional team perspective:** Expand a compact ten-team explorer or select the drafting franchise on any pick to open Teams → Franchise → Draft History for the selected year.
+- **Presentation:** Updated pick cards with player headshots, round/overall pick, NFL position/team, drafting franchise, and original-pick provenance where confirmed.
+- **Safety:** League exports, roster audits, scoring, records, trade data, and Sleeper ingestion are unchanged. v113 advances the client stylesheet and service-worker cache.
+
+---
+
 ## v95 — Readable player histories, richer team seasons and audited archive detail
 
 - **Player record breakdowns:** Performance cards use explicit, two-digit chronological entry numbers (`01`, `02`, `03`) in a small fixed rank badge. This avoids visually garbled rank symbols on narrow phones. Larger, higher-contrast manager labels and metadata, compact spacing and aligned points keep each performance clear.
