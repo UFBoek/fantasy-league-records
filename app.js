@@ -1697,64 +1697,95 @@ async function draft(selectedYear){
  await load(['draftPicks','draftAudit','raValues']);navActive('draft');
  const all=DATA.draftPicks||[];
  const years=[...new Set(all.map(x=>String(x.draft_season)))].sort((a,b)=>+b-+a);
- if(!years.length){app.innerHTML=hero('WAR ROOM','THE DRAFT','')+'<div class="empty">No draft history found.</div>';return}
- const year=years.includes(String(selectedYear))?String(selectedYear):years.filter(y=>y!=='2023')[0]||years[0];
+ if(!years.length){app.innerHTML=hero('LEAGUE ARCHIVE','DRAFT RANKINGS','')+'<div class="empty">No draft history available.</div>';return}
+ const year=years.includes(String(selectedYear))?String(selectedYear):'all';
  const startup=year==='2023';
- const picks=all.filter(x=>String(x.draft_season)===year).sort((a,b)=>+a.pick_no-+b.pick_no);
- const rounds=[...new Set(picks.map(x=>+x.round))].sort((a,b)=>a-b);
+ const scoped=year==='all'?all:all.filter(x=>String(x.draft_season)===year);
+ const picks=scoped.slice().sort((a,b)=>+a.pick_no-+b.pick_no);
  const origins=figDraftAuditMap(DATA.draftAudit||[]);
+ const total=figDraftGradeSummary(scoped);
  const counts=new Map(years.map(y=>[y,all.filter(x=>String(x.draft_season)===y).length]));
- // The startup archive is independent of the year selector for rookie drafts.
- const tabs='<div class="fig-draft-type-navigation">'+
-  '<section class="fig-draft-rookie-years"><div class="fig-draft-type-heading"><strong>ROOKIE DRAFTS</strong><small>FOUR ROUNDS · 2024–PRESENT</small></div>'+
-  '<nav class="fig-draft-focus-years" aria-label="Choose a rookie draft year">'+
-   years.filter(y=>y!=='2023').map(y=>'<a href="#/draft/'+encodeURIComponent(y)+'"'+(y===year?' class="active" aria-current="page"':'')+
-    '><strong>'+esc(y)+'</strong><small>'+counts.get(y)+' PICKS</small></a>').join('')+'</nav></section>'+
-   (years.includes('2023')?'<a class="fig-draft-startup-year'+(startup?' active':'')+'" href="#/draft/2023">'+
-    '<span>FOUNDING LEAGUE DRAFT</span><strong>2023 STARTUP</strong><small>'+counts.get('2023')+' PICKS · 25 ROUNDS ↗</small></a>':'')+'</div>';
- const teamCards=Array.from({length:10},(_,i)=>i+1).map(id=>{
-  const count=picks.filter(x=>+x.franchise_id===id).length;
-  return '<a class="fig-draft-team-tile" href="#/team/'+id+'/drafts/'+encodeURIComponent(year)+'">'+
-   ownerAvatar(id,'fig-draft-team-avatar')+'<span class="fig-draft-team-copy"><strong>'+esc(OWNER_DISPLAY_BY_ID[id])+
-   '</strong><small>'+count+' PICK'+(count===1?'':'S')+' · TEAM HISTORY</small></span>'+
-   '<span class="fig-draft-team-arrow" aria-hidden="true">›</span></a>';
- }).join('');
- const jumps=rounds.length>4?'<nav class="fig-draft-focus-round-links" aria-label="Jump to draft round"><span>JUMP TO ROUND</span>'+
-  rounds.map(r=>'<button type="button" data-round="'+r+'">'+r+'</button>').join('')+'</nav>':'';
- const board=rounds.map(round=>{
+ const nav='<nav class="fig-draft-rank-nav" aria-label="Draft ranking seasons">'+
+  '<a class="fig-draft-rank-year'+(year==='all'?' active':'')+'" href="#/draft">ALL-TIME</a>'+
+  years.filter(y=>y!=='2023').map(y=>'<a class="fig-draft-rank-year'+(year===y?' active':'')+'" href="#/draft/'+encodeURIComponent(y)+'">'+esc(y)+' ROOKIES</a>').join('')+
+  (years.includes('2023')?'<a class="fig-draft-rank-year fig-draft-startup-filter'+(startup?' active':'')+'" href="#/draft/2023">2023 STARTUP</a>':'')+'</nav>';
+ const byTeam=Array.from({length:10},(_,i)=>i+1).map(id=>{
+  const selections=scoped.filter(p=>+p.franchise_id===id);
+  return {id,name:OWNER_DISPLAY_BY_ID[id]||'Team '+id,picks:selections.length,grade:figDraftGradeSummary(selections)};
+ });
+ const metricOptions=[['value','CURRENT VALUE'],['gain','VALUE GAIN'],['return','RETURN %'],['grade','AVG GRADE']];
+ let sort='value';
+ const sortNumber=(t,key)=>{
+  const z=t.grade;
+  if(key==='gain')return z.valued?z.delta:-Infinity;
+  if(key==='return')return z.ratio===null?-Infinity:z.ratio;
+  if(key==='grade')return z.score===null?-Infinity:z.score;
+  return z.valued?z.current:-Infinity;
+ };
+ const sortLabel=(z,key)=>{
+  if(!z.valued)return '—';
+  if(key==='gain')return (z.delta>0?'+':'')+money(z.delta);
+  if(key==='return')return Math.round(z.ratio*100)+'%';
+  if(key==='grade')return z.letter+' · '+z.score.toFixed(2);
+  return money(z.current);
+ };
+ const renderRanks=()=>{
+  $$('.fig-draft-rank-sort').forEach(b=>{b.classList.toggle('active',b.dataset.sort===sort);b.setAttribute('aria-pressed',String(b.dataset.sort===sort));});
+  const sorted=byTeam.slice().sort((a,b)=>sortNumber(b,sort)-sortNumber(a,sort)||b.grade.current-a.grade.current||a.id-b.id);
+  const host=$('#figDraftRankingList');
+  if(!host)return;
+  host.innerHTML=sorted.map((t,i)=>{
+   const z=t.grade,visible=z.valued>0;
+   return '<a class="fig-draft-rank-row" href="#/team/'+t.id+'/drafts'+(year==='all'?'':'/'+encodeURIComponent(year))+'">'+
+    '<span class="fig-draft-rank-place">'+(i+1)+'</span>'+
+    ownerAvatar(t.id,'fig-draft-rank-avatar')+
+    '<span class="fig-draft-rank-info"><strong>'+esc(t.name)+'</strong>'+
+     '<small>'+t.picks+' picks · '+z.valued+' valued'+(z.counts.S?' · '+z.counts.S+' S':'')+(z.counts.A?' · '+z.counts.A+' A':'')+'</small></span>'+
+    '<span class="fig-draft-rank-metrics">'+
+     '<span><b>'+ (visible?money(z.current):'—')+'</b><small>VALUE NOW</small></span>'+
+     '<span><b>'+ (visible?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE GAIN</small></span>'+
+     '<span><b>'+ (visible?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN</small></span>'+
+     '<span><b class="fig-draft-rank-grade">'+esc(z.letter)+'</b><small>AVG GRADE</small></span>'+
+    '</span>'+
+    '<span class="fig-draft-rank-feature"><strong>'+esc(sortLabel(z,sort))+'</strong><small>'+esc(metricOptions.find(x=>x[0]===sort)[1])+'</small></span>'+
+    '<span class="fig-draft-rank-open" aria-hidden="true">›</span></a>';
+  }).join('');
+ };
+ const rounds=[...new Set(picks.map(x=>+x.round))].sort((a,b)=>a-b);
+ const board=year==='all'?'':rounds.map(round=>{
   const selections=picks.filter(x=>+x.round===round);
   return '<section class="fig-draft-focus-round" id="draft-round-'+round+'">'+
    '<div class="fig-draft-focus-round-heading"><h3>ROUND '+round+'</h3><small>'+selections.length+' PICKS</small></div>'+
    '<div class="fig-draft-focus-picks">'+selections.map(pick=>{
     const id=+pick.franchise_id,origin=figDraftOriginal(pick,origins);
-    const traded=origin&&origin!==id;
     return '<article class="fig-draft-focus-pick">'+
-     '<div class="fig-draft-focus-pick-no"><b>'+esc(figDraftPickLabel(pick))+'</b>'+
-      '<small>#'+esc(pick.pick_no)+' OVERALL</small></div>'+
+     '<div class="fig-draft-focus-pick-no"><b>'+esc(figDraftPickLabel(pick))+'</b><small>#'+esc(pick.pick_no)+' OVERALL</small></div>'+
      '<div class="fig-draft-focus-person">'+playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
       '<small>'+esc(pick.position||pick.draft_position||'—')+' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
      '<div class="fig-draft-focus-pick-owner">'+ownerAvatar(id,'fig-draft-focus-owner-avatar')+
       '<span><a href="#/team/'+id+'/drafts/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>'+
-      '<small>'+(traded?'Originally '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'Drafting franchise')+
-      '</small></span></div>'+figDraftGradeStrip(pick)+'</article>';
+      '<small>'+(origin&&origin!==id?'Originally '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'Drafting franchise')+'</small></span></div>'+
+      figDraftGradeStrip(pick)+'</article>';
    }).join('')+'</div></section>';
  }).join('');
- const intro=startup?'<div class="fig-draft-startup-notice"><strong>2023 FOUNDING STARTUP DRAFT</strong>'+
-  '<p>25 rounds · Startup picks are ungraded.</p></div>':
-   figDraftGradeOverview(picks,'LEAGUE-WIDE '+year+' ROOKIE DRAFT RETURNS');
- app.innerHTML=hero('WAR ROOM','THE DRAFT','Browse the complete rookie draft boards and our league draft grades. The 2023 founding startup is archived separately.')+
-  '<div class="fig-draft-archive fig-draft-focus">'+tabs+
-  '<div class="fig-draft-focus-header"><div><div class="eyebrow">'+(startup?'FOUNDING STARTUP':'YEARLY ROOKIE')+' DRAFT</div>'+
-   '<h2>'+esc(year)+(startup?' STARTUP':' ROOKIE')+' DRAFT</h2>'+
-   '<p>'+picks.length+' selections · '+rounds.length+' rounds · 10 franchises</p></div>'+
-   '<span class="fig-draft-board-badge">COMPLETE DRAFT</span></div>'+
-  '<details class="fig-draft-focus-teams"><summary><span><strong>EXPLORE BY FRANCHISE</strong>'+
-   '<small>Team draft history</small></span>'+
-   '<span>CHOOSE A TEAM ▾</span></summary>'+
-   '<div class="fig-draft-franchise-grid">'+teamCards+'</div></details>'+
-  intro+jumps+'<div class="fig-draft-focus-board">'+board+'</div>'+
-  '<p class="fig-draft-focus-endnote">Player values: RosterAudit · Rookie grades: FIG</p>'+
+ const jumps=rounds.length>4?'<nav class="fig-draft-focus-round-links" aria-label="Jump to draft round"><span>ROUND</span>'+
+  rounds.map(r=>'<button type="button" data-round="'+r+'">'+r+'</button>').join('')+'</nav>':'';
+ const boardDetail=year==='all'?'':'<details class="fig-draft-rank-board"><summary><span><strong>COMPLETE '+year+(startup?' STARTUP':' ROOKIE')+' DRAFT BOARD</strong>'+
+  '<small>'+picks.length+' selections · '+rounds.length+' rounds</small></span><span>VIEW PICKS ▾</span></summary>'+
+  '<div class="fig-draft-rank-board-body">'+jumps+'<div class="fig-draft-focus-board">'+board+'</div></div></details>';
+ app.innerHTML=hero('DRAFT ARCHIVE','DRAFT RANKINGS','')+
+  '<div class="fig-draft-archive fig-draft-focus fig-draft-rank-page">'+nav+
+  '<section class="fig-draft-rank-main"><div class="fig-draft-rank-head"><div><span class="eyebrow">'+(year==='all'?'ALL SEASONS':startup?'FOUNDING STARTUP':'ROOKIE DRAFT')+'</span>'+
+   '<h2>TEAM DRAFT VALUE RANKINGS</h2>'+
+   '<small>'+scoped.length+' picks · '+total.valued+' valued'+(year==='all'||startup?' · 2023 slots provisional':'')+'</small></div>'+
+   '<div class="fig-draft-rank-overall"><b>'+money(total.current)+'</b><small>LEAGUE DRAFT VALUE</small></div></div>'+
+  '<div class="fig-draft-rank-toolbar"><span>SORT BY</span>'+
+   metricOptions.map(([value,label])=>'<button type="button" class="fig-draft-rank-sort'+(value==='value'?' active':'')+'" data-sort="'+value+'" aria-pressed="'+(value==='value'?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
+  '<div class="fig-draft-rank-list" id="figDraftRankingList"></div></section>'+
+  boardDetail+
   '</div>';
+ $$('.fig-draft-rank-sort').forEach(b=>{b.onclick=()=>{sort=b.dataset.sort;renderRanks();};});
+ renderRanks();
  $$('.fig-draft-focus-round-links button').forEach(button=>{
   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
  });
@@ -1801,7 +1832,7 @@ async function more(){
   ['↔','Head-to-Head','#/h2h'],
   ['▥','Dynasty Values','#/dynasty'],
   ['♛','Champions','#/champions'],
-  ['▤','The Draft','#/draft'],
+  ['▤','Draft Rankings','#/draft'],
   ['⇄','Trades','#/trades'],
   ['▦','Game Archive','#/games']
  ];
