@@ -1800,6 +1800,109 @@ async function draft(selectedYear){
   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
  });
 }
+// Team drill-down in the Draft area (not the Teams profile).
+async function draftTeamRanking(teamId,requestedYear){
+ await load(['draftPicks','draftAudit','raValues']);navActive('draft');
+ const id=Number(teamId);
+ if(!Number.isInteger(id)||id<1||id>10){app.innerHTML=hero('DRAFT RANKINGS','TEAM NOT FOUND','');return}
+ const all=DATA.draftPicks||[];
+ const years=[...new Set(all.map(p=>String(p.draft_season)))].sort((a,b)=>Number(a)-Number(b));
+ const rookieYears=years.filter(y=>y!=='2023');
+ const year=years.includes(String(requestedYear))?String(requestedYear):'all';
+ const teamPicks=all.filter(p=>Number(p.franchise_id)===id);
+ const scoped=teamPicks.filter(p=>year==='all'?String(p.draft_season)!=='2023':String(p.draft_season)===year);
+ const scores=scoped.map(p=>({pick:p,grade:figDraftGrade(p)}));
+ const summary=figDraftGradeSummary(scoped);
+ const name=OWNER_DISPLAY_BY_ID[id]||'Team '+id,origins=figDraftAuditMap(DATA.draftAudit||[]);
+ const back='#/draft'+(year==='all'?'':'/'+year);
+ const nav='<nav class="fig-draft-rank-nav" aria-label="Team draft seasons">'+
+  '<a class="fig-draft-rank-year'+(year==='all'?' active':'')+'" href="#/draft/team/'+id+'">ALL ROOKIES</a>'+
+  rookieYears.map(y=>'<a class="fig-draft-rank-year'+(year===y?' active':'')+'" href="#/draft/team/'+id+'/'+y+'">'+y+'</a>').join('')+
+  (years.includes('2023')?'<a class="fig-draft-rank-year fig-draft-startup-filter'+(year==='2023'?' active':'')+'" href="#/draft/team/'+id+'/2023">STARTUP</a>':'')+'</nav>';
+ const metrics=[
+  ['CURRENT VALUE',summary.valued?money(summary.current):'—'],
+  ['DRAFT SLOT COST',summary.valued?money(summary.slot):'—'],
+  ['VALUE GAIN',summary.valued?(summary.delta>0?'+':'')+money(summary.delta):'—'],
+  ['RETURN',summary.ratio===null?'—':Math.round(summary.ratio*100)+'%'],
+  ['AVG GRADE',summary.letter],
+  ['PICKS VALUED',summary.valued+' / '+summary.eligible]
+ ];
+ const metricCards='<div class="fig-draft-team-kpis">'+metrics.map(([label,value])=>
+  '<div class="fig-draft-team-kpi"><strong>'+esc(value)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>';
+ const gradeOrder=['S','A','B','C','D','F'];
+ const dist=gradeOrder.map(g=>'<div class="fig-draft-team-grade-item grade-'+g.toLowerCase()+'"><b>'+summary.counts[g]+'</b><span>'+g+'</span></div>').join('')+
+  '<div class="fig-draft-team-grade-item grade-unknown"><b>'+(summary.eligible-summary.valued)+'</b><span>—</span></div>';
+ const yearStats=(year==='all'?rookieYears:[year]).map(y=>{
+  const z=figDraftGradeSummary(teamPicks.filter(p=>String(p.draft_season)===y));
+  return '<a class="fig-draft-team-season-card" href="#/draft/team/'+id+'/'+y+'"><strong>'+y+'</strong>'+
+   '<b>'+ (z.valued?money(z.current):'—')+'</b><span>'+z.valued+'/'+z.eligible+' valued</span>'+
+   '<small>'+z.letter+' GRADE · '+(z.valued?(z.delta>0?'+':'')+money(z.delta):'—')+' GAIN</small></a>';
+ }).join('');
+ const valued=scores.filter(x=>x.grade&&x.grade.current!==null);
+ const hits=valued.slice().sort((a,b)=>b.grade.delta-a.grade.delta||b.grade.current-a.grade.current).slice(0,3);
+ const misses=valued.filter(x=>x.grade.delta<0).sort((a,b)=>a.grade.delta-b.grade.delta).slice(0,3);
+ const highlight=(items,title)=>'<div class="fig-draft-team-highlights"><h3>'+title+'</h3>'+
+  (items.map(x=>'<a href="#/player/'+encodeURIComponent(x.pick.player_id||'')+'">'+
+    '<strong>'+esc(figDraftPlayerName(x.pick))+'</strong>'+
+    '<span>'+esc(x.pick.draft_season)+' · '+esc(figDraftPickLabel(x.pick))+'</span>'+
+    '<b>'+(x.grade.delta>0?'+':'')+money(x.grade.delta)+'</b></a>').join('')||
+    '<p>—</p>')+'</div>';
+ const features=valued.length?'<div class="fig-draft-team-feature-grid">'+highlight(hits,'BEST VALUE PICKS')+highlight(misses,'BIGGEST LOSSES')+'</div>':'';
+ const sorts=[['gain','VALUE GAIN'],['value','CURRENT VALUE'],['grade','GRADE'],['pick','PICK ORDER']];
+ const gradeFilters=['ALL',...gradeOrder,'—'].filter(g=>g==='ALL'||g==='—'&&summary.eligible>summary.valued||summary.counts[g]>0);
+ let sort='gain',filter='ALL';
+ const pickCards=()=>{
+  const filtered=scores.filter(x=>filter==='ALL'||x.grade?.letter===filter);
+  const sortNum=x=>{
+   if(sort==='grade')return FIG_GRADE_POINTS[x.grade?.letter]??-1;
+   if(sort==='value')return x.grade?.current??-Infinity;
+   if(sort==='pick')return 0;
+   return x.grade?.delta??-Infinity;
+  };
+  filtered.sort((a,b)=>sort==='pick'?+b.pick.draft_season-+a.pick.draft_season||+a.pick.pick_no-+b.pick.pick_no:
+   sortNum(b)-sortNum(a)||(b.grade?.current??-1)-(a.grade?.current??-1)||+b.pick.draft_season-+a.pick.draft_season||+a.pick.pick_no-+b.pick.pick_no);
+  return filtered.map(({pick,grade})=>{
+   const z=grade||{},available=z.current!==null&&z.current!==undefined;
+   const origin=figDraftOriginal(pick,origins);
+   const change=available?(z.delta>0?'+':'')+money(z.delta):'—';
+   return '<article class="fig-draft-team-pick-item">'+
+     '<span class="fig-draft-team-pick-spot"><b>'+esc(figDraftPickLabel(pick))+'</b><small>'+esc(pick.draft_season)+'</small></span>'+
+     '<div class="fig-draft-team-pick-person">'+playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
+       '<small>'+esc(pick.position||pick.draft_position||'—')+' · '+esc(pick.draft_nfl_team||'—')+
+       (origin&&origin!==id?' · PICK FROM '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'')+'</small></div>'+
+     '<div class="fig-draft-team-pick-numbers">'+
+       '<span><b>'+ (z.slot!==null&&z.slot!==undefined?money(z.slot):'—')+'</b><small>SLOT</small></span>'+
+       '<span><b>'+ (available?money(z.current):'—')+'</b><small>NOW</small></span>'+
+       '<span><b class="'+(z.delta>0?'fig-draft-positive':z.delta<0?'fig-draft-negative':'')+'">'+change+'</b><small>GAIN</small></span>'+
+       '<span><b>'+ (available?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN</small></span>'+
+     '</div><span class="fig-draft-team-pick-grade grade-'+(available?String(z.letter).toLowerCase():'unknown')+'">'+esc(available?z.letter:'—')+'</span></article>';
+  }).join('')||'<div class="fig-draft-team-empty">No matching picks.</div>';
+ };
+ const gradeTabs='<div class="fig-draft-team-filters">'+
+  gradeFilters.map(g=>'<button type="button" data-grade="'+g+'" class="fig-draft-team-filter'+(g==='ALL'?' active':'')+'">'+esc(g)+'</button>').join('')+'</div>';
+ app.innerHTML=hero('DRAFT RANKINGS',esc(name.toUpperCase()),'')+
+  '<div class="fig-draft-rank-page fig-draft-team-detail">'+
+  '<a class="fig-draft-team-back" href="'+back+'">← BACK TO '+(year==='2023'?'STARTUP DRAFT':'DRAFT RANKINGS')+'</a>'+nav+
+  metricCards+
+  '<section class="fig-draft-team-summary"><h2>GRADE BREAKDOWN</h2><div class="fig-draft-team-grades">'+dist+'</div></section>'+
+  '<section class="fig-draft-team-years"><h2>BY DRAFT</h2><div class="fig-draft-team-years-grid">'+yearStats+'</div></section>'+
+  features+
+  '<section class="fig-draft-team-selections"><div class="fig-draft-team-section-title"><h2>ALL SELECTIONS</h2><small>'+scoped.length+' PICKS'+(year==='2023'?' · PROVISIONAL SLOT VALUES':'')+'</small></div>'+
+  '<div class="fig-draft-team-sort"><span>SORT</span>'+
+   sorts.map(([key,label])=>'<button type="button" class="fig-draft-team-sort-btn'+(key==='gain'?' active':'')+'" data-sort="'+key+'">'+label+'</button>').join('')+'</div>'+
+   gradeTabs+'<div id="figDraftTeamPickList" class="fig-draft-team-pick-list"></div></section>'+
+  '</div>';
+ const render=()=>{
+  $$('.fig-draft-team-sort-btn').forEach(b=>{b.classList.toggle('active',b.dataset.sort===sort);b.setAttribute('aria-pressed',String(b.dataset.sort===sort));});
+  $$('.fig-draft-team-filter').forEach(b=>{b.classList.toggle('active',b.dataset.grade===filter);b.setAttribute('aria-pressed',String(b.dataset.grade===filter));});
+  const target=$('#figDraftTeamPickList');
+  if(target)target.innerHTML=pickCards();
+ };
+ $$('.fig-draft-team-sort-btn').forEach(b=>{b.onclick=()=>{sort=b.dataset.sort;render();};});
+ $$('.fig-draft-team-filter').forEach(b=>{b.onclick=()=>{filter=b.dataset.grade;render();};});
+ render();
+}
+
 // Present stable team identities for draft-pick origins; preserve raw Sleeper labels in JSON.
 function tradeArchiveAssetLabel(value){
  return String(value??'').replace(/\(orig\.\s*F(\d+)\)/gi,(_match,id)=>{
