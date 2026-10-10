@@ -1,3 +1,15 @@
+## v118 — Startup draft standalone; franchise draft ranking drill-downs
+
+- The 2023 Startup tab now shows the full 250-selection, 25-round draft directly, without a team ranking leaderboard. Individual 2023 pick grades remain visible.
+- All-time Draft Rankings now cover the 2024–2026 rookie drafts only. Individual rookie draft year boards still expand below their team ranking.
+- Selecting any franchise from the Draft Rankings now opens a dedicated, in-draft view at #/draft/team/{franchise_id}[/{season}] rather than redirecting to the Teams section. Pick owners on complete draft boards link to the same draft-specific view.
+- Team drill-down: grade counts (S through F and unvalued), year-by-year drafted value and gains, best-value picks, largest losses, all picks with slot/current value, gains, returns and grade, sorting by value/gain/grade/pick order and filtering by grade; navigation back to selected rankings.
+- Third/fourth-round rookie picks graded B when current value >=550 and gain >=200, while retaining S/A floors and the C grade for 300-value positive-return players. New Bs include Blake Corum, De'Zhaun Stribling and Jonah Coleman; Kyle Monangai remains B; Brock Bowers S, Bucky Irving A and Braelon Allen C.
+- No RosterAudit ingestion, Sleeper record or future-pick dynasty valuation changes.
+- Automated render checks: 250 startup draft cards with no team leaderboard; all 10 team rankings on all rookie views; 50 franchise-by-draft breakdown variants; all four sorts and grade-card navigation.
+
+---
+
 ## v117 — Rankings-first draft archive and new S–F grading with startup projections
 
 - The Draft page is now **Draft Rankings**. It ranks all ten teams by the current value of players they personally drafted, defaulting to current value with working options for value gain, return % and average grade. Season filters include all-time, each 2024–26 rookie draft, and the separate 2023 startup. Every ranking links to the selected franchise’s draft history, and each annual board remains available via an expandable full-board view.
