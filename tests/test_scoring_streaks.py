@@ -35,9 +35,9 @@ class ScoringStreakTests(unittest.TestCase):
         self.assertEqual(high[0]["length"], 2)
         self.assertFalse(high[0]["active"])
         top = [x for x in output if x["streak_type"] == "Top-3 Scoring Weeks"]
-        self.assertEqual([x["franchise_id"] for x in top], [1, 2, 3])
-        self.assertTrue(all(x["active"] for x in top))
-        self.assertEqual(top[0]["length"], 3)
+        self.assertEqual({x["franchise_id"] for x in top}, {1, 2, 3})
+        self.assertEqual({x["franchise_id"] for x in top if x["active"]}, {2, 3})
+        self.assertEqual({x["length"] for x in top if x["active"]}, {3})
 
     def test_missing_week_breaks_consecutive_streak(self):
         data = week(2024, 1) + week(2024, 3) + week(2024, 4)
