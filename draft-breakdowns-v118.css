@@ -112,3 +112,6 @@
  .fig-draft-rank-metrics b.fig-draft-rank-avg-return{font-size:10px}
  .fig-draft-grade-overview-score strong.fig-avg-return{font-size:clamp(17px,4vw,24px)}
 }
+
+/* v121: startup owners are historical labels, not ranking links. */
+.fig-draft-startup-only .fig-draft-focus-pick-owner strong{color:#286a49;font:900 11px/1.3 Inter,system-ui,sans-serif;overflow-wrap:anywhere}
