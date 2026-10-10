@@ -1,0 +1,49 @@
+/* v113 — Draft board first, individual franchise exploration second. */
+.fig-draft-focus{max-width:1180px;margin:18px auto 48px;gap:14px;color:#243b2c}
+.fig-draft-focus-years{display:flex;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid #d9e5dc;border-radius:14px;padding:14px}
+.fig-draft-focus-years a{flex:1 1 100px;display:flex;flex-direction:column;align-items:center;gap:4px;background:#edf5ef;border:1px solid #d4e4d9;border-radius:10px;padding:11px;color:#25563b;text-decoration:none}
+.fig-draft-focus-years a strong{font:900 21px/1.1 Inter,system-ui,sans-serif}
+.fig-draft-focus-years a small{font:850 10px/1.4 Inter,system-ui,sans-serif}
+.fig-draft-focus-years a.active,.fig-draft-focus-years a:hover{background:#255438;color:#fff;border-color:#255438}
+.fig-draft-focus-header{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid #d9e5dc;padding:20px;border-radius:14px}
+.fig-draft-focus-header .eyebrow{color:#47815f;font:900 10px/1.3 Inter,system-ui,sans-serif;letter-spacing:.08em}
+.fig-draft-focus-header h2{font:900 clamp(26px,4.1vw,42px)/1.15 Inter,system-ui,sans-serif;color:#244a33;margin:6px 0}
+.fig-draft-focus-header p{font:750 12px/1.5 Inter,system-ui,sans-serif;color:#58705f;margin:0}
+.fig-draft-focus-header .fig-draft-board-badge{font:900 11px/1.3 Inter,system-ui,sans-serif;letter-spacing:.05em;background:#e6f3e9;border:1px solid #cbe0d1;padding:11px 14px;border-radius:30px;color:#23583b;white-space:nowrap}
+.fig-draft-focus-teams{background:#f4f8f5;border:1px solid #d2e2d6;border-radius:13px}
+.fig-draft-focus-teams summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;cursor:pointer;list-style:none}
+.fig-draft-focus-teams summary::-webkit-details-marker{display:none}
+.fig-draft-focus-teams summary strong{display:block;font:900 12px/1.35 Inter,system-ui,sans-serif;color:#25563b}
+.fig-draft-focus-teams summary small{display:block;font:700 11px/1.45 Inter,system-ui,sans-serif;color:#587363;margin-top:3px}
+.fig-draft-focus-teams summary>span:last-child{flex:none;font:900 11px/1.3 Inter,system-ui,sans-serif;color:#286440}
+.fig-draft-focus-teams[open] summary{border-bottom:1px solid #dbe8de}
+.fig-draft-focus-teams>.fig-draft-franchise-grid{padding:14px}
+.fig-draft-focus-round-links{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #dbe7de;border-radius:11px;padding:10px 13px;overflow-x:auto;scrollbar-width:thin}
+.fig-draft-focus-round-links span{flex:none;font:900 10px/1.3 Inter,system-ui,sans-serif;color:#547362;margin-right:7px}
+.fig-draft-focus-round-links a{flex:none;min-width:28px;text-align:center;border-radius:7px;padding:8px 9px;background:#ecf5ee;color:#25583b;text-decoration:none;font:900 11px/1.2 Inter,system-ui,sans-serif}
+.fig-draft-focus-round-links a:hover{background:#285c3f;color:#fff}
+.fig-draft-focus-board{display:grid;gap:16px}
+.fig-draft-focus-round{padding:18px;background:#fff;border:1px solid #dbe7de;border-radius:13px;scroll-margin-top:25px}
+.fig-draft-focus-round-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #e0eae3}
+.fig-draft-focus-round-heading h3{margin:0;font:900 20px/1.2 Inter,system-ui,sans-serif;color:#244f35}
+.fig-draft-focus-round-heading small{font:850 10px/1.3 Inter,system-ui,sans-serif;color:#5e7664}
+.fig-draft-focus-picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fig-draft-focus-pick{display:grid;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto;gap:9px 11px;min-width:0;padding:12px;background:#f8fbf9;border:1px solid #dce7df;border-radius:11px}
+.fig-draft-focus-pick-no{grid-row:1/span 2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;background:#e9f4eb;border:1px solid #d6e5d9;border-radius:8px;padding:8px 4px}
+.fig-draft-focus-pick-no b{font:900 18px/1.15 Inter,system-ui,sans-serif;color:#23543a}
+.fig-draft-focus-pick-no small{font:800 9px/1.4 Inter,system-ui,sans-serif;color:#597760}
+.fig-draft-focus-person{min-width:0}
+.fig-draft-focus-person .fig-draft-player-link{gap:8px;margin:0}
+.fig-draft-focus-person .fig-draft-player-link .fig-nfl-photo{width:41px;height:41px;flex-basis:41px}
+.fig-draft-focus-person .fig-draft-player-link .fig-player-person-name{font:900 14px/1.25 Inter,system-ui,sans-serif;color:#244631}
+.fig-draft-focus-person>small{display:block;padding-left:49px;margin-top:4px;font:750 10px/1.3 Inter,system-ui,sans-serif;color:#5d7262}
+.fig-draft-focus-pick-owner{display:flex;align-items:center;gap:8px;min-width:0;border-top:1px solid #e1ebe4;padding-top:8px}
+.fig-draft-focus-pick-owner img{width:28px;height:28px;object-fit:cover;border-radius:50%}
+.fig-draft-focus-pick-owner>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fig-draft-focus-pick-owner a{color:#286a49;font:900 11px/1.3 Inter,system-ui,sans-serif;text-decoration:none}
+.fig-draft-focus-pick-owner a:hover{text-decoration:underline}
+.fig-draft-focus-pick-owner small{color:#6d8272;font:750 9px/1.25 Inter,system-ui,sans-serif}
+.fig-draft-focus-endnote{color:#607667;font:700 11px/1.5 Inter,system-ui,sans-serif;margin:0 4px}
+.fig-draft-focus a:focus-visible,.fig-draft-focus summary:focus-visible{outline:3px solid #378759;outline-offset:3px}
+@media(max-width:840px){.fig-draft-focus-picks{grid-template-columns:1fr}}
+@media(max-width:690px){.fig-draft-focus{gap:10px}.fig-draft-focus-years{gap:5px;padding:9px}.fig-draft-focus-years a{flex:1 1 0;min-width:0;padding:9px 4px}.fig-draft-focus-years a strong{font-size:16px}.fig-draft-focus-years a small{font-size:8px}.fig-draft-focus-header{padding:14px}.fig-draft-focus-header h2{font-size:29px}.fig-draft-focus-header .fig-draft-board-badge{display:none}.fig-draft-focus-teams summary{padding:12px}.fig-draft-focus-teams summary>span:last-child{font-size:9px}.fig-draft-focus-round{padding:12px}.fig-draft-focus-round-heading h3{font-size:17px}.fig-draft-focus-pick{grid-template-columns:64px minmax(0,1fr);padding:9px;gap:7px 8px}.fig-draft-focus-pick-no b{font-size:15px}.fig-draft-focus-pick-no small{font-size:8px}.fig-draft-focus-person .fig-draft-player-link .fig-nfl-photo{width:35px;height:35px;flex-basis:35px}.fig-draft-focus-person .fig-draft-player-link .fig-player-person-name{font-size:12px}.fig-draft-focus-person>small{padding-left:43px;font-size:9px}}
