@@ -1511,75 +1511,111 @@ function figDraftPersonRow(pick,originals,includeTeam=false){
     '<a class="fig-draft-selection-team" href="#/player/'+encodeURIComponent(pick.player_id||'')+'">PLAYER ›</a>')+
  '</div>';
 }
-async function draft(selectedYear,subview,selectedTeam){
- await load(['draftPicks','draftAudit']);navActive('draft');
- const all=DATA.draftPicks||[];
- const years=[...new Set(all.map(x=>String(x.draft_season)))].sort((a,b)=>Number(b)-Number(a));
- if(!years.length){app.innerHTML=hero('WAR ROOM','THE DRAFT','')+'<div class="empty">No completed drafts have been archived.</div>';return}
- const year=years.includes(String(selectedYear))?String(selectedYear):years[0];
- const picks=all.filter(x=>String(x.draft_season)===year).sort((a,b)=>Number(a.pick_no)-Number(b.pick_no));
- const origins=figDraftAuditMap(DATA.draftAudit);
- const teamId=subview==='team'?Number(selectedTeam):null;
- const selected=Number.isInteger(teamId)&&teamId>=1&&teamId<=10?teamId:null;
- const franchise=Array.from({length:10},(_,i)=>i+1);
- const draftType=picks[0]?.draft_class||'Draft';
- const yearTabs='<div class="fig-draft-year-tabs" role="group" aria-label="Select draft season">'+
-  years.map(y=>'<a class="'+(y===year?'active':'')+'" href="#/draft/'+y+(selected?'/team/'+selected:'')+'">'+y+'</a>').join('')+'</div>';
- const teamTiles=franchise.map(id=>{
-  const stats=figDraftTeamTotals(picks,id,origins);
-  return '<a class="fig-draft-team-tile'+(selected===id?' active':'')+'" href="#/draft/'+year+'/team/'+id+'">'+
-    ownerAvatar(id,'fig-draft-team-avatar')+
-    '<span class="fig-draft-team-copy"><strong>'+esc(OWNER_DISPLAY_BY_ID[id])+'</strong>'+
-      '<small>'+stats.owned.length+' PICK'+(stats.owned.length===1?'':'S')+' MADE</small></span>'+
-    '<span class="fig-draft-team-arrow" aria-hidden="true">›</span></a>';
+// The Draft tab is an all-years directory; franchise history lives under Teams.
+// A year's complete draft board expands in place rather than replacing other years.
+function figDraftFranchiseHistory(id,preferredYear){
+ const all=DATA.draftPicks||[],origins=figDraftAuditMap(DATA.draftAudit||[]);
+ const valueMap=new Map((DATA.draftValue||[]).map(x=>[String(x.draft_id)+'|'+String(x.pick_no),x]));
+ const ra=DATA.raValues||{},raPlayers=ra.players||{};
+ const years=[...new Set(all.map(x=>String(x.draft_season)))].sort((a,b)=>+b-+a);
+ const selected=years.includes(String(preferredYear))?String(preferredYear):null;
+ const teamPicks=all.filter(x=>+x.franchise_id===+id);
+ const stats=figDraftTeamTotals(all,+id,origins);
+ const allMetrics=teamPicks.map(x=>valueMap.get(String(x.draft_id)+'|'+String(x.pick_no))).filter(Boolean);
+ const careerStarts=allMetrics.reduce((v,x)=>v+Number(x.franchise_starts||0),0);
+ const careerPoints=allMetrics.reduce((v,x)=>v+Number(x.franchise_starter_points||0),0);
+ const valued=teamPicks.map(x=>raPlayers[String(x.player_id)]?.value).filter(x=>Number.isFinite(+x));
+ const currentMarketTotal=valued.reduce((v,x)=>v+Number(x),0);
+ const valueTimestamp=ra.updated_at?new Date(ra.updated_at).toLocaleDateString():'last available refresh';
+ const legend='<div class="fig-team-draft-note"><strong>How to read the grades and values</strong>'+
+   '<p><a href="https://rosteraudit.com/draft-grades/" target="_blank" rel="noopener noreferrer">RosterAudit Draft Grades ↗</a> scores draft decisions against player value at the time. Its official letter grades are not included in its published API, so they are not reproduced here. <b>RA current value</b> is a live market estimate, not a draft-day grade. <b>Production</b> is actual starter points scored for the franchise that drafted the player, as captured in completed fantasy weeks.</p></div>';
+ const yearLinks='<nav class="fig-team-draft-filter" aria-label="Filter draft history by year">'+
+   '<a href="#/team/'+id+'/drafts"'+(!selected?' class="active"':'')+'>ALL YEARS</a>'+
+   years.map(y=>'<a href="#/team/'+id+'/drafts/'+y+'"'+(selected===y?' class="active"':'')+'>'+y+'</a>').join('')+'</nav>';
+ const totals='<div class="fig-team-draft-metrics">'+
+   [['TOTAL PICKS MADE',stats.owned.length],['ACQUIRED PICKS USED',stats.acquired.length],
+    ['FANTASY STARTS FROM PICKS',careerStarts],['STARTER POINTS FROM PICKS',money(careerPoints)]].map(([label,val])=>
+      '<div><strong>'+esc(val)+'</strong><span>'+label+'</span></div>').join('')+'</div>';
+ const classes=(selected?[selected]:years).map(year=>{
+  const yearPicks=teamPicks.filter(x=>String(x.draft_season)===year).sort((a,b)=>+a.pick_no-+b.pick_no);
+  const otherPicks=all.filter(x=>String(x.draft_season)===year);
+  const tradedAway=otherPicks.filter(x=>figDraftOriginal(x,origins)===+id&&+x.franchise_id!==+id);
+  const acquired=yearPicks.filter(x=>figDraftOriginal(x,origins)!==null&&figDraftOriginal(x,origins)!==+id);
+  const pickedMetrics=yearPicks.map(x=>valueMap.get(String(x.draft_id)+'|'+String(x.pick_no))).filter(Boolean);
+  const starts=pickedMetrics.reduce((n,x)=>n+Number(x.franchise_starts||0),0);
+  const pts=pickedMetrics.reduce((n,x)=>n+Number(x.franchise_starter_points||0),0);
+  const rounds=[...new Set(yearPicks.map(x=>+x.round))].sort((a,b)=>a-b);
+  const originalCount=tradedAway.length;
+  return '<section class="fig-team-draft-year"><div class="fig-team-draft-year-top"><div><span>'+esc(yearPicks[0]?.draft_class||otherPicks[0]?.draft_class||'Draft')+' DRAFT</span>'+
+     '<h3>'+year+' · '+esc(OWNER_DISPLAY_BY_ID[+id])+'</h3></div><a href="#/draft/'+year+'">FULL '+year+' BOARD ↗</a></div>'+
+    '<div class="fig-team-draft-year-figures"><span><b>'+yearPicks.length+'</b> selections</span><span><b>'+acquired.length+'</b> acquired picks</span>'+
+     '<span><b>'+starts+'</b> franchise starts</span><span><b>'+money(pts)+'</b> points produced</span></div>'+
+    (rounds.map(round=>'<div class="fig-team-draft-round"><h4>ROUND '+round+'</h4>'+
+      yearPicks.filter(x=>+x.round===round).map(pick=>{
+       const key=String(pick.draft_id)+'|'+String(pick.pick_no),prod=valueMap.get(key)||{};
+       const raValue=raPlayers[String(pick.player_id)]?.value;
+       const origin=figDraftOriginal(pick,origins),taken=Number(pick.franchise_id);
+       const note=origin&&origin!==taken?' · ORIGINALLY '+esc(OWNER_DISPLAY_BY_ID[origin]):'';
+       return '<article class="fig-team-draft-pick"><div class="fig-team-draft-pick-no"><b>'+esc(figDraftPickLabel(pick))+'</b>'+
+        '<small>OVERALL '+esc(pick.pick_no)+'</small></div>'+
+        '<div class="fig-team-draft-pick-player">'+playerLink(pick.player_id,figDraftPlayerName(pick),'fig-draft-player-link')+
+        '<span>'+esc(pick.position||pick.draft_position||'')+' · '+esc(pick.draft_nfl_team||'')+note+'</span></div>'+
+        '<div class="fig-team-draft-pick-values"><div><b>'+(raValue!=null&&Number.isFinite(+raValue)?money(raValue):'—')+'</b><small>RA CURRENT VALUE</small></div>'+
+        '<div><b>'+money(prod.franchise_starter_points||0)+'</b><small>FRANCHISE PTS</small></div>'+
+        '<div><b>'+num(prod.franchise_starts||0)+'</b><small>FANTASY STARTS</small></div></div></article>';
+      }).join('')+'</div>').join('')||'<p class="fig-team-draft-none">No selections made in this draft. This does not remove the year from the franchise history.</p>')+
+    '<details class="fig-team-draft-traded"><summary>ORIGINAL PICKS USED BY OTHER TEAMS ('+originalCount+')</summary>'+
+      (tradedAway.map(x=>'<div class="fig-team-draft-gone"><b>'+esc(figDraftPickLabel(x))+'</b> · '+
+        playerLink(x.player_id,figDraftPlayerName(x),'fig-draft-gone-player')+
+        '<span>SELECTED BY '+esc(OWNER_DISPLAY_BY_ID[+x.franchise_id])+'</span></div>').join('')||
+       '<p>No original picks from this year are confirmed as used by other teams.</p>')+'</details></section>';
  }).join('');
- const tabs='<div class="fig-draft-page-tabs"><a href="#/draft/'+year+'"'+(!selected?' class="active"':'')+'>FULL DRAFT BOARD</a>'+
-   '<span>'+esc(picks.length)+' TOTAL PICKS · '+esc(new Set(picks.map(x=>+x.round)).size)+' ROUNDS</span></div>';
- let detail='';
- if(selected){
-  const stats=figDraftTeamTotals(picks,selected,origins);
-  const roundGroups=[...new Set(stats.owned.map(x=>Number(x.round)))].sort((a,b)=>a-b);
-  const roundHtml=roundGroups.map(r=>{
-   const rows=stats.owned.filter(x=>Number(x.round)===r);
-   return '<section class="fig-draft-team-round"><h3>ROUND '+r+' <span>'+rows.length+' PICK'+(rows.length===1?'':'S')+'</span></h3>'+
-    '<div class="fig-draft-team-selections">'+rows.map(x=>figDraftPersonRow(x,origins)).join('')+'</div></section>';
-  }).join('');
-  const tradedAway=stats.sent.sort((a,b)=>+a.pick_no-+b.pick_no).map(x=>figDraftPersonRow(x,origins,true)).join('');
-  detail='<section class="fig-draft-team-detail"><div class="fig-draft-team-detail-head"><div class="fig-draft-team-identity">'+
-    ownerAvatar(selected,'fig-draft-detail-avatar')+
-    '<div><span>'+esc(year)+' '+esc(draftType.toUpperCase())+' DRAFT</span><h2>'+esc(OWNER_DISPLAY_BY_ID[selected])+' DRAFT HISTORY</h2>'+
-    '<p>Players selected by this franchise — including acquired draft choices.</p></div></div>'+
-    '<a href="#/team/'+selected+'">TEAM PROFILE ↗</a></div>'+
-    '<div class="fig-draft-team-stats"><div><strong>'+stats.owned.length+'</strong><span>PICKS MADE</span></div>'+
-    '<div><strong>'+stats.acquired.length+'</strong><span>ACQUIRED PICKS USED</span></div>'+
-    '<div><strong>'+stats.sent.length+'</strong><span>ORIGINAL PICKS USED ELSEWHERE</span></div></div>'+
-    (roundHtml||'<div class="fig-draft-no-picks">This franchise did not make a selection in the '+esc(year)+' draft. Its original choices may have been traded to other teams.</div>')+
-    '<details class="fig-draft-original-moved"><summary>ORIGINAL PICKS DRAFTED BY OTHER TEAMS ('+stats.sent.length+')</summary>'+
-      '<p>Players another franchise selected using a choice originally belonging to '+esc(OWNER_DISPLAY_BY_ID[selected])+'. These were <b>not</b> picks made by '+esc(OWNER_DISPLAY_BY_ID[selected])+'.</p>'+
-      (tradedAway||'<div class="fig-draft-empty-trades">No transferred original selections identified in the available draft audit.</div>')+
-    '</details></section>';
- }else{
-  const rounds=[...new Set(picks.map(x=>+x.round))].sort((a,b)=>a-b);
-  detail='<section class="fig-draft-full-board"><h2>COMPLETE '+esc(year)+' DRAFT BOARD <small>SELECT A FRANCHISE ABOVE TO VIEW ITS PICKS</small></h2>'+
-    rounds.map(round=>'<div class="record-category fig-draft-round"><h3>ROUND '+round+'</h3>'+
-      '<div class="draft-board">'+picks.filter(x=>+x.round===round).map(x=>{
-       const by=+x.franchise_id,original=figDraftOriginal(x,origins);
-       return '<div class="draft-pick fig-draft-board-pick"><div class="pick">'+esc(figDraftPickLabel(x))+' · #'+esc(x.pick_no)+'</div>'+
-        playerLink(String(x.player_id||''),figDraftPlayerName(x),'fig-draft-player-link')+
-        '<a class="fig-draft-board-owner" href="#/draft/'+year+'/team/'+by+'">'+esc(OWNER_DISPLAY_BY_ID[by])+' ↗</a>'+
-        '<div class="position">'+esc(x.position||x.draft_position||'')+' · '+esc(x.draft_nfl_team||'')+'</div>'+
-        (original&&original!==by?'<div class="fig-draft-original-note">Orig. '+esc(OWNER_DISPLAY_BY_ID[original])+'</div>':'')+
-       '</div>';
-      }).join('')+'</div></div>').join('')+'</section>';
- }
- app.innerHTML=hero('WAR ROOM','THE DRAFT','Every official startup and rookie selection, organized by draft year and the franchise that made the pick.')+
- '<section class="fig-draft-archive"><div class="fig-draft-season-controls"><div><h2>DRAFT YEAR</h2>'+yearTabs+'</div>'+
- '<div class="fig-draft-season-desc"><strong>'+esc(year)+' · '+esc(draftType.toUpperCase())+'</strong><span>'+picks.length+' selections recorded</span></div></div>'+
- '<section class="fig-draft-franchise-section"><div class="fig-draft-directory-heading"><h2>DRAFT HISTORY BY FRANCHISE</h2>'+
- '<p>Choose any team to view every pick it made in this draft. Teams with no selections are included.</p></div>'+
- '<div class="fig-draft-franchise-grid">'+teamTiles+'</div></section>'+tabs+detail+'</section>';
+ return '<section class="fig-team-draft-history"><div class="fig-team-draft-intro">'+
+  '<div><h2>FRANCHISE DRAFT HISTORY</h2><p>Every pick '+esc(OWNER_DISPLAY_BY_ID[+id])+' made, across the entire league archive. Selections are attributed to the franchise that drafted each player, even when that pick was acquired in a trade.</p></div>'+
+  '<a href="https://rosteraudit.com/draft-grades/" target="_blank" rel="noopener noreferrer">OPEN ROSTERAUDIT DRAFT GRADES ↗</a></div>'+
+  totals+
+  '<div class="fig-team-draft-market"><div><strong>'+money(currentMarketTotal)+'</strong><span>COMBINED CURRENT RA VALUE OF VALUED PICKS</span></div>'+
+  '<p>'+valued.length+' of '+teamPicks.length+' selections have a current RosterAudit player value · snapshot '+esc(valueTimestamp)+'. This total is not a historical draft grade and excludes players without an available current value.</p></div>'+
+  legend+yearLinks+classes+'</section>';
 }
-
+async function draft(selectedYear){
+ await load(['draftPicks','draftAudit']);navActive('draft');
+ const picks=DATA.draftPicks||[],years=[...new Set(picks.map(x=>String(x.draft_season)))].sort((a,b)=>+b-+a);
+ if(!years.length){app.innerHTML=hero('WAR ROOM','THE DRAFT','')+'<div class="empty">No draft history found.</div>';return}
+ const origins=figDraftAuditMap(DATA.draftAudit);
+ const items=years.map(year=>{
+  const drafted=picks.filter(x=>String(x.draft_season)===year).sort((a,b)=>+a.pick_no-+b.pick_no);
+  const kinds=[...new Set(drafted.map(x=>x.draft_class))].join(' · ');
+  const rounds=[...new Set(drafted.map(x=>+x.round))].sort((a,b)=>a-b);
+  const expanded=year===String(selectedYear);
+  const teams=Array.from({length:10},(_,i)=>i+1).map(id=>{
+   const mine=drafted.filter(x=>+x.franchise_id===id);
+   return '<a class="fig-draft-team-tile" href="#/team/'+id+'/drafts/'+year+'">'+ownerAvatar(id,'fig-draft-team-avatar')+
+    '<span class="fig-draft-team-copy"><strong>'+esc(OWNER_DISPLAY_BY_ID[id])+'</strong><small>'+mine.length+' PICK'+(mine.length===1?'':'S')+' · OPEN TEAM ↗</small></span>'+
+    '<span class="fig-draft-team-arrow">›</span></a>';
+  }).join('');
+  const preview=rounds.map(round=>'<div class="record-category fig-draft-round"><h3>ROUND '+round+'</h3><div class="draft-board">'+
+   drafted.filter(x=>+x.round===round).map(pick=>{
+    const original=figDraftOriginal(pick,origins),id=+pick.franchise_id;
+    return '<div class="draft-pick fig-draft-board-pick"><div class="pick">'+esc(figDraftPickLabel(pick))+' · #'+esc(pick.pick_no)+'</div>'+
+      playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
+      '<a class="fig-draft-board-owner" href="#/team/'+id+'/drafts/'+year+'">'+esc(OWNER_DISPLAY_BY_ID[id])+' · TEAM DRAFT HISTORY ↗</a>'+
+      '<div class="position">'+esc(pick.position||pick.draft_position||'')+' · '+esc(pick.draft_nfl_team||'')+'</div>'+
+      (original&&original!==id?'<div class="fig-draft-original-note">Orig. '+esc(OWNER_DISPLAY_BY_ID[original])+'</div>':'')+'</div>';
+   }).join('')+'</div></div>').join('');
+  return '<section class="fig-draft-all-year" id="draft-'+year+'"><div class="fig-draft-all-year-head"><div><span>'+esc(kinds.toUpperCase())+' DRAFT</span><h2>'+year+'</h2>'+
+   '<p>'+drafted.length+' selections · '+rounds.length+' rounds · All 10 franchises</p></div>'+
+   '<a href="#/draft/'+year+'">'+(expanded?'YEAR SELECTED':'OPEN YEAR BOARD')+' ↗</a></div>'+
+   '<div class="fig-draft-directory-heading"><h3>SELECT A FRANCHISE</h3><p>Opens Teams → franchise → Draft History, filtered to '+year+'.</p></div>'+
+   '<div class="fig-draft-franchise-grid">'+teams+'</div>'+
+   '<details class="fig-draft-year-board"'+(expanded?' open':'')+'><summary>VIEW EVERY '+year+' DRAFT SELECTION · '+drafted.length+' PICKS</summary>'+
+   '<div class="fig-draft-full-board">'+preview+'</div></details></section>';
+ }).join('');
+ app.innerHTML=hero('WAR ROOM','THE DRAFT','All years of dynasty drafts in one place. Select a year and franchise to open its full Draft History under Teams.')+
+ '<div class="fig-draft-archive fig-draft-all-years"><div class="fig-draft-all-years-summary"><h2>COMPLETE DRAFT ARCHIVE</h2>'+
+ '<p>'+years.length+' completed drafts · '+picks.length+' total selections. Every team has its own draft history in the Teams tab.</p></div>'+
+ items+'</div>';
+}
 // Present stable team identities for draft-pick origins; preserve raw Sleeper labels in JSON.
 function tradeArchiveAssetLabel(value){
  return String(value??'').replace(/\(orig\.\s*F(\d+)\)/gi,(_match,id)=>{
@@ -1963,7 +1999,7 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft(parts[1],parts[2],parts[3]);else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft')await draft(parts[1]);else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
