@@ -1,3 +1,14 @@
+## v121 — Only rookie drafts receive slot valuations, grades, and team rankings
+
+- Removed speculative 2023 startup slot-cost curve entirely. FIG slot values and S–F draft grades apply only to completed rookie selections (2024 onward).
+- Retained the complete 2023 founding draft board: 250 picks, team/player identities, pick positions, and all 25 rounds. It shows no market valuations, slot values, grades, comparative returns, or linked team ranking drill-downs.
+- Startup picks do not enter all-rookie franchise value rankings or draft grade/return calculations.
+- Team draft histories retain 2023 startup selection and production history without speculative valuation figures. All-year returns and the drafted-player market-value summaries now count rookie selections only.
+- Removed startup from the Draft Rankings team drill-down filters; historical `#/draft/team/{franchise}/2023` URLs redirect to the 2023 startup archive.
+- Tests covered all 250 startup selections, all 120 rookie picks, ten team profiles, 40 team draft-history panels, and 40 rookie ranking team drill-down variants.
+
+---
+
 ## v120 — Team average return replaces team average grade
 
 - Draft Rankings team cards and sorting now display **AVG RETURN** instead of average letter grade.
