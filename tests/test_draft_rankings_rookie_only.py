@@ -68,7 +68,7 @@ class RookieDraftRankingsTests(unittest.TestCase):
         if not shutil.which("node"):
             self.skipTest("Node.js is not installed")
         source = self.app.split("function figDraftGradeLetter(current,slot,pick){", 1)[1].split(
-            "\\nconst FIG_GRADE_POINTS", 1
+            "const FIG_GRADE_POINTS", 1
         )[0]
         function_source = "function figDraftGradeLetter(current,slot,pick){" + source
         javascript = function_source + """
