@@ -1153,12 +1153,47 @@ async function recordDetail(kind,key,viewEnc){
 }
 
 
+function figActiveStreakOrder(rows,type='all',sort='longest'){
+ const matches=rows.filter(x=>type==='all'||String(x.streak_type)===type);
+ return matches.sort((a,b)=>{
+  const lengthDifference=num(b.length)-num(a.length);
+  const typeDifference=String(a.streak_type).localeCompare(String(b.streak_type));
+  const primary=sort==='type'?typeDifference:sort==='shortest'?-lengthDifference:lengthDifference;
+  return primary||(sort==='type'?lengthDifference:typeDifference)||
+   Number(a.franchise_id)-Number(b.franchise_id);
+ });
+}
+
 async function streaks(){
  await load(['websiteStreaks']);navActive('streaks');
  const career=DATA.websiteStreaks.filter(x=>String(x.streak_mode)==='Career Games'&&num(x.length)>=2&&!['100+ Points','180+ Points','190+ Points'].includes(String(x.streak_type)));
  const active=career.filter(x=>x.active===true||String(x.active).toLowerCase()==='true');
  const types=[...new Set(career.map(x=>x.streak_type))].sort();
- const activeRows=[...active].sort((a,b)=>num(b.length)-num(a.length)).map((x,i)=>({rank:i+1,team:ownerLink(x.owner,x.franchise_id),type:`<a class="fig-active-streak-link" href="#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}">${esc(x.streak_type)} <small>VIEW GAMES →</small></a>`,len:x.length,start:`${x.start_season} W${x.start_week}`,last:`${x.end_season} W${x.end_week}`,_href:`#/breakdown/streak/${encodeURIComponent(x.streak_type)}/${encodeURIComponent(x.streak_mode)}/${x.franchise_id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}`,_sort:{rank:i+1,team:displayOwnerName(x.owner,x.franchise_id),type:x.streak_type,len:x.length,start:num(x.start_season)*100+num(x.start_week),last:num(x.end_season)*100+num(x.end_week)}}));
+ const activeKinds=[...new Set(active.map(x=>String(x.streak_type)))].sort((a,b)=>a.localeCompare(b));
+ const latestActive=active.reduce((best,x)=>{
+  const order=num(x.end_season)*100+num(x.end_week);
+  return !best||order>best.order?{order,label:String(x.end_season)+' W'+x.end_week}:best;
+ },null);
+ const activeBoard=active.length?
+  '<div class="fig-active-streak-board">'+
+   '<div class="fig-active-streak-tools">'+
+    '<div class="fig-active-streak-intro"><strong>'+active.length+' ONGOING RUNS</strong>'+
+     '<span>Through '+esc(latestActive.label)+' · Select a row to view every game</span></div>'+
+    '<div class="fig-active-streak-filters">'+
+     '<label>STREAK TYPE<select id="figActiveStreakType" aria-label="Filter active streaks by type">'+
+      '<option value="all">All types</option>'+activeKinds.map(type=>
+       '<option value="'+esc(type)+'">'+esc(type)+'</option>').join('')+'</select></label>'+
+     '<label>SORT<select id="figActiveStreakSort" aria-label="Sort active streaks">'+
+      '<option value="longest">Longest first</option>'+
+      '<option value="shortest">Shortest first</option>'+
+      '<option value="type">Streak type</option></select></label>'+
+    '</div></div>'+
+   '<div class="fig-active-streak-column-head" aria-hidden="true">'+
+    '<span>#</span><span>TEAM</span><span>STREAK</span><span>WEEKS</span><span>SINCE</span><span></span></div>'+
+   '<div id="figActiveStreakList" class="fig-active-streak-list"></div>'+
+   '<div class="fig-active-streak-footer"><span id="figActiveStreakCount" aria-live="polite"></span>'+
+    '<button type="button" id="figActiveStreakMore" class="fig-active-streak-more" hidden></button></div>'+
+  '</div>':'<div class="empty">No active qualifying streaks.</div>';
  const orderedTypes=[...types].sort((a,b)=>{
    const priority=t=>t==='Winning'?0:t==='Losing'?1:t==='Weekly High Score'?2:t==='Top-3 Scoring Weeks'?3:t==='Above Median'?4:t==='Below Median'?5:6;
    return priority(a)-priority(b)||a.localeCompare(b);
@@ -1178,8 +1213,42 @@ async function streaks(){
    });
  }).join('');
  app.innerHTML=hero('STREAK ARCHIVE','STREAKS','Active runs and the league records that actually matter.')+
- section('ACTIVE STREAKS',activeRows.length?sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'TYPE',key:'type'},{label:'LENGTH',key:'len'},{label:'START',key:'start'},{label:'LAST',key:'last'}],activeRows):'<div class="empty">No active qualifying streaks.</div>')+
+ section('ACTIVE STREAKS',activeBoard)+
  section('ALL-TIME STREAK RECORDS',`<div class="fig-podium-grid fig-streak-gallery">${topCards}</div>`,'');
+ if(active.length){
+  const typeControl=$('#figActiveStreakType'),sortControl=$('#figActiveStreakSort');
+  const list=$('#figActiveStreakList'),count=$('#figActiveStreakCount'),more=$('#figActiveStreakMore');
+  let expanded=false;
+  const renderActive=()=>{
+   const matching=figActiveStreakOrder(active,typeControl.value,sortControl.value);
+   const shown=expanded?matching:matching.slice(0,8);
+   list.innerHTML=shown.map((x,i)=>{
+    const name=displayOwnerName(x.owner,x.franchise_id);
+    const href='#/breakdown/streak/'+encodeURIComponent(x.streak_type)+'/'+
+     encodeURIComponent(x.streak_mode)+'/'+x.franchise_id+'/'+
+     x.start_season+'/'+x.start_week+'/'+x.end_season+'/'+x.end_week;
+    return '<a class="fig-active-streak-row" href="'+esc(href)+'" aria-label="'+
+     esc(name+' · '+x.streak_type+' · '+x.length+' consecutive weeks · view games')+'">'+
+     '<span class="fig-active-streak-number">'+(i+1)+'</span>'+
+     '<span class="fig-active-streak-team">'+ownerAvatar(x.franchise_id,'fig-active-streak-avatar')+
+      '<strong>'+esc(name)+'</strong></span>'+
+     '<span class="fig-active-streak-kind">'+esc(x.streak_type)+'</span>'+
+     '<span class="fig-active-streak-length"><strong>'+num(x.length)+'</strong><small>WKS</small></span>'+
+     '<span class="fig-active-streak-since"><small>SINCE</small><strong>'+
+      esc(x.start_season)+' W'+esc(x.start_week)+'</strong></span>'+
+     '<span class="fig-active-streak-arrow" aria-hidden="true">›</span></a>';
+   }).join('')||'<div class="fig-active-streak-empty">No active streaks of this type.</div>';
+   count.textContent='Showing '+shown.length+' of '+matching.length+' active streaks';
+   more.hidden=matching.length<=8;
+   more.textContent=expanded?'SHOW TOP 8':'SHOW ALL '+matching.length;
+   more.setAttribute('aria-expanded',String(expanded));
+  };
+  typeControl.onchange=()=>{expanded=false;renderActive();};
+  sortControl.onchange=()=>{expanded=false;renderActive();};
+  more.onclick=()=>{expanded=!expanded;renderActive();};
+  renderActive();
+ }
+
 }
 
 

@@ -1,3 +1,12 @@
+## v130 — Compact active-streak leaderboard
+
+- Replaced the wide active-streak table with a compact responsive list: rank, franchise avatar/name, streak type, prominent length and start week. Removed the redundant last-week column.
+- Displays the 8 longest runs by default, with Show All / Show Top 8 for complete history.
+- Filter by streak type and sort by longest, shortest or type. Every row opens the full clickable matchup breakdown.
+- Existing streak definitions, active status, historical records and podiums are unchanged.
+
+---
+
 ## v129 — Expanded yearly rookie boards and cross-team pick explorer
 
 - Every specific rookie draft year opens its full four-round board immediately, while keeping the optional collapse control.
