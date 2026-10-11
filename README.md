@@ -1,3 +1,11 @@
+## v131 — New illustrated league home-screen icon
+
+- Replaced the FIG favicon and PWA icons with the approved Puka-inspired portrait illustration, using exactly navy, Rams blue and gold.
+- Published 192×192 and 512×512 versions; Safari home-screen shortcuts, Android installed icons and desktop browser tabs use the refreshed imagery.
+- Bumped icon/manifest URLs and service worker cache version to refresh installed app shells without affecting any league data or standings.
+
+---
+
 ## v130 — Compact active-streak leaderboard
 
 - Replaced the wide active-streak table with a compact responsive list: rank, franchise avatar/name, streak type, prominent length and start week. Removed the redundant last-week column.
