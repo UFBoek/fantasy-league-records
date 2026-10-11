@@ -401,7 +401,14 @@ const raReady=()=>DATA.raValues?.status==='ready'&&Object.keys(DATA.raValues?.pl
 const raCredit=()=>`<a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">Values by RosterAudit.com ↗</a>`;
 const raFormat=()=>{const cfg=DATA.raValues?.format||{};const f=cfg.format==='1qb'?'1QB':'Superflex';const p=Number(cfg.receptions)===.5?'Half PPR':'Full PPR';const tep=Number(cfg.te_reception_bonus)>0?' · TE Premium':'';const target=`${cfg.teams||10}-team ${f} · ${p}${tep}`;return DATA.raValues?.snapshot_source?.kind==='csv'&&!DATA.raValues.snapshot_source.preset_verified?`CSV export (scoring preset not specified) · League target: ${target}`:target};
 const raDate=()=>{const d=DATA.raValues?.updated_at;if(!d)return 'Awaiting first update';if(/^\d{4}-\d{2}-\d{2}$/.test(d)){const [y,m,day]=d.split('-');return `${m}/${day}/${y}`}return new Date(d).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})};
-function raPlayer(id){if(!raReady()||!id)return null;const p=DATA.raValues.players[String(id)];return p&&Number.isFinite(+p.value)?+p.value:null}
+function raPlayer(id){
+ // No value for a known player ID means 0, not unvalued. A missing entire
+ // RosterAudit snapshot remains null so we never mistake a sync failure for 0.
+ if(!raReady()||id===null||id===undefined||id==='')return null;
+ const p=DATA.raValues.players[String(id)];
+ const value=p&&p.value!==null&&p.value!==undefined&&p.value!==''?Number(p.value):NaN;
+ return Number.isFinite(value)?Math.max(0,value):0;
+}
 // The original franchise (not the current pick holder) determines the league's
 // custom pick tiers. These are modern RosterAudit *comparables*, never prices
 // reconstructed from the date of an old trade.

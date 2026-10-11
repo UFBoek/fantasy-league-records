@@ -1,3 +1,13 @@
+## v127 — Missing player valuations are zero
+
+- When the RosterAudit snapshot is ready but a Sleeper player ID has no provider value (including Travis Hunter, Ja'Lynn Polk, and any other missing players), the shared value lookup now returns **0**, including missing/invalid values.
+- Rookie draft picks with missing values receive a **0% return and F grade**, and their slot costs count in team return calculations instead of being skipped.
+- Dynasty roster totals, trade current-value comparisons, player value labels, and draft rankings consistently use the same zero fallback. Provider-supplied numerical values are preserved.
+- When the entire RosterAudit snapshot is unavailable, values remain unavailable rather than falsely resetting every player to zero.
+- Added coverage for missing IDs, missing provider values, zero values, and feed-unavailable behavior. Preserved the raw provider snapshot unchanged.
+
+---
+
 ## v126 — Above/below weekly median streak records
 
 - Added **Above-Median Streak** and **Below-Median Streak** based on a franchise's completed regular-season score versus the ten-team weekly scoring median (average of the 5th and 6th ranked scores).
