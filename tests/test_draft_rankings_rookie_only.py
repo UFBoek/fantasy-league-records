@@ -127,6 +127,63 @@ for (const [current, slot, round, expected] of checks) {
         result = subprocess.run(["node", "-e", javascript], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_each_year_full_board_starts_expanded(self):
+        draft = self.app.split("async function draft(selectedYear){", 1)[1].split(
+            "// Team drill-down in the Draft area", 1
+        )[0]
+        self.assertIn('<details class="fig-draft-rank-board" open>', draft)
+        self.assertIn("fig-draft-board-hide", draft)
+        self.assertIn("fig-draft-board-show", draft)
+
+    def test_all_rookie_pick_explorer_after_rankings(self):
+        draft = self.app.split("async function draft(selectedYear){", 1)[1].split(
+            "// Team drill-down in the Draft area", 1
+        )[0]
+        self.assertIn("const explorer=year==='all'?", draft)
+        self.assertIn("explorer+boardDetail", draft)
+        for field in ("figDraftExplorerSearch", "figDraftExplorerGrade",
+                      "figDraftExplorerReturn", "figDraftExplorerYear",
+                      "figDraftExplorerRound", "figDraftExplorerTeam",
+                      "figDraftExplorerMin", "figDraftExplorerSort",
+                      "figDraftExplorerReset", "figDraftExplorerMore"):
+            self.assertIn(field, draft)
+        self.assertIn("figDraftExplorerSelect(explorerRows,options)", draft)
+        self.assertIn("shown+=40", draft)
+
+    def test_explorer_filters_and_order_use_actual_grade_data(self):
+        if not shutil.which("node"):
+            self.skipTest("Node.js is not installed")
+        source = self.app.split("function figDraftExplorerSelect(rows,opts){", 1)[1].split(
+            "function figDraftFranchiseHistory", 1
+        )[0]
+        js = "const FIG_GRADE_POINTS={S:5,A:4,B:3,C:2,D:1,F:0};\n" + (
+            "function figDraftExplorerSelect(rows,opts){" + source
+        ) + """
+const rows=[
+ {pick:{draft_season:2024,round:4,franchise_id:2,pick_no:40},grade:{letter:'B',ratio:2.0,current:190,delta:95,slot:95},searchText:'2024 rookie alpha matt 4.10'},
+ {pick:{draft_season:2025,round:1,franchise_id:1,pick_no:1},grade:{letter:'A',ratio:1.5,current:9450,delta:3150,slot:6300},searchText:'2025 beta jack 1.01'},
+ {pick:{draft_season:2026,round:3,franchise_id:2,pick_no:24},grade:{letter:'F',ratio:0,current:0,delta:-340,slot:340},searchText:'2026 gamma matt 3.04'},
+ {pick:{draft_season:2026,round:2,franchise_id:3,pick_no:11},grade:{letter:'C',ratio:.9,current:1440,delta:-160,slot:1600},searchText:'2026 delta other 2.01'}
+];
+const pickNo=x=>x.map(y=>y.pick.pick_no).join(',');
+function assert(actual,expected,label){
+ if(actual!==expected)throw new Error(label+' got '+actual+', expected '+expected);
+}
+assert(pickNo(figDraftExplorerSelect(rows,{sort:'draft'})),'11,24,1,40','draft order');
+assert(pickNo(figDraftExplorerSelect(rows,{grade:'B'})),'40','grade B');
+assert(pickNo(figDraftExplorerSelect(rows,{returnBand:'200+'})),'40','200% return');
+assert(pickNo(figDraftExplorerSelect(rows,{returnBand:'80-99'})),'11','80-99% return');
+assert(pickNo(figDraftExplorerSelect(rows,{returnBand:'0'})),'24','0 return');
+assert(pickNo(figDraftExplorerSelect(rows,{round:'4',team:'2'})),'40','round and team');
+assert(pickNo(figDraftExplorerSelect(rows,{year:'2025'})),'1','year');
+assert(pickNo(figDraftExplorerSelect(rows,{query:'gamma'})),'24','player search');
+assert(pickNo(figDraftExplorerSelect(rows,{minValue:'200'})),'11,1','minimum value');
+assert(pickNo(figDraftExplorerSelect(rows,{sort:'return'})),'40,1,11,24','return sort');
+assert(pickNo(figDraftExplorerSelect(rows,{sort:'grade'})),'1,40,11,24','grade sort');
+"""
+        result = subprocess.run(["node", "-e", js], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

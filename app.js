@@ -1621,6 +1621,49 @@ function figDraftGradeOverview(picks,label){
   '<span><b>'+z.valued+'/'+z.eligible+'</b> VALUED</span></div></div>';
 }
 
+// Filter and sort rookie selections across every franchise without losing pick identity.
+function figDraftExplorerSelect(rows,opts){
+ const q=String(opts.query||'').trim().toLowerCase();
+ const band=String(opts.returnBand||'all');
+ const minValue=opts.minValue===''||opts.minValue===null||opts.minValue===undefined?null:Number(opts.minValue);
+ const filtered=rows.filter(x=>{
+  const p=x.pick,z=x.grade;
+  if(q&&!x.searchText.includes(q))return false;
+  if(opts.year&&opts.year!=='all'&&String(p.draft_season)!==String(opts.year))return false;
+  if(opts.round&&opts.round!=='all'&&String(p.round)!==String(opts.round))return false;
+  if(opts.team&&opts.team!=='all'&&String(p.franchise_id)!==String(opts.team))return false;
+  if(opts.grade&&opts.grade!=='all'&&z.letter!==opts.grade)return false;
+  if(minValue!==null&&Number.isFinite(minValue)&&!(z.current!==null&&z.current>=minValue))return false;
+  if(band!=='all'){
+   const r=z.ratio;
+   if(r===null)return band==='pending';
+   if(band==='200+'&&r<2)return false;
+   if(band==='100-199'&&(r<1||r>=2))return false;
+   if(band==='80-99'&&(r<.8||r>=1))return false;
+   if(band==='1-79'&&(r<=0||r>=.8))return false;
+   if(band==='0'&&r!==0)return false;
+   if(band==='pending')return false;
+  }
+  return true;
+ });
+ const mode=String(opts.sort||'draft');
+ const sortValue=x=>{
+  const z=x.grade;
+  if(mode==='grade')return FIG_GRADE_POINTS[z.letter]??-1;
+  if(mode==='gain')return z.delta===null?-Infinity:z.delta;
+  if(mode==='return')return z.ratio===null?-Infinity:z.ratio;
+  if(mode==='slot')return z.slot===null?-Infinity:z.slot;
+  return z.current===null?-Infinity:z.current;
+ };
+ filtered.sort((a,b)=>
+  (mode==='draft'?0:sortValue(b)-sortValue(a))||
+  Number(b.pick.draft_season)-Number(a.pick.draft_season)||
+  Number(a.pick.pick_no)-Number(b.pick.pick_no)||
+  Number(a.pick.franchise_id)-Number(b.pick.franchise_id)
+ );
+ return filtered;
+}
+
 function figDraftFranchiseHistory(id,preferredYear){
  const all=DATA.draftPicks||[],origins=figDraftAuditMap(DATA.draftAudit||[]);
  const valueMap=new Map((DATA.draftValue||[]).map(x=>[String(x.draft_id)+'|'+String(x.pick_no),x]));
@@ -1763,8 +1806,39 @@ async function draft(selectedYear){
  }).join('');
  const jumps=rounds.length>4?'<nav class="fig-draft-focus-round-links" aria-label="Jump to draft round"><span>ROUND</span>'+
   rounds.map(r=>'<button type="button" data-round="'+r+'">'+r+'</button>').join('')+'</nav>':'';
- const boardDetail=year==='all'?'':'<details class="fig-draft-rank-board"><summary><span><strong>COMPLETE '+year+' ROOKIE DRAFT BOARD</strong>'+
-  '<small>'+picks.length+' selections · '+rounds.length+' rounds</small></span><span>VIEW PICKS ▾</span></summary>'+
+
+ const explorerRows=year==='all'?all.map(pick=>{
+  const player=figDraftPlayerName(pick),team=OWNER_DISPLAY_BY_ID[+pick.franchise_id]||'Team '+pick.franchise_id;
+  const label=figDraftPickLabel(pick),grade=figDraftGrade(pick);
+  return {pick,player,team,label,grade,searchText:[
+   player,team,label,pick.pick_no,pick.draft_season,pick.position||pick.draft_position,pick.draft_nfl_team
+  ].join(' ').toLowerCase()};
+ }):[];
+ const optionList=(entries)=>entries.map(([value,label])=>
+  '<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+ const explorer=year==='all'?
+  '<section class="fig-draft-explorer" id="figDraftExplorer" aria-labelledby="figDraftExplorerTitle">'+
+   '<div class="fig-draft-explorer-header"><div><span class="eyebrow">ALL TEAMS · ALL ROOKIE YEARS</span>'+
+    '<h2 id="figDraftExplorerTitle">EXPLORE EVERY ROOKIE PICK</h2>'+
+    '<small>Search and compare selections from every franchise in one place.</small></div>'+
+    '<span class="fig-draft-explorer-total">'+explorerRows.length+' PICKS</span></div>'+
+   '<div class="fig-draft-explorer-controls">'+
+    '<label class="fig-draft-explorer-search">SEARCH PICKS<input id="figDraftExplorerSearch" type="search" placeholder="Player, team, pick, position..." autocomplete="off"></label>'+
+    '<label>GRADE<select id="figDraftExplorerGrade">'+optionList([['all','All grades'],...['S','A','B','C','D','F','—'].map(x=>[x,x==='—'?'Not valued':x])])+'</select></label>'+
+    '<label>RETURN %<select id="figDraftExplorerReturn">'+optionList([['all','Any return'],['200+','200%+'],['100-199','100–199%'],['80-99','80–99%'],['1-79','Above 0%, below 80%'],['0','0%'],['pending','Not valued']])+'</select></label>'+
+    '<label>YEAR<select id="figDraftExplorerYear">'+optionList([['all','All years'],...years.map(y=>[y,y])])+'</select></label>'+
+    '<label>ROUND<select id="figDraftExplorerRound">'+optionList([['all','All rounds'],['1','Round 1'],['2','Round 2'],['3','Round 3'],['4','Round 4']])+'</select></label>'+
+    '<label>TEAM<select id="figDraftExplorerTeam">'+optionList([['all','All teams'],...byTeam.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(x=>[String(x.id),x.name])])+'</select></label>'+
+    '<label>MIN CURRENT VALUE<input id="figDraftExplorerMin" type="number" min="0" step="1" inputmode="numeric" placeholder="Any value"></label>'+
+    '<label>SORT PICKS<select id="figDraftExplorerSort">'+optionList([['draft','Draft order'],['return','Highest return %'],['gain','Largest value gain'],['value','Highest current value'],['grade','Highest grade'],['slot','Highest slot value']])+'</select></label>'+
+    '<button type="button" class="fig-draft-explorer-reset" id="figDraftExplorerReset">RESET FILTERS</button>'+
+   '</div>'+
+   '<div class="fig-draft-explorer-results"><span id="figDraftExplorerCount" aria-live="polite"></span>'+
+   '<div class="fig-draft-explorer-list" id="figDraftExplorerList"></div>'+
+   '<button type="button" class="fig-draft-explorer-more" id="figDraftExplorerMore">SHOW MORE PICKS ↓</button></div>'+
+  '</section>':'';
+ const boardDetail=year==='all'?'':'<details class="fig-draft-rank-board" open><summary><span><strong>COMPLETE '+year+' ROOKIE DRAFT BOARD</strong>'+
+  '<small>'+picks.length+' selections · '+rounds.length+' rounds</small></span><span><span class="fig-draft-board-hide">HIDE PICKS ▴</span><span class="fig-draft-board-show">SHOW PICKS ▾</span></span></summary>'+
   '<div class="fig-draft-rank-board-body">'+jumps+'<div class="fig-draft-focus-board">'+board+'</div></div></details>';
  app.innerHTML=hero('DRAFT ARCHIVE','DRAFT RANKINGS','')+
   '<div class="fig-draft-archive fig-draft-focus fig-draft-rank-page">'+nav+
@@ -1775,10 +1849,53 @@ async function draft(selectedYear){
   '<div class="fig-draft-rank-toolbar"><span>SORT BY</span>'+
    metricOptions.map(([value,label])=>'<button type="button" class="fig-draft-rank-sort'+(value==='value'?' active':'')+'" data-sort="'+value+'" aria-pressed="'+(value==='value'?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
   '<div class="fig-draft-rank-list" id="figDraftRankingList"></div></section>'+
-  boardDetail+
+  explorer+boardDetail+
   '</div>';
  $$('.fig-draft-rank-sort').forEach(b=>{b.onclick=()=>{sort=b.dataset.sort;renderRanks();};});
  renderRanks();
+
+ if(year==='all'){
+  const fields={
+   query:$('#figDraftExplorerSearch'),grade:$('#figDraftExplorerGrade'),
+   returnBand:$('#figDraftExplorerReturn'),year:$('#figDraftExplorerYear'),
+   round:$('#figDraftExplorerRound'),team:$('#figDraftExplorerTeam'),
+   minValue:$('#figDraftExplorerMin'),sort:$('#figDraftExplorerSort')
+  };
+  const list=$('#figDraftExplorerList'),count=$('#figDraftExplorerCount'),more=$('#figDraftExplorerMore');
+  let shown=40,filtered=[];
+  const renderExplorer=()=>{
+   const options=Object.fromEntries(Object.entries(fields).map(([key,field])=>[key,field.value]));
+   filtered=figDraftExplorerSelect(explorerRows,options);
+   const visible=filtered.slice(0,shown);
+   count.textContent='Showing '+visible.length+' of '+filtered.length+' matching picks';
+   list.innerHTML=visible.length?visible.map(x=>{
+    const p=x.pick,z=x.grade,id=+p.franchise_id,valued=z.current!==null;
+    const gradeClass='grade-'+(z.letter==='—'?'unknown':z.letter.toLowerCase());
+    return '<article class="fig-draft-explorer-pick">'+
+     '<div class="fig-draft-explorer-spot"><strong>'+esc(x.label)+'</strong><small>'+esc(p.draft_season)+'</small></div>'+
+     '<div class="fig-draft-explorer-player">'+playerLink(String(p.player_id||''),x.player,'fig-draft-player-link')+
+      '<small>'+esc(p.position||p.draft_position||'—')+' · '+esc(p.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
+     '<a class="fig-draft-explorer-team" href="#/draft/team/'+id+'/'+encodeURIComponent(p.draft_season)+'">'+esc(x.team)+' ↗</a>'+
+     '<span class="fig-draft-explorer-grade '+gradeClass+'" aria-label="Draft grade '+esc(z.letter)+'">'+esc(z.letter)+'</span>'+
+     '<div class="fig-draft-explorer-metrics">'+
+      '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE</small></span>'+
+      '<span><b>'+(valued?money(z.current):'—')+'</b><small>VALUE NOW</small></span>'+
+      '<span><b>'+(valued?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>GAIN / LOSS</small></span>'+
+      '<span><b>'+(valued?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN %</small></span>'+
+     '</div></article>';
+   }).join(''):'<div class="fig-draft-explorer-empty">No picks match these filters.</div>';
+   more.hidden=filtered.length<=shown;
+  };
+  for(const field of Object.values(fields)){
+   field.addEventListener(field.tagName==='INPUT'?'input':'change',()=>{shown=40;renderExplorer();});
+  }
+  more.onclick=()=>{shown+=40;renderExplorer();};
+  $('#figDraftExplorerReset').onclick=()=>{
+   for(const [key,field] of Object.entries(fields))field.value=key==='query'||key==='minValue'?'':key==='sort'?'draft':'all';
+   shown=40;renderExplorer();
+  };
+  renderExplorer();
+ }
  $$('.fig-draft-focus-round-links button').forEach(button=>{
   button.onclick=()=>document.getElementById('draft-round-'+button.dataset.round)?.scrollIntoView({behavior:'smooth',block:'start'});
  });

@@ -1,0 +1,71 @@
+/* v129 — All-rookie pick explorer and expanded yearly boards. */
+.fig-draft-board-show{display:none}
+.fig-draft-rank-board:not([open]) .fig-draft-board-hide{display:none}
+.fig-draft-rank-board:not([open]) .fig-draft-board-show{display:inline}
+.fig-draft-explorer{display:grid;gap:14px;min-width:0;padding:20px;background:#fff;border:1px solid #d7e5db;border-radius:14px;color:#294c38}
+.fig-draft-explorer-header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.fig-draft-explorer-header .eyebrow{font:900 10px/1.3 Inter,system-ui,sans-serif;color:#508367;letter-spacing:.06em}
+.fig-draft-explorer-header h2{margin:5px 0;font:900 clamp(20px,3vw,28px)/1.16 Inter,system-ui,sans-serif;color:#244c35}
+.fig-draft-explorer-header small{font:750 11px/1.4 Inter,system-ui,sans-serif;color:#687f6e}
+.fig-draft-explorer-total{flex:none;background:#eaf4ed;border:1px solid #cee2d3;border-radius:7px;padding:10px;font:900 11px/1.2 Inter,system-ui,sans-serif;color:#285b41}
+.fig-draft-explorer-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:13px;background:#f3f8f4;border:1px solid #e0eae2;border-radius:11px}
+.fig-draft-explorer-controls label{min-width:0;display:flex;flex-direction:column;gap:6px;color:#4c715a;font:900 10px/1.25 Inter,system-ui,sans-serif;letter-spacing:.025em}
+.fig-draft-explorer-controls .fig-draft-explorer-search{grid-column:span 2}
+.fig-draft-explorer-controls input,.fig-draft-explorer-controls select{width:100%;min-width:0;min-height:41px;padding:9px 10px;background:#fff;color:#244f38;border:1px solid #cbded0;border-radius:8px;font:750 12px/1.25 Inter,system-ui,sans-serif;outline:none}
+.fig-draft-explorer-controls input:focus,.fig-draft-explorer-controls select:focus{border-color:#286d48;box-shadow:0 0 0 3px #c7e5cf}
+.fig-draft-explorer-reset{align-self:end;min-height:41px;padding:10px 12px;border:1px solid #b9d4c1;border-radius:8px;background:#fff;color:#2a6645;font:900 10px/1.3 Inter,system-ui,sans-serif;cursor:pointer}
+.fig-draft-explorer-reset:hover{background:#e5f2e8}
+.fig-draft-explorer-results{display:grid;gap:10px}
+.fig-draft-explorer-results>span{color:#617c6b;font:800 11px/1.4 Inter,system-ui,sans-serif}
+.fig-draft-explorer-list{display:grid;gap:7px;min-width:0}
+.fig-draft-explorer-pick{display:grid;grid-template-columns:68px minmax(130px,1.35fr) minmax(90px,.85fr) 44px minmax(230px,1.6fr);gap:10px;align-items:center;min-width:0;padding:11px 12px;background:#fafcfb;border:1px solid #dfe9e1;border-radius:10px}
+.fig-draft-explorer-spot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 3px;border-radius:8px;background:#eaf4ed;text-align:center}
+.fig-draft-explorer-spot strong{color:#235b3d;font:900 16px/1.15 Inter,system-ui,sans-serif}
+.fig-draft-explorer-spot small{color:#63836b;font:850 10px/1.3 Inter,system-ui,sans-serif}
+.fig-draft-explorer-player{min-width:0}
+.fig-draft-explorer-player .fig-draft-player-link{margin:0;gap:8px}
+.fig-draft-explorer-player .fig-draft-player-link .fig-nfl-photo{width:34px;height:34px;flex-basis:34px}
+.fig-draft-explorer-player .fig-draft-player-link .fig-player-person-name{font:900 12px/1.25 Inter,system-ui,sans-serif}
+.fig-draft-explorer-player>small{display:block;padding-left:42px;margin-top:3px;font:750 9px/1.35 Inter,system-ui,sans-serif;color:#678070}
+.fig-draft-explorer-team{min-width:0;overflow-wrap:anywhere;color:#2c6847;text-decoration:none;font:850 11px/1.35 Inter,system-ui,sans-serif}
+.fig-draft-explorer-team:hover{text-decoration:underline}
+.fig-draft-explorer-grade{display:flex;align-items:center;justify-content:center;padding:10px 6px;background:#e8eef0;border-radius:7px;color:#48636b;font:900 21px/1 Inter,system-ui,sans-serif}
+.fig-draft-explorer-grade.grade-s{background:#f8ebbc;color:#896018}
+.fig-draft-explorer-grade.grade-a{background:#d9f3df;color:#146334}
+.fig-draft-explorer-grade.grade-b{background:#e5f3e8;color:#225b39}
+.fig-draft-explorer-grade.grade-d{background:#fff0cc;color:#805618}
+.fig-draft-explorer-grade.grade-f{background:#fce3df;color:#a1372e}
+.fig-draft-explorer-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;min-width:0}
+.fig-draft-explorer-metrics span{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.fig-draft-explorer-metrics b{font:900 12px/1.2 Inter,system-ui,sans-serif;color:#2d5d42;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig-draft-explorer-metrics small{font:850 8px/1.3 Inter,system-ui,sans-serif;color:#78907c;white-space:nowrap}
+.fig-draft-explorer-more{justify-self:center;cursor:pointer;margin-top:3px;padding:11px 18px;border:1px solid #c5ddcb;background:#eaf4ed;border-radius:9px;color:#296546;font:900 11px/1.3 Inter,system-ui,sans-serif}
+.fig-draft-explorer-more:hover{background:#d9ecdd}
+.fig-draft-explorer-more[hidden]{display:none}
+.fig-draft-explorer-empty{padding:25px 12px;text-align:center;color:#60776b;font:800 12px/1.5 Inter,system-ui,sans-serif}
+.fig-draft-explorer :is(a,button):focus-visible{outline:3px solid #378759;outline-offset:2px}
+@media(max-width:1050px){
+ .fig-draft-explorer-pick{grid-template-columns:60px minmax(0,1fr) minmax(80px,.8fr) 38px;gap:7px 10px}
+ .fig-draft-explorer-metrics{grid-column:2/-1;grid-row:2;background:#fff;border:1px solid #e0eae3;border-radius:7px;padding:9px 4px}
+}
+@media(max-width:690px){
+ .fig-draft-explorer{padding:11px;gap:11px}
+ .fig-draft-explorer-header h2{font-size:20px}
+ .fig-draft-explorer-header small{font-size:10px}
+ .fig-draft-explorer-total{padding:8px;font-size:9px}
+ .fig-draft-explorer-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:9px}
+ .fig-draft-explorer-controls .fig-draft-explorer-search{grid-column:1/-1}
+ .fig-draft-explorer-controls input,.fig-draft-explorer-controls select{font-size:11px;min-height:40px}
+ .fig-draft-explorer-pick{grid-template-columns:53px minmax(0,1fr) 35px;gap:5px 8px;padding:8px}
+ .fig-draft-explorer-spot{grid-column:1;grid-row:1}
+ .fig-draft-explorer-spot strong{font-size:13px}
+ .fig-draft-explorer-player{grid-column:2;grid-row:1}
+ .fig-draft-explorer-player .fig-draft-player-link .fig-nfl-photo{width:30px;height:30px;flex-basis:30px}
+ .fig-draft-explorer-player .fig-draft-player-link .fig-player-person-name{font-size:11px}
+ .fig-draft-explorer-player>small{padding-left:38px;font-size:8px}
+ .fig-draft-explorer-grade{grid-column:3;grid-row:1;padding:8px 3px;font-size:18px}
+ .fig-draft-explorer-team{grid-column:2/4;grid-row:2;font-size:10px;padding:2px 0}
+ .fig-draft-explorer-metrics{grid-column:1/-1;grid-row:3;gap:2px}
+ .fig-draft-explorer-metrics b{font-size:11px}
+ .fig-draft-explorer-metrics small{font-size:7px}
+}

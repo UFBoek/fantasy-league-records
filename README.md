@@ -1,3 +1,13 @@
+## v129 — Expanded yearly rookie boards and cross-team pick explorer
+
+- Every specific rookie draft year opens its full four-round board immediately, while keeping the optional collapse control.
+- The All Rookies ranking page adds a searchable pick explorer **below team draft rankings**, covering all completed rookie drafts and all franchises.
+- Filters: player/team/pick text search, S–F grade, return percentage bands, year, round, drafting team, and minimum current value. Sort by draft order, return, value gain, dynasty value, grade or original slot value; reset all filters at once.
+- Results preserve player profile links and franchise draft-ranking breakdown links. Forty picks show initially, with Show More to browse the full matching history. The underlying query always covers all picks, not just the visible forty.
+- No changes to grading logic, historical data, or team ranking calculations.
+
+---
+
 ## v128 — Rookie picks retaining 80% of slot value earn C minimum
 
 - All rookie draft picks with current dynasty value at least **80%** of their original draft-slot value receive **C or higher**. This now applies to first-, second-, third- and fourth-round picks without an arbitrary absolute minimum value.
