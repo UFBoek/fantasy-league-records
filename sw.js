@@ -1,5 +1,5 @@
-/* FIG League v131 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v131';
+/* FIG League v132 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v132';
 const APP_SHELL = [
   './',
   './index.html',
@@ -34,12 +34,13 @@ const APP_SHELL = [
   './draft-explorer-v129.css?v=129',
   './active-streaks-v130.css?v=130',
   './james-hayden-compact-v100.css?v=101',
+  './branding-v132.css?v=132',
   './live-matchups.js?v=99',
   './mobile-v69.js?v=73',
   './app.js?v=130',
-  './manifest.webmanifest?v=131',
-  './assets/icons/fig-192.png?v=131',
-  './assets/icons/fig-512.png?v=131'
+  './manifest.webmanifest?v=132',
+  './assets/icons/puka-192.png?v=132',
+  './assets/icons/puka-512.png?v=132'
 ];
 
 self.addEventListener('install', (event) => {

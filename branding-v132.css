@@ -1,0 +1,23 @@
+/* v132 — Puka portrait in the desktop and mobile site header. */
+.app-header img.brand-mark {
+  display: block !important;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  padding: 0 !important;
+  margin: 0;
+  object-fit: cover;
+  object-position: center;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: #071f5b !important;
+  box-shadow: none !important;
+}
+@media (max-width: 699px) {
+  .app-header img.brand-mark {
+    flex: 0 0 35px;
+    width: 35px;
+    height: 35px;
+    border-radius: 10px !important;
+  }
+}
