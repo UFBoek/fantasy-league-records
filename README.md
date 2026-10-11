@@ -1,3 +1,12 @@
+## v128 — Rookie picks retaining 80% of slot value earn C minimum
+
+- All rookie draft picks with current dynasty value at least **80%** of their original draft-slot value receive **C or higher**. This now applies to first-, second-, third- and fourth-round picks without an arbitrary absolute minimum value.
+- S, A and B qualifications still take priority, including the special 200% B grade for third- and fourth-round rookies.
+- Players with a 0 current value still receive F. Grades below the 80% threshold retain the D/F rules.
+- Draft boards, franchise draft histories and team rankings use the shared grading function, so every grade reflects this change.
+
+---
+
 ## v127 — Missing player valuations are zero
 
 - When the RosterAudit snapshot is ready but a Sleeper player ID has no provider value (including Travis Hunter, Ja'Lynn Polk, and any other missing players), the shared value lookup now returns **0**, including missing/invalid values.

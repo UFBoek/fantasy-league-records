@@ -1574,7 +1574,8 @@ function figDraftGradeLetter(current,slot,pick){
  if(current>=2300&&gain>=1400)return 'A';
  // A 3rd/4th-round rookie returning at least twice its slot cost earns B or better.
  if((current>=1100&&gain>=400)||(lateRookie&&(ratio>=2||(current>=550&&gain>=200))))return 'B';
- if((current>=300&&gain>=0)||(current>=800&&ratio>=.8)||(Number(pick?.round)>=3&&Number(pick?.round)<=4&&gain>0))return 'C';
+ // Retaining at least 80% of a rookie pick's original cost is a C minimum.
+ if(ratio>=.8)return 'C';
  if(current<=50||ratio<.2&&slot>=400)return 'F';
  return 'D';
 }

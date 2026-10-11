@@ -93,6 +93,40 @@ for (const [current,slot,pick,expected] of cases) {
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_near_slot_value_is_at_least_c_for_all_rounds(self):
+        # Exercise the production grading function at and just below 80%,
+        # without reimplementing the grade algorithm in Python.
+        if not shutil.which("node"):
+            self.skipTest("Node.js is not installed")
+        body = self.app.split("function figDraftGradeLetter(current,slot,pick){", 1)[1].split(
+            "const FIG_GRADE_POINTS", 1
+        )[0]
+        javascript = "function figDraftGradeLetter(current,slot,pick){" + body + """
+const pick = round => ({round, draft_class:'Rookie'});
+const checks = [
+  [5040,6300,1,'C'], // 1.01: exactly 80%
+  [5039,6300,1,'D'], // 1.01: just under 80%
+  [612,765,2,'C'],   // 2.06: exactly 80%
+  [611,765,2,'D'],   // 2.06: just under 80%
+  [240,300,3,'C'],   // 3.05: exactly 80%, below old 300/800 gates
+  [239,300,3,'D'],
+  [76,95,4,'C'],     // 4.10: exactly 80%, below old absolute minimums
+  [75,95,4,'D'],
+  [0,95,4,'F'],      // missing value is zero, still F
+  [190,95,4,'B'],    // late-round 200% B requirement is unchanged
+  [2300,765,2,'A'],  // higher grades take precedence
+  [6500,6300,1,'C'],// retained 103%, but gain too small for S or A
+  [7000,3000,1,'S'] // S threshold unchanged
+];
+for (const [current, slot, round, expected] of checks) {
+  const actual=figDraftGradeLetter(current,slot,pick(round));
+  if(actual!==expected)throw new Error(
+    JSON.stringify({current,slot,round,expected,actual}));
+}
+"""
+        result = subprocess.run(["node", "-e", javascript], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
