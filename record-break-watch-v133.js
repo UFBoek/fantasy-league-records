@@ -120,7 +120,7 @@ function figBuildStreakRecordWatch(streaks){
 function figWatchRow(x,streak=false){
  const mark=streak?x.current+' / '+x.record:money(x.current)+' / '+money(x.record);
  const target=streak?x.gamesNeeded+' GAME'+(x.gamesNeeded===1?'':'S')+' TO BREAK':
-  (figWatchHorizon(x.metric)===1?'NEXT GAME':'WITHIN '+FIG_WATCH_RECORD_GAMES+' GAMES');
+  (figWatchHorizon(x.metric)===1?'NEXT GAME':'');
  const requirement=streak&&x.gamesNeeded>1?
   x.requirement+' for '+x.gamesNeeded+' more consecutive games':x.requirement;
  return '<a class="fig-watch-row" href="'+esc(x.href)+'">'+
@@ -130,7 +130,7 @@ function figWatchRow(x,streak=false){
    '<span><i>'+esc(x.scope)+'</i> · '+(streak?'Ended record ':'Record ')+
     esc(streak?x.record+' games':money(x.record))+' · '+esc(x.recordHolder)+'</span>'+
    '<small>'+esc(requirement)+'</small></span>'+
-  '<span class="fig-watch-progress"><strong>'+esc(mark)+'</strong><small>'+esc(target)+'</small></span>'+
+  '<span class="fig-watch-progress"><strong>'+esc(mark)+'</strong>'+(target?'<small>'+esc(target)+'</small>':'')+'</span>'+
   '<span class="fig-watch-status is-break">BREAK</span>'+
   '<span class="fig-watch-arrow" aria-hidden="true">›</span></a>';
 }
