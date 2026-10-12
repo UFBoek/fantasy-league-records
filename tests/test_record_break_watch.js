@@ -1,4 +1,4 @@
-/* Regression checks: six-game team records and three-game ended streaks.
+/* Regression checks: six-game records (125+/150+ next-game only) and three-game ended streaks.
    Run with node tests/test_record_break_watch.js. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -13,6 +13,11 @@ const teamRows=[
  {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'Regular Season',franchise_id:1,record_holder:'jackboek1',value:34},
  {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:40},
  {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'Regular Season',franchise_id:1,record_holder:'jackboek1',value:33},
+ // A tie at the top can be broken with one qualifying game. Both leaders qualify.
+ {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'All-Time Combined',franchise_id:6,record_holder:'HaydenM',value:45},
+ {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'All-Time Combined',franchise_id:1,record_holder:'jackboek1',value:45},
+ {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'All-Time Combined',franchise_id:6,record_holder:'HaydenM',value:40},
+ {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'All-Time Combined',franchise_id:1,record_holder:'jackboek1',value:40},
  {category:'Career 175+ Point Games',metric:'games_175',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:30},
  {category:'Career 175+ Point Games',metric:'games_175',scoring_view:'Regular Season',franchise_id:1,record_holder:'jackboek1',value:25},
  {category:'20 BOMBS',metric:'b20',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:125},
@@ -54,7 +59,15 @@ assert.equal(streakWatch.some(x=>x.title==='125+ Points'),false); // Active hold
 assert.equal(streakWatch.some(x=>x.title==='Winning'),false); // Would take four games.
 assert.equal(streakWatch.every(x=>x.status==='BREAK'&&x.gamesNeeded<=3),true);
 const recordWatch=context.figBuildTeamRecordWatch();
-assert.equal(recordWatch.length,3);
+assert.equal(recordWatch.length,7);
+assert.equal(context.figWatchHorizon('games_125'),1);
+assert.equal(context.figWatchHorizon('games_150'),1);
+assert.equal(context.figWatchHorizon('games_175'),6);
+assert.equal(recordWatch.filter(x=>x.metric==='games_125').length,2);
+assert.equal(recordWatch.filter(x=>x.metric==='games_150').length,2);
+assert.ok(recordWatch.filter(x=>x.metric==='games_125'||x.metric==='games_150').every(x=>x.gamesNeeded===1&&x.status==='BREAK'));
+assert.equal(recordWatch.some(x=>x.metric==='games_125'&&x.scope==='REGULAR SEASON'),false);
+assert.equal(recordWatch.some(x=>x.metric==='games_150'&&x.scope==='REGULAR SEASON'),false);
 assert.equal(recordWatch.find(x=>x.title==='Career 200+ Point Games').gamesNeeded,2);
 assert.equal(recordWatch.find(x=>x.title==='20 BOMBS').scope,'REGULAR SEASON');
 assert.equal(recordWatch.some(x=>x.title==='Career 125+ Point Games'),false); // Needs seven net 125+ games.
@@ -63,6 +76,7 @@ assert.equal(recordWatch.some(x=>x.title==='Career 150+ Point Games'),false);
 assert.equal(recordWatch.find(x=>x.title==='Career 175+ Point Games').gamesNeeded,6);
 assert.equal(recordWatch.some(x=>x.title==='Career Median Score'),false);
 assert.equal(recordWatch.every(x=>x.status==='BREAK'&&x.gamesNeeded<=6),true);
+assert.match(context.figWatchRow(recordWatch.find(x=>x.metric==='games_125'),false),/NEXT GAME/);
 assert.equal(context.figWatchLatestWeek([{season:'2026',week:3}],streaks),'Through 2026 W4');
 const html=context.figWatchSection('streaks',streakWatch,'Through 2026 W4');
 assert.match(html,/RECORD BREAK WATCH/);
