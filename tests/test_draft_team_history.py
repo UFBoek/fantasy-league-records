@@ -88,16 +88,16 @@ class DraftByFranchiseTests(unittest.TestCase):
         self.assertIn("await team(parts[1],parts[2],parts[3])", app)
         self.assertIn('data-tab="drafts">DRAFT HISTORY', app)
         self.assertIn("ALL YEARS", app)
-        self.assertIn("SELECT A FRANCHISE", app)
+        self.assertIn('fig-team-draft-filter" aria-label="Filter draft history by year"', app)
         self.assertIn("figDraftFranchiseHistory(id,selectedDraftYear)", app)
         self.assertIn("figDraftTeamTotals(all,+id,origins)", app)
-        self.assertIn("ROSTERAUDIT DRAFT GRADES", app)
+        self.assertIn("function figDraftGrade(", app)
         self.assertIn("RA CURRENT VALUE", app)
         self.assertIn("franchise_starter_points", app)
         self.assertIn("ORIGINAL PICKS USED BY OTHER TEAMS", app)
-        # We do not invent RosterAudit provider letter grades from live
-        # player market values; their documented API does not expose grades.
-        self.assertIn("not a historical draft grade", app)
+        # The archive uses its own rookie-pick grade algorithm; RosterAudit
+        # supplies current value inputs rather than historical letter grades.
+        self.assertIn("function figDraftGradeLetter(", app)
 
 
 if __name__ == "__main__":
