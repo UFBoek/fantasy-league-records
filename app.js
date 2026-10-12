@@ -93,7 +93,7 @@ function uniqueRecordManagers(rows){
   seen.add(key);return true;
  });
 }
-function recordPodiumCard({title,href,leaders,badge='ALL-TIME RECORD',tone='mint',note='',allowRepeat=false,summarizeTiedRivals=false}) {
+function recordPodiumCard({title,href,leaders,badge='RECORD',tone='mint',note='',allowRepeat=false,summarizeTiedRivals=false}) {
  // Individual performances may belong to the same manager more than once.
  // For aggregate records/streaks rank each franchise once.
  const ranked=allowRepeat?[...(leaders||[])]:uniqueRecordManagers(leaders||[]);
@@ -1153,7 +1153,7 @@ async function recordDetail(kind,key,viewEnc){
  const view=decodeURIComponent(viewEnc||(kind==='team'?'Regular Season':'All-Time Combined')),decoded=decodeURIComponent(key||'');navActive('records');
  if(kind==='team'){
   const teamView=view==='All-Time Combined'?'Regular Season':view;
-  await load(['records','playerLog','standingsCareer']);const source=cleanTeamRecordRows(teamView).filter(x=>x.category===decoded).sort((a,b)=>num(b.value)-num(a.value));const valueCounts={};source.forEach(x=>valueCounts[String(x.value)]=(valueCounts[String(x.value)]||0)+1);let prevVal=null,compRank=0;const rows=source.map((x,i)=>{if(prevVal===null||!sameRecordValue(x.value,prevVal))compRank=i+1;prevVal=x.value;const tied=valueCounts[String(x.value)]>1;return{rank:tiedRankLabel(compRank,tied),holder:x.franchise_id?ownerLink(x.record_holder,x.franchise_id):esc(x.record_holder),value:typeof x.value==='number'?money(x.value):esc(x.value),season:x.season||'ALL-TIME',_href:x.franchise_id?`#/breakdown/teamrecord/${encodeURIComponent(decoded)}/${encodeURIComponent(teamView)}/${x.franchise_id}`:null,_sort:{rank:compRank,holder:x.record_holder,value:x.value,season:x.season||0}}});
+  await load(['records','playerLog','standingsCareer']);const source=cleanTeamRecordRows(teamView).filter(x=>x.category===decoded).sort((a,b)=>num(b.value)-num(a.value));const valueCounts={};source.forEach(x=>valueCounts[String(x.value)]=(valueCounts[String(x.value)]||0)+1);let prevVal=null,compRank=0;const rows=source.map((x,i)=>{if(prevVal===null||!sameRecordValue(x.value,prevVal))compRank=i+1;prevVal=x.value;const tied=valueCounts[String(x.value)]>1;return{rank:tiedRankLabel(compRank,tied),holder:x.franchise_id?ownerLink(x.record_holder,x.franchise_id):esc(x.record_holder),value:typeof x.value==='number'?money(x.value):esc(x.value),season:x.season||'CAREER',_href:x.franchise_id?`#/breakdown/teamrecord/${encodeURIComponent(decoded)}/${encodeURIComponent(teamView)}/${x.franchise_id}`:null,_sort:{rank:compRank,holder:x.record_holder,value:x.value,season:x.season||0}}});
   app.innerHTML=hero('RECORD HISTORY',esc(decoded),`${esc(teamView)} • the complete leaderboard, not just the podium.`)+section('FULL HISTORY',sortableTable([{label:'#',key:'rank'},{label:'HOLDER',key:'holder'},{label:'VALUE',key:'value'},{label:'SEASON',key:'season'}],rows));return;
  }
  if(kind==='player'){
