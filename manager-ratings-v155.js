@@ -1,7 +1,7 @@
 /* FIG Manager Ratings v155 — draft + trade + completed-week lineup efficiency. */
 (function(){
 'use strict';
-const weights={draft:.35,trade:.35,lineup:.30};
+const weights={draft:.35,trade:.35,lineup:.20,waiver:.10};
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 const value=n=>Number.isFinite(Number(n))?Number(n):0;
 const percent=n=>(100*n).toFixed(1)+'%';
@@ -18,6 +18,7 @@ function figManagerRatingModel(data,tradeModel,helpers){
  const drafts=(data.draftPicks||[]).filter(p=>String(p.draft_class||'').toLowerCase()==='rookie');
  const seasonSettings=new Map((data.leagueSettings||[]).map(s=>[Number(s.season),s]));
  const trades=new Map((tradeModel.rankings||[]).map(t=>[Number(t.id),t]));
+ const waivers=new Map((helpers.waiver?.teams||[]).map(t=>[Number(t.id),t]));
  const ids=[...new Set([
   ...Object.keys(helpers.names||{}).map(Number),
   ...(data.rosterSeason||[]).map(r=>Number(r.franchise_id)),
@@ -35,6 +36,7 @@ function figManagerRatingModel(data,tradeModel,helpers){
   const returnPct=grade.ratio===null?null:100*clamp(grade.ratio/2.5,0,1);
   const draftRaw=gradePct===null?null:.75*gradePct+.25*returnPct;
   const trade=trades.get(id)||{id,net:0,wins:0,losses:0,ties:0,trades:0,rated:0};
+  const waiver=waivers.get(id)||{uniqueAdds:[],top10Value:null,addedValue:null,adds:[]};
   // Total net asset value mirrors Trade Ratings. Trade outcomes supply
   // a smaller tie-breaker; asinh limits single outlier trade dominance.
   const tradeRaw=trade.rated?Math.asinh(value(trade.net)/9000)+
@@ -58,20 +60,21 @@ function figManagerRatingModel(data,tradeModel,helpers){
   const optimal=seasons.reduce((sum,s)=>sum+s.possible,0);
   const games=seasons.reduce((sum,s)=>sum+s.games,0);
   const lineup=optimal>0?actual/optimal:null;
-  return {id,name:helpers.name(id),picks,grade,selected,draftRaw,tradeRaw,trade,
+  return {id,name:helpers.name(id),picks,grade,selected,draftRaw,tradeRaw,trade,waiver,waiverRaw:waiver.top10Value,
    seasons,actual,optimal,games,lineup};
  });
  for(const r of rows){
   r.draftScore=percentile(rows.map(x=>x.draftRaw),r.draftRaw);
   r.tradeScore=percentile(rows.map(x=>x.tradeRaw),r.tradeRaw);
   r.lineupScore=percentile(rows.map(x=>x.lineup),r.lineup);
+  r.waiverScore=percentile(rows.map(x=>x.waiverRaw),r.waiverRaw);
   // A very small trade sample is not enough to earn an extreme rating.
   if(r.tradeScore!==null)r.tradeScore=Math.round(50+
    (r.tradeScore-50)*Math.min(1,r.trade.rated/3));
-  const available=[r.draftScore,r.tradeScore,r.lineupScore].every(Number.isFinite);
+  const available=[r.draftScore,r.tradeScore,r.lineupScore,r.waiverScore].every(Number.isFinite);
   r.rating=available?Math.round(clamp(
    weights.draft*r.draftScore+weights.trade*r.tradeScore+
-   weights.lineup*r.lineupScore,1,100)):null;
+   weights.lineup*r.lineupScore+weights.waiver*r.waiverScore,1,100)):null;
   r.provisional=r.trade.rated<3;
  }
  rows.sort((a,b)=>(b.rating??-1)-(a.rating??-1)||
@@ -95,13 +98,15 @@ function figManagerRatingsPage(model,helpers,managerId){
  const bars=r=>[
   ['DRAFT',r.draftScore,'#19a788'],
   ['TRADE',r.tradeScore,'#477ec5'],
-  ['SIT / START',r.lineupScore,'#c49c39']
+  ['SIT / START',r.lineupScore,'#c49c39'],
+  ['WAIVERS',r.waiverScore,'#986bad']
  ].map(([label,amount,tone])=>'<div class="fig-mr-bar-row"><span>'+label+'</span><div class="fig-mr-bar-track"><i style="width:'+(amount??0)+'%;background:'+tone+'"></i></div><strong>'+n(amount)+'</strong></div>').join('');
  const breakdown=r=>'<div class="fig-mr-breakdown">'+bars(r)+'</div>';
  const method='<details class="fig-mr-method"><summary>HOW MANAGER RATINGS WORK <span>⌄</span></summary>'+
   '<p><b>Draft 35%</b>: All rookie selections, using the existing S–F pick grades (75%) and capped slot-weighted value return (25%). 2023 startup picks are excluded, matching Draft Rankings.</p>'+
   '<p><b>Trade 35%</b>: Total net asset value gained or lost, from the existing Trade Ratings valuation and rated-trade win/loss record. A smaller sample of fewer than three rated trades is moderated toward the league average.</p>'+
-  '<p><b>Sit / Start 30%</b>: Sleeper regular-season actual points divided by maximum possible points, across finalized weeks only. This is a points-capture percentage, not the percentage of weeks with a perfect lineup.</p>'+
+  '<p><b>Sit / Start 20%</b>: Sleeper regular-season actual points divided by maximum possible points, across finalized weeks only. This is a points-capture percentage, not the percentage of weeks with a perfect lineup.</p>'+
+  '<p><b>Waiver Value 10%</b>: Current value of the ten most valuable unique players added from free agency or waivers. Duplicate pickups only count once. Commissioner moves, trades and the 2023-12-17 restoration batch are excluded. Drops remain visible in team histories but are not subtracted from pickup value.</p>'+ 
   '<p>Each category is graded from 1–100 against the other managers in this league, then combined with the weights above. Scores are relative league ratings, not universal NFL fantasy-manager grades. Draft and trade values reflect the current RosterAudit snapshot and will change as player values change.</p></details>';
  const row=r=>'<a class="fig-mr-rank-row" href="#/manager/'+r.id+'">'+
   '<span class="fig-mr-place">'+(r.rank===null?'—':'#'+r.rank)+'</span>'+
@@ -111,7 +116,8 @@ function figManagerRatingsPage(model,helpers,managerId){
   '<span class="fig-mr-primary"><strong>'+n(r.rating)+'</strong><small>IQ / 100</small></span>'+
   '<span class="fig-mr-rank-components"><span><b>'+n(r.draftScore)+'</b><small>DRAFT</small></span>'+
   '<span><b>'+n(r.tradeScore)+'</b><small>TRADE</small></span>'+
-  '<span><b>'+n(r.lineupScore)+'</b><small>LINEUP</small></span></span>'+
+  '<span><b>'+n(r.lineupScore)+'</b><small>LINEUP</small></span>'+ 
+  '<span><b>'+n(r.waiverScore)+'</b><small>WAIVERS</small></span></span>'+
   '<span class="fig-mr-chevron">›</span></a>';
  const statList=(title,content)=>'<section class="fig-mr-panel"><h2>'+title+'</h2>'+content+'</section>';
  const team=model.rows.find(r=>r.id===Number(managerId));
@@ -130,11 +136,15 @@ function figManagerRatingsPage(model,helpers,managerId){
     card('NET VALUE',signed(team.trade.net),team.trade.rated+' / '+team.trade.trades+' TRADES RATED')+
     card('TRADE RECORD',team.trade.wins+'W · '+team.trade.losses+'L · '+team.trade.ties+'T','VALUED OUTCOMES')+
     '<a class="fig-mr-panel-link" href="#/trades">FULL TRADE RATINGS →</a>')+
-   statList('SIT / START',card('LINEUP SCORE',score(team.lineupScore),'30% OF MANAGER IQ')+
+   statList('SIT / START',card('LINEUP SCORE',score(team.lineupScore),'20% OF MANAGER IQ')+
     card('POINTS CAPTURED',p(team.lineup),team.games+' COMPLETED REGULAR-SEASON WEEKS')+
     card('POINTS LEFT',money(team.optimal-team.actual),
       money(team.actual)+' OF '+money(team.optimal)+' POSSIBLE')+
-    '<a class="fig-mr-panel-link" href="#/team/'+team.id+'">TEAM HISTORY →</a>')+'</div>';
+    '<a class="fig-mr-panel-link" href="#/team/'+team.id+'">TEAM HISTORY →</a>')+
+   statList('WAIVER VALUE',card('WAIVER SCORE',score(team.waiverScore),'10% OF MANAGER IQ')+
+    card('TOP 10 PICKUPS',team.waiver.top10Value===null?'—':money(team.waiver.top10Value),'CURRENT ROSTERAUDIT VALUE')+
+    card('UNIQUE ADDS',team.waiver.uniqueAdds.length,team.waiver.adds.length+' RECORDED MOVES')+
+    '<a class="fig-mr-panel-link" href="#/team/'+team.id+'/waivers">WAIVER HISTORY →</a>')+'</div>';
   const years='<div class="fig-mr-year-list">'+team.seasons.map(s=>'<div class="fig-mr-year-row">'+
    '<b>'+s.year+'</b><span>'+s.games+' WEEKS</span><span>'+money(s.scored)+' / '+money(s.possible)+' PTS</span>'+
    '<strong>'+p(s.efficiency)+'</strong></div>').join('')+'</div>';
@@ -149,7 +159,7 @@ function figManagerRatingsPage(model,helpers,managerId){
   return;
  }
  let sort='rating';
- const options=[['rating','OVERALL IQ'],['draftScore','DRAFT'],['tradeScore','TRADE'],['lineupScore','SIT / START']];
+ const options=[['rating','OVERALL IQ'],['draftScore','DRAFT'],['tradeScore','TRADE'],['lineupScore','SIT / START'],['waiverScore','WAIVERS']];
  const render=()=>{
   const ordered=[...model.rows].sort((a,b)=>(b[sort]??-1)-(a[sort]??-1)||
     (b.rating??-1)-(a.rating??-1)||a.id-b.id);
@@ -163,12 +173,12 @@ function figManagerRatingsPage(model,helpers,managerId){
  };
  html('managerRatingsRoot','<div class="fig-mr-page">'+
   '<div class="fig-mr-intro"><div><small>THE FIG MANAGER IQ INDEX</small><h2>ALL-TIME RANKINGS</h2></div>'+
-  '<div class="fig-mr-weights"><span><b>35%</b> DRAFT</span><span><b>35%</b> TRADE</span><span><b>30%</b> SIT/START</span></div></div>'+
+  '<div class="fig-mr-weights"><span><b>35%</b> DRAFT</span><span><b>35%</b> TRADE</span><span><b>20%</b> SIT/START</span><span><b>10%</b> WAIVERS</span></div></div>'+
   '<div class="fig-mr-sortbar"><span>SORT BY</span>'+
   options.map(x=>'<button type="button" class="fig-mr-sort'+(x[0]===sort?' active':'')+
    '" data-sort="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'+
   '<div class="fig-mr-rankings" id="figMrRankings"></div>'+
-  '<div class="fig-mr-footer">Tap a manager to see their draft, trade and sit/start breakdown. Lineup scoring uses finalized regular-season weeks only.</div>'+
+  '<div class="fig-mr-footer">Tap a manager for their draft, trade, sit/start and waiver breakdowns. Only finalized regular-season weeks count toward lineup efficiency.</div>'+
   method+'</div>');
  document.querySelectorAll('.fig-mr-sort').forEach(button=>{
   button.addEventListener('click',()=>{sort=button.dataset.sort;render();});
