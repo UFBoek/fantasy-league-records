@@ -86,7 +86,7 @@ assert.match(html,/Ended record/);
 assert.doesNotMatch(html,/>TIE</);
 const index=fs.readFileSync('index.html','utf8');
 const app=fs.readFileSync('app.js','utf8');
-assert.ok(index.includes('record-break-watch-v133.js?v=135'));
+assert.ok(index.includes('record-break-watch-v133.js?v=137'));
 assert.ok(index.includes('record-break-watch-v133.css?v=135'));
 assert.ok(app.includes("figWatchSection('records',figBuildTeamRecordWatch()"));
 assert.ok(app.includes("figWatchSection('streaks',figBuildStreakRecordWatch(DATA.websiteStreaks)"));
