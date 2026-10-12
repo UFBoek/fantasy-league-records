@@ -1,5 +1,5 @@
-/* Trade Ratings v147 — signed net value gained/lost, never percentages.
-   Each outcome includes current assets plus realized lineup production. */
+/* Trade Ratings v148 — signed net market value, no conversion from lineup points.
+   The production figures are context only and never affect value or rankings. */
 function figTradeNetLabel(value,money){
  if(value===null||!Number.isFinite(value))return '—';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
@@ -90,19 +90,19 @@ function figTradeRatingModel(data,tools){
    const starts=items.reduce((n,a)=>n+a.starts,0);
    return {id:+p.franchise_id,name:tools.name(p.owner_name,p.franchise_id),items,market,lineup,starts,
     priced:priced.length,total:items.length,complete:priced.length===items.length&&items.length>0,
-    impact:market+lineup*4,sent:0,net:null};
+    sent:0,net:null};
   });
-  // Evaluate what this manager received against what they SENT, using the
-  // *recipient's* later outcome for outgoing assets. Counterparty attribution
-  // preserves the correct cost basis in three- and four-manager trades.
+  // Compare current market value RECEIVED with current market value SENT.
+  // Do not add lineup production to either side: those are fantasy points,
+  // not dynasty asset value. Counterparty attribution handles multi-team trades.
   const ids=new Set(part.map(p=>p.id));
   const sourceComplete=part.every(p=>p.items.every(a=>ids.has(Number(a.asset.counterparty_franchise_id))&&
    Number(a.asset.counterparty_franchise_id)!==p.id));
   for(const p of part){
    p.sent=part.reduce((total,other)=>total+other.items
     .filter(a=>Number(a.asset.counterparty_franchise_id)===p.id)
-    .reduce((n,a)=>n+(Number(a.market)||0)+a.points*4,0),0);
-   p.net=p.impact-p.sent;
+    .reduce((n,a)=>n+(Number(a.market)||0),0),0);
+   p.net=p.market-p.sent;
   }
   // Unrecorded or unpriced draft picks still make a trade incomplete, but
   // catalog-missing players with a legitimate zero valuation do not.
@@ -118,7 +118,7 @@ function figTradeRatingModel(data,tools){
  const rankings=[...names.entries()].map(([id,name])=>{
   const relevant=all.filter(t=>t.participants.some(p=>p.id===id));
   const graded=relevant.filter(t=>t.rated).flatMap(t=>t.participants.filter(p=>p.id===id));
-  const gained=graded.reduce((n,p)=>n+p.impact,0),sent=graded.reduce((n,p)=>n+p.sent,0);
+  const gained=graded.reduce((n,p)=>n+p.market,0),sent=graded.reduce((n,p)=>n+p.sent,0);
   const net=gained-sent;
   const wins=graded.filter(p=>p.net>0).length,losses=graded.filter(p=>p.net<0).length;
   const ties=graded.length-wins-losses;
@@ -146,9 +146,9 @@ function figTradeRatingsPage(model,helpers){
   '<div class="fig-tr-asset-preview">'+summaryAssets(p)+'</div></div>';
  const detailSide=(p,rated)=>'<div class="fig-tr-detail-side"><div class="fig-tr-detail-head">'+
   ownerLink(p.name,p.id)+returnChip(p,rated)+'</div><div class="fig-tr-detail-stats">'+
-  '<span><b>'+money(p.market)+'</b><small>CURRENT VALUE</small></span>'+
-  '<span><b>'+money(p.lineup)+'</b><small>LINEUP PTS · '+p.starts+' STARTS</small></span>'+
-  '<span><b>'+money(p.sent)+'</b><small>SENT OUTCOME</small></span></div>'+
+  '<span><b>'+money(p.market)+'</b><small>VALUE RECEIVED</small></span>'+
+  '<span><b>'+money(p.sent)+'</b><small>VALUE SENT</small></span>'+
+  '<span><b>'+money(p.lineup)+'</b><small>LINEUP PTS · '+p.starts+' STARTS</small></span></div>'+
   '<div class="fig-tr-items">'+(p.items.length?p.items.map(a=>'<div class="fig-tr-item">'+
    '<span class="fig-tr-type">'+escape(a.type)+'</span><div><b>'+escape(a.name)+'</b>'+
    (a.selection?'<small>Selected: '+escape(a.selection)+'</small>':'')+
@@ -164,7 +164,7 @@ function figTradeRatingsPage(model,helpers){
   '<span class="fig-tr-chevron" aria-hidden="true">⌄</span></summary>'+
   '<div class="fig-tr-details">'+t.participants.map(p=>detailSide(p,t.rated)).join('')+'</div>'+
   (!t.rated?'<div class="fig-tr-unrated-note">Value unavailable: a side is missing assets, pick values, or sender information.</div>':
-  '<div class="fig-tr-outcome-note">Net value = outcome received − outcome sent. Outcomes include current asset value plus 4× subsequent starting-lineup points.</div>')+
+  '<div class="fig-tr-outcome-note">Net value = current received asset value − current sent asset value. Lineup points are shown separately and never added to value.</div>')+
   '</details>';
  const rankRow=(m,i)=>'<button type="button" class="fig-tr-rank-row" data-manager="'+m.id+'">'+
   '<b class="fig-tr-rank-num">'+(m.provisional?'—':String(i+1))+'</b>'+
@@ -193,9 +193,9 @@ function figTradeRatingsPage(model,helpers){
   '</div><div class="fig-tr-search-row"><input id="figTrSearch" class="search" type="search" placeholder="Search traded players, picks or managers…" autocomplete="off"><button id="figTrClear" type="button">RESET</button></div>'+
   '<div id="figTrResults"></div></section>'+
   '<details class="fig-tr-method section"><summary>HOW IS GAIN / LOSS CALCULATED?</summary>'+
-  '<p>Net value = outcome received minus outcome sent. Each outcome includes current RosterAudit asset values plus 4× starting-lineup points earned after acquisition. Positive values are gains; negative values are losses. Manager totals add together all valued trades; at least three are required for an official ranking.</p>'+
+  '<p>Net value = current market value of received assets minus current market value of sent assets, using the same RosterAudit valuations on both sides. Positive values are gains; negative values are losses. Lineup points are shown as separate context but never converted into dynasty value. Manager totals add together all valued trades; at least three are required for an official ranking.</p>'+
   '<p>Players missing from RosterAudit count as 0 if the feed is available. A full provider outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked.</p>'+
-  '<p><strong>These are current-outcome values, not historical trade-date prices.</strong> Player production stops at a later recorded trade out and draft-pick outcomes are not credited to someone who later traded the pick.</p></details></div>');
+  '<p><strong>These use current market values, not historical trade-date prices.</strong> The separate lineup-point stat stops when a player is traded away; verified drafted picks can use the selected player’s current value.</p></details></div>');
  const root=el('#tradeRatingsRoot');
  const results=el('#figTrResults');
  const render=()=>{
