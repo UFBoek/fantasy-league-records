@@ -1,0 +1,68 @@
+/* FIG manager IQ scoreboard */
+.fig-mr-page{--mr-bg:#fff;--mr-line:#d9dedc;color:#202e2a;margin-top:15px}
+.fig-mr-intro{display:flex;justify-content:space-between;align-items:end;gap:16px;padding:15px 0}
+.fig-mr-intro small,.fig-mr-profile-identity span{font-size:10px;font-weight:900;letter-spacing:.12em;color:#698379}
+.fig-mr-intro h2{margin:4px 0;font:clamp(24px,4vw,36px)/1.05 "Archivo Black",sans-serif;letter-spacing:-.04em}
+.fig-mr-weights{display:flex;gap:10px;flex-wrap:wrap}.fig-mr-weights span{border:1px solid #d5dfda;border-radius:12px;padding:8px;font-size:10px;font-weight:800;background:#fff}.fig-mr-weights b{color:#128565}
+.fig-mr-sortbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:12px 0}
+.fig-mr-sortbar>span{font-size:10px;font-weight:900;color:#697a75;margin-right:7px}
+.fig-mr-sort{border:1px solid #cfdbd6;background:#fff;border-radius:999px;padding:9px 13px;color:#3f544d;font-size:10px;font-weight:900;cursor:pointer}
+.fig-mr-sort.active{color:#fff;background:#156f59;border-color:#156f59}
+.fig-mr-rankings{border:1px solid var(--mr-line);border-radius:18px;overflow:hidden;background:#fff}
+.fig-mr-rank-row{display:grid;grid-template-columns:42px 44px minmax(130px,1fr) 90px minmax(170px,225px) 14px;gap:13px;align-items:center;padding:16px 15px;border-top:1px solid #e7eeeb;text-decoration:none;color:inherit}
+.fig-mr-rank-row:first-child{border-top:0}.fig-mr-rank-row:hover{background:#f1f8f4}
+.fig-mr-place{font-size:16px;font-weight:900;color:#658178;text-align:center}
+.fig-mr-avatar{width:40px;height:40px;object-fit:cover;border-radius:50%;border:1px solid #dce7e0}
+.fig-mr-manager{min-width:0}.fig-mr-manager b{display:block;font-weight:900;font-size:15px}.fig-mr-manager small{display:block;color:#76877f;font-size:10px;margin-top:4px;line-height:1.35}
+.fig-mr-primary{display:grid;justify-items:center}.fig-mr-primary strong{font:30px/1 "Archivo Black",sans-serif;color:#117f63}.fig-mr-primary small{font-size:9px;font-weight:800;color:#829087;margin-top:4px}
+.fig-mr-rank-components{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;text-align:center}
+.fig-mr-rank-components b{display:block;font-size:15px}.fig-mr-rank-components small{display:block;font-size:9px;color:#789087;font-weight:800;margin-top:3px}
+.fig-mr-chevron{font-size:25px;color:#83a99d}
+.fig-mr-footer{font-size:11px;color:#657973;padding:12px 2px}
+.fig-mr-method{border-top:1px solid #d8e5df;margin:16px 0;padding:12px 0;color:#536860}
+.fig-mr-method summary{font-size:11px;font-weight:900;cursor:pointer;color:#276f5b;list-style:inside}
+.fig-mr-method summary span{float:right}.fig-mr-method p{font-size:12px;line-height:1.65}
+.fig-mr-profile-head{background:#fff;border:1px solid #dfe6e1;border-radius:20px;padding:18px}
+.fig-mr-back{display:inline-block;font-size:11px;font-weight:900;color:#18745d;margin-bottom:20px}
+.fig-mr-profile-identity{display:flex;align-items:center;gap:16px}
+.fig-mr-profile-avatar{width:76px;height:76px;object-fit:cover;border-radius:50%;border:2px solid #c7e4d7}
+.fig-mr-profile-identity h2{margin:3px 0;font:clamp(25px,5vw,42px)/1 "Archivo Black",sans-serif}
+.fig-mr-profile-identity small{font-size:10px;font-weight:900;color:#668c7e}
+.fig-mr-profile-identity>strong{margin-left:auto;font:clamp(42px,7vw,68px)/1 "Archivo Black",sans-serif;color:#107a60}
+.fig-mr-profile-identity>strong small{font:800 13px Inter,sans-serif}
+.fig-mr-breakdown{background:#fff;border:1px solid #dfe6e1;border-radius:16px;padding:15px 20px;margin:12px 0}
+.fig-mr-bar-row{display:grid;grid-template-columns:100px 1fr 38px;align-items:center;gap:12px;margin:9px 0}
+.fig-mr-bar-row>span{font-size:10px;font-weight:900}.fig-mr-bar-row>strong{text-align:right;font-size:15px}
+.fig-mr-bar-track{height:11px;border-radius:20px;background:#e8efeb;overflow:hidden}.fig-mr-bar-track i{display:block;height:100%;border-radius:20px}
+.fig-mr-profile-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fig-mr-panel{background:#fff;border:1px solid #dfe6e1;border-radius:17px;padding:17px;min-width:0}
+.fig-mr-panel h2{font-size:13px;letter-spacing:.035em;margin:0 0 14px;font-weight:900}
+.fig-mr-kpi{border-top:1px solid #edf0ee;padding:11px 0;display:flex;flex-direction:column}
+.fig-mr-kpi>span{font-size:9px;color:#648075;font-weight:900;letter-spacing:.06em}
+.fig-mr-kpi strong{font-size:21px;line-height:1.3;overflow-wrap:anywhere}
+.fig-mr-kpi small{color:#84978c;font-size:9px;font-weight:800;line-height:1.3}
+.fig-mr-panel-link{display:block;border-top:1px solid #e7eee9;padding-top:14px;color:#12785f;font-size:10px;font-weight:900}
+.fig-mr-extra{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;margin:12px 0}
+.fig-mr-year-row{display:grid;grid-template-columns:48px 65px 1fr 60px;align-items:center;gap:8px;padding:13px 0;border-top:1px solid #eaf0ec;font-size:12px}
+.fig-mr-year-row b{font-size:15px}.fig-mr-year-row>span{color:#6b8177}.fig-mr-year-row strong{text-align:right;color:#127c61}
+.fig-mr-pick{display:flex;align-items:center;gap:8px;padding:11px 0;border-top:1px solid #eaf0ec}
+.fig-mr-pick>span:first-child{flex:1;min-width:0}.fig-mr-pick b{display:block;font-size:12px}.fig-mr-pick small{display:block;font-size:10px;color:#83948b}.fig-mr-pick>strong{font-size:15px;color:#168266}
+.fig-mr-pick-gain{font-size:12px;font-weight:900;min-width:65px;text-align:right}
+@media(max-width:720px){
+ .fig-mr-intro{display:block}.fig-mr-weights{margin-top:12px}
+ .fig-mr-rank-row{grid-template-columns:29px 37px minmax(0,1fr) 55px 10px;gap:8px;padding:13px 10px}
+ .fig-mr-avatar{width:36px;height:36px}.fig-mr-manager b{font-size:13px}.fig-mr-manager small{font-size:9px}
+ .fig-mr-primary strong{font-size:25px}.fig-mr-primary small{font-size:8px}
+ .fig-mr-rank-components{grid-column:3 / 5;grid-row:2;max-width:250px;justify-self:stretch;margin-top:2px}
+ .fig-mr-chevron{grid-column:5;grid-row:1 / 3}.fig-mr-place{font-size:14px}
+ .fig-mr-profile-cols,.fig-mr-extra{grid-template-columns:1fr}.fig-mr-profile-avatar{width:56px;height:56px}
+ .fig-mr-profile-identity{gap:10px}.fig-mr-profile-identity>strong{font-size:39px}.fig-mr-profile-identity h2{font-size:25px}
+ .fig-mr-year-row{grid-template-columns:40px 52px 1fr 58px;gap:6px;font-size:10px}
+ .fig-mr-bar-row{grid-template-columns:79px 1fr 30px;gap:7px}
+}
+@media(min-width:901px){
+ .page-wrap .app-menu-grid,.page-wrap .fig-more-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .page-wrap .app-menu-grid .app-tile:last-child:nth-child(odd){grid-column:1 / -1}
+}

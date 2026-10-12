@@ -1,6 +1,6 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const app=$('#app'), DATA={};
-const fileMap={league:'league_history',leagueSettings:'league_settings',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
+const fileMap={league:'league_history',leagueSettings:'league_settings',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values',rosterSeason:'roster_season_sleeper'};
 const JACK_ID=1,HAYDEN_ID=6;
 const OWNER_DISPLAY_BY_ID={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 // Permanent, franchise-ID keyed images; independent of Sleeper refreshes.
@@ -392,6 +392,7 @@ const LEAGUE_MENU_ITEMS=[
  {icon:'◌',label:'PLAYER RECORDS',href:'#/players'},
  {icon:'⚡',label:'STREAKS',href:'#/streaks'},
  {icon:'▤',label:'DRAFT RANKINGS',href:'#/draft'},
+ {icon:'◈',label:'MANAGER RATINGS',href:'#/manager-ratings'},
  {icon:'⇄',label:'TRADE RATINGS',href:'#/trades'},
  {icon:'▥',label:'DYNASTY VALUES',href:'#/dynasty'},
  {icon:'↔',label:'HEAD-TO-HEAD',href:'#/h2h'},
@@ -2171,6 +2172,41 @@ async function minigames(){
  `<section class="mini-arcade"><div class="mini-arcade-list"><a href="#/minigames/trade-gap" class="mini-arcade-card active" aria-current="page"><span class="mini-arcade-icon">GAP</span><span><strong>TRADE GAP CHALLENGE</strong><small>THE JAMES–HAYDEN LINEUP GAME</small></span><b>PLAYING</b></a><div class="mini-arcade-card future"><span class="mini-arcade-icon">+</span><span><strong>MORE GAMES</strong><small>COMING SOON</small></span></div></div>${renderTradeGapGame(difference)}</section>`;
 }
 
+
+async function managerRatings(managerId){
+ await load(['draftPicks','raValues','draftAudit','rosterSeason','leagueSettings',
+  'trades','tradeSides','tradeAssets','playerLog']);
+ navActive('');
+ if(typeof figTradeRatingModel!=='function'||typeof figManagerRatingModel!=='function'){
+  app.innerHTML=hero('FIG MANAGER IQ','MANAGER RATINGS','Manager rating engine is unavailable. Reload the page.');
+  return;
+ }
+ const trades=figTradeRatingModel(DATA,{
+  valuesReady:raReady(),
+  playerValue:raPlayer,
+  pickValue:raPickValuation,
+  pickLabel:tradeArchiveAssetLabel,
+  name:displayOwnerName
+ });
+ const model=figManagerRatingModel(DATA,trades,{
+  names:OWNER_DISPLAY_BY_ID,
+  name:id=>displayOwnerName('',id),
+  draftGrade:figDraftGrade,
+  draftSummary:figDraftGradeSummary
+ });
+ const selected=Number(managerId);
+ if(managerId&&!model.rows.some(r=>r.id===selected)){
+  location.hash='#/manager-ratings';return;
+ }
+ app.innerHTML=hero('FIG MANAGER IQ','MANAGER RATINGS','Drafts · trades · sit/start')+
+  '<div id="managerRatingsRoot"></div>';
+ figManagerRatingsPage(model,{
+  html:(id,markup)=>{const target=document.getElementById(id);if(target)target.innerHTML=markup;},
+  el:selector=>$(selector),
+  escape:esc,money,avatar:ownerAvatar
+ },managerId);
+}
+
 async function more(){
  navActive('');
  const items=LEAGUE_MENU_ITEMS;
@@ -2547,7 +2583,7 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft'){if(parts[1]==='team')await draftTeamRanking(parts[2],parts[3]);else await draft(parts[1]);}else if(parts[0]==='trades')await trades();else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft'){if(parts[1]==='team')await draftTeamRanking(parts[2],parts[3]);else await draft(parts[1]);}else if(parts[0]==='trades')await trades();else if(parts[0]==='manager-ratings')await managerRatings();else if(parts[0]==='manager')await managerRatings(parts[1]);else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
