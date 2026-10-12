@@ -99,7 +99,7 @@ const free=figTradeRatingModel({
  trades:[trade('free',2026,2,[1,2])],tradeSides:[side('free',1),side('free',2)],
  tradeAssets:[
   {...asset('free',1,'Received','Player',10),season:2026,week:2},
-  {...asset('free',2,'Received','Player',40),season:2026,week:2}
+  {...asset('free',2,'Received','Player',4444444),season:2026,week:2}
  ]
 },tools);
 assert.equal(free.trades[0].participants.find(p=>p.id===1).returnPct,Infinity);
