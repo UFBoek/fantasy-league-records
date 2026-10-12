@@ -9,3 +9,4 @@ python -m unittest discover -s tests -p 'test_all_play_records.py'
 python -m unittest discover -s tests -p 'test_record_categories.py'
 python -m unittest discover -s tests -p 'test_player_record_refresh.py'
 python -m unittest discover -s tests -p 'test_draft_team_history.py'
+node tests/test_record_break_watch.js
