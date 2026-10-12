@@ -1,5 +1,5 @@
-/* FIG League v146 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v146';
+/* FIG League v147 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v147';
 const APP_SHELL = [
   './',
   './index.html',
@@ -26,7 +26,7 @@ const APP_SHELL = [
   './league-detail-v94.css?v=94',
   './history-polish-v95.css?v=96',
   './trade-archive-v103.css?v=103',
-  './trade-ratings-v143.css?v=146',
+  './trade-ratings-v143.css?v=147',
   './draft-franchises-v111.css?v=112',
   './draft-focus-v113.css?v=114',
   './draft-grades-v115.css?v=115',
@@ -42,7 +42,7 @@ const APP_SHELL = [
   './mobile-v69.js?v=73',
   './record-break-watch-v133.js?v=139',
   './single-season-watch-v136.js?v=136',
-  './trade-ratings-v143.js?v=146',
+  './trade-ratings-v143.js?v=147',
   './app.js?v=146',
   './manifest.webmanifest?v=132',
   './assets/icons/puka-192.png?v=132',
