@@ -259,22 +259,18 @@ function figTradeRatingsPage(model,helpers){
   '<div class="fig-tr-rankings">'+model.rankings.map(rankRow).join('')+'</div>'+
   '</section>';
  const pairNames=new Map(managers.map(m=>[m.id,m.name]));
- const directlyTraded=(t,a,b)=>t.participants.some(p=>
-  (p.id===Number(a)&&p.items.some(x=>Number(x.asset.counterparty_franchise_id)===Number(b)))||
-  (p.id===Number(b)&&p.items.some(x=>Number(x.asset.counterparty_franchise_id)===Number(a))));
+ const directlyTraded=(t,a,b)=>figTradePairCredits(t).some(p=>
+  p.key===[Math.min(Number(a),Number(b)),Math.max(Number(a),Number(b))].join(':'));
  const partnershipRow=(p,i)=>{
+  const winner=p.netA>=0?p.aName:p.bName,loser=p.netA>=0?p.bName:p.aName;
   return '<button type="button" class="fig-tr-partnership-row" data-pair-a="'+p.aId+
    '" data-pair-b="'+p.bId+'"><b class="fig-tr-pair-rank">'+(i+1)+'</b>'+
-   '<span class="fig-tr-partnership-names"><strong>'+escape(p.aName)+
-   ' <span class="fig-tr-over">vs</span> '+escape(p.bName)+'</strong>'+
-   '<small>'+p.trades+' DIRECT '+(p.trades===1?'TRADE':'TRADES')+
+   '<span class="fig-tr-partnership-names"><strong>'+escape(winner)+
+   ' <span class="fig-tr-over">vs</span> '+escape(loser)+'</strong>'+
+   '<small>'+p.trades+' SHARED '+(p.trades===1?'TRADE':'TRADES')+
    ' · '+p.rated+' VALUED</small></span>'+
-   '<span class="fig-tr-partnership-scores">'+
-   '<span class="'+(p.netA>0?'positive':p.netA<0?'negative':'even')+'">'+
-   escape(p.aName)+' <b>'+figTradeNetLabel(p.rated?p.netA:null,money)+'</b></span>'+
-   '<span class="'+(p.netB>0?'positive':p.netB<0?'negative':'even')+'">'+
-   escape(p.bName)+' <b>'+figTradeNetLabel(p.rated?p.netB:null,money)+'</b></span>'+
-   '</span></button>';
+   '<span class="fig-tr-partnership-gap">'+(p.rated?'+ '+money(Math.abs(p.netA)):'—')+
+   '<small>'+(p.rated?p.netA===0?'EVEN':'NET ADVANTAGE':'UNRATED')+'</small></span></button>';
  };
  let partnershipsExpanded=false;
  html('tradeRatingsRoot','<div class="fig-tr-page">'+
@@ -284,11 +280,11 @@ function figTradeRatingsPage(model,helpers){
   leaderboard+
   '<section class="section fig-tr-partnerships"><div class="section-head">'+
   '<h2 class="section-title">MOST LOPSIDED PARTNERSHIPS</h2>'+
-  '<div class="section-note">Ranked by the gap between managers’ net trade results</div></div>'+
+  '<div class="section-note">Net value gained by one manager from the other, including shared multi-team trades</div></div>'+
   '<div class="fig-tr-partnership-list" id="figTrPartnershipRows"></div>'+
   '<button class="fig-tr-partner-more" type="button" id="figTrPartnerMore"></button></section>'+
   '<section class="section fig-tr-history" id="tradeRatingsHistory"><div class="section-head">'+
-  '<h2 class="section-title">TRADE HISTORY</h2><div class="section-note">Select managers to compare every direct trade</div></div>'+
+  '<h2 class="section-title">TRADE HISTORY</h2><div class="section-note">Select managers to compare their shared trades</div></div>'+
   '<div class="fig-tr-controls"><label>MANAGER<select id="figTrManager">'+options(manager)+'</select></label>'+
   '<label>WITH / AGAINST<select id="figTrVersus">'+options(versus)+'</select></label>'+
   '<label>YEAR<select id="figTrYear"><option value="all">ALL YEARS</option>'+model.years.map(y=>'<option value="'+escape(y)+'">'+escape(y)+'</option>').join('')+'</select></label>'+
@@ -337,7 +333,7 @@ function figTradeRatingsPage(model,helpers){
     const totalNet=pair.rated?(Number(id)===pair.aId?pair.netA:pair.netB):null;
     const name=pairNames.get(Number(id))||id;
     return '<div class="fig-tr-pair-person">'+avatar(id,'fig-tr-rank-avatar')+
-     '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+pair.trades+' DIRECT TRADES</small></div>'+
+     '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+pair.trades+' SHARED TRADES</small></div>'+
      '<div class="fig-tr-pair-score '+(totalNet>0?'positive':totalNet<0?'negative':'even')+'">'+
      figTradeNetLabel(totalNet,money)+'<small>'+
      (totalNet===null?'UNRATED':totalNet>0?'VALUE GAINED':totalNet<0?'VALUE LOST':'EVEN')+'</small></div>'+
@@ -345,7 +341,7 @@ function figTradeRatingsPage(model,helpers){
      '<span>'+money(sent)+' <small>VALUE SENT</small></span>'+
      '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
    }).join('')+
-   (list.some(t=>t.participants.length>2)?'<div class="fig-tr-pair-explainer">Totals include all assets received and sent in these trades, including any third manager.</div>':'')+
+   (list.some(t=>t.participants.length>2)?'<div class="fig-tr-pair-explainer">Matchup value is allocated between the winning and losing managers in multi-team trades. Received and sent amounts below describe each manager’s full trade activity.</div>':'')+
    '</div>':'';
   const managerBoard=manager!=='all'?(()=>{
    const name=pairNames.get(Number(manager))||manager;
@@ -361,7 +357,7 @@ function figTradeRatingsPage(model,helpers){
      '<strong>'+escape(opp.name)+'</strong></span>'+
      '<b class="'+(value>0?'positive':value<0?'negative':'even')+'">'+
      (p&&p.rated?figTradeNetLabel(value,money):'—')+'</b>'+
-     '<small>'+(p?p.trades+' DIRECT · '+p.rated+' VALUED':'NO DIRECT TRADES')+'</small></button>';
+     '<small>'+(p?p.trades+' SHARED · '+p.rated+' VALUED':'NO SHARED TRADES')+'</small></button>';
    }).join('');
    return '<section class="fig-tr-manager-board"><div class="fig-tr-manager-head">'+
     '<div><strong>'+escape(name)+' · AGAINST EVERY MANAGER</strong>'+
