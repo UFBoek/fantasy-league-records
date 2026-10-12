@@ -1,13 +1,20 @@
-/* Trade Ratings v143 — current-market + realized lineup production outcome snapshots.
-   NOT historical trade-date prices; incomplete or one-sided exchanges are unrated. */
-function figTradeRatingLetter(n){
- if(n===null||!Number.isFinite(n))return '—';
- return n>=90?'S':n>=75?'A':n>=60?'B':n>=45?'C':n>=30?'D':'F';
+/* Trade Ratings v146 — numeric overall return, not subjective letter grades.
+   100% means value received equals value sent; lineup production counts after acquisition.
+   These are current-outcome comparisons, never reconstructed trade-date prices. */
+function figTradeReturnPct(received,sent){
+ if(!Number.isFinite(received)||!Number.isFinite(sent))return null;
+ if(sent===0)return received>0?Infinity:null;
+ return received/sent*100;
+}
+function figTradeReturnLabel(pct){
+ if(pct===null)return '—';
+ if(pct===Infinity)return '∞%';
+ return Math.round(pct).toLocaleString('en-US')+'%';
 }
 function figTradeRatingModel(data,tools){
  const trades=data.trades||[],assets=data.tradeAssets||[],sides=data.tradeSides||[];
  const playerWeeks=data.playerLog||[],audits=data.draftAudit||[];
- const catalog=new Map(),outgoing=new Map(),production=new Map(),received=new Map();
+ const outgoing=new Map(),production=new Map(),received=new Map();
  const idKey=x=>String(x.transaction_id)+':'+Number(x.franchise_id);
  const isAfter=(x,t)=>Number(x.season)>Number(t.season)||
   (Number(x.season)===Number(t.season)&&Number(x.week)>Number(t.week));
@@ -48,7 +55,13 @@ function figTradeRatingModel(data,tools){
  const marketAsset=(t,id,a)=>{
   if(a.asset_type==='Player'){
    const z=takePlayer(t,id,a);
-   return {name:a.player_name||a.asset_label||'Player',type:'PLAYER',market:tools.playerValue(a.player_id),
+   // An individual player absent from the available valuation catalog is worth 0.
+   // Do not confuse that with the *entire* provider snapshot being unavailable.
+   const raw=tools.playerValue(a.player_id);
+   const market=raw===null||raw===undefined
+    ?(tools.valuesReady&&(!a.player_id||a.player_id==='')?0:null)
+    :(Number.isFinite(Number(raw))?Math.max(0,Number(raw)):0);
+   return {name:a.player_name||a.asset_label||'Player',type:'PLAYER',market,
     basis:'Current player value',points:z.points,starts:z.starts,exit:Boolean(z.exit),asset:a};
   }
   if(a.asset_type==='Draft Pick'){
@@ -63,7 +76,8 @@ function figTradeRatingModel(data,tools){
     outcome?.selection_verified_by_draft_slot===true&&Number(outcome.selecting_franchise)===Number(id);
    const converted=!transferred&&selectedByRecipient&&outcome?.player_id;
    const pickPrice=tools.pickValue(a.pick_season,a.pick_round,a.original_pick_franchise_id);
-   const market=converted?tools.playerValue(outcome.player_id):pickPrice?.value??null;
+   const raw=converted?tools.playerValue(outcome.player_id):pickPrice?.value??null;
+   const market=converted&&tools.valuesReady&&raw===null?0:raw;
    const basis=converted?'Verified drafted player value':'Current pick comparable';
    return {name:tools.pickLabel(a.asset_label||'',a),type:'PICK',market,basis,points:0,starts:0,
      converted:!!converted,selection:converted?outcome.player_name:null,
@@ -83,20 +97,25 @@ function figTradeRatingModel(data,tools){
    const starts=items.reduce((n,a)=>n+a.starts,0);
    return {id:+p.franchise_id,name:tools.name(p.owner_name,p.franchise_id),items,market,lineup,starts,
     priced:priced.length,total:items.length,complete:priced.length===items.length&&items.length>0,
-    impact:market+lineup*4,grade:null,score:null};
+    impact:market+lineup*4,sent:0,net:null,returnPct:null};
   });
-  // Require enough data to compare the FULL exchange. A blank or missing side
-  // may reflect commissioner adjustments, not a meaningful swap.
-  const rated=part.length>=2&&part.every(p=>p.complete)&&part.some(p=>p.impact>0);
-  if(rated){
-   const allImpact=part.reduce((n,p)=>n+p.impact,0);
-   for(const p of part){
-    const opposition=(allImpact-p.impact)/(part.length-1);
-    const raw=50+45*(p.impact-opposition)/(p.impact+opposition+2500);
-    p.score=Math.max(5,Math.min(95,Math.round(raw)));
-    p.grade=figTradeRatingLetter(p.score);
-   }
+  // Evaluate what this manager received against what they SENT, using the
+  // *recipient's* later outcome for outgoing assets. Counterparty attribution
+  // preserves the correct cost basis in three- and four-manager trades.
+  const ids=new Set(part.map(p=>p.id));
+  const sourceComplete=part.every(p=>p.items.every(a=>ids.has(Number(a.asset.counterparty_franchise_id))&&
+   Number(a.asset.counterparty_franchise_id)!==p.id));
+  for(const p of part){
+   p.sent=part.reduce((total,other)=>total+other.items
+    .filter(a=>Number(a.asset.counterparty_franchise_id)===p.id)
+    .reduce((n,a)=>n+(Number(a.market)||0)+a.points*4,0),0);
+   p.net=p.impact-p.sent;
+   p.returnPct=figTradeReturnPct(p.impact,p.sent);
   }
+  // Unrecorded or unpriced draft picks still make a trade incomplete, but
+  // catalog-missing players with a legitimate zero valuation do not.
+  const rated=part.length>=2&&sourceComplete&&part.every(p=>p.complete);
+  if(!rated)for(const p of part){p.net=null;p.returnPct=null;}
   return {id:String(t.transaction_id),season:String(t.season),week:Number(t.week),participants:part,
    rated,players:Number(t.total_player_assets)||0,picks:Number(t.total_pick_assets)||0,
    search:(String(t.owners_involved||'')+' '+part.map(p=>p.name+' '+p.items.map(x=>x.name+' '+(x.selection||'')).join(' ')).join(' ')).toLowerCase()};
@@ -106,14 +125,16 @@ function figTradeRatingModel(data,tools){
  for(const p of sides)names.set(+p.franchise_id,tools.name(p.owner_name,p.franchise_id));
  const rankings=[...names.entries()].map(([id,name])=>{
   const relevant=all.filter(t=>t.participants.some(p=>p.id===id));
-  const graded=relevant.flatMap(t=>t.participants.filter(p=>p.id===id&&p.score!==null));
-  const avg=graded.length?graded.reduce((n,x)=>n+x.score,0)/graded.length:null;
-  const wins=graded.filter(p=>p.score>=54).length,losses=graded.filter(p=>p.score<=46).length;
+  const graded=relevant.filter(t=>t.rated).flatMap(t=>t.participants.filter(p=>p.id===id));
+  const gained=graded.reduce((n,p)=>n+p.impact,0),sent=graded.reduce((n,p)=>n+p.sent,0);
+  const net=gained-sent,returnPct=graded.length?figTradeReturnPct(gained,sent):null;
+  const wins=graded.filter(p=>p.net>0).length,losses=graded.filter(p=>p.net<0).length;
   const ties=graded.length-wins-losses;
-  return {id,name,trades:relevant.length,rated:graded.length,avg:avg===null?null:+avg.toFixed(1),
-   grade:figTradeRatingLetter(avg),wins,losses,ties,provisional:graded.length<3};
+  return {id,name,trades:relevant.length,rated:graded.length,gained,sent,net,returnPct,
+   wins,losses,ties,provisional:graded.length<3};
  }).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
-  (b.avg??-1)-(a.avg??-1)||b.rated-a.rated||a.name.localeCompare(b.name));
+  (a.returnPct===b.returnPct?0:(a.returnPct===null?1:b.returnPct===null?-1:
+   a.returnPct>b.returnPct?-1:1))||b.net-a.net||b.rated-a.rated||a.name.localeCompare(b.name));
  return {trades:all,rankings,years:[...new Set(all.map(t=>t.season))].sort((a,b)=>+b-+a),
    rated:all.filter(t=>t.rated).length};
 }
@@ -123,17 +144,19 @@ function figTradeRatingsPage(model,helpers){
  const managers=[...model.rankings].sort((a,b)=>a.name.localeCompare(b.name));
  const options=(selected,allowAll=true,exclude=null)=> (allowAll?'<option value="all">ALL MANAGERS</option>':'')+
   managers.filter(m=>m.id!==Number(exclude)).map(m=>'<option value="'+m.id+'"'+(String(m.id)===String(selected)?' selected':'')+'>'+escape(m.name)+'</option>').join('');
- const grade=x=>x.score===null
+ const returnChip=(p,rated)=>!rated
   ?'<span class="fig-tr-grade pending">UNRATED</span>'
-  :'<span class="fig-tr-grade grade-'+String(x.grade).toLowerCase()+'">'+x.grade+' <strong>'+x.score+'</strong></span>';
+  :'<span class="fig-tr-grade '+(p.net>0?'positive':p.net<0?'negative':'even')+'"><strong>'+
+    (p.returnPct===null?'0 NET':figTradeReturnLabel(p.returnPct))+'</strong></span>';
  const summaryAssets=p=>p.items.map(a=>escape(a.name)).join(' · ')||'No received assets';
- const compactSide=p=>'<div class="fig-tr-compact-side"><div class="fig-tr-compact-person">'+
-  '<span>'+avatar(p.id,'fig-tr-photo')+escape(p.name)+'</span>'+grade(p)+'</div>'+
+ const compactSide=(p,rated)=>'<div class="fig-tr-compact-side"><div class="fig-tr-compact-person">'+
+  '<span>'+avatar(p.id,'fig-tr-photo')+escape(p.name)+'</span>'+returnChip(p,rated)+'</div>'+
   '<div class="fig-tr-asset-preview">'+summaryAssets(p)+'</div></div>';
- const detailSide=p=>'<div class="fig-tr-detail-side"><div class="fig-tr-detail-head">'+
-  ownerLink(p.name,p.id)+grade(p)+'</div><div class="fig-tr-detail-stats">'+
-  '<span><b>'+(p.priced?money(p.market):'—')+'</b><small>CURRENT VALUE</small></span>'+
-  '<span><b>'+money(p.lineup)+'</b><small>LINEUP POINTS · '+p.starts+' STARTS</small></span></div>'+
+ const detailSide=(p,rated)=>'<div class="fig-tr-detail-side"><div class="fig-tr-detail-head">'+
+  ownerLink(p.name,p.id)+returnChip(p,rated)+'</div><div class="fig-tr-detail-stats">'+
+  '<span><b>'+money(p.market)+'</b><small>CURRENT VALUE</small></span>'+
+  '<span><b>'+money(p.lineup)+'</b><small>LINEUP PTS · '+p.starts+' STARTS</small></span>'+
+  '<span><b>'+money(p.sent)+'</b><small>SENT OUTCOME</small></span></div>'+
   '<div class="fig-tr-items">'+(p.items.length?p.items.map(a=>'<div class="fig-tr-item">'+
    '<span class="fig-tr-type">'+escape(a.type)+'</span><div><b>'+escape(a.name)+'</b>'+
    (a.selection?'<small>Selected: '+escape(a.selection)+'</small>':'')+
@@ -145,26 +168,26 @@ function figTradeRatingsPage(model,helpers){
    '<div class="fig-tr-item fig-tr-no-assets">No recorded assets received</div>')+'</div></div>';
  const card=t=>'<details class="fig-tr-card"><summary class="fig-tr-summary">'+
   '<span class="fig-tr-trade-date">'+escape(t.season)+'<small>W'+t.week+' · '+t.participants.length+' TEAMS</small></span>'+
-  '<div class="fig-tr-mini-matchup">'+t.participants.map(compactSide).join('')+'</div>'+
+  '<div class="fig-tr-mini-matchup">'+t.participants.map(p=>compactSide(p,t.rated)).join('')+'</div>'+
   '<span class="fig-tr-chevron" aria-hidden="true">⌄</span></summary>'+
-  '<div class="fig-tr-details">'+t.participants.map(detailSide).join('')+'</div>'+
-  (!t.rated?'<div class="fig-tr-unrated-note">Not scored: a side has missing market values, or no assets were recorded. No value was invented.</div>':
-  '<div class="fig-tr-outcome-note">Outcome snapshot uses current asset values plus 4× completed lineup points produced after acquisition. Not a trade-date grade.</div>')+
+  '<div class="fig-tr-details">'+t.participants.map(p=>detailSide(p,t.rated)).join('')+'</div>'+
+  (!t.rated?'<div class="fig-tr-unrated-note">Return unavailable: at least one side is missing assets, pick values, or sender information.</div>':
+  '<div class="fig-tr-outcome-note">RETURN % = received outcome ÷ sent outcome × 100; 100% is even. Net return = received − sent. Both outcomes include current asset value plus 4× earned starting-lineup points. ∞% means assets sent have a zero outcome; 0 NET means both sides are zero.</div>')+
   '</details>';
  const rankRow=(m,i)=>'<button type="button" class="fig-tr-rank-row" data-manager="'+m.id+'">'+
   '<b class="fig-tr-rank-num">'+(m.provisional?'—':String(i+1))+'</b>'+
   avatar(m.id,'fig-tr-rank-avatar')+
   '<span class="fig-tr-rank-name"><strong>'+escape(m.name)+'</strong><small>'+m.rated+'/'+m.trades+
   ' rated · '+m.wins+'W '+m.losses+'L '+m.ties+'T'+(m.provisional?' · PROVISIONAL':'')+'</small></span>'+
-  '<span class="fig-tr-rank-score">'+(m.avg===null?'—':String(m.avg.toFixed(1)))+
-  '<small>'+(m.avg===null?'UNRATED':m.grade+' GRADE')+'</small></span></button>';
+  '<span class="fig-tr-rank-score">'+(m.rated?figTradeReturnLabel(m.returnPct):'—')+
+  '<small>'+(m.rated?'NET '+(m.net>0?'+':'')+money(m.net):'UNRATED')+'</small></span></button>';
  const leaderboard='<section class="section fig-tr-leaderboard"><div class="section-head">'+
-  '<h2 class="section-title">OVERALL TRADE RANKINGS</h2><div class="section-note">Average rated trade outcome · minimum 3 for ranked</div></div>'+
+  '<h2 class="section-title">OVERALL TRADE RANKINGS</h2><div class="section-note">Total received ÷ total sent · minimum 3 trades for ranked</div></div>'+
   '<div class="fig-tr-rankings">'+model.rankings.map(rankRow).join('')+'</div>'+
   '</section>';
  html('tradeRatingsRoot','<div class="fig-tr-page">'+
   '<div class="fig-tr-stats"><div><small>COMPLETED TRADES</small><strong>'+model.trades.length+'</strong></div>'+
-  '<div><small>FULLY VALUED</small><strong>'+model.rated+'</strong></div>'+
+  '<div><small>RETURNS CALCULATED</small><strong>'+model.rated+'</strong></div>'+
   '<div><small>MANAGERS</small><strong>'+managers.length+'</strong></div></div>'+
   leaderboard+
   '<section class="section fig-tr-history" id="tradeRatingsHistory"><div class="section-head">'+
@@ -173,13 +196,13 @@ function figTradeRatingsPage(model,helpers){
   '<label>WITH / AGAINST<select id="figTrVersus">'+options(versus)+'</select></label>'+
   '<label>YEAR<select id="figTrYear"><option value="all">ALL YEARS</option>'+model.years.map(y=>'<option value="'+escape(y)+'">'+escape(y)+'</option>').join('')+'</select></label>'+
   '<label>SORT<select id="figTrSort"><option value="recent">NEWEST</option><option value="oldest">OLDEST</option>'+
-  '<option value="best">BEST RATED</option><option value="worst">WORST RATED</option></select></label>'+
+  '<option value="best">HIGHEST RETURN</option><option value="worst">LOWEST RETURN</option></select></label>'+
   '</div><div class="fig-tr-search-row"><input id="figTrSearch" class="search" type="search" placeholder="Search traded players, picks or managers…" autocomplete="off"><button id="figTrClear" type="button">RESET</button></div>'+
   '<div id="figTrResults"></div></section>'+
-  '<details class="fig-tr-method section"><summary>HOW ARE TRADES RATED?</summary>'+
-  '<p>A snapshot of the assets each manager received: current RosterAudit player or draft-pick value, plus completed starting-lineup points earned after receiving a player (weighted at 4 value units per point). Transferred historical picks use present-day comparable values; verified picks drafted by the recipient may use the selected player’s current value.</p>'+
-  '<p>Each side is scored from 5–95 against the other side (or other sides’ average). S ≥90, A ≥75, B ≥60, C ≥45, D ≥30, F below 30. An average of three rated trades is required for an official ranking. Incomplete or one-sided exchanges are unranked.</p>'+
-  '<p><strong>These are outcome ratings, not historical trade-date prices.</strong> Missing valuations are never silently scored as zero. Player production is counted only after the transaction, stopping at a later recorded trade out; draft-pick outcomes are not credited to someone who subsequently traded the pick. Market values are current and rankings may change when RosterAudit updates.</p></details></div>');
+  '<details class="fig-tr-method section"><summary>HOW IS RETURN CALCULATED?</summary>'+
+  '<p>Every trade has a numeric overall return, not a letter grade. Return % = (current value received + 4× subsequent lineup points from received players) ÷ (current value sent + 4× subsequent lineup points from those assets for their new teams) × 100. A 150% return means 50% more value received than sent. The leaderboard calculates each manager’s return from their combined totals, not an average of percentages; at least three complete trades are required to rank.</p>'+
+  '<p>Players missing from the active RosterAudit catalog count as 0; missing player IDs also count as 0 when the valuation feed is available. A full feed outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked. If no value was sent but value was received, return is ∞%; if both outcomes are zero, net return is 0.</p>'+
+  '<p><strong>These are current-outcome returns, not historical trade-date prices.</strong> Player production is counted only after the transaction, stopping at a later recorded trade out; draft-pick outcomes are not credited to someone who subsequently traded the pick. Results change with RosterAudit updates.</p></details></div>');
  const root=el('#tradeRatingsRoot');
  const results=el('#figTrResults');
  const render=()=>{
@@ -191,14 +214,14 @@ function figTradeRatingsPage(model,helpers){
   if(sort==='best'||sort==='worst')list=[...list].sort((a,b)=>{
    const metric=t=>{
     if(!t.rated)return null;
-    if(manager!=='all')return t.participants.find(p=>String(p.id)===manager)?.score??null;
-    const scores=t.participants.map(p=>p.score).filter(x=>x!==null);
-    return sort==='worst'?Math.min(...scores):Math.max(...scores);
+    if(manager!=='all')return t.participants.find(p=>String(p.id)===manager)?.returnPct??null;
+    const returns=t.participants.map(p=>p.returnPct).filter(x=>x!==null);
+    return returns.length?(sort==='worst'?Math.min(...returns):Math.max(...returns)):null;
    };
    const as=metric(a),bs=metric(b);
    if(as===null)return bs===null?0:1;
    if(bs===null)return -1;
-   return sort==='best'?bs-as:as-bs;
+   return as===bs?0:sort==='best'?(as>bs?-1:1):(as<bs?-1:1);
   });
   const shown=list.slice(0,limit);
   const selectedPair=manager!=='all'&&versus!=='all'&&manager!==versus;
@@ -207,12 +230,14 @@ function figTradeRatingsPage(model,helpers){
   const pairPanel=selectedPair&&list.length?'<div class="fig-tr-pair-board">'+[manager,versus].map(id=>{
     const rows=list.flatMap(t=>t.participants.filter(p=>String(p.id)===id));
     const n=rows.length,market=rows.reduce((v,p)=>v+p.market,0);
-    const lineup=rows.reduce((v,p)=>v+p.lineup,0),rated=rows.filter(p=>p.score!==null);
-    const avg=rated.length?rated.reduce((v,p)=>v+p.score,0)/rated.length:null;
+    const lineup=rows.reduce((v,p)=>v+p.lineup,0);
+    const rated=rows.filter(p=>list.some(t=>t.rated&&t.participants.includes(p)));
+    const got=rated.reduce((v,p)=>v+p.impact,0),sent=rated.reduce((v,p)=>v+p.sent,0);
+    const totalReturn=rated.length?figTradeReturnPct(got,sent):null;
     const name=managers.find(p=>String(p.id)===id)?.name||id;
     return '<div class="fig-tr-pair-person">'+avatar(id,'fig-tr-rank-avatar')+
      '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+n+' DIRECT TRADES</small></div>'+
-     '<div class="fig-tr-pair-score">'+(avg===null?'—':avg.toFixed(1))+'<small>AVG SCORE</small></div>'+
+     '<div class="fig-tr-pair-score">'+figTradeReturnLabel(totalReturn)+'<small>OVERALL RETURN</small></div>'+
      '<div class="fig-tr-pair-stats"><span>'+money(market)+' <small>RECEIVED VALUE</small></span>'+
      '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
    }).join('')+'</div>':'';
