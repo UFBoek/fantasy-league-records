@@ -1,4 +1,4 @@
-/* Trade Ratings regression: net gains/losses, zero-value players, sorting and pair filtering. */
+/* Trade Ratings regression: net market gain/loss, zero-cost exchanges, and filters. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const code=fs.readFileSync('trade-ratings-v143.js','utf8');
@@ -44,7 +44,7 @@ const tools={
 };
 const m=figTradeRatingModel(data,tools);
 assert.equal(m.trades.length,4);
-assert.equal(m.rated,3);
+assert.equal(m.rated,4);
 assert.equal(m.rankings.length,2);
 const first=m.trades.find(x=>x.id==='t1');
 assert.equal(first.participants[0].lineup,52); // Ends at next recorded outgoing trade.
@@ -55,9 +55,18 @@ assert.equal(first.participants[0].net,3500); // 5000 received - 1500 sent, not 
 assert.ok(!('impact' in first.participants[0]));
 assert.equal(first.participants[0].net,-first.participants[1].net);
 assert.equal(first.participants[0].items[0].exit,true);
-const pending=m.trades.find(x=>x.id==='t3');
-assert.equal(pending.rated,false);
-assert.ok(pending.participants.every(p=>p.net===null));
+// An actual trade for nothing must be rated, including the empty side.
+const donated=m.trades.find(x=>x.id==='t3');
+assert.equal(donated.rated,true);
+const donor=donated.participants.find(p=>p.id===1);
+const recipient=donated.participants.find(p=>p.id===2);
+assert.equal(donor.total,0);
+assert.equal(donor.market,0);
+assert.equal(donor.sent,250);
+assert.equal(donor.net,-250);
+assert.equal(recipient.sent,0);
+assert.equal(recipient.net,250);
+assert.equal(donated.participants.reduce((total,p)=>total+p.net,0),0);
 const draft=m.trades.find(x=>x.id==='t4').participants[0].items[0];
 assert.equal(draft.converted,true);
 assert.equal(draft.market,7000);
@@ -80,6 +89,34 @@ const startup=figTradeRatingModel({
 },tools);
 assert.equal(startup.trades[0].rated,false);
 assert.equal(startup.trades[0].participants[0].items[0].market,null);
+// A truly assetless exchange should not generate a fictitious zero-value trade.
+const vacant=figTradeRatingModel({
+ trades:[trade('vacant',2025,3,[1,2])],
+ tradeSides:[side('vacant',1),side('vacant',2)],tradeAssets:[]
+},tools);
+assert.equal(vacant.rated,0);
+assert.ok(vacant.trades[0].participants.every(p=>p.net===null));
+// Unattributed assets are still unrated, not assumed to be gifts.
+const orphan=figTradeRatingModel({
+ trades:[trade('orphan',2025,3,[1,2])],
+ tradeSides:[side('orphan',1),side('orphan',2)],
+ tradeAssets:[{...asset('orphan',1,'Received','Player',10),season:2025,week:3,counterparty_franchise_id:null}]
+},tools);
+assert.equal(orphan.rated,0);
+// In a multi-manager deal, an empty side is the cost of the assets it sent.
+const multi=figTradeRatingModel({
+ trades:[trade('multi',2025,3,[1,2,3])],
+ tradeSides:[side('multi',1),side('multi',2),side('multi',3)],
+ tradeAssets:[
+  {...asset('multi',1,'Received','Player',10),season:2025,week:3,counterparty_franchise_id:2},
+  {...asset('multi',3,'Received','Player',20),season:2025,week:3,counterparty_franchise_id:1}
+ ]
+},tools);
+assert.equal(multi.rated,1);
+assert.deepEqual(
+ multi.trades[0].participants.map(p=>[p.id,p.market,p.sent,p.net]),
+ [[1,5000,1500,3500],[2,0,5000,-5000],[3,1500,0,1500]]
+);
 // Individual unknown/missing-ID players count as zero rather than unrated.
 const missing=figTradeRatingModel({
  trades:[trade('unknown',2026,2,[1,2])],tradeSides:[side('unknown',1),side('unknown',2)],
@@ -143,7 +180,8 @@ assert.doesNotMatch(markup,/RETURN %|OVERALL RETURN|AVG SCORE|GRADE|HIGHEST RETU
 assert.match(markup,/<option value="gain">VALUE GAINED<\/option>/);
 assert.match(markup,/<option value="loss">VALUE LOST<\/option>/);
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
-assert.match(node('#figTrResults').innerHTML,/3 RATED/);
+assert.match(node('#figTrResults').innerHTML,/4 RATED/);
+assert.match(node('#figTrResults').innerHTML,/Nothing received · 0 value/);
 node('#figTrManager').onchange({target:{value:'1'}});
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 node('#figTrVersus').onchange({target:{value:'2'}});
@@ -176,7 +214,7 @@ assert.doesNotMatch(node('#figTrResults').innerHTML,/SENT OUTCOME|4×/);
 const app=fs.readFileSync('app.js','utf8'),index=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8');
 assert.ok(app.includes("const model=figTradeRatingModel(DATA,"));
 assert.ok(app.includes('figTradeRatingsPage(model,'));
-assert.ok(index.includes('trade-ratings-v143.js?v=148'));
+assert.ok(index.includes('trade-ratings-v143.js?v=149'));
 assert.ok(index.includes('trade-ratings-v143.css?v=147'));
-assert.ok(sw.includes('trade-ratings-v143.js?v=148'));
-console.log('Trade net values, gain/loss sorting, zero-value players and pair filters passed.');
+assert.ok(sw.includes('trade-ratings-v143.js?v=149'));
+console.log('Trade-for-nothing valuation, multi-party attribution, net sorting and filters passed.');
