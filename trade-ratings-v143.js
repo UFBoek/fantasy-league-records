@@ -215,17 +215,19 @@ function figTradeRatingsPage(model,helpers){
  const managers=[...model.rankings].sort((a,b)=>a.name.localeCompare(b.name));
  const options=(selected,allowAll=true,exclude=null)=> (allowAll?'<option value="all">ALL MANAGERS</option>':'')+
   managers.filter(m=>m.id!==Number(exclude)).map(m=>'<option value="'+m.id+'"'+(String(m.id)===String(selected)?' selected':'')+'>'+escape(m.name)+'</option>').join('');
- const returnChip=(p,rated)=>!rated
-  ?'<span class="fig-tr-grade pending">UNRATED</span>'
-  :'<span class="fig-tr-grade '+(p.net>0?'positive':p.net<0?'negative':'even')+'"><strong>'+
-    figTradeNetLabel(p.net,money)+'</strong><small>'+
-    (p.net>0?'GAINED':p.net<0?'LOST':'EVEN')+'</small></span>';
+ const returnChip=(p,rated,matchCredit=null)=>{
+  if(!rated)return '<span class="fig-tr-grade pending">UNRATED</span>';
+  const net=matchCredit===null?p.net:matchCredit;
+  const caption=(matchCredit!==null?'PAIR ':'')+(net>0?'GAINED':net<0?'LOST':'EVEN');
+  return '<span class="fig-tr-grade '+(net>0?'positive':net<0?'negative':'even')+
+   '"><strong>'+figTradeNetLabel(net,money)+'</strong><small>'+caption+'</small></span>';
+ };
  const summaryAssets=p=>p.items.map(a=>escape(a.name)).join(' · ')||'No received assets';
- const compactSide=(p,rated)=>'<div class="fig-tr-compact-side"><div class="fig-tr-compact-person">'+
-  '<span>'+avatar(p.id,'fig-tr-photo')+escape(p.name)+'</span>'+returnChip(p,rated)+'</div>'+
+ const compactSide=(p,rated,credit=null)=>'<div class="fig-tr-compact-side"><div class="fig-tr-compact-person">'+
+  '<span>'+avatar(p.id,'fig-tr-photo')+escape(p.name)+'</span>'+returnChip(p,rated,credit)+'</div>'+
   '<div class="fig-tr-asset-preview">'+summaryAssets(p)+'</div></div>';
- const detailSide=(p,rated)=>'<div class="fig-tr-detail-side"><div class="fig-tr-detail-head">'+
-  ownerLink(p.name,p.id)+returnChip(p,rated)+'</div><div class="fig-tr-detail-stats">'+
+ const detailSide=(p,rated,credit=null)=>'<div class="fig-tr-detail-side"><div class="fig-tr-detail-head">'+
+  ownerLink(p.name,p.id)+returnChip(p,rated,credit)+'</div><div class="fig-tr-detail-stats">'+
   '<span><b>'+money(p.market)+'</b><small>VALUE RECEIVED</small></span>'+
   '<span><b>'+money(p.sent)+'</b><small>VALUE SENT</small></span>'+
   '<span><b>'+money(p.lineup)+'</b><small>LINEUP PTS · '+p.starts+' STARTS</small></span></div>'+
@@ -238,14 +240,20 @@ function figTradeRatingsPage(model,helpers){
    '</div><div class="fig-tr-item-value">'+(a.market!==null?money(a.market):'UNVALUED')+
    (a.type==='PLAYER'?'<small>'+money(a.points)+' lineup pts</small>':'')+'</div></div>').join(''):
    '<div class="fig-tr-item fig-tr-no-assets">Nothing received · 0 value</div>')+'</div></div>';
- const card=t=>'<details class="fig-tr-card"><summary class="fig-tr-summary">'+
-  '<span class="fig-tr-trade-date">'+escape(t.season)+'<small>W'+t.week+' · '+t.participants.length+' TEAMS</small></span>'+
-  '<div class="fig-tr-mini-matchup">'+t.participants.map(p=>compactSide(p,t.rated)).join('')+'</div>'+
-  '<span class="fig-tr-chevron" aria-hidden="true">⌄</span></summary>'+
-  '<div class="fig-tr-details">'+t.participants.map(p=>detailSide(p,t.rated)).join('')+'</div>'+
-  (!t.rated?'<div class="fig-tr-unrated-note">Value unavailable: no assets were transferred, or an asset price or sender is missing.</div>':
-  '<div class="fig-tr-outcome-note">Net value = current received asset value − current sent asset value. Lineup points are shown separately and never added to value.</div>')+
-  '</details>';
+ const card=(t,pairKey=null)=>{
+  const pair=t.rated&&t.participants.length>2&&pairKey
+   ?figTradePairCredits(t).find(entry=>entry.key===pairKey):null;
+  const credited=p=>!pair?null:p.id===pair.aId?pair.netA:p.id===pair.bId?pair.netB:null;
+  return '<details class="fig-tr-card"><summary class="fig-tr-summary">'+
+   '<span class="fig-tr-trade-date">'+escape(t.season)+'<small>W'+t.week+' · '+t.participants.length+' TEAMS</small></span>'+
+   '<div class="fig-tr-mini-matchup">'+t.participants.map(p=>compactSide(p,t.rated,credited(p))).join('')+'</div>'+
+   '<span class="fig-tr-chevron" aria-hidden="true">⌄</span></summary>'+
+   '<div class="fig-tr-details">'+t.participants.map(p=>detailSide(p,t.rated,credited(p))).join('')+'</div>'+
+   (!t.rated?'<div class="fig-tr-unrated-note">Value unavailable: no assets were transferred, or an asset price or sender is missing.</div>':
+   pair?'<div class="fig-tr-outcome-note">Pair credits allocate this three-team trade’s net outcome between the selected managers. The asset values above and any other manager’s badge reflect the full trade.</div>':
+   '<div class="fig-tr-outcome-note">Net value = current received asset value − current sent asset value. Lineup points are shown separately and never added to value.</div>')+
+   '</details>';
+ };
  const rankRow=(m,i)=>'<button type="button" class="fig-tr-rank-row" data-manager="'+m.id+'">'+
   '<b class="fig-tr-rank-num">'+(m.provisional?'—':String(i+1))+'</b>'+
   avatar(m.id,'fig-tr-rank-avatar')+
@@ -341,7 +349,7 @@ function figTradeRatingsPage(model,helpers){
      '<span>'+money(sent)+' <small>VALUE SENT</small></span>'+
      '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
    }).join('')+
-   (list.some(t=>t.participants.length>2)?'<div class="fig-tr-pair-explainer">Matchup value is allocated between the winning and losing managers in multi-team trades. Received and sent amounts below describe each manager’s full trade activity.</div>':'')+
+   (list.some(t=>t.participants.length>2)?'<div class="fig-tr-pair-explainer">The matchup total adds only the value credited against this opponent. Three-team credits split each winner’s gain across the managers who lost value; received and sent amounts show the whole trades.</div>':'')+
    '</div>':'';
   const managerBoard=manager!=='all'?(()=>{
    const name=pairNames.get(Number(manager))||manager;
@@ -367,7 +375,7 @@ function figTradeRatingsPage(model,helpers){
   })():'';
   results.innerHTML='<div class="fig-tr-result-meta">'+list.length+' MATCHING TRADES · '+list.filter(t=>t.rated).length+' RATED</div>'+
    managerBoard+pairPanel+
-   (shown.length?'<div class="fig-tr-list">'+shown.map(card).join('')+'</div>':'<div class="fig-tr-empty">No trades match these filters.</div>')+
+   (shown.length?'<div class="fig-tr-list">'+shown.map(t=>card(t,selectedPair?[Math.min(+manager,+versus),Math.max(+manager,+versus)].join(':'):null)).join('')+'</div>':'<div class="fig-tr-empty">No trades match these filters.</div>')+
    (list.length>shown.length?'<button type="button" class="fig-tr-more" id="figTrMore">SHOW '+Math.min(24,list.length-shown.length)+' MORE →</button>':'');
   const more=el('#figTrMore');if(more)more.onclick=()=>{limit+=24;render()};
   const all=el('#figTrAllOpponents');
