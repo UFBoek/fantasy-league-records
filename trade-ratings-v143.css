@@ -1,4 +1,4 @@
-/* v146: Trade Ratings — numeric outcome return and zero-value player handling. */
+/* v147: Trade Ratings — signed net-value gain/loss with readable compact labels. */
 .fig-tr-page {display:grid;gap:16px;min-width:0}
 .fig-tr-page .section {margin:0!important;min-width:0}
 .fig-tr-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
@@ -16,6 +16,11 @@
 .fig-tr-rank-name small {font:650 10px/1.3 Inter,system-ui,sans-serif;color:#63786d}
 .fig-tr-rank-score {display:flex;flex-direction:column;align-items:flex-end;font:900 18px/1.1 Inter,system-ui,sans-serif;color:#173e30;font-variant-numeric:tabular-nums;flex:0 0 auto;max-width:45%;overflow-wrap:anywhere;text-align:right}
 .fig-tr-rank-score small {font:800 9px/1.2 Inter,system-ui,sans-serif;color:#668374;margin-top:4px;letter-spacing:.02em}
+.fig-tr-rank-score.positive {color:#16643c}
+.fig-tr-rank-score.negative {color:#aa4934}
+.fig-tr-rank-score.even,.fig-tr-rank-score.pending {color:#6b7b72}
+.fig-tr-rank-score.positive small {color:#287452}
+.fig-tr-rank-score.negative small {color:#9c5947}
 .fig-tr-controls {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:9px}
 .fig-tr-controls label {min-width:0;display:flex;flex-direction:column;gap:5px;font:800 10px/1.3 Inter,system-ui,sans-serif;color:#426253;letter-spacing:.04em}
 .fig-tr-controls select {appearance:auto;background:#f4f9f5;color:#21382b;border:1px solid #cdded3;border-radius:8px;height:37px;padding:0 8px;min-width:0;width:100%;font:750 12px/1.2 Inter,system-ui,sans-serif;outline-offset:2px}
@@ -42,6 +47,7 @@
 .fig-tr-card[open] .fig-tr-chevron {transform:rotate(180deg)}
 .fig-tr-grade {font:900 10px/1 Inter,system-ui,sans-serif;display:inline-flex;align-items:center;gap:4px;background:#e4efe7;color:#246046;border:1px solid #c6decf;border-radius:7px;padding:5px 6px;white-space:nowrap;flex:0 0 auto;font-variant-numeric:tabular-nums}
 .fig-tr-grade strong {font-size:12px;font-variant-numeric:tabular-nums}
+.fig-tr-grade small {font:800 8px/1 Inter,system-ui,sans-serif;letter-spacing:.025em;color:inherit;opacity:.83}
 .fig-tr-grade.positive {background:#d9f0e3;color:#17603c;border-color:#abd8ba}
 .fig-tr-grade.even {background:#f2efda;color:#796b29;border-color:#ded3ac}
 .fig-tr-grade.negative {background:#f9e6e0;color:#8d4735;border-color:#e7c3b6}
@@ -82,6 +88,7 @@
  .fig-tr-compact-person>span:first-child {font-size:11px}
  .fig-tr-grade {font-size:9px;padding:4px 5px}
  .fig-tr-grade strong {font-size:11px}
+ .fig-tr-grade small {font-size:7px}
  .fig-tr-chevron {font-size:16px}
  .fig-tr-details {grid-template-columns:minmax(0,1fr);padding:8px}
  .fig-tr-detail-side {padding:8px}
@@ -96,7 +103,10 @@
 .fig-tr-pair-person:nth-child(even) {background:#eef3f8;border-color:#d2deec}
 .fig-tr-pair-name {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2b4d38;font:850 12px/1.2 Inter,system-ui,sans-serif}
 .fig-tr-pair-name small,.fig-tr-pair-score small,.fig-tr-pair-stats small {display:block;color:#728779;font:750 9px/1.3 Inter,system-ui,sans-serif;margin-top:3px}
-.fig-tr-pair-score {font:900 17px/1.2 Inter,system-ui,sans-serif;color:#23533c;text-align:right;font-variant-numeric:tabular-nums}
+.fig-tr-pair-score {font:900 17px/1.2 Inter,system-ui,sans-serif;color:#23533c;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fig-tr-pair-score.positive {color:#16643c}
+.fig-tr-pair-score.negative {color:#aa4934}
+.fig-tr-pair-score.even {color:#6b7b72}
 .fig-tr-pair-stats {grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:6px;border-top:1px solid #d5e5db}
 .fig-tr-pair-stats>span {font:850 13px/1.3 Inter,system-ui,sans-serif;color:#304c3d;font-variant-numeric:tabular-nums}
 @media(max-width:700px){
