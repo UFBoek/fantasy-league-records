@@ -59,7 +59,7 @@ function figTradeRatingModel(data,tools){
    // Do not confuse that with the *entire* provider snapshot being unavailable.
    const raw=tools.playerValue(a.player_id);
    const market=raw===null||raw===undefined
-    ?(tools.valuesReady&&(!a.player_id||a.player_id==='')?0:null)
+    ?(tools.valuesReady?0:null)
     :(Number.isFinite(Number(raw))?Math.max(0,Number(raw)):0);
    return {name:a.player_name||a.asset_label||'Player',type:'PLAYER',market,
     basis:'Current player value',points:z.points,starts:z.starts,exit:Boolean(z.exit),asset:a};
