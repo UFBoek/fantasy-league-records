@@ -12,8 +12,8 @@ function figWatchLatestWeek(games,streaks){
 const FIG_WATCH_RECORD_GAMES=6;
 const FIG_WATCH_STREAK_GAMES=3;
 function figWatchRate(metric){
- if(/^games_\\d+$/.test(metric)){
-  const threshold=Number(metric.match(/\\d+/)[0]);
+ if(/^games_\d+$/.test(metric)){
+  const threshold=Number(metric.match(/\d+/)[0]);
   return threshold>=275?1/6:threshold>=250?1/3:threshold>=225?1/2:1;
  }
  return ({b5:3,b20:2,b30:1,b40:1/2,b50:1/3,
