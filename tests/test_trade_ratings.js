@@ -7,6 +7,7 @@ const trade=(id,season,week,ids)=>({transaction_id:id,season,week,franchises_inv
 const side=(id,franchise)=>({transaction_id:id,franchise_id:franchise,owner_name:'Manager '+franchise,assets_received:[]});
 const asset=(id,franchise,direction,type,playerId=null,year=null,round=null,origin=null)=>({
  transaction_id:id,franchise_id:franchise,asset_direction:direction,asset_type:type,
+ season:{t1:2024,t2:2025,t3:2026,t4:2025}[id],week:{t1:1,t2:2,t3:1,t4:1}[id],
  player_id:playerId,player_name:playerId?'Player '+playerId:null,asset_label:playerId?'Player '+playerId:'2025 Round 1 (orig. F4)',
  pick_season:year,pick_round:round,original_pick_franchise_id:origin
 });
