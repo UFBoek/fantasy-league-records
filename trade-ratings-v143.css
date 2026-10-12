@@ -90,3 +90,17 @@
  .fig-tr-item {grid-template-columns:38px minmax(0,1fr) auto}
  .fig-tr-item-value {font-size:10px}
 }
+
+/* Direct-manager comparison: current received values + accumulated lineup production. */
+.fig-tr-pair-board {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:11px}
+.fig-tr-pair-person {display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:7px;padding:10px;border:1px solid #cadfd3;border-radius:10px;background:#eef6ef;min-width:0}
+.fig-tr-pair-person:nth-child(even) {background:#eef3f8;border-color:#d2deec}
+.fig-tr-pair-name {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2b4d38;font:850 12px/1.2 Inter,system-ui,sans-serif}
+.fig-tr-pair-name small,.fig-tr-pair-score small,.fig-tr-pair-stats small {display:block;color:#728779;font:750 9px/1.3 Inter,system-ui,sans-serif;margin-top:3px}
+.fig-tr-pair-score {font:900 17px/1.2 Inter,system-ui,sans-serif;color:#23533c;text-align:right;font-variant-numeric:tabular-nums}
+.fig-tr-pair-stats {grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:6px;border-top:1px solid #d5e5db}
+.fig-tr-pair-stats>span {font:850 13px/1.3 Inter,system-ui,sans-serif;color:#304c3d;font-variant-numeric:tabular-nums}
+@media(max-width:700px){
+.fig-tr-pair-board {grid-template-columns:minmax(0,1fr)}
+.fig-tr-pair-stats>span {font-size:12px}
+}
