@@ -52,6 +52,11 @@ function figTradeRatingModel(data,tools){
     basis:'Current player value',points:z.points,starts:z.starts,exit:Boolean(z.exit),asset:a};
   }
   if(a.asset_type==='Draft Pick'){
+   // The 2023 startup draft used 20-round startup selections, NOT rookie
+   // draft picks. Never substitute 2027 rookie prices for startup assets.
+   if(Number(a.pick_season)===2023)return {name:tools.pickLabel(a.asset_label||'',a),
+    type:'PICK',market:null,basis:'2023 startup pick: no historical price',
+    points:0,starts:0,asset:a};
    const outcome=draftOutcomes.get(pickKey(a));
    const transferred=Boolean(nextSent(t,id,pickKey(a),'K'));
    const selectedByRecipient=outcome?.resolution_status==='DIRECT_DRAFT_SLOT_MATCH'&&
