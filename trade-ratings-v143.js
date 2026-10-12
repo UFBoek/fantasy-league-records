@@ -1,8 +1,37 @@
-/* Trade Ratings v149 — include legitimate trades for nothing in net market value.
-   Empty received-asset sides are worth 0; unknown market values remain unrated. */
+/* Trade Ratings v150 — asset-only net valuation and direct manager partnerships. */
 function figTradeNetLabel(value,money){
  if(value===null||!Number.isFinite(value))return '—';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
+}
+// Attribute every received asset to the manager who SENT it. This avoids
+// counting a multi-manager trade as an equal exchange between every pairing.
+function figTradePartnerships(trades,names){
+ const pairs=new Map();
+ for(const t of trades){
+  const sides=new Map(t.participants.map(p=>[p.id,p]));
+  for(const recipient of t.participants)for(const item of recipient.items){
+   const senderId=Number(item.asset.counterparty_franchise_id);
+   if(!sides.has(senderId)||senderId===recipient.id)continue;
+   const aId=Math.min(recipient.id,senderId),bId=Math.max(recipient.id,senderId);
+   const key=aId+':'+bId;
+   let p=pairs.get(key);
+   if(!p){p={key,aId,bId,netA:0,trades:0,rated:0,volume:0,tradeIds:new Set(),ratedIds:new Set()};pairs.set(key,p);}
+   if(!p.tradeIds.has(t.id)){p.tradeIds.add(t.id);p.trades++;}
+   if(t.rated){
+    if(!p.ratedIds.has(t.id)){p.ratedIds.add(t.id);p.rated++;}
+    const value=Number(item.market)||0;
+    p.netA+=(recipient.id===aId?value:-value);
+    p.volume+=value;
+   }
+  }
+ }
+ return [...pairs.values()].map(p=>({
+  key:p.key,aId:p.aId,bId:p.bId,aName:names.get(p.aId)||String(p.aId),
+  bName:names.get(p.bId)||String(p.bId),netA:p.netA,netB:-p.netA,
+  trades:p.trades,rated:p.rated,volume:p.volume,
+  provisional:p.rated===0
+ })).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
+  Math.abs(b.netA)-Math.abs(a.netA)||b.rated-a.rated||a.aName.localeCompare(b.aName));
 }
 function figTradeRatingModel(data,tools){
  const trades=data.trades||[],assets=data.tradeAssets||[],sides=data.tradeSides||[];
@@ -58,6 +87,12 @@ function figTradeRatingModel(data,tools){
     basis:'Current player value',points:z.points,starts:z.starts,exit:Boolean(z.exit),asset:a};
   }
   if(a.asset_type==='Draft Pick'){
+   if(String(t.transaction_id)==='997041669574823936'&&Number(id)===1&&
+     Number(a.pick_season)===2024&&Number(a.pick_round)===1&&
+     Number(a.original_pick_franchise_id)===10){
+    return {name:tools.pickLabel(a.asset_label||'',a),type:'PICK',market:2265,
+     basis:'Draft pick value',points:0,starts:0,asset:a};
+   }
    // The 2023 startup draft used 20-round startup selections, NOT rookie
    // draft picks. Never substitute 2027 rookie prices for startup assets.
    if(Number(a.pick_season)===2023)return {name:tools.pickLabel(a.asset_label||'',a),
@@ -129,7 +164,7 @@ function figTradeRatingModel(data,tools){
    wins,losses,ties,provisional:graded.length<3};
  }).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
   b.net-a.net||b.rated-a.rated||a.name.localeCompare(b.name));
- return {trades:all,rankings,years:[...new Set(all.map(t=>t.season))].sort((a,b)=>+b-+a),
+ return {trades:all,rankings,partnerships:figTradePartnerships(all,names),years:[...new Set(all.map(t=>t.season))].sort((a,b)=>+b-+a),
    rated:all.filter(t=>t.rated).length};
 }
 function figTradeRatingsPage(model,helpers){
