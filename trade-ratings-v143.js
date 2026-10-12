@@ -216,11 +216,34 @@ function figTradeRatingsPage(model,helpers){
   '<h2 class="section-title">OVERALL TRADE RANKINGS</h2><div class="section-note">Total net value gained or lost · minimum 3 rated trades for ranking</div></div>'+
   '<div class="fig-tr-rankings">'+model.rankings.map(rankRow).join('')+'</div>'+
   '</section>';
+ const pairNames=new Map(managers.map(m=>[m.id,m.name]));
+ const directlyTraded=(t,a,b)=>t.participants.some(p=>
+  (p.id===Number(a)&&p.items.some(x=>Number(x.asset.counterparty_franchise_id)===Number(b)))||
+  (p.id===Number(b)&&p.items.some(x=>Number(x.asset.counterparty_franchise_id)===Number(a))));
+ const partnershipRow=(p,i)=>{
+  const winner=p.netA>=0?p.aId:p.bId,loser=p.netA>=0?p.bId:p.aId;
+  const winnerName=winner===p.aId?p.aName:p.bName;
+  const loserName=loser===p.bId?p.bName:p.aName;
+  return '<button type="button" class="fig-tr-partnership-row" data-pair-a="'+p.aId+
+   '" data-pair-b="'+p.bId+'"><b class="fig-tr-pair-rank">'+(i+1)+'</b>'+
+   '<span class="fig-tr-partnership-names"><strong>'+escape(winnerName)+
+   ' <span class="fig-tr-over">vs</span> '+escape(loserName)+'</strong>'+
+   '<small>'+p.trades+' DIRECT '+(p.trades===1?'TRADE':'TRADES')+
+   ' · '+p.rated+' VALUED</small></span>'+
+   '<span class="fig-tr-partnership-gap">'+(p.rated?'+ '+money(Math.abs(p.netA)):'—')+
+   '<small>'+(p.rated?p.netA===0?'EVEN':'NET ADVANTAGE':'UNRATED')+'</small></span></button>';
+ };
+ let partnershipsExpanded=false;
  html('tradeRatingsRoot','<div class="fig-tr-page">'+
   '<div class="fig-tr-stats"><div><small>COMPLETED TRADES</small><strong>'+model.trades.length+'</strong></div>'+
   '<div><small>TRADES VALUED</small><strong>'+model.rated+'</strong></div>'+
   '<div><small>MANAGERS</small><strong>'+managers.length+'</strong></div></div>'+
   leaderboard+
+  '<section class="section fig-tr-partnerships"><div class="section-head">'+
+  '<h2 class="section-title">MOST LOPSIDED PARTNERSHIPS</h2>'+
+  '<div class="section-note">Largest all-time net advantage in direct trades</div></div>'+
+  '<div class="fig-tr-partnership-list" id="figTrPartnershipRows"></div>'+
+  '<button class="fig-tr-partner-more" type="button" id="figTrPartnerMore"></button></section>'+
   '<section class="section fig-tr-history" id="tradeRatingsHistory"><div class="section-head">'+
   '<h2 class="section-title">TRADE HISTORY</h2><div class="section-note">Select managers to compare every direct trade</div></div>'+
   '<div class="fig-tr-controls"><label>MANAGER<select id="figTrManager">'+options(manager)+'</select></label>'+
@@ -237,10 +260,12 @@ function figTradeRatingsPage(model,helpers){
  const root=el('#tradeRatingsRoot');
  const results=el('#figTrResults');
  const render=()=>{
-  let list=model.trades.filter(t=>(manager==='all'||t.participants.some(x=>String(x.id)===manager))&&
-   (versus==='all'||t.participants.some(x=>String(x.id)===versus))&&
-   (manager==='all'||versus==='all'||manager!==versus)&&
+  const managerBase=model.trades.filter(t=>
+   (manager==='all'||t.participants.some(x=>String(x.id)===manager))&&
    (year==='all'||t.season===year)&&(!search||t.search.includes(search)));
+  let list=managerBase.filter(t=>
+   (versus==='all'||t.participants.some(x=>String(x.id)===versus))&&
+   (manager==='all'||versus==='all'||(manager!==versus&&directlyTraded(t,manager,versus))));
   if(sort==='oldest')list=[...list].reverse();
   if(sort==='gain'||sort==='loss')list=[...list].sort((a,b)=>{
    // With all managers shown, use the largest gain or loss by one participant.
@@ -258,28 +283,56 @@ function figTradeRatingsPage(model,helpers){
   });
   const shown=list.slice(0,limit);
   const selectedPair=manager!=='all'&&versus!=='all'&&manager!==versus;
-  // Head-to-head totals mirror the James/Hayden all-time summary, but any pair
-  // can be selected and the results respond to year/search filters.
-  const pairPanel=selectedPair&&list.length?'<div class="fig-tr-pair-board">'+[manager,versus].map(id=>{
-    const rows=list.flatMap(t=>t.participants.filter(p=>String(p.id)===id));
-    const n=rows.length,market=rows.reduce((v,p)=>v+p.market,0);
-    const lineup=rows.reduce((v,p)=>v+p.lineup,0);
-    const rated=rows.filter(p=>list.some(t=>t.rated&&t.participants.includes(p)));
-    const totalNet=rated.length?rated.reduce((v,p)=>v+p.net,0):null;
-    const name=managers.find(p=>String(p.id)===id)?.name||id;
+  const pair=selectedPair?figTradePartnerships(list,pairNames)
+   .find(p=>p.key===[Math.min(+manager,+versus),Math.max(+manager,+versus)].join(':')):null;
+  const pairPanel=selectedPair&&pair?'<div class="fig-tr-pair-board">'+[manager,versus].map(id=>{
+    const other=id===manager?versus:manager;
+    const values=list.flatMap(t=>t.participants.filter(p=>String(p.id)===id)
+     .flatMap(p=>p.items.filter(a=>Number(a.asset.counterparty_franchise_id)===Number(other))));
+    const market=values.reduce((v,a)=>v+(Number(a.market)||0),0);
+    const lineup=values.reduce((v,a)=>v+a.points,0);
+    const totalNet=pair.rated?(Number(id)===pair.aId?pair.netA:pair.netB):null;
+    const name=pairNames.get(Number(id))||id;
     return '<div class="fig-tr-pair-person">'+avatar(id,'fig-tr-rank-avatar')+
-     '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+n+' DIRECT TRADES</small></div>'+
+     '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+pair.trades+' DIRECT TRADES</small></div>'+
      '<div class="fig-tr-pair-score '+(totalNet>0?'positive':totalNet<0?'negative':'even')+'">'+
      figTradeNetLabel(totalNet,money)+'<small>'+
      (totalNet===null?'UNRATED':totalNet>0?'VALUE GAINED':totalNet<0?'VALUE LOST':'EVEN')+'</small></div>'+
-     '<div class="fig-tr-pair-stats"><span>'+money(market)+' <small>RECEIVED VALUE</small></span>'+
+     '<div class="fig-tr-pair-stats"><span>'+money(market)+' <small>FROM '+escape(pairNames.get(Number(other))||other).toUpperCase()+'</small></span>'+
      '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
    }).join('')+'</div>':'';
+  const managerBoard=manager!=='all'?(()=>{
+   const name=pairNames.get(Number(manager))||manager;
+   const against=figTradePartnerships(managerBase,pairNames);
+   const rows=managers.filter(m=>String(m.id)!==manager).map(opp=>{
+    const p=against.find(x=>x.aId===Number(manager)&&x.bId===opp.id||
+      x.bId===Number(manager)&&x.aId===opp.id);
+    const value=p&&p.rated?(p.aId===Number(manager)?p.netA:p.netB):null;
+    const active=String(opp.id)===versus;
+    return '<button type="button" class="fig-tr-opponent '+(active?'active':'')+
+     '" data-opponent="'+opp.id+'">'+
+     '<span class="fig-tr-opponent-head">'+avatar(opp.id,'fig-tr-photo')+
+     '<strong>'+escape(opp.name)+'</strong></span>'+
+     '<b class="'+(value>0?'positive':value<0?'negative':'even')+'">'+
+     (p&&p.rated?figTradeNetLabel(value,money):'—')+'</b>'+
+     '<small>'+(p?p.trades+' DIRECT · '+p.rated+' VALUED':'NO DIRECT TRADES')+'</small></button>';
+   }).join('');
+   return '<section class="fig-tr-manager-board"><div class="fig-tr-manager-head">'+
+    '<div><strong>'+escape(name)+' · AGAINST EVERY MANAGER</strong>'+
+    '<small>Select an opponent to view the matchup and its full trade history</small></div>'+
+    '<button type="button" id="figTrAllOpponents">ALL TRADES</button></div>'+
+    '<div class="fig-tr-opponent-grid">'+rows+'</div></section>';
+  })():'';
   results.innerHTML='<div class="fig-tr-result-meta">'+list.length+' MATCHING TRADES · '+list.filter(t=>t.rated).length+' RATED</div>'+
-   pairPanel+
+   managerBoard+pairPanel+
    (shown.length?'<div class="fig-tr-list">'+shown.map(card).join('')+'</div>':'<div class="fig-tr-empty">No trades match these filters.</div>')+
    (list.length>shown.length?'<button type="button" class="fig-tr-more" id="figTrMore">SHOW '+Math.min(24,list.length-shown.length)+' MORE →</button>':'');
   const more=el('#figTrMore');if(more)more.onclick=()=>{limit+=24;render()};
+  const all=el('#figTrAllOpponents');
+  if(all)all.onclick=()=>{versus='all';limit=24;el('#figTrVersus').value='all';render()};
+  for(const btn of results.querySelectorAll('.fig-tr-opponent'))btn.onclick=()=>{
+   versus=String(btn.dataset.opponent);limit=24;el('#figTrVersus').value=versus;render();
+  };
  };
  const selectId=(key,setter)=>{const e=el(key);if(e)e.onchange=ev=>{setter(ev.target.value);limit=24;render()}};
  selectId('#figTrManager',v=>manager=v);
@@ -293,6 +346,27 @@ function figTradeRatingsPage(model,helpers){
   const so=el('#figTrSort');if(so)so.value='recent';
   if(input)input.value='';render();
  };
+ const renderPartnerships=()=>{
+  const target=el('#figTrPartnershipRows'),more=el('#figTrPartnerMore');
+  if(!target)return;
+  const partnerships=(model.partnerships||[]).filter(p=>p.rated>0);
+  const visible=partnershipsExpanded?partnerships:partnerships.slice(0,10);
+  target.innerHTML=visible.map(partnershipRow).join('');
+  if(more){
+   more.textContent=partnershipsExpanded?'SHOW TOP 10':('VIEW ALL '+partnerships.length+' PARTNERSHIPS');
+   more.hidden=partnerships.length<=10;
+   more.onclick=()=>{partnershipsExpanded=!partnershipsExpanded;renderPartnerships()};
+  }
+  for(const row of target.querySelectorAll('.fig-tr-partnership-row'))row.onclick=()=>{
+   manager=String(row.dataset.pairA);versus=String(row.dataset.pairB);
+   year='all';search='';sort='recent';limit=24;
+   el('#figTrManager').value=manager;el('#figTrVersus').value=versus;
+   el('#figTrYear').value='all';el('#figTrSort').value='recent';
+   if(input)input.value='';
+   render();el('#tradeRatingsHistory')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+  };
+ };
+ renderPartnerships();
  for(const button of root.querySelectorAll('.fig-tr-rank-row'))button.onclick=()=>{
   manager=String(button.dataset.manager);versus='all';year='all';search='';sort='recent';limit=24;
   el('#figTrManager').value=manager;el('#figTrVersus').value='all';el('#figTrYear').value='all';el('#figTrSort').value='recent';
