@@ -2125,8 +2125,26 @@ function tradeArchiveAssetLabel(value){
  });
 }
 async function trades(){
- await load(['trades','tradeSides']);navActive('trades');const years=[...new Set(DATA.trades.map(x=>x.season))].sort((a,b)=>b-a);let year='all',q='';app.innerHTML=hero('TRANSACTION ARCHIVE','TRADES','Every completed league trade, with each team shown once and only the assets it received.')+`<section class="section fig-trade-archive">${pills('tradeYears',[{value:'all',label:'ALL YEARS'},...years.map(y=>({value:y,label:y}))],year)}<div class="toolbar spaced"><input id="tradeSearch" class="search" placeholder="Search owner or asset…"></div><div id="tradeBody"></div></section>`;
- const render=()=>{let ts=[...DATA.trades].sort((a,b)=>+b.season-+a.season||+b.week-+a.week||String(b.transaction_id).localeCompare(String(a.transaction_id)));if(year!=='all')ts=ts.filter(x=>String(x.season)===String(year));ts=ts.filter(t=>{const sides=DATA.tradeSides.filter(s=>String(s.transaction_id)===String(t.transaction_id));return(`${t.owners_involved} ${sides.map(s=>[...parseMaybeJSON(s.assets_received),...parseMaybeJSON(s.assets_sent)].map(tradeArchiveAssetLabel).join(' ')).join(' ')}`).toLowerCase().includes(q)});$('#tradeBody').innerHTML=`<div class="trade-list">${ts.map(t=>{const sides=DATA.tradeSides.filter(s=>String(s.transaction_id)===String(t.transaction_id));return `<div class="trade"><div class="trade-head"><span>${t.season} • WEEK ${t.week}</span><span>${t.franchises_involved}-TEAM • ${t.total_player_assets} PLAYERS • ${t.total_pick_assets} PICKS</span></div><div class="trade-sides fig-trade-sides">${sides.map(s=>`<div><div class="trade-owner">${ownerLink(s.owner_name,s.franchise_id)} <span class="fig-trade-received">RECEIVES</span></div><div class="asset-list">${parseMaybeJSON(s.assets_received).map(a=>`<span class="asset">${esc(tradeArchiveAssetLabel(a))}</span>`).join('')||'<span class="fig-trade-none">No assets received</span>'}</div></div>`).join('')}</div></div>`}).join('')}</div>`};bindPills('tradeYears',v=>{year=v;render()});$('#tradeSearch').oninput=e=>{q=e.target.value.toLowerCase();render()};render();
+ await load(['trades','tradeSides','tradeAssets','playerLog','draftAudit','raValues']);
+ navActive('trades');
+ if(typeof figTradeRatingModel!=='function'||typeof figTradeRatingsPage!=='function'){
+  app.innerHTML=hero('TRADE INTELLIGENCE','TRADE RATINGS','Unable to load trade rating data. Reload the page.');
+  return;
+ }
+ const model=figTradeRatingModel(DATA,{
+  playerValue:raPlayer,
+  pickValue:raPickValuation,
+  pickLabel:(label)=>tradeArchiveAssetLabel(label),
+  name:displayOwnerName
+ });
+ app.innerHTML=hero('LEAGUE TRADE INTELLIGENCE','TRADE RATINGS',
+  'Every manager. Every matchup. Ranked trade outcomes, with the assets and receipts behind each result.')+
+  '<div id="tradeRatingsRoot"></div>';
+ figTradeRatingsPage(model,{
+  html:(id,content)=>{const target=document.getElementById(id);if(target)target.innerHTML=content;},
+  el:selector=>$(selector),
+  escape:esc,money,avatar:ownerAvatar,ownerLink
+ });
 }
 async function dynastyValues(){
  await load(['raValues','currentRoster','currentPicks','draftPicks','standingsCareer']);navActive('dynasty');
@@ -2160,7 +2178,7 @@ async function more(){
   ['▥','Dynasty Values','#/dynasty'],
   ['♛','Champions','#/champions'],
   ['▤','Draft Rankings','#/draft'],
-  ['⇄','Trades','#/trades'],
+  ['⇄','Trade Ratings','#/trades'],
   ['▦','Game Archive','#/games']
  ];
  app.innerHTML=hero('LEAGUE ARCHIVE','MORE','Explore league history, live dynasty values and every completed game.')+
