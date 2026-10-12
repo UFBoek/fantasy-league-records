@@ -226,17 +226,18 @@ function figTradeRatingsPage(model,helpers){
   (p.id===Number(a)&&p.items.some(x=>Number(x.asset.counterparty_franchise_id)===Number(b)))||
   (p.id===Number(b)&&p.items.some(x=>Number(x.asset.counterparty_franchise_id)===Number(a))));
  const partnershipRow=(p,i)=>{
-  const winner=p.netA>=0?p.aId:p.bId,loser=p.netA>=0?p.bId:p.aId;
-  const winnerName=winner===p.aId?p.aName:p.bName;
-  const loserName=loser===p.bId?p.bName:p.aName;
   return '<button type="button" class="fig-tr-partnership-row" data-pair-a="'+p.aId+
    '" data-pair-b="'+p.bId+'"><b class="fig-tr-pair-rank">'+(i+1)+'</b>'+
-   '<span class="fig-tr-partnership-names"><strong>'+escape(winnerName)+
-   ' <span class="fig-tr-over">vs</span> '+escape(loserName)+'</strong>'+
+   '<span class="fig-tr-partnership-names"><strong>'+escape(p.aName)+
+   ' <span class="fig-tr-over">vs</span> '+escape(p.bName)+'</strong>'+
    '<small>'+p.trades+' DIRECT '+(p.trades===1?'TRADE':'TRADES')+
    ' · '+p.rated+' VALUED</small></span>'+
-   '<span class="fig-tr-partnership-gap">'+(p.rated?'+ '+money(Math.abs(p.netA)):'—')+
-   '<small>'+(p.rated?p.netA===0?'EVEN':'NET ADVANTAGE':'UNRATED')+'</small></span></button>';
+   '<span class="fig-tr-partnership-scores">'+
+   '<span class="'+(p.netA>0?'positive':p.netA<0?'negative':'even')+'">'+
+   escape(p.aName)+' <b>'+figTradeNetLabel(p.rated?p.netA:null,money)+'</b></span>'+
+   '<span class="'+(p.netB>0?'positive':p.netB<0?'negative':'even')+'">'+
+   escape(p.bName)+' <b>'+figTradeNetLabel(p.rated?p.netB:null,money)+'</b></span>'+
+   '</span></button>';
  };
  let partnershipsExpanded=false;
  html('tradeRatingsRoot','<div class="fig-tr-page">'+
@@ -246,7 +247,7 @@ function figTradeRatingsPage(model,helpers){
   leaderboard+
   '<section class="section fig-tr-partnerships"><div class="section-head">'+
   '<h2 class="section-title">MOST LOPSIDED PARTNERSHIPS</h2>'+
-  '<div class="section-note">Largest all-time net advantage in direct trades</div></div>'+
+  '<div class="section-note">Ranked by the gap between managers’ net trade results</div></div>'+
   '<div class="fig-tr-partnership-list" id="figTrPartnershipRows"></div>'+
   '<button class="fig-tr-partner-more" type="button" id="figTrPartnerMore"></button></section>'+
   '<section class="section fig-tr-history" id="tradeRatingsHistory"><div class="section-head">'+
