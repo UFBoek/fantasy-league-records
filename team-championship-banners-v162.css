@@ -1,0 +1,65 @@
+/* Championship pennants: a small gold trophy wall beside a team's identity. */
+.page-wrap .team-profile-top.fig-has-championships{
+ grid-template-columns:190px minmax(0,1fr) max-content;
+ gap:clamp(14px,2.2vw,32px);
+}
+.page-wrap .team-profile-top.fig-has-championships .team-profile-copy{min-width:0}
+.page-wrap .fig-team-championships{
+ display:flex;flex-wrap:nowrap;gap:12px;justify-self:end;align-items:flex-start;
+ padding:5px 2px;max-width:100%;
+}
+.page-wrap .fig-team-banner-wrap{
+ display:block;flex:none;filter:drop-shadow(0 5px 4px rgba(51,43,19,.18));
+}
+.page-wrap .fig-team-banner{
+ display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+ box-sizing:border-box;position:relative;width:116px;height:153px;
+ padding:13px 8px 26px;text-decoration:none;
+ background:linear-gradient(115deg,#a4772c 0%,#e7c678 35%,#f9e9bb 54%,#c18f36 100%);
+ color:#392910;clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);
+ border-top:5px solid #7b571c;
+ transition:filter .2s ease,transform .2s ease;
+}
+.page-wrap .fig-team-banner::after{
+ content:"";position:absolute;pointer-events:none;inset:6px 8px 25px;
+ border:1px solid rgba(95,62,19,.5);
+}
+.page-wrap .fig-team-banner:hover{filter:brightness(1.05);transform:translateY(-3px)}
+.page-wrap .fig-team-banner:focus-visible{outline:3px solid #166b54;outline-offset:4px}
+.page-wrap .fig-team-banner-league{
+ font:900 9px/1.1 Inter,system-ui,sans-serif;letter-spacing:.11em;
+ text-align:center;color:#58421e;white-space:nowrap;
+}
+.page-wrap .fig-team-banner-emblem{
+ width:38px;height:38px;margin:9px 0 5px;display:grid;place-items:center;
+ border:2px solid #79571c;border-radius:50%;font-size:23px;line-height:1;
+ color:#6c4a12;background:rgba(255,250,221,.34);
+}
+.page-wrap .fig-team-banner strong{
+ font:900 21px/1 "Archivo Black",Inter,sans-serif;letter-spacing:-.045em;color:#38270c;
+}
+.page-wrap .fig-team-banner-label{
+ font:900 9px/1.3 Inter,system-ui,sans-serif;letter-spacing:.065em;
+ color:#4c3612;margin-top:4px;
+}
+@media (max-width:1050px){
+ .page-wrap .team-profile-top.fig-has-championships{
+  grid-template-columns:110px minmax(0,1fr);gap:15px;
+ }
+ .page-wrap .team-profile-top.fig-has-championships .team-profile-photo{
+  width:110px;height:110px;
+ }
+ .page-wrap .fig-team-championships{
+  grid-column:1/-1;justify-self:center;justify-content:center;
+  padding-top:0;gap:14px;
+ }
+ .page-wrap .fig-team-banner{width:105px;height:140px}
+ .page-wrap .fig-team-banner-emblem{width:31px;height:31px;font-size:20px;margin:7px 0 6px}
+ .page-wrap .fig-team-banner strong{font-size:19px}
+}
+@media (max-width:699px){
+ .page-wrap .team-profile-top.fig-has-championships{grid-template-columns:82px minmax(0,1fr);gap:13px}
+ .page-wrap .team-profile-top.fig-has-championships .team-profile-photo{width:82px;height:82px}
+ .page-wrap .fig-team-championships{gap:12px}
+ .page-wrap .fig-team-banner{width:100px;height:134px;padding-top:10px}
+}

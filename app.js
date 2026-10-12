@@ -26,6 +26,24 @@ document.addEventListener('error',event=>{
  if(img?.tagName==='IMG'&&img.closest?.('.fig-nfl-photo'))img.remove();
 },true);
 window.playerHeadshot=playerHeadshot;
+// Team title pennants are derived from completed championship games, not
+// hard-coded title counts, so the banner automatically tracks league history.
+function figTeamChampionshipBanners(id){
+ const seasons=[...new Set((DATA.games||[])
+  .filter(g=>g.game_type==='Playoffs'&&Number(g.playoff_round)===3&&
+   Number(g.matchup_id)===1&&Number(g.winner_franchise_id)===Number(id))
+  .map(g=>Number(g.season)))].filter(Number.isInteger).sort((a,b)=>a-b);
+ if(!seasons.length)return '';
+ return '<div class="fig-team-championships" aria-label="'+
+  seasons.length+' league championship'+(seasons.length===1?'':'s')+'">'+
+  seasons.map(year=>'<span class="fig-team-banner-wrap"><a class="fig-team-banner" href="#/playoffbracket/'+year+
+   '" aria-label="'+year+' league championship, view playoff bracket">'+
+   '<span class="fig-team-banner-league">FIG LEAGUE</span>'+
+   '<span class="fig-team-banner-emblem" aria-hidden="true">★</span>'+
+   '<strong>'+year+'</strong>'+
+   '<span class="fig-team-banner-label">CHAMPIONS</span>'+
+   '</a></span>').join('')+'</div>';
+}
 function ownerAvatar(id,cls){const url=OWNER_AVATAR_BY_ID[+id];return url?`<img class="${cls}" src="${url}" alt="${esc(displayOwnerName('',id))} avatar" loading="lazy" decoding="async">`:`<div class="${cls}" aria-label="No avatar available"></div>`;}
 const OWNER_DISPLAY_BY_RAW={jackboek1:'Boek',jackboek:'Boek',mattboek21:'Fru',mattboek:'Fru',eph99:'Fromm',Jdub95:'Sack',jdub95:'Sack',lbracke:'Leyton',HaydenM:'Hayden',haydenm:'Hayden',LionelColl:'Line',lionelcoll:'Line',Wincollins2:'Winston',wincollins2:'Winston',nolanfm13:'CamNol',nolanfm:'CamNol',Jamest33:'James',jamest33:'James'};
 function displayOwnerName(name,id){return OWNER_DISPLAY_BY_ID[+id]||OWNER_DISPLAY_BY_RAW[String(name||'')]||OWNER_DISPLAY_BY_RAW[String(name||'').toLowerCase()]||String(name||'')}
@@ -974,7 +992,8 @@ async function team(id,selectedTab,selectedDraftYear){
   {label:'TOP-3 WEEKS',value:meWeekly.top3,rank:rankValue(weeklyCareerRows,id,x=>num(x.top3)),accent:'coral'}
  ];
  const careerStatsHtml=careerStats.map(x=>`<div class="team-stat-tile stat-${x.accent}"><span>${x.label}</span><strong>${x.value}</strong>${x.rank?`<em>RANK: #${x.rank}</em>`:''}</div>`).join('');
- const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button><button data-tab="drafts">DRAFT HISTORY</button><button data-tab="waivers">WAIVER HISTORY</button></div></section><div id="teamTabBody"></div>`;
+ const championshipBanners=figTeamChampionshipBanners(id);
+ const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top${championshipBanners?' fig-has-championships':''}">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div>${championshipBanners}</div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button><button data-tab="drafts">DRAFT HISTORY</button><button data-tab="waivers">WAIVER HISTORY</button></div></section><div id="teamTabBody"></div>`;
  app.innerHTML=teamHeader;
 
  const rosterSort=(rows)=>{
