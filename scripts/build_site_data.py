@@ -15213,6 +15213,35 @@ transactions_df = (
 
 
 # ============================================================
+# CURATED TRADE HISTORY EXCLUSIONS
+#
+# These completed Sleeper transaction IDs are excluded from the *public*
+# archive because they are reversals/invalid trades, not league outcomes.
+# The original transactions_all_df remains untouched for raw auditability.
+#
+# 996717833432182784: Boek/James 2023 W1 Godwin + Curtis Samuel trade,
+#   reverted and replaced by valid 3-team trade 997041669574823936.
+# 1224205259237232640: Fromm/James 2025 W1 Ashton Jeanty trade.
+# The replacement transaction and all other trades remain included.
+# Apply this BEFORE deriving trade assets, sides, summaries and website
+# transactions so counts and trade lineage stay consistent on refresh.
+# ============================================================
+
+EXCLUDED_PUBLIC_TRADE_IDS = {
+    "996717833432182784",
+    "1224205259237232640",
+}
+
+transactions_df = (
+    transactions_df.loc[
+        ~transactions_df["transaction_id"].astype(str).isin(
+            EXCLUDED_PUBLIC_TRADE_IDS
+        )
+    ].copy().reset_index(drop=True)
+)
+
+
+# ============================================================
 # 7. TRANSACTION TYPE SUMMARY
 # ============================================================
 
