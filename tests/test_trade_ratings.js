@@ -225,11 +225,19 @@ const nodes={};
 const node=id=>nodes[id]??=( {innerHTML:'',value:'',dataset:{},onclick:null,onchange:null,oninput:null,
  scrollIntoView(){},querySelectorAll(selector){
   if(selector==='.fig-tr-rank-row')return m.rankings.map(r=>({dataset:{manager:String(r.id)},onclick:null}));
-  if(selector==='.fig-tr-opponent')return [...this.innerHTML.matchAll(/data-opponent="(\\d+)"/g)]
-   .map(m=>({dataset:{opponent:m[1]},onclick:null}));
-  if(selector==='.fig-tr-partnership-row')return [...this.innerHTML.matchAll(/data-pair-a="(\\d+)" data-pair-b="(\\d+)"/g)]
-   .map(m=>({dataset:{pairA:m[1],pairB:m[2]},onclick:null}));
-  return [];
+  const pattern=selector==='.fig-tr-opponent'
+   ?/data-opponent="([0-9]+)"/g
+   :selector==='.fig-tr-partnership-row'
+    ?/data-pair-a="([0-9]+)" data-pair-b="([0-9]+)"/g:null;
+  if(!pattern)return [];
+  this.children??=new Map();
+  return [...this.innerHTML.matchAll(pattern)].map(m=>{
+   const key=selector+':'+m.slice(1).join(':');
+   if(!this.children.has(key))this.children.set(key,{dataset:{},onclick:null});
+   const item=this.children.get(key);
+   item.dataset=selector==='.fig-tr-opponent'?{opponent:m[1]}:{pairA:m[1],pairB:m[2]};
+   return item;
+  });
  } });
 figTradeRatingsPage(m,{
  html:(id,str)=>{markup=str;node('#'+id).innerHTML=str;},
@@ -273,11 +281,16 @@ assert.match(node('#figTrResults').innerHTML,/LINEUP PTS/);
 const firstPartner=node('#figTrPartnershipRows').querySelectorAll('.fig-tr-partnership-row')[0];
 assert.ok(firstPartner);
 node('#figTrClear').onclick();
-firstPartner.onclick=()=>{}; // The actual handler is attached to a fresh generated element.
-node('#figTrManager').onchange({target:{value:'1'}});
+assert.equal(typeof firstPartner.onclick,'function');
+firstPartner.onclick();
+assert.match(node('#figTrResults').innerHTML,/AGAINST EVERY MANAGER/);
+assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
+node('#figTrAllOpponents').onclick();
+assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 const firstOpponent=node('#figTrResults').querySelectorAll('.fig-tr-opponent')[0];
 assert.equal(firstOpponent.dataset.opponent,'2');
-node('#figTrVersus').onchange({target:{value:firstOpponent.dataset.opponent}});
+assert.equal(typeof firstOpponent.onclick,'function');
+firstOpponent.onclick();
 assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
 node('#figTrYear').onchange({target:{value:'2026'}});
 assert.match(node('#figTrResults').innerHTML,/1 MATCHING TRADES/);
