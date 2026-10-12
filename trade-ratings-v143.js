@@ -293,10 +293,10 @@ function figTradeRatingsPage(model,helpers){
    .find(p=>p.key===[Math.min(+manager,+versus),Math.max(+manager,+versus)].join(':')):null;
   const pairPanel=selectedPair&&pair?'<div class="fig-tr-pair-board">'+[manager,versus].map(id=>{
     const other=id===manager?versus:manager;
-    const values=list.flatMap(t=>t.participants.filter(p=>String(p.id)===id)
-     .flatMap(p=>p.items.filter(a=>Number(a.asset.counterparty_franchise_id)===Number(other))));
-    const market=values.reduce((v,a)=>v+(Number(a.market)||0),0);
-    const lineup=values.reduce((v,a)=>v+a.points,0);
+    const rows=list.filter(t=>t.rated).flatMap(t=>t.participants.filter(p=>String(p.id)===id));
+    const received=rows.reduce((v,p)=>v+p.market,0);
+    const sent=rows.reduce((v,p)=>v+p.sent,0);
+    const lineup=rows.reduce((v,p)=>v+p.lineup,0);
     const totalNet=pair.rated?(Number(id)===pair.aId?pair.netA:pair.netB):null;
     const name=pairNames.get(Number(id))||id;
     return '<div class="fig-tr-pair-person">'+avatar(id,'fig-tr-rank-avatar')+
@@ -304,9 +304,12 @@ function figTradeRatingsPage(model,helpers){
      '<div class="fig-tr-pair-score '+(totalNet>0?'positive':totalNet<0?'negative':'even')+'">'+
      figTradeNetLabel(totalNet,money)+'<small>'+
      (totalNet===null?'UNRATED':totalNet>0?'VALUE GAINED':totalNet<0?'VALUE LOST':'EVEN')+'</small></div>'+
-     '<div class="fig-tr-pair-stats"><span>'+money(market)+' <small>FROM '+escape(pairNames.get(Number(other))||other).toUpperCase()+'</small></span>'+
+     '<div class="fig-tr-pair-stats"><span>'+money(received)+' <small>VALUE RECEIVED</small></span>'+
+     '<span>'+money(sent)+' <small>VALUE SENT</small></span>'+
      '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
-   }).join('')+'</div>':'';
+   }).join('')+
+   (list.some(t=>t.participants.length>2)?'<div class="fig-tr-pair-explainer">Totals include all assets received and sent in these trades, including any third manager.</div>':'')+
+   '</div>':'';
   const managerBoard=manager!=='all'?(()=>{
    const name=pairNames.get(Number(manager))||manager;
    const against=figTradePartnerships(managerBase,pairNames);
