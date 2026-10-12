@@ -1,4 +1,4 @@
-/* Trade Ratings v151 — transparent matchup net comparisons. */
+/* Trade Ratings v152 — partnership totals reconcile to trade-card outcomes. */
 function figTradeNetLabel(value,money){
  if(value===null||!Number.isFinite(value))return '—';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
@@ -25,13 +25,18 @@ function figTradePartnerships(trades,names){
    }
   }
  }
- return [...pairs.values()].map(p=>({
-  key:p.key,aId:p.aId,bId:p.bId,aName:names.get(p.aId)||String(p.aId),
-  bName:names.get(p.bId)||String(p.bId),netA:p.netA,netB:-p.netA,
-  trades:p.trades,rated:p.rated,volume:p.volume,
-  provisional:p.rated===0
- })).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
-  Math.abs(b.netA)-Math.abs(a.netA)||b.rated-a.rated||a.aName.localeCompare(b.aName));
+ return [...pairs.values()].map(p=>{
+  const shared=trades.filter(t=>t.rated&&p.ratedIds.has(t.id));
+  const netFor=id=>shared.reduce((sum,t)=>sum+(t.participants.find(side=>side.id===id)?.net||0),0);
+  const netA=netFor(p.aId),netB=netFor(p.bId);
+  return {key:p.key,aId:p.aId,bId:p.bId,aName:names.get(p.aId)||String(p.aId),
+   bName:names.get(p.bId)||String(p.bId),netA,netB,
+   directNetA:p.netA,directNetB:-p.netA,
+   trades:p.trades,rated:p.rated,volume:p.volume,
+   provisional:p.rated===0};
+ }).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
+  Math.abs(b.netA-b.netB)-Math.abs(a.netA-a.netB)||
+  b.rated-a.rated||a.aName.localeCompare(b.aName));
 }
 function figTradeRatingModel(data,tools){
  const trades=data.trades||[],assets=data.tradeAssets||[],sides=data.tradeSides||[];
