@@ -1,0 +1,13 @@
+/* Single-season pace watch — related, but distinct from the break watch. */
+.fig-season-watch-section{margin-top:16px}
+.fig-season-watch-section .fig-watch-panel{border-color:#d5e4de;background:#fff}
+.fig-season-watch-section .fig-watch-intro strong{color:#2c6551}
+.fig-season-watch-section .fig-watch-row{background:#fafcfb}
+.fig-season-watch-section .fig-watch-details span{color:#607d70}
+.fig-season-watch-section .fig-watch-progress{gap:5px}
+.fig-season-watch-section .fig-watch-progress strong{color:#205d44}
+.fig-season-watch-section .fig-watch-status.is-break{white-space:nowrap;background:#e0f1e7;color:#1e6447;font-size:9px}
+@media(max-width:699px){
+ .fig-season-watch-section .fig-watch-status.is-break{font-size:9px}
+ .fig-season-watch-section .fig-watch-progress small{font-size:9px}
+}
