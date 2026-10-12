@@ -184,10 +184,16 @@ function figTradeRatingsPage(model,helpers){
    (year==='all'||t.season===year)&&(!search||t.search.includes(search)));
   if(sort==='oldest')list=[...list].reverse();
   if(sort==='best'||sort==='worst')list=[...list].sort((a,b)=>{
-   const bestScore=t=>manager!=='all'?t.participants.find(p=>String(p.id)===manager)?.score:
-     t.participants.reduce((v,p)=>Math.max(v,p.score??-1),-1);
-   const as=bestScore(a),bs=bestScore(b);
-   return (as===null||as===undefined||as<0?1:bs===null||bs===undefined||bs<0?-1:sort==='best'?bs-as:as-bs);
+   const metric=t=>{
+    if(!t.rated)return null;
+    if(manager!=='all')return t.participants.find(p=>String(p.id)===manager)?.score??null;
+    const scores=t.participants.map(p=>p.score).filter(x=>x!==null);
+    return sort==='worst'?Math.min(...scores):Math.max(...scores);
+   };
+   const as=metric(a),bs=metric(b);
+   if(as===null)return bs===null?0:1;
+   if(bs===null)return -1;
+   return sort==='best'?bs-as:as-bs;
   });
   const shown=list.slice(0,limit);
   results.innerHTML='<div class="fig-tr-result-meta">'+list.length+' MATCHING TRADES · '+list.filter(t=>t.rated).length+' RATED</div>'+
