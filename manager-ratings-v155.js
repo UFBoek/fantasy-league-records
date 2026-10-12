@@ -113,7 +113,7 @@ function figManagerRatingsPage(model,helpers,managerId){
   avatar(r.id,'fig-mr-avatar')+
   '<span class="fig-mr-manager"><b>'+escape(r.name)+'</b><small>'+r.grade.valued+' rookie picks · '+r.trade.rated+' rated trades'+
   (r.provisional?' · provisional trades':'')+'</small></span>'+
-  '<span class="fig-mr-primary"><strong>'+n(r.rating)+'</strong><small>IQ / 100</small></span>'+
+  '<span class="fig-mr-primary"><strong>'+n(r.rating)+'</strong><small>RATING / 100</small></span>'+
   '<span class="fig-mr-rank-components"><span><b>'+n(r.draftScore)+'</b><small>DRAFT</small></span>'+
   '<span><b>'+n(r.tradeScore)+'</b><small>TRADE</small></span>'+
   '<span><b>'+n(r.lineupScore)+'</b><small>LINEUP</small></span>'+ 
@@ -127,21 +127,21 @@ function figManagerRatingsPage(model,helpers,managerId){
    '<div><span>ALL-TIME MANAGER RATING</span><h2>'+escape(team.name)+'</h2><small>LEAGUE RANK '+(team.rank===null?'—':'#'+team.rank)+'</small></div>'+
    '<strong>'+n(team.rating)+'<small>/ 100</small></strong></div></div>';
   const details='<div class="fig-mr-profile-cols">'+
-   statList('DRAFT RATING',card('DRAFT SCORE',score(team.draftScore),'35% OF MANAGER IQ')+
+   statList('DRAFT RATING',card('DRAFT SCORE',score(team.draftScore),'35% OF RATING')+
     card('ROOKIE RETURN',team.grade.ratio===null?'—':Math.round(team.grade.ratio*100)+'%',
      team.grade.valued+' / '+team.grade.eligible+' PICKS GRADED')+
     card('PICK GRADE',escape(team.grade.letter),'AVERAGE LETTER GRADE')+
     '<a class="fig-mr-panel-link" href="#/draft/team/'+team.id+'">FULL DRAFT BREAKDOWN →</a>')+
-   statList('TRADE RATING',card('TRADE SCORE',score(team.tradeScore),'35% OF MANAGER IQ')+
+   statList('TRADE RATING',card('TRADE SCORE',score(team.tradeScore),'35% OF RATING')+
     card('NET VALUE',signed(team.trade.net),team.trade.rated+' / '+team.trade.trades+' TRADES RATED')+
     card('TRADE RECORD',team.trade.wins+'W · '+team.trade.losses+'L · '+team.trade.ties+'T','VALUED OUTCOMES')+
     '<a class="fig-mr-panel-link" href="#/trades">FULL TRADE RATINGS →</a>')+
-   statList('SIT / START',card('LINEUP SCORE',score(team.lineupScore),'20% OF MANAGER IQ')+
+   statList('SIT / START',card('LINEUP SCORE',score(team.lineupScore),'20% OF RATING')+
     card('POINTS CAPTURED',p(team.lineup),team.games+' COMPLETED REGULAR-SEASON WEEKS')+
     card('POINTS LEFT',money(team.optimal-team.actual),
       money(team.actual)+' OF '+money(team.optimal)+' POSSIBLE')+
     '<a class="fig-mr-panel-link" href="#/team/'+team.id+'">TEAM HISTORY →</a>')+
-   statList('WAIVER VALUE',card('WAIVER SCORE',score(team.waiverScore),'10% OF MANAGER IQ')+
+   statList('WAIVER VALUE',card('WAIVER SCORE',score(team.waiverScore),'10% OF RATING')+
     card('TOP 10 PICKUPS',team.waiver.top10Value===null?'—':money(team.waiver.top10Value),'CURRENT ROSTERAUDIT VALUE')+
     card('UNIQUE ADDS',team.waiver.uniqueAdds.length,team.waiver.adds.length+' RECORDED MOVES')+
     '<a class="fig-mr-panel-link" href="#/team/'+team.id+'/waivers">WAIVER HISTORY →</a>')+'</div>';
@@ -159,7 +159,7 @@ function figManagerRatingsPage(model,helpers,managerId){
   return;
  }
  let sort='rating';
- const options=[['rating','OVERALL IQ'],['draftScore','DRAFT'],['tradeScore','TRADE'],['lineupScore','SIT / START'],['waiverScore','WAIVERS']];
+ const options=[['rating','OVERALL RATING'],['draftScore','DRAFT'],['tradeScore','TRADE'],['lineupScore','SIT / START'],['waiverScore','WAIVERS']];
  const render=()=>{
   const ordered=[...model.rows].sort((a,b)=>(b[sort]??-1)-(a[sort]??-1)||
     (b.rating??-1)-(a.rating??-1)||a.id-b.id);
@@ -172,7 +172,7 @@ function figManagerRatingsPage(model,helpers,managerId){
   });
  };
  html('managerRatingsRoot','<div class="fig-mr-page">'+
-  '<div class="fig-mr-intro"><div><small>THE FIG MANAGER IQ INDEX</small><h2>ALL-TIME RANKINGS</h2></div>'+
+  '<div class="fig-mr-intro"><div><small>MANAGER RATINGS</small><h2>ALL-TIME RANKINGS</h2></div>'+
   '<div class="fig-mr-weights"><span><b>35%</b> DRAFT</span><span><b>35%</b> TRADE</span><span><b>20%</b> SIT/START</span><span><b>10%</b> WAIVERS</span></div></div>'+
   '<div class="fig-mr-sortbar"><span>SORT BY</span>'+
   options.map(x=>'<button type="button" class="fig-mr-sort'+(x[0]===sort?' active':'')+

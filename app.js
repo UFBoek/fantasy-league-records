@@ -4,7 +4,7 @@ const fileMap={league:'league_history',leagueSettings:'league_settings',games:'g
 const JACK_ID=1,HAYDEN_ID=6;
 const OWNER_DISPLAY_BY_ID={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 // Permanent, franchise-ID keyed images; independent of Sleeper refreshes.
-const OWNER_AVATAR_BY_ID={1:'assets/avatars/boek.webp',2:'assets/avatars/fru.webp',3:'assets/avatars/fromm.webp',4:'assets/avatars/sack.webp',5:'assets/avatars/leyton.webp',6:'assets/avatars/hayden.webp',7:'assets/avatars/line.webp',8:'assets/avatars/winston.webp',9:'assets/avatars/camnol.webp',10:'assets/avatars/james.webp'};
+const OWNER_AVATAR_BY_ID={1:'assets/avatars/boek.webp',2:'assets/avatars/fru.webp',3:'assets/avatars/fromm.webp',4:'assets/avatars/sack.webp',5:'assets/avatars/leyton.webp',6:'assets/avatars/hayden-v157.webp',7:'assets/avatars/line.webp',8:'assets/avatars/winston.webp',9:'assets/avatars/camnol.webp',10:'assets/avatars/james.webp'};
 // Direct read-only Sleeper CDN headshots. Avoid fetching the entire NFL player
 // directory for page views; archived player logs already provide each player ID.
 // A visible initials tile remains when a player is retired, ID is a defense,
@@ -2191,7 +2191,7 @@ async function managerRatings(managerId){
   'trades','tradeSides','tradeAssets','playerLog','transactions','waiverNames']);
  navActive('');
  if(typeof figTradeRatingModel!=='function'||typeof figManagerRatingModel!=='function'){
-  app.innerHTML=hero('FIG MANAGER IQ','MANAGER RATINGS','Manager rating engine is unavailable. Reload the page.');
+  app.innerHTML=hero('LEAGUE MANAGER RATINGS','MANAGER RATINGS','Manager rating engine is unavailable. Reload the page.');
   return;
  }
  const trades=figTradeRatingModel(DATA,{
@@ -2212,7 +2212,7 @@ async function managerRatings(managerId){
  if(managerId&&!model.rows.some(r=>r.id===selected)){
   location.hash='#/manager-ratings';return;
  }
- app.innerHTML=hero('FIG MANAGER IQ','MANAGER RATINGS','Drafts · trades · sit/start')+
+ app.innerHTML=hero('LEAGUE MANAGER RATINGS','MANAGER RATINGS','Drafts · trades · sit/start')+
   '<div id="managerRatingsRoot"></div>';
  figManagerRatingsPage(model,{
   html:(id,markup)=>{const target=document.getElementById(id);if(target)target.innerHTML=markup;},
