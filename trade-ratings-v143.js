@@ -201,7 +201,23 @@ function figTradeRatingsPage(model,helpers){
    return sort==='best'?bs-as:as-bs;
   });
   const shown=list.slice(0,limit);
+  const selectedPair=manager!=='all'&&versus!=='all'&&manager!==versus;
+  // Head-to-head totals mirror the James/Hayden all-time summary, but any pair
+  // can be selected and the results respond to year/search filters.
+  const pairPanel=selectedPair&&list.length?'<div class="fig-tr-pair-board">'+[manager,versus].map(id=>{
+    const rows=list.flatMap(t=>t.participants.filter(p=>String(p.id)===id));
+    const n=rows.length,market=rows.reduce((v,p)=>v+p.market,0);
+    const lineup=rows.reduce((v,p)=>v+p.lineup,0),rated=rows.filter(p=>p.score!==null);
+    const avg=rated.length?rated.reduce((v,p)=>v+p.score,0)/rated.length:null;
+    const name=managers.find(p=>String(p.id)===id)?.name||id;
+    return '<div class="fig-tr-pair-person">'+avatar(id,'fig-tr-rank-avatar')+
+     '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+n+' DIRECT TRADES</small></div>'+
+     '<div class="fig-tr-pair-score">'+(avg===null?'—':avg.toFixed(1))+'<small>AVG SCORE</small></div>'+
+     '<div class="fig-tr-pair-stats"><span>'+money(market)+' <small>RECEIVED VALUE</small></span>'+
+     '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
+   }).join('')+'</div>':'';
   results.innerHTML='<div class="fig-tr-result-meta">'+list.length+' MATCHING TRADES · '+list.filter(t=>t.rated).length+' RATED</div>'+
+   pairPanel+
    (shown.length?'<div class="fig-tr-list">'+shown.map(card).join('')+'</div>':'<div class="fig-tr-empty">No trades match these filters.</div>')+
    (list.length>shown.length?'<button type="button" class="fig-tr-more" id="figTrMore">SHOW '+Math.min(24,list.length-shown.length)+' MORE →</button>':'');
   const more=el('#figTrMore');if(more)more.onclick=()=>{limit+=24;render()};
