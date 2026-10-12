@@ -1,8 +1,8 @@
-/* Trade Ratings regression: net market gain/loss, zero-cost exchanges, and filters. */
+/* Trade Ratings regression: net-market trade allocations and partner consistency. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const code=fs.readFileSync('trade-ratings-v143.js','utf8');
-const {figTradeRatingModel,figTradeRatingsPage,figTradePartnerships}=new Function(code+';return {figTradeRatingModel,figTradeRatingsPage,figTradePartnerships};')();
+const {figTradeRatingModel,figTradeRatingsPage,figTradePartnerships,figTradePairCredits}=new Function(code+';return {figTradeRatingModel,figTradeRatingsPage,figTradePartnerships,figTradePairCredits};')();
 const trade=(id,season,week,ids)=>({transaction_id:id,season,week,franchises_involved:ids.length,franchise_ids:ids,total_player_assets:2,total_pick_assets:0});
 const side=(id,franchise)=>({transaction_id:id,franchise_id:franchise,owner_name:'Manager '+franchise,assets_received:[]});
 const asset=(id,franchise,direction,type,playerId=null,year=null,round=null,origin=null)=>({
@@ -158,7 +158,7 @@ assert.equal(hayden.market,6541);
 assert.equal(hayden.sent,3088);
 assert.equal(hayden.lineup,333.5);
 assert.equal(hayden.net,3453);
-// A three-party exchange creates direct pairings only for actual sent assets.
+// Gains against each opponent must sum to a manager's whole-trade gain.
 const triangle=figTradeRatingModel({
  trades:[trade('triangle',2024,1,[1,3,10])],
  tradeSides:[side('triangle',1),side('triangle',3),side('triangle',10)],
@@ -172,16 +172,28 @@ const triangle=figTradeRatingModel({
 assert.equal(triangle.rated,1);
 assert.deepEqual(triangle.partnerships.map(p=>p.key),['1:10','3:10']);
 const boekVsJames=triangle.partnerships.find(p=>p.key==='1:10');
-assert.equal(boekVsJames.netA,4500); // 5k to Boek less 500 to James
+assert.equal(boekVsJames.netA,4500);
+assert.equal(boekVsJames.netB,-4500);
 assert.equal(triangle.partnerships.find(p=>p.key==='3:10').netA,1250);
+assert.equal(triangle.partnerships.find(p=>p.key==='3:10').netB,-1250);
 assert.equal(triangle.partnerships.some(p=>p.key==='1:3'),false);
-assert.equal(boekVsJames.netB,-5750);
-assert.equal(boekVsJames.directNetA,4500);
-assert.equal(boekVsJames.directNetB,-4500);
-assert.equal(triangle.partnerships.find(p=>p.key==='3:10').netB,-5750);
-// The listed whole-trade net is intentionally not forced to zero sum when
-// a third manager participated.
-assert.equal(boekVsJames.netA+boekVsJames.netB,-1250);
+assert.equal(triangle.partnerships.reduce((n,p)=>n+p.netB,0),-5750);
+// A specific 3-team outcome is apportioned separately to each losing manager.
+const threeWay=figTradePairCredits({id:'example',rated:true,participants:[
+ {id:1,net:5473,items:[]},{id:2,net:-975,items:[]},{id:8,net:-4498,items:[]}
+]});
+assert.deepEqual(threeWay.map(p=>[p.key,p.netA,p.netB]),[
+ ['1:2',975,-975],['1:8',4498,-4498]
+]);
+// Balanced decimal apportionments never lose or create cents.
+const fourWay=figTradePairCredits({id:'four',rated:true,participants:[
+ {id:1,net:100.01,items:[]},{id:2,net:49.99,items:[]},
+ {id:3,net:-75.03,items:[]},{id:4,net:-74.97,items:[]}
+]});
+for(const p of [{id:1,net:100.01},{id:2,net:49.99},{id:3,net:-75.03},{id:4,net:-74.97}]){
+ const cents=Math.round(fourWay.reduce((n,x)=>n+(x.aId===p.id?x.netA:x.bId===p.id?x.netB:0),0)*100);
+ assert.equal(cents,Math.round(p.net*100));
+}
 // Isolate the requested 2023 three-party transaction, not other picks/trades.
 const slotPick={...asset('997041669574823936',1,'Received','Draft Pick',null,2024,1,10),
  season:2023,week:1,counterparty_franchise_id:10};
@@ -204,24 +216,39 @@ assert.equal(boq.items[0].market,2265);
 assert.equal(boq.items[0].selection,undefined);
 assert.equal(boq.market,2265);
 assert.equal(boq.net,765);
-// Every partnership's two displayed values must equal the sum of the
-// individual trade cards featuring a *direct* exchange between the pair.
+// Each transaction's pair credits equal every manager's whole-trade net.
+// Each manager's partner totals also reconcile to the league rankings.
 function verifyPartnershipSums(model){
+ const pairTotals=new Map();
+ const franchiseTotals=new Map();
+ const pairCounts=new Map();
+ for(const t of model.trades){
+  const credit=figTradePairCredits(t);
+  if(t.rated){
+   assert.equal(Math.round(t.participants.reduce((n,p)=>n+p.net,0)*100),0);
+   for(const p of t.participants){
+    const allocated=credit.reduce((n,c)=>n+(p.id===c.aId?c.netA:p.id===c.bId?c.netB:0),0);
+    assert.equal(Math.round(allocated*100),Math.round(p.net*100),
+     'Unbalanced team credit for trade '+t.id+' manager '+p.id);
+    franchiseTotals.set(p.id,(franchiseTotals.get(p.id)||0)+p.net);
+   }
+  }
+  for(const c of credit){
+   pairCounts.set(c.key,(pairCounts.get(c.key)||0)+1);
+   if(t.rated)pairTotals.set(c.key,(pairTotals.get(c.key)||0)+Math.round(c.netA*100));
+  }
+ }
  for(const p of model.partnerships){
-  const shared=model.trades.filter(t=>t.rated&&
-   t.participants.some(x=>x.id===p.aId)&&t.participants.some(x=>x.id===p.bId)&&
-   t.participants.some(x=>x.items.some(a=>
-     (x.id===p.aId&&Number(a.asset.counterparty_franchise_id)===p.bId)||
-     (x.id===p.bId&&Number(a.asset.counterparty_franchise_id)===p.aId))));
-  assert.equal(p.netA,shared.reduce((n,t)=>n+t.participants.find(x=>x.id===p.aId).net,0));
-  assert.equal(p.netB,shared.reduce((n,t)=>n+t.participants.find(x=>x.id===p.bId).net,0));
-  assert.equal(p.rated,shared.length);
-  assert.equal(p.directNetA,-p.directNetB);
+  assert.equal(Math.round(p.netA*100),pairTotals.get(p.key)||0);
+  assert.equal(Math.round(p.netB*100),-(pairTotals.get(p.key)||0));
+  assert.equal(p.trades,pairCounts.get(p.key));
  }
- for(let i=1;i<model.partnerships.length;i++){
-  const before=model.partnerships[i-1],after=model.partnerships[i];
-  assert.ok(Math.abs(before.netA-before.netB)>=Math.abs(after.netA-after.netB));
+ for(const [id,value] of franchiseTotals){
+  const gained=model.partnerships.reduce((n,p)=>n+(p.aId===id?p.netA:p.bId===id?p.netB:0),0);
+  assert.equal(Math.round(gained*100),Math.round(value*100));
  }
+ for(let i=1;i<model.partnerships.length;i++)
+  assert.ok(Math.abs(model.partnerships[i-1].netA)>=Math.abs(model.partnerships[i].netA));
 }
 verifyPartnershipSums(m);
 verifyPartnershipSums(triangle);
@@ -276,9 +303,8 @@ assert.match(markup,/TRADE HISTORY/);
 assert.match(markup,/MOST LOPSIDED PARTNERSHIPS/);
 assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 1/);
 assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 2/);
-assert.match(node('#figTrPartnershipRows').innerHTML,/fig-tr-partnership-scores/);
-assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 1 <b>/);
-assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 2 <b>/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/fig-tr-partnership-gap/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/NET ADVANTAGE/);
 assert.match(markup,/Total net value gained or lost/);
 assert.match(markup,/HOW IS GAIN \/ LOSS CALCULATED/);
 assert.doesNotMatch(markup,/RETURN %|OVERALL RETURN|AVG SCORE|GRADE|HIGHEST RETURN|LOWEST RETURN/);
@@ -293,7 +319,7 @@ assert.match(node('#figTrResults').innerHTML,/AGAINST EVERY MANAGER/);
 assert.match(node('#figTrResults').innerHTML,/data-opponent="2"/);
 node('#figTrVersus').onchange({target:{value:'2'}});
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
-assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
+assert.match(node('#figTrResults').innerHTML,/SHARED TRADES/);
 assert.match(node('#figTrResults').innerHTML,/VALUE RECEIVED/);
 assert.match(node('#figTrResults').innerHTML,/VALUE SENT/);
 assert.match(node('#figTrResults').innerHTML,/VALUE GAINED/);
@@ -315,14 +341,14 @@ node('#figTrClear').onclick();
 assert.equal(typeof firstPartner.onclick,'function');
 firstPartner.onclick();
 assert.match(node('#figTrResults').innerHTML,/AGAINST EVERY MANAGER/);
-assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
+assert.match(node('#figTrResults').innerHTML,/SHARED TRADES/);
 node('#figTrAllOpponents').onclick();
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 const firstOpponent=node('#figTrResults').querySelectorAll('.fig-tr-opponent')[0];
 assert.equal(firstOpponent.dataset.opponent,'2');
 assert.equal(typeof firstOpponent.onclick,'function');
 firstOpponent.onclick();
-assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
+assert.match(node('#figTrResults').innerHTML,/SHARED TRADES/);
 node('#figTrYear').onchange({target:{value:'2026'}});
 assert.match(node('#figTrResults').innerHTML,/1 MATCHING TRADES/);
 node('#figTrSearch').oninput({target:{value:'no matching asset'}});
@@ -336,11 +362,10 @@ assert.doesNotMatch(node('#figTrResults').innerHTML,/SENT OUTCOME|4×/);
 const app=fs.readFileSync('app.js','utf8'),index=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8');
 assert.ok(app.includes("const model=figTradeRatingModel(DATA,"));
 assert.ok(app.includes('figTradeRatingsPage(model,'));
-assert.ok(index.includes('trade-ratings-v143.js?v=152'));
-assert.ok(index.includes('trade-ratings-v143.css?v=152'));
-assert.ok(sw.includes('trade-ratings-v143.js?v=152'));
-// Audit every partnership from published league data on each data refresh.
-// Never assume a three-team matchup's two net totals are exact opposites.
+assert.ok(index.includes('trade-ratings-v143.js?v=153'));
+assert.ok(index.includes('trade-ratings-v143.css?v=153'));
+assert.ok(sw.includes('trade-ratings-v143.js?v=153'));
+// Audit each partnership and manager against the published league data every refresh.
 const liveData={
  trades:JSON.parse(fs.readFileSync('data/trades.json','utf8')),
  tradeSides:JSON.parse(fs.readFileSync('data/trade_sides.json','utf8')),
@@ -373,4 +398,4 @@ for(const season of actual.years){
   trades:rows,partnerships:figTradePartnerships(rows,allNames)
  });
 }
-console.log('Every published partnership reconciles to trade cards, including multi-team trades.');
+console.log('Multi-team pair allocations reconcile to every manager and all published trades.');
