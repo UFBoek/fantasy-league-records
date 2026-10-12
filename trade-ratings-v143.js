@@ -1,4 +1,4 @@
-/* Trade Ratings v150 — asset-only net valuation and direct manager partnerships. */
+/* Trade Ratings v151 — transparent matchup net comparisons. */
 function figTradeNetLabel(value,money){
  if(value===null||!Number.isFinite(value))return '—';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
