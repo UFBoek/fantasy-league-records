@@ -881,35 +881,56 @@ async function team(id,selectedTab,selectedDraftYear){
    const tied=peers.filter(x=>num(x.length)===targetLength).length>1;
    if(rank<=3)streakTop.push({...s,_rank:rank,_tied:tied});
  }
- // Team snapshot mirrors every ALL-TIME category that exists on the main Team Records screen,
- // including its four special weekly leaderboards. This keeps the profile snapshot and record book in sync.
- const allCareerRecordRows=cleanTeamRecordRows('All-Time Combined');
- const careerTopRecords=allCareerRecordRows.filter(x=>+x.franchise_id===id&&num(x.rank)<=3&&num(x.value)>0).map(x=>({source:'career',rank:x.rank,label:x.category,value:x.value,view:'All-Time Combined',tied:allCareerRecordRows.filter(y=>y.category===x.category&&sameRecordValue(y.value,x.value)).length>1,href:`#/record/team/${encodeURIComponent(x.category)}/${encodeURIComponent('All-Time Combined')}`}));
- const allTimeSpecialRows=(()=>{
+ // Team record snapshot follows the Regular Season and Playoffs books only.
+ // Keep the streak history below untouched: streaks remain their own all-time archive.
+ const careerTopRecords=['Regular Season','Playoffs'].flatMap(view=>{
+  const records=cleanTeamRecordRows(view);
+  return records.filter(x=>+x.franchise_id===id&&num(x.rank)<=3&&num(x.value)>0).map(x=>({
+   source:'career',rank:x.rank,label:x.category,value:x.value,view,
+   tied:records.filter(y=>y.category===x.category&&sameRecordValue(y.value,x.value)).length>1,
+   href:'#/record/team/'+encodeURIComponent(x.category)+'/'+encodeURIComponent(view)
+  }));
+ });
+ const scopedSpecialRows=['Regular Season','Playoffs'].flatMap(view=>{
    const teamWeeks=[];
-   (DATA.games||[]).forEach(g=>{teamWeeks.push({franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});teamWeeks.push({franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week})});
-   const rankRows=(rows,descending=true)=>{const sorted=[...rows].sort((a,b)=>descending?num(b.value)-num(a.value):num(a.value)-num(b.value));let prev=null,rank=0;return sorted.map((x,i)=>{if(prev===null||!sameRecordValue(x.value,prev))rank=i+1;prev=x.value;return {...x,rank,tied:sorted.filter(y=>sameRecordValue(y.value,x.value)).length>1}})};
-   const highRows=rankRows(teamWeeks,true).map(x=>({...x,label:'HIGHEST SCORING WEEK',href:'#/special/teamweeks/All-Time%20Combined'}));
-   const lowRows=rankRows(teamWeeks,false).map(x=>({...x,label:'LOWEST SCORING WEEK',href:'#/special/teamweeks-low/All-Time%20Combined'}));
+   (DATA.games||[]).filter(g=>view==='Regular Season'?g.game_type==='Regular Season':g.game_type!=='Regular Season').forEach(g=>{
+    teamWeeks.push({franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});
+    teamWeeks.push({franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week});
+   });
+   const rankRows=(rows,descending=true)=>{
+    const sorted=[...rows].sort((a,b)=>descending?num(b.value)-num(a.value):num(a.value)-num(b.value));
+    let prev=null,rank=0;
+    return sorted.map((x,i)=>{if(prev===null||!sameRecordValue(x.value,prev))rank=i+1;prev=x.value;
+     return {...x,rank,tied:sorted.filter(y=>sameRecordValue(y.value,x.value)).length>1}});
+   };
+   const viewKey=encodeURIComponent(view);
+   const highRows=rankRows(teamWeeks,true).map(x=>({...x,view,label:'HIGHEST SCORING WEEK',href:'#/special/teamweeks/'+viewKey}));
+   const lowRows=rankRows(teamWeeks,false).map(x=>({...x,view,label:'LOWEST SCORING WEEK',href:'#/special/teamweeks-low/'+viewKey}));
+   if(view==='Playoffs')return [...highRows,...lowRows];
    const weekly={};(DATA.standingsCareer||[]).forEach(x=>weekly[+x.franchise_id]={franchise_id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});
-   const byWeek={};teamWeeks.forEach(x=>(byWeek[`${x.season}-${x.week}`]??=[]).push(x));Object.values(byWeek).forEach(rows=>{rows.sort((a,b)=>num(b.value)-num(a.value));rows.forEach((x,i)=>{if(weekly[x.franchise_id]){if(i===0)weekly[x.franchise_id].high++;if(i<3)weekly[x.franchise_id].top3++}})});
+   const byWeek={};teamWeeks.forEach(x=>(byWeek[x.season+'-'+x.week]??=[]).push(x));
+   Object.values(byWeek).forEach(rows=>{rows.sort((a,b)=>num(b.value)-num(a.value));rows.forEach((x,i)=>{
+    if(weekly[x.franchise_id]){if(i===0)weekly[x.franchise_id].high++;if(i<3)weekly[x.franchise_id].top3++}
+   })});
    const weeklyRows=Object.values(weekly);
-   const highCountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.high})),true).map(x=>({...x,label:'WEEKLY HIGH SCORES',href:'#/special/highscores/All-Time%20Combined'}));
-   const top3CountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.top3})),true).map(x=>({...x,label:'TOP-3 WEEKLY SCORES',href:'#/special/top3/All-Time%20Combined'}));
+   const highCountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.high})),true)
+    .map(x=>({...x,view,label:'WEEKLY HIGH SCORES',href:'#/special/highscores/'+viewKey}));
+   const top3CountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.top3})),true)
+    .map(x=>({...x,view,label:'TOP-3 WEEKLY SCORES',href:'#/special/top3/'+viewKey}));
    return [...highRows,...lowRows,...highCountRows,...top3CountRows];
  })();
  // Preserve secondary leaderboard placements for single-week records instead of collapsing a
  // franchise to only its best occurrence. Highest/lowest scoring weeks show every top-10 slot
  // occupied by this franchise; aggregate weekly-count records remain top-3 franchise records.
- const specialTopRecords=allTimeSpecialRows.filter(x=>{
+ const specialTopRecords=scopedSpecialRows.filter(x=>{
    if(+x.franchise_id!==id||num(x.value)<0)return false;
    if(x.label==='HIGHEST SCORING WEEK'||x.label==='LOWEST SCORING WEEK')return num(x.rank)<=10;
    return num(x.rank)<=3;
- }).map(x=>({source:'special',rank:x.rank,label:x.label,value:x.value,season:x.season,week:x.week,view:'All-Time Combined',tied:x.tied,href:x.href}));
+ }).map(x=>({source:'special',rank:x.rank,label:x.label,value:x.value,season:x.season,week:x.week,view:x.view,tied:x.tied,href:x.href}));
  // Career/aggregate categories have one meaningful row per franchise, so dedupe those by label.
  // Single-week special rows are intentionally NOT deduped because #1, #2, #3, etc. are separate
  // record-book placements that should all appear on the franchise snapshot.
- const teamTopMap=new Map();for(const r of careerTopRecords){const key=String(r.label);const prev=teamTopMap.get(key);if(!prev||num(r.rank)<num(prev.rank)||(num(r.rank)===num(prev.rank)&&num(r.value)>num(prev.value)))teamTopMap.set(key,r)}
+ const teamTopMap=new Map();for(const r of careerTopRecords){const key=String(r.view)+'|'+String(r.label);const prev=teamTopMap.get(key);if(!prev||num(r.rank)<num(prev.rank)||(num(r.rank)===num(prev.rank)&&num(r.value)>num(prev.value)))teamTopMap.set(key,r)}
  const teamTopRecords=[...teamTopMap.values(),...specialTopRecords].sort((a,b)=>num(a.rank)-num(b.rank)||String(a.label).localeCompare(String(b.label))||num(b.value)-num(a.value));
  const completeTeamSeasons=new Set(DATA.teamSeasonMaster.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').map(x=>String(x.season)));
  const allSeasonRecordRowsRaw=DATA.singleSeasonRecords.filter(x=>!redundantScoreAverageRecord(x)&&!excludedSingleSeasonRecord(x)&&completeTeamSeasons.has(String(x.season))&&num(x.value)>0&&!['games_100'].includes(String(x.metric||''))&&!/100\+ point games/i.test(String(x.record_category||''))).concat(singleSeasonBombRows().filter(x=>num(x.value)>0));
