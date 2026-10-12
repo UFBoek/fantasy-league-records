@@ -63,3 +63,54 @@
  .page-wrap .fig-team-championships{gap:12px}
  .page-wrap .fig-team-banner{width:100px;height:134px;padding-top:10px}
 }
+
+/* Mobile: use a separate trophy shelf BETWEEN the team profile and value panel.
+   The desktop banners remain in the header's third column. */
+.page-wrap .fig-team-championship-mobile{display:none}
+@media (max-width:699px){
+ .page-wrap .team-profile-top.fig-has-championships > .fig-team-championships{
+  display:none!important;
+ }
+ .page-wrap .fig-team-championship-mobile{
+  display:block;
+  position:relative;
+  width:100%;
+  margin:13px 0 15px;
+  padding:13px 8px 8px;
+  background:#f4f5f2;
+  border:1px solid #d1d9d2;
+  border-radius:20px;
+  box-sizing:border-box;
+  isolation:isolate;
+ }
+ .page-wrap .fig-team-championship-mobile .fig-team-championships{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  justify-self:initial;
+  grid-column:auto;
+  gap:12px;
+  width:100%;
+  max-width:100%;
+  padding:0;
+ }
+ .page-wrap .fig-team-championship-mobile .fig-team-banner{
+  width:92px;
+  height:123px;
+  padding:10px 6px 23px;
+ }
+ .page-wrap .fig-team-championship-mobile .fig-team-banner-league{
+  font-size:8px;
+  letter-spacing:.07em;
+ }
+ .page-wrap .fig-team-championship-mobile .fig-team-banner-emblem{
+  width:29px;
+  height:29px;
+  font-size:18px;
+  margin:5px 0 5px;
+ }
+ .page-wrap .fig-team-championship-mobile .fig-team-banner strong{font-size:18px}
+ .page-wrap .fig-team-championship-mobile .fig-team-banner-label{font-size:8px}
+ .page-wrap .fig-team-championship-mobile .fig-team-banner::after{inset:5px 7px 22px}
+}
