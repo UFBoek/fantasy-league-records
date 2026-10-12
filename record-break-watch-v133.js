@@ -1,4 +1,4 @@
-/* v135: Six-game record watches (125+/150+ require next-game break), three-game ended-streak watches. Finalized rows only;
+/* v137: Regular-season and playoff six-game record watches (125+/150+ require next-game break), three-game ended-streak watches. Finalized rows only;
    never count a live Sleeper matchup toward an official record. */
 function figWatchLatestWeek(games,streaks){
  const items=(games||[]).map(x=>({season:Number(x.season)||0,week:Number(x.week)||0}))
@@ -40,7 +40,7 @@ function figWatchRequirement(metric,needed){
 }
 function figBuildTeamRecordWatch(){
  const entries=[];
- for(const view of ['All-Time Combined','Regular Season']){
+ for(const view of ['Regular Season','Playoffs']){
   const groups=new Map();
   for(const x of cleanTeamRecordRows(view)){
    if(!Number.isFinite(Number(x.value))||Number(x.value)<=0||!Number.isInteger(Number(x.franchise_id)))continue;
@@ -65,7 +65,7 @@ function figBuildTeamRecordWatch(){
     const gamesNeeded=figWatchGameEstimate(metric,needed);
     if(gamesNeeded>figWatchHorizon(metric))continue;
     entries.push({teamId:+contender.franchise_id,team:displayOwnerName(contender.record_holder,contender.franchise_id),
-     title:category,scope:view==='Regular Season'?'REGULAR SEASON':'ALL-TIME',
+     title:category,scope:view==='Regular Season'?'REGULAR SEASON':'PLAYOFFS',
      current,record:best,recordHolder,status:'BREAK',needed,metric,gamesNeeded,
      requirement:figWatchRequirement(metric,needed),
      href:'#/record/team/'+encodeURIComponent(category)+'/'+encodeURIComponent(view)});
@@ -73,7 +73,7 @@ function figBuildTeamRecordWatch(){
   }
  }
  return entries.sort((a,b)=>a.gamesNeeded-b.gamesNeeded||
-  (a.scope==='ALL-TIME'?0:1)-(b.scope==='ALL-TIME'?0:1)||
+  (a.scope==='REGULAR SEASON'?0:1)-(b.scope==='REGULAR SEASON'?0:1)||
   a.needed-b.needed||a.title.localeCompare(b.title)||a.team.localeCompare(b.team));
 }
 function figStreakCondition(type){
@@ -138,7 +138,7 @@ function figWatchRow(x,streak=false){
 function figWatchSection(kind,entries,through){
  const isStreak=kind==='streaks',id=isStreak?'figStreakWatch':'figRecordWatch';
  const subtitle=isStreak?'Only ended streak records that could be surpassed within 3 consecutive games.':
-  'All-time and regular-season records within 6 games; career 125+/150+ only within 1 game.';
+  'Regular-season and playoff records within 6 games; career 125+/150+ only within 1 game.';
  const list=entries.length?
   entries.map((x,i)=>'<div class="fig-watch-item"'+(i>=6?' hidden':'')+'>'+figWatchRow(x,isStreak)+'</div>').join(''):
   '<div class="fig-watch-empty">No outright record breaks are currently within the '+(isStreak?'3-game':'6-game')+' watch window.</div>';
