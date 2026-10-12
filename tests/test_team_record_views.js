@@ -1,4 +1,4 @@
-/* Regression checks for removing combined all-time TEAM records.
+/* Regression checks for restoring all-time standings but no combined all-time TEAM record views.
    Player career stats and the streak archive intentionally remain intact. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -15,8 +15,8 @@ assert.ok(records.includes("{value:'Regular Season',label:'REGULAR SEASON'}"));
 assert.ok(records.includes("{value:'Playoffs',label:'PLAYOFFS'}"));
 assert.ok(records.includes("{value:'Single Season',label:'SINGLE SEASON'}"));
 assert.ok(!records.includes("{value:'All-Time Combined',label:'ALL-TIME'}"));
-assert.ok(!records.includes("section('ALL-TIME STANDINGS'"));
-assert.ok(!records.includes('hallBoard'));
+assert.ok(records.includes("section('ALL-TIME STANDINGS'"));
+assert.ok(records.includes('hallBoard+'));
 assert.ok(records.includes("figSingleSeasonWatchSection(figBuildSingleSeasonWatch("));
 const team=segment('async function team(id,selectedTab,selectedDraftYear){','async function records(){');
 assert.ok(team.includes("cleanTeamRecordRows(view)"));
@@ -38,8 +38,8 @@ assert.ok(streaks.includes("section('ALL-TIME STREAK RECORDS'"));
 assert.ok(streaks.includes('figBuildStreakRecordWatch(DATA.websiteStreaks)'));
 const index=fs.readFileSync('index.html','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
-assert.ok(index.includes('app.js?v=137'));
+assert.ok(index.includes('app.js?v=138'));
 assert.ok(index.includes('record-break-watch-v133.js?v=137'));
-assert.ok(sw.includes('app.js?v=137'));
+assert.ok(sw.includes('app.js?v=138'));
 assert.ok(sw.includes('record-break-watch-v133.js?v=137'));
 console.log('Regular-season and playoff-only team records checks passed.');
