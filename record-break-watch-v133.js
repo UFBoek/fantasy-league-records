@@ -1,4 +1,4 @@
-/* v134: Six-game record / three-game ended-streak watches. Finalized rows only;
+/* v135: Six-game record watches (125+/150+ require next-game break), three-game ended-streak watches. Finalized rows only;
    never count a live Sleeper matchup toward an official record. */
 function figWatchLatestWeek(games,streaks){
  const items=(games||[]).map(x=>({season:Number(x.season)||0,week:Number(x.week)||0}))
@@ -19,7 +19,10 @@ function figWatchRate(metric){
  return ({b5:3,b20:2,b30:1,b40:1/2,b50:1/3,
   all_play_wins:4,total_points:60,point_differential:65})[metric]||0;
 }
-function figWatchCap(metric){return FIG_WATCH_RECORD_GAMES*figWatchRate(metric);}
+// 125+ and 150+ career-game totals only qualify when a new outright leader
+// could emerge on the very next completed game, in either scoring view.
+function figWatchHorizon(metric){return metric==='games_125'||metric==='games_150'?1:FIG_WATCH_RECORD_GAMES;}
+function figWatchCap(metric){return figWatchHorizon(metric)*figWatchRate(metric);}
 function figWatchGameEstimate(metric,required){
  const rate=figWatchRate(metric);
  return rate>0?Math.ceil((required-1e-8)/rate):Infinity;
@@ -60,7 +63,7 @@ function figBuildTeamRecordWatch(){
     const needed=Math.round((gap+increment)*100)/100;
     if(current<=0||needed>cap+0.000001)continue;
     const gamesNeeded=figWatchGameEstimate(metric,needed);
-    if(gamesNeeded>FIG_WATCH_RECORD_GAMES)continue;
+    if(gamesNeeded>figWatchHorizon(metric))continue;
     entries.push({teamId:+contender.franchise_id,team:displayOwnerName(contender.record_holder,contender.franchise_id),
      title:category,scope:view==='Regular Season'?'REGULAR SEASON':'ALL-TIME',
      current,record:best,recordHolder,status:'BREAK',needed,metric,gamesNeeded,
@@ -118,7 +121,7 @@ function figBuildStreakRecordWatch(streaks){
 function figWatchRow(x,streak=false){
  const mark=streak?x.current+' / '+x.record:money(x.current)+' / '+money(x.record);
  const target=streak?x.gamesNeeded+' GAME'+(x.gamesNeeded===1?'':'S')+' TO BREAK':
-  'WITHIN '+FIG_WATCH_RECORD_GAMES+' GAMES';
+  (figWatchHorizon(x.metric)===1?'NEXT GAME':'WITHIN '+FIG_WATCH_RECORD_GAMES+' GAMES');
  const requirement=streak&&x.gamesNeeded>1?
   x.requirement+' for '+x.gamesNeeded+' more consecutive games':x.requirement;
  return '<a class="fig-watch-row" href="'+esc(x.href)+'">'+
@@ -135,7 +138,7 @@ function figWatchRow(x,streak=false){
 function figWatchSection(kind,entries,through){
  const isStreak=kind==='streaks',id=isStreak?'figStreakWatch':'figRecordWatch';
  const subtitle=isStreak?'Only ended streak records that could be surpassed within 3 consecutive games.':
-  'All-time and regular-season records realistically breakable within 6 games.';
+  'All-time and regular-season records within 6 games; career 125+/150+ only within 1 game.';
  const list=entries.length?
   entries.map((x,i)=>'<div class="fig-watch-item"'+(i>=6?' hidden':'')+'>'+figWatchRow(x,isStreak)+'</div>').join(''):
   '<div class="fig-watch-empty">No outright record breaks are currently within the '+(isStreak?'3-game':'6-game')+' watch window.</div>';
