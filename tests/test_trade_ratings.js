@@ -60,6 +60,16 @@ assert.equal(fresh.participants[0].lineup,15);
 assert.equal(fresh.participants[1].market,3000);
 assert.ok(m.rankings[0].rated>=3);
 assert.equal(figTradeRatingModel({trades:[],tradeSides:[],tradeAssets:[]},tools).rated,0);
+// Historical 2023 startup slots have no honest equivalent in a current rookie pick price.
+const startup=figTradeRatingModel({
+ trades:[trade('s',2023,1,[1,2])],tradeSides:[side('s',1),side('s',2)],
+ tradeAssets:[
+  {...asset('s',1,'Received','Draft Pick',null,2023,1,4),season:2023,week:1},
+  {...asset('s',2,'Received','Player',20),season:2023,week:1}
+ ]
+},tools);
+assert.equal(startup.trades[0].rated,false);
+assert.equal(startup.trades[0].participants[0].items[0].market,null);
 let markup='';
 const nodes={};
 const node=id=>nodes[id]??=( {innerHTML:'',value:'',dataset:{},onclick:null,onchange:null,oninput:null,
