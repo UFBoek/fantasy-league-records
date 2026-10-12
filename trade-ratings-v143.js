@@ -1,15 +1,8 @@
-/* Trade Ratings v146 — numeric overall return, not subjective letter grades.
-   100% means value received equals value sent; lineup production counts after acquisition.
-   These are current-outcome comparisons, never reconstructed trade-date prices. */
-function figTradeReturnPct(received,sent){
- if(!Number.isFinite(received)||!Number.isFinite(sent))return null;
- if(sent===0)return received>0?Infinity:null;
- return received/sent*100;
-}
-function figTradeReturnLabel(pct){
- if(pct===null)return '—';
- if(pct===Infinity)return '∞%';
- return Math.round(pct).toLocaleString('en-US')+'%';
+/* Trade Ratings v147 — signed net value gained/lost, never percentages.
+   Each outcome includes current assets plus realized lineup production. */
+function figTradeNetLabel(value,money){
+ if(value===null||!Number.isFinite(value))return '—';
+ return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
 }
 function figTradeRatingModel(data,tools){
  const trades=data.trades||[],assets=data.tradeAssets||[],sides=data.tradeSides||[];
@@ -97,7 +90,7 @@ function figTradeRatingModel(data,tools){
    const starts=items.reduce((n,a)=>n+a.starts,0);
    return {id:+p.franchise_id,name:tools.name(p.owner_name,p.franchise_id),items,market,lineup,starts,
     priced:priced.length,total:items.length,complete:priced.length===items.length&&items.length>0,
-    impact:market+lineup*4,sent:0,net:null,returnPct:null};
+    impact:market+lineup*4,sent:0,net:null};
   });
   // Evaluate what this manager received against what they SENT, using the
   // *recipient's* later outcome for outgoing assets. Counterparty attribution
@@ -110,12 +103,11 @@ function figTradeRatingModel(data,tools){
     .filter(a=>Number(a.asset.counterparty_franchise_id)===p.id)
     .reduce((n,a)=>n+(Number(a.market)||0)+a.points*4,0),0);
    p.net=p.impact-p.sent;
-   p.returnPct=figTradeReturnPct(p.impact,p.sent);
   }
   // Unrecorded or unpriced draft picks still make a trade incomplete, but
   // catalog-missing players with a legitimate zero valuation do not.
   const rated=part.length>=2&&sourceComplete&&part.every(p=>p.complete);
-  if(!rated)for(const p of part){p.net=null;p.returnPct=null;}
+  if(!rated)for(const p of part)p.net=null;
   return {id:String(t.transaction_id),season:String(t.season),week:Number(t.week),participants:part,
    rated,players:Number(t.total_player_assets)||0,picks:Number(t.total_pick_assets)||0,
    search:(String(t.owners_involved||'')+' '+part.map(p=>p.name+' '+p.items.map(x=>x.name+' '+(x.selection||'')).join(' ')).join(' ')).toLowerCase()};
@@ -127,14 +119,13 @@ function figTradeRatingModel(data,tools){
   const relevant=all.filter(t=>t.participants.some(p=>p.id===id));
   const graded=relevant.filter(t=>t.rated).flatMap(t=>t.participants.filter(p=>p.id===id));
   const gained=graded.reduce((n,p)=>n+p.impact,0),sent=graded.reduce((n,p)=>n+p.sent,0);
-  const net=gained-sent,returnPct=graded.length?figTradeReturnPct(gained,sent):null;
+  const net=gained-sent;
   const wins=graded.filter(p=>p.net>0).length,losses=graded.filter(p=>p.net<0).length;
   const ties=graded.length-wins-losses;
-  return {id,name,trades:relevant.length,rated:graded.length,gained,sent,net,returnPct,
+  return {id,name,trades:relevant.length,rated:graded.length,gained,sent,net,
    wins,losses,ties,provisional:graded.length<3};
  }).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
-  (a.returnPct===b.returnPct?0:(a.returnPct===null?1:b.returnPct===null?-1:
-   a.returnPct>b.returnPct?-1:1))||b.net-a.net||b.rated-a.rated||a.name.localeCompare(b.name));
+  b.net-a.net||b.rated-a.rated||a.name.localeCompare(b.name));
  return {trades:all,rankings,years:[...new Set(all.map(t=>t.season))].sort((a,b)=>+b-+a),
    rated:all.filter(t=>t.rated).length};
 }
@@ -147,7 +138,8 @@ function figTradeRatingsPage(model,helpers){
  const returnChip=(p,rated)=>!rated
   ?'<span class="fig-tr-grade pending">UNRATED</span>'
   :'<span class="fig-tr-grade '+(p.net>0?'positive':p.net<0?'negative':'even')+'"><strong>'+
-    (p.returnPct===null?'0 NET':figTradeReturnLabel(p.returnPct))+'</strong></span>';
+    figTradeNetLabel(p.net,money)+'</strong><small>'+
+    (p.net>0?'GAINED':p.net<0?'LOST':'EVEN')+'</small></span>';
  const summaryAssets=p=>p.items.map(a=>escape(a.name)).join(' · ')||'No received assets';
  const compactSide=(p,rated)=>'<div class="fig-tr-compact-side"><div class="fig-tr-compact-person">'+
   '<span>'+avatar(p.id,'fig-tr-photo')+escape(p.name)+'</span>'+returnChip(p,rated)+'</div>'+
@@ -171,23 +163,24 @@ function figTradeRatingsPage(model,helpers){
   '<div class="fig-tr-mini-matchup">'+t.participants.map(p=>compactSide(p,t.rated)).join('')+'</div>'+
   '<span class="fig-tr-chevron" aria-hidden="true">⌄</span></summary>'+
   '<div class="fig-tr-details">'+t.participants.map(p=>detailSide(p,t.rated)).join('')+'</div>'+
-  (!t.rated?'<div class="fig-tr-unrated-note">Return unavailable: at least one side is missing assets, pick values, or sender information.</div>':
-  '<div class="fig-tr-outcome-note">RETURN % = received outcome ÷ sent outcome × 100; 100% is even. Net return = received − sent. Both outcomes include current asset value plus 4× earned starting-lineup points. ∞% means assets sent have a zero outcome; 0 NET means both sides are zero.</div>')+
+  (!t.rated?'<div class="fig-tr-unrated-note">Value unavailable: a side is missing assets, pick values, or sender information.</div>':
+  '<div class="fig-tr-outcome-note">Net value = outcome received − outcome sent. Outcomes include current asset value plus 4× subsequent starting-lineup points.</div>')+
   '</details>';
  const rankRow=(m,i)=>'<button type="button" class="fig-tr-rank-row" data-manager="'+m.id+'">'+
   '<b class="fig-tr-rank-num">'+(m.provisional?'—':String(i+1))+'</b>'+
   avatar(m.id,'fig-tr-rank-avatar')+
   '<span class="fig-tr-rank-name"><strong>'+escape(m.name)+'</strong><small>'+m.rated+'/'+m.trades+
   ' rated · '+m.wins+'W '+m.losses+'L '+m.ties+'T'+(m.provisional?' · PROVISIONAL':'')+'</small></span>'+
-  '<span class="fig-tr-rank-score">'+(m.rated?figTradeReturnLabel(m.returnPct):'—')+
-  '<small>'+(m.rated?'NET '+(m.net>0?'+':'')+money(m.net):'UNRATED')+'</small></span></button>';
+  '<span class="fig-tr-rank-score '+(m.rated?(m.net>0?'positive':m.net<0?'negative':'even'):'pending')+'">'+
+  (m.rated?figTradeNetLabel(m.net,money):'—')+
+  '<small>'+(m.rated?(m.net>0?'VALUE GAINED':m.net<0?'VALUE LOST':'EVEN'):'UNRATED')+'</small></span></button>';
  const leaderboard='<section class="section fig-tr-leaderboard"><div class="section-head">'+
-  '<h2 class="section-title">OVERALL TRADE RANKINGS</h2><div class="section-note">Total received ÷ total sent · minimum 3 trades for ranked</div></div>'+
+  '<h2 class="section-title">OVERALL TRADE RANKINGS</h2><div class="section-note">Total net value gained or lost · minimum 3 rated trades for ranking</div></div>'+
   '<div class="fig-tr-rankings">'+model.rankings.map(rankRow).join('')+'</div>'+
   '</section>';
  html('tradeRatingsRoot','<div class="fig-tr-page">'+
   '<div class="fig-tr-stats"><div><small>COMPLETED TRADES</small><strong>'+model.trades.length+'</strong></div>'+
-  '<div><small>RETURNS CALCULATED</small><strong>'+model.rated+'</strong></div>'+
+  '<div><small>TRADES VALUED</small><strong>'+model.rated+'</strong></div>'+
   '<div><small>MANAGERS</small><strong>'+managers.length+'</strong></div></div>'+
   leaderboard+
   '<section class="section fig-tr-history" id="tradeRatingsHistory"><div class="section-head">'+
@@ -196,13 +189,13 @@ function figTradeRatingsPage(model,helpers){
   '<label>WITH / AGAINST<select id="figTrVersus">'+options(versus)+'</select></label>'+
   '<label>YEAR<select id="figTrYear"><option value="all">ALL YEARS</option>'+model.years.map(y=>'<option value="'+escape(y)+'">'+escape(y)+'</option>').join('')+'</select></label>'+
   '<label>SORT<select id="figTrSort"><option value="recent">NEWEST</option><option value="oldest">OLDEST</option>'+
-  '<option value="best">HIGHEST RETURN</option><option value="worst">LOWEST RETURN</option></select></label>'+
+  '<option value="gain">VALUE GAINED</option><option value="loss">VALUE LOST</option></select></label>'+
   '</div><div class="fig-tr-search-row"><input id="figTrSearch" class="search" type="search" placeholder="Search traded players, picks or managers…" autocomplete="off"><button id="figTrClear" type="button">RESET</button></div>'+
   '<div id="figTrResults"></div></section>'+
-  '<details class="fig-tr-method section"><summary>HOW IS RETURN CALCULATED?</summary>'+
-  '<p>Every trade has a numeric overall return, not a letter grade. Return % = (current value received + 4× subsequent lineup points from received players) ÷ (current value sent + 4× subsequent lineup points from those assets for their new teams) × 100. A 150% return means 50% more value received than sent. The leaderboard calculates each manager’s return from their combined totals, not an average of percentages; at least three complete trades are required to rank.</p>'+
-  '<p>Players missing from the active RosterAudit catalog count as 0; missing player IDs also count as 0 when the valuation feed is available. A full feed outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked. If no value was sent but value was received, return is ∞%; if both outcomes are zero, net return is 0.</p>'+
-  '<p><strong>These are current-outcome returns, not historical trade-date prices.</strong> Player production is counted only after the transaction, stopping at a later recorded trade out; draft-pick outcomes are not credited to someone who subsequently traded the pick. Results change with RosterAudit updates.</p></details></div>');
+  '<details class="fig-tr-method section"><summary>HOW IS GAIN / LOSS CALCULATED?</summary>'+
+  '<p>Net value = outcome received minus outcome sent. Each outcome includes current RosterAudit asset values plus 4× starting-lineup points earned after acquisition. Positive values are gains; negative values are losses. Manager totals add together all valued trades; at least three are required for an official ranking.</p>'+
+  '<p>Players missing from RosterAudit count as 0 if the feed is available. A full provider outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked.</p>'+
+  '<p><strong>These are current-outcome values, not historical trade-date prices.</strong> Player production stops at a later recorded trade out and draft-pick outcomes are not credited to someone who later traded the pick.</p></details></div>');
  const root=el('#tradeRatingsRoot');
  const results=el('#figTrResults');
  const render=()=>{
@@ -211,17 +204,19 @@ function figTradeRatingsPage(model,helpers){
    (manager==='all'||versus==='all'||manager!==versus)&&
    (year==='all'||t.season===year)&&(!search||t.search.includes(search)));
   if(sort==='oldest')list=[...list].reverse();
-  if(sort==='best'||sort==='worst')list=[...list].sort((a,b)=>{
+  if(sort==='gain'||sort==='loss')list=[...list].sort((a,b)=>{
+   // With all managers shown, use the largest gain or loss by one participant.
+   // With a manager selected, use only that manager's gain/loss.
    const metric=t=>{
     if(!t.rated)return null;
-    if(manager!=='all')return t.participants.find(p=>String(p.id)===manager)?.returnPct??null;
-    const returns=t.participants.map(p=>p.returnPct).filter(x=>x!==null);
-    return returns.length?(sort==='worst'?Math.min(...returns):Math.max(...returns)):null;
+    if(manager!=='all')return t.participants.find(p=>String(p.id)===manager)?.net??null;
+    const values=t.participants.map(p=>p.net).filter(x=>x!==null);
+    return values.length?(sort==='loss'?Math.min(...values):Math.max(...values)):null;
    };
-   const as=metric(a),bs=metric(b);
-   if(as===null)return bs===null?0:1;
-   if(bs===null)return -1;
-   return as===bs?0:sort==='best'?(as>bs?-1:1):(as<bs?-1:1);
+   const av=metric(a),bv=metric(b);
+   if(av===null)return bv===null?0:1;
+   if(bv===null)return -1;
+   return sort==='gain'?bv-av:av-bv;
   });
   const shown=list.slice(0,limit);
   const selectedPair=manager!=='all'&&versus!=='all'&&manager!==versus;
@@ -232,12 +227,13 @@ function figTradeRatingsPage(model,helpers){
     const n=rows.length,market=rows.reduce((v,p)=>v+p.market,0);
     const lineup=rows.reduce((v,p)=>v+p.lineup,0);
     const rated=rows.filter(p=>list.some(t=>t.rated&&t.participants.includes(p)));
-    const got=rated.reduce((v,p)=>v+p.impact,0),sent=rated.reduce((v,p)=>v+p.sent,0);
-    const totalReturn=rated.length?figTradeReturnPct(got,sent):null;
+    const totalNet=rated.length?rated.reduce((v,p)=>v+p.net,0):null;
     const name=managers.find(p=>String(p.id)===id)?.name||id;
     return '<div class="fig-tr-pair-person">'+avatar(id,'fig-tr-rank-avatar')+
      '<div class="fig-tr-pair-name">'+escape(name)+'<small>'+n+' DIRECT TRADES</small></div>'+
-     '<div class="fig-tr-pair-score">'+figTradeReturnLabel(totalReturn)+'<small>OVERALL RETURN</small></div>'+
+     '<div class="fig-tr-pair-score '+(totalNet>0?'positive':totalNet<0?'negative':'even')+'">'+
+     figTradeNetLabel(totalNet,money)+'<small>'+
+     (totalNet===null?'UNRATED':totalNet>0?'VALUE GAINED':totalNet<0?'VALUE LOST':'EVEN')+'</small></div>'+
      '<div class="fig-tr-pair-stats"><span>'+money(market)+' <small>RECEIVED VALUE</small></span>'+
      '<span>'+money(lineup)+' <small>LINEUP PTS</small></span></div></div>';
    }).join('')+'</div>':'';
