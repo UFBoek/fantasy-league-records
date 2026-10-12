@@ -339,4 +339,38 @@ assert.ok(app.includes('figTradeRatingsPage(model,'));
 assert.ok(index.includes('trade-ratings-v143.js?v=152'));
 assert.ok(index.includes('trade-ratings-v143.css?v=152'));
 assert.ok(sw.includes('trade-ratings-v143.js?v=152'));
-console.log('Partnership cards, per-manager totals, three-team attribution and sorting passed.');
+// Audit every partnership from published league data on each data refresh.
+// Never assume a three-team matchup's two net totals are exact opposites.
+const liveData={
+ trades:JSON.parse(fs.readFileSync('data/trades.json','utf8')),
+ tradeSides:JSON.parse(fs.readFileSync('data/trade_sides.json','utf8')),
+ tradeAssets:JSON.parse(fs.readFileSync('data/trade_assets.json','utf8')),
+ playerLog:JSON.parse(fs.readFileSync('data/player_game_log.json','utf8')),
+ draftAudit:JSON.parse(fs.readFileSync('data/draft_pick_outcomes_audit.json','utf8'))
+};
+const valuation=JSON.parse(fs.readFileSync('data/rosteraudit_values.json','utf8'));
+const realHelpers={
+ valuesReady:valuation.status==='ready',
+ playerValue:id=>{
+  if(id===null||id===undefined||id==='')return null;
+  const value=valuation.players?.[String(id)]?.value;
+  return value===undefined||value===null?0:Number(value);
+ },
+ pickValue:(y,r,o)=>{
+  const year=Number(y),round=Number(r),origin=Number(o);
+  const tier=origin===10?'early':origin===1||origin===6?'late':'mid';
+  const priceYear=origin===10||year<2027?2027:year;
+  return {value:valuation.future_picks?.[priceYear+':'+round+':'+tier]??null};
+ },
+ pickLabel:x=>x,name:(raw,id)=>raw||String(id)
+};
+const actual=figTradeRatingModel(liveData,realHelpers);
+verifyPartnershipSums(actual);
+const allNames=new Map(actual.rankings.map(r=>[r.id,r.name]));
+for(const season of actual.years){
+ const rows=actual.trades.filter(t=>t.season===season);
+ verifyPartnershipSums({
+  trades:rows,partnerships:figTradePartnerships(rows,allNames)
+ });
+}
+console.log('Every published partnership reconciles to trade cards, including multi-team trades.');
