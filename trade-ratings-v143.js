@@ -1,42 +1,79 @@
-/* Trade Ratings v152 — partnership totals reconcile to trade-card outcomes. */
+/* Trade Ratings v153 — allocate multi-team net outcomes across rival managers. */
 function figTradeNetLabel(value,money){
  if(value===null||!Number.isFinite(value))return '—';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
 }
-// Attribute every received asset to the manager who SENT it. This avoids
-// counting a multi-manager trade as an equal exchange between every pairing.
-function figTradePartnerships(trades,names){
- const pairs=new Map();
- for(const t of trades){
-  const sides=new Map(t.participants.map(p=>[p.id,p]));
-  for(const recipient of t.participants)for(const item of recipient.items){
-   const senderId=Number(item.asset.counterparty_franchise_id);
-   if(!sides.has(senderId)||senderId===recipient.id)continue;
-   const aId=Math.min(recipient.id,senderId),bId=Math.max(recipient.id,senderId);
-   const key=aId+':'+bId;
-   let p=pairs.get(key);
-   if(!p){p={key,aId,bId,netA:0,trades:0,rated:0,volume:0,tradeIds:new Set(),ratedIds:new Set()};pairs.set(key,p);}
-   if(!p.tradeIds.has(t.id)){p.tradeIds.add(t.id);p.trades++;}
-   if(t.rated){
-    if(!p.ratedIds.has(t.id)){p.ratedIds.add(t.id);p.rated++;}
-    const value=Number(item.market)||0;
-    p.netA+=(recipient.id===aId?value:-value);
-    p.volume+=value;
+// Allocate a trade's net value between its winning and losing managers.
+// A three-team trade earns each winner credit against the manager(s) whose
+// losses fund that gain. Proportional allocations are rounded to cents with
+// balanced remainders, so every manager's pair credits sum to their trade net.
+function figTradePairCredits(t){
+ const pairs=new Map(), sides=new Set(t.participants.map(p=>p.id));
+ const add=(a,b,cents,direct=false)=>{
+  if(!sides.has(a)||!sides.has(b)||a===b)return;
+  const aId=Math.min(a,b),bId=Math.max(a,b),key=aId+':'+bId;
+  if(!pairs.has(key))pairs.set(key,{key,aId,bId,centsA:0,direct:false});
+  const entry=pairs.get(key);
+  entry.centsA+=(a===aId?cents:-cents);
+  entry.direct ||=direct;
+ };
+ for(const receiver of t.participants)for(const item of receiver.items){
+  const sender=Number(item.asset.counterparty_franchise_id);
+  if(sides.has(sender)&&sender!==receiver.id)add(receiver.id,sender,0,true);
+ }
+ if(t.rated){
+  const winners=t.participants.filter(p=>p.net>0)
+   .map(p=>({id:p.id,cents:Math.round(p.net*100)}));
+  const losers=t.participants.filter(p=>p.net<0)
+   .map(p=>({id:p.id,cents:Math.round(-p.net*100)}));
+  const total=winners.reduce((n,p)=>n+p.cents,0);
+  const totalLost=losers.reduce((n,p)=>n+p.cents,0);
+  if(total!==totalLost)throw Error('Unbalanced trade valuation: '+t.id);
+  if(total>0){
+   const cells=[];
+   const rowLeft=winners.map(w=>w.cents),colLeft=losers.map(l=>l.cents);
+   for(let i=0;i<winners.length;i++)for(let j=0;j<losers.length;j++){
+    const ideal=winners[i].cents*losers[j].cents/total;
+    const base=Math.floor(ideal);
+    cells.push({i,j,cents:base,fraction:ideal-base});
+    rowLeft[i]-=base;colLeft[j]-=base;
    }
+   // Assign remainder cents to the best proportional matches. Both row and
+   // column balances must reach zero, without any rounding drift.
+   const ordered=[...cells].sort((a,b)=>b.fraction-a.fraction||
+    winners[a.i].id-winners[b.i].id||losers[a.j].id-losers[b.j].id);
+   while(rowLeft.some(n=>n>0)){
+    const cell=ordered.find(x=>rowLeft[x.i]>0&&colLeft[x.j]>0);
+    if(!cell)throw Error('Cannot balance trade allocations: '+t.id);
+    cell.cents++;rowLeft[cell.i]--;colLeft[cell.j]--;
+   }
+   for(const cell of cells)if(cell.cents>0)
+    add(winners[cell.i].id,losers[cell.j].id,cell.cents);
   }
  }
- return [...pairs.values()].map(p=>{
-  const shared=trades.filter(t=>t.rated&&p.ratedIds.has(t.id));
-  const netFor=id=>shared.reduce((sum,t)=>sum+(t.participants.find(side=>side.id===id)?.net||0),0);
-  const netA=netFor(p.aId),netB=netFor(p.bId);
-  return {key:p.key,aId:p.aId,bId:p.bId,aName:names.get(p.aId)||String(p.aId),
-   bName:names.get(p.bId)||String(p.bId),netA,netB,
-   directNetA:p.netA,directNetB:-p.netA,
-   trades:p.trades,rated:p.rated,volume:p.volume,
-   provisional:p.rated===0};
- }).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
-  Math.abs(b.netA-b.netB)-Math.abs(a.netA-a.netB)||
-  b.rated-a.rated||a.aName.localeCompare(b.aName));
+ return [...pairs.values()].map(p=>({
+  key:p.key,aId:p.aId,bId:p.bId,netA:p.centsA/100,
+  netB:-p.centsA/100,direct:p.direct
+ }));
+}
+function figTradePartnerships(trades,names){
+ const pairs=new Map();
+ for(const t of trades)for(const allocation of figTradePairCredits(t)){
+  let p=pairs.get(allocation.key);
+  if(!p){p={key:allocation.key,aId:allocation.aId,bId:allocation.bId,
+   centsA:0,trades:0,rated:0,directTrades:0};pairs.set(allocation.key,p);}
+  p.trades++;
+  if(allocation.direct)p.directTrades++;
+  if(t.rated){p.rated++;p.centsA+=Math.round(allocation.netA*100);}
+ }
+ return [...pairs.values()].map(p=>({
+  key:p.key,aId:p.aId,bId:p.bId,aName:names.get(p.aId)||String(p.aId),
+  bName:names.get(p.bId)||String(p.bId),
+  netA:p.centsA/100,netB:-p.centsA/100,
+  trades:p.trades,rated:p.rated,directTrades:p.directTrades,
+  provisional:p.rated===0
+ })).sort((a,b)=>Number(a.provisional)-Number(b.provisional)||
+  Math.abs(b.netA)-Math.abs(a.netA)||b.rated-a.rated||a.aName.localeCompare(b.aName));
 }
 function figTradeRatingModel(data,tools){
  const trades=data.trades||[],assets=data.tradeAssets||[],sides=data.tradeSides||[];
