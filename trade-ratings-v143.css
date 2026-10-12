@@ -113,3 +113,19 @@
 .fig-tr-pair-board {grid-template-columns:minmax(0,1fr)}
 .fig-tr-pair-stats>span {font-size:12px}
 }
+
+/* v150: Partnerships and manager overview */
+.fig-tr-partnerships{background:#fff;border:1px solid #d8e5de;border-radius:14px}
+.fig-tr-partnership-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.fig-tr-partnership-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:9px;border:1px solid #d9e5dc;background:#f7faf8;border-radius:10px;padding:9px 11px;text-align:left;color:#263f33;cursor:pointer;width:100%;font:inherit;min-width:0}
+.fig-tr-partnership-row:hover,.fig-tr-partnership-row:focus-visible{background:#e8f2ec;border-color:#9bbfac;outline-offset:2px}
+.fig-tr-pair-rank{font:900 13px/1.2 Inter,system-ui,sans-serif;color:#587663;text-align:center}
+.fig-tr-partnership-names{min-width:0;display:flex;flex-direction:column;gap:3px}
+.fig-tr-partnership-names strong{font:850 12px/1.35 Inter,system-ui,sans-serif;color:#243d31;overflow-wrap:anywhere}
+.fig-tr-over{font-weight:650;color:#779181;font-size:10px}
+.fig-tr-partnership-names small{font:750 9px/1.3 Inter,system-ui,sans-serif;color:#6a806f}
+.fig-tr-partnership-gap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font:900 15px/1.1 Inter,system-ui,sans-serif;color:#16643c;font-variant-numeric:tabular-nums;min-width:0;text-align:right}
+.fig-tr-partnership-gap small{font:800 8px/1.2 Inter,system-ui,sans-serif;color:#668272}
+.fig-tr-partner-more{display:block;width:100%;margin-top:10px;background:#eff6f1;border:1px solid #c9ddcf;border-radius:8px;color:#315c44;font:850 10px/1.2 Inter,system-ui,sans-serif;padding:9px;cursor:pointer}
+.fig-tr-partner-more[hidden]{display:none}
+@media(max-width:700px){.fig-tr-partnership-list{grid-template-columns:minmax(0,1fr)}.fig-tr-partnership-row{padding:8px;grid-template-columns:22px minmax(0,1fr) auto}}
