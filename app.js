@@ -1,6 +1,6 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const app=$('#app'), DATA={};
-const fileMap={league:'league_history',leagueSettings:'league_settings',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values',rosterSeason:'roster_season_sleeper'};
+const fileMap={league:'league_history',leagueSettings:'league_settings',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values',rosterSeason:'roster_season_sleeper',waiverNames:'waiver_player_names'};
 const JACK_ID=1,HAYDEN_ID=6;
 const OWNER_DISPLAY_BY_ID={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 // Permanent, franchise-ID keyed images; independent of Sleeper refreshes.
@@ -974,7 +974,7 @@ async function team(id,selectedTab,selectedDraftYear){
   {label:'TOP-3 WEEKS',value:meWeekly.top3,rank:rankValue(weeklyCareerRows,id,x=>num(x.top3)),accent:'coral'}
  ];
  const careerStatsHtml=careerStats.map(x=>`<div class="team-stat-tile stat-${x.accent}"><span>${x.label}</span><strong>${x.value}</strong>${x.rank?`<em>RANK: #${x.rank}</em>`:''}</div>`).join('');
- const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button><button data-tab="drafts">DRAFT HISTORY</button></div></section><div id="teamTabBody"></div>`;
+ const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div></div>${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button><button data-tab="drafts">DRAFT HISTORY</button><button data-tab="waivers">WAIVER HISTORY</button></div></section><div id="teamTabBody"></div>`;
  app.innerHTML=teamHeader;
 
  const rosterSort=(rows)=>{
@@ -1079,9 +1079,22 @@ async function team(id,selectedTab,selectedDraftYear){
  const renderDrafts=()=>{
    $('#teamTabBody').innerHTML=figDraftFranchiseHistory(id,selectedDraftYear);
  };
- const renderers={records:renderRecords,roster:renderRoster,players:renderPlayers,seasons:renderSeasons,drafts:renderDrafts};
+ const renderWaivers=async()=>{
+  const host=$('#teamTabBody');if(host)host.innerHTML='<div class="loading">Loading waiver history…</div>';
+  try{
+   await load(['transactions','waiverNames']);
+   if(!$('#teamTabBody'))return;
+   figWaiverHistoryPage(id,figWaiverHistoryModel(DATA,{
+    names:OWNER_DISPLAY_BY_ID,valuesReady:raReady(),playerValue:raPlayer
+   }),{el:selector=>$(selector),escape:esc,money,headshot:playerHeadshot});
+  }catch(error){
+   console.error(error);
+   const body=$('#teamTabBody');if(body)body.innerHTML='<div class="empty">Could not load waiver history.</div>';
+  }
+ };
+ const renderers={records:renderRecords,roster:renderRoster,players:renderPlayers,seasons:renderSeasons,drafts:renderDrafts,waivers:renderWaivers};
  $$('#teamTabs button').forEach(b=>b.onclick=()=>{$$('#teamTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderers[b.dataset.tab]()});
- const initialTab=selectedTab==='drafts'?'drafts':'records';
+ const initialTab=selectedTab==='drafts'?'drafts':selectedTab==='waivers'?'waivers':'records';
  const chosen=$('#teamTabs button[data-tab="'+initialTab+'"]');
  if(chosen){$$('#teamTabs button').forEach(x=>x.classList.toggle('active',x===chosen));}
  renderers[initialTab]();
@@ -2175,7 +2188,7 @@ async function minigames(){
 
 async function managerRatings(managerId){
  await load(['draftPicks','raValues','draftAudit','rosterSeason','leagueSettings',
-  'trades','tradeSides','tradeAssets','playerLog']);
+  'trades','tradeSides','tradeAssets','playerLog','transactions','waiverNames']);
  navActive('');
  if(typeof figTradeRatingModel!=='function'||typeof figManagerRatingModel!=='function'){
   app.innerHTML=hero('FIG MANAGER IQ','MANAGER RATINGS','Manager rating engine is unavailable. Reload the page.');
@@ -2188,7 +2201,8 @@ async function managerRatings(managerId){
   pickLabel:tradeArchiveAssetLabel,
   name:displayOwnerName
  });
- const model=figManagerRatingModel(DATA,trades,{
+ const waivers=figWaiverHistoryModel(DATA,{names:OWNER_DISPLAY_BY_ID,valuesReady:raReady(),playerValue:raPlayer});
+ const model=figManagerRatingModel(DATA,trades,{waiver:waivers,
   names:OWNER_DISPLAY_BY_ID,
   name:id=>displayOwnerName('',id),
   draftGrade:figDraftGrade,
