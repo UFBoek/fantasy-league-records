@@ -78,6 +78,12 @@ function singleSeasonBombRows(){
 function cleanTeamRecordRows(view){const excludedCategory=/career (highest|lowest) score/i;return (DATA.records||[]).filter(x=>!x.player_id&&!redundantScoreAverageRecord(x)&&(!x.scoring_view||x.scoring_view===view)&&!String(x.category||'').startsWith('Season ')&&!['games_100','games_180','games_190'].includes(String(x.metric||''))&&!/100\+ point games/i.test(String(x.category||''))&&!excludedCategory.test(String(x.category||''))).concat(teamBombRecordRows(view));}
 function rankValue(rows,id,getter,descending=true){const sorted=[...rows].sort((a,b)=>descending?getter(b)-getter(a):getter(a)-getter(b));return sorted.findIndex(x=>+x.franchise_id===+id)+1}
 function tiedRankLabel(rank,tied=false){return tied?`T${rank}`:`#${rank}`}
+// Team snapshot: show outright #1, then shared T1, then #2/T2, etc.
+function figTeamSnapshotRankCompare(a,b){
+ const ar=num(a.rank??a._rank),br=num(b.rank??b._rank);
+ const at=Boolean(a.tied??a._tied),bt=Boolean(b.tied??b._tied);
+ return ar-br||Number(at)-Number(bt);
+}
 function sameRecordValue(a,b){const an=Number(a),bn=Number(b);return Number.isFinite(an)&&Number.isFinite(bn)?Math.abs(an-bn)<1e-9:String(a)===String(b)}
 function tiedRowsForTop(rows,valueKey='value'){const valid=[...rows].filter(x=>num(x[valueKey])!==0).sort((a,b)=>num(a.rank)-num(b.rank)||num(b[valueKey])-num(a[valueKey]));if(!valid.length)return[];const top=valid[0];return valid.filter(x=>sameRecordValue(x[valueKey],top[valueKey]))}
 function joinedOwners(rows,nameKey='record_holder',idKey='franchise_id'){const seen=new Set();return rows.filter(x=>{const k=String(x[idKey]);if(seen.has(k))return false;seen.add(k);return true}).map(x=>ownerName(x[nameKey],x[idKey])).join(' / ')}
@@ -881,19 +887,18 @@ async function team(id,selectedTab,selectedDraftYear){
    const tied=peers.filter(x=>num(x.length)===targetLength).length>1;
    if(rank<=3)streakTop.push({...s,_rank:rank,_tied:tied});
  }
- // Team record snapshot follows the Regular Season and Playoffs books only.
- // Keep the streak history below untouched: streaks remain their own all-time archive.
- const careerTopRecords=['Regular Season','Playoffs'].flatMap(view=>{
-  const records=cleanTeamRecordRows(view);
-  return records.filter(x=>+x.franchise_id===id&&num(x.rank)<=3&&num(x.value)>0).map(x=>({
+ // Team snapshot uses regular-season records only. The separate playoff record book remains available.
+ // Keep career streak history intact; it is independent of scoring view.
+ const view='Regular Season';
+ const records=cleanTeamRecordRows(view);
+ const careerTopRecords=records.filter(x=>+x.franchise_id===id&&num(x.rank)<=3&&num(x.value)>0).map(x=>({
    source:'career',rank:x.rank,label:x.category,value:x.value,view,
    tied:records.filter(y=>y.category===x.category&&sameRecordValue(y.value,x.value)).length>1,
    href:'#/record/team/'+encodeURIComponent(x.category)+'/'+encodeURIComponent(view)
   }));
- });
- const scopedSpecialRows=['Regular Season','Playoffs'].flatMap(view=>{
+ const scopedSpecialRows=(()=>{
    const teamWeeks=[];
-   (DATA.games||[]).filter(g=>view==='Regular Season'?g.game_type==='Regular Season':g.game_type!=='Regular Season').forEach(g=>{
+   (DATA.games||[]).filter(g=>g.game_type==='Regular Season').forEach(g=>{
     teamWeeks.push({franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});
     teamWeeks.push({franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week});
    });
@@ -906,7 +911,6 @@ async function team(id,selectedTab,selectedDraftYear){
    const viewKey=encodeURIComponent(view);
    const highRows=rankRows(teamWeeks,true).map(x=>({...x,view,label:'HIGHEST SCORING WEEK',href:'#/special/teamweeks/'+viewKey}));
    const lowRows=rankRows(teamWeeks,false).map(x=>({...x,view,label:'LOWEST SCORING WEEK',href:'#/special/teamweeks-low/'+viewKey}));
-   if(view==='Playoffs')return [...highRows,...lowRows];
    const weekly={};(DATA.standingsCareer||[]).forEach(x=>weekly[+x.franchise_id]={franchise_id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});
    const byWeek={};teamWeeks.forEach(x=>(byWeek[x.season+'-'+x.week]??=[]).push(x));
    Object.values(byWeek).forEach(rows=>{rows.sort((a,b)=>num(b.value)-num(a.value));rows.forEach((x,i)=>{
@@ -918,7 +922,7 @@ async function team(id,selectedTab,selectedDraftYear){
    const top3CountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.top3})),true)
     .map(x=>({...x,view,label:'TOP-3 WEEKLY SCORES',href:'#/special/top3/'+viewKey}));
    return [...highRows,...lowRows,...highCountRows,...top3CountRows];
- });
+ })();
  // Preserve secondary leaderboard placements for single-week records instead of collapsing a
  // franchise to only its best occurrence. Highest/lowest scoring weeks show every top-10 slot
  // occupied by this franchise; aggregate weekly-count records remain top-3 franchise records.
@@ -931,7 +935,7 @@ async function team(id,selectedTab,selectedDraftYear){
  // Single-week special rows are intentionally NOT deduped because #1, #2, #3, etc. are separate
  // record-book placements that should all appear on the franchise snapshot.
  const teamTopMap=new Map();for(const r of careerTopRecords){const key=String(r.view)+'|'+String(r.label);const prev=teamTopMap.get(key);if(!prev||num(r.rank)<num(prev.rank)||(num(r.rank)===num(prev.rank)&&num(r.value)>num(prev.value)))teamTopMap.set(key,r)}
- const teamTopRecords=[...teamTopMap.values(),...specialTopRecords].sort((a,b)=>num(a.rank)-num(b.rank)||String(a.label).localeCompare(String(b.label))||num(b.value)-num(a.value));
+ const teamTopRecords=[...teamTopMap.values(),...specialTopRecords].sort((a,b)=>figTeamSnapshotRankCompare(a,b)||String(a.label).localeCompare(String(b.label))||num(b.value)-num(a.value));
  const completeTeamSeasons=new Set(DATA.teamSeasonMaster.filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').map(x=>String(x.season)));
  const allSeasonRecordRowsRaw=DATA.singleSeasonRecords.filter(x=>!redundantScoreAverageRecord(x)&&!excludedSingleSeasonRecord(x)&&completeTeamSeasons.has(String(x.season))&&num(x.value)>0&&!['games_100'].includes(String(x.metric||''))&&!/100\+ point games/i.test(String(x.record_category||''))).concat(singleSeasonBombRows().filter(x=>num(x.value)>0));
  // Re-rank every single-season category AFTER removing active/incomplete seasons. The exported
@@ -943,7 +947,7 @@ async function team(id,selectedTab,selectedDraftYear){
    let prev=null,rank=0;
    ranked.forEach((x,i)=>{if(prev===null||!sameRecordValue(x.value,prev))rank=i+1;prev=x.value;allSeasonRecordRows.push({...x,rank})});
  });
- const seasonTopRecords=allSeasonRecordRows.filter(x=>+x.franchise_id===id&&num(x.rank)<=3).map(x=>({...x,tied:allSeasonRecordRows.filter(y=>y.record_category===x.record_category&&sameRecordValue(y.value,x.value)).length>1})).sort((a,b)=>num(a.rank)-num(b.rank)||num(b.season)-num(a.season)||String(a.record_category).localeCompare(String(b.record_category)));
+ const seasonTopRecords=allSeasonRecordRows.filter(x=>+x.franchise_id===id&&num(x.rank)<=3).map(x=>({...x,tied:allSeasonRecordRows.filter(y=>y.record_category===x.record_category&&sameRecordValue(y.value,x.value)).length>1})).sort((a,b)=>figTeamSnapshotRankCompare(a,b)||num(b.season)-num(a.season)||String(a.record_category).localeCompare(String(b.record_category)));
  const accomplishments=DATA.completedAccomplishments.filter(x=>+x.franchise_id===id).sort((a,b)=>num(b.importance)-num(a.importance)||num(b.season)-num(a.season));
  const latestSeasonRow=DATA.teamSeasonMaster.find(x=>+x.franchise_id===id&&+x.season===latest)||{};
  const careerRows=DATA.standingsCareer.map(x=>({...x,avg_score:num(x.points_for)/Math.max(1,num(x.games)),avg_pa:num(x.points_against)/Math.max(1,num(x.games))}));
@@ -1040,8 +1044,9 @@ async function team(id,selectedTab,selectedDraftYear){
 
  const renderRecords=()=>{
    const activeHtml=activeStreaks.length?activeStreaks.map(s=>`<a class="mini-record accent-streak" href="#/breakdown/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}/${s.franchise_id}/${s.start_season}/${s.start_week}/${s.end_season}/${s.end_week}"><b>${esc(s.streak_type)}</b><span>${s.length} ACTIVE · VIEW GAMES →</span></a>`).join(''):'<div class="snapshot-empty">No active qualifying streaks.</div>';
-   const recordHtml=teamTopRecords.length?teamTopRecords.map(r=>{const when=(r.season&&r.week)?` <small>• ${esc(r.season)} W${esc(r.week)}</small>`:'';return `<a class="mini-record accent-record" href="${r.href||`#/record/team/${encodeURIComponent(r.label)}/${encodeURIComponent(r.view)}`}"><b>${tiedRankLabel(r.rank,r.tied)} ${esc(r.view==='Playoffs'?'PLAYOFFS':'REGULAR SEASON')} · ${esc(r.label)}</b><span>${typeof r.value==='number'?money(r.value):esc(r.value)}${when}</span></a>`}).join(''):'<div class="snapshot-empty">No qualifying team records.</div>';
+   const recordHtml=teamTopRecords.length?teamTopRecords.map(r=>{const when=(r.season&&r.week)?` <small>• ${esc(r.season)} W${esc(r.week)}</small>`:'';return `<a class="mini-record accent-record" href="${r.href||`#/record/team/${encodeURIComponent(r.label)}/${encodeURIComponent(r.view)}`}"><b>${tiedRankLabel(r.rank,r.tied)} ${esc(r.label)}</b><span>${typeof r.value==='number'?money(r.value):esc(r.value)}${when}</span></a>`}).join(''):'<div class="snapshot-empty">No qualifying team records.</div>';
    const streakUnique=[];const seen=new Set();for(const s of streakTop){const k=`${s.streak_type}-${s._rank}-${s.length}`;if(!seen.has(k)){seen.add(k);streakUnique.push(s)}}
+   streakUnique.sort((a,b)=>figTeamSnapshotRankCompare(a,b)||String(a.streak_type).localeCompare(String(b.streak_type))||num(b.length)-num(a.length));
    const streakHtml=streakUnique.length?streakUnique.map(s=>`<a class="mini-record accent-streak" href="#/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}"><b>${tiedRankLabel(s._rank,s._tied)} ${esc(s.streak_type)}</b><span>${s.length}</span></a>`).join(''):'<div class="snapshot-empty">No top-3 streak records.</div>';
    const seasonHtml=accomplishments.length?accomplishments.map(a=>`<div class="season-accomplishment"><span>${a.season}</span><b>${esc(a.label)}</b></div>`).join(''):'<div class="snapshot-empty">No qualifying past-season accomplishments.</div>';
    const ssHtml=seasonTopRecords.length?seasonTopRecords.map(r=>`<a class="single-season-team-record" href="#/singleseasons/${encodeURIComponent(r.record_category)}"><div><span>${r.season}</span><b>${esc(r.record_category)}</b></div><strong>${tiedRankLabel(r.rank,r.tied)}</strong><em>${typeof r.value==='number'?money(r.value):esc(r.value)}</em></a>`).join(''):'<div class="snapshot-empty">No top-3 single-season records.</div>';
