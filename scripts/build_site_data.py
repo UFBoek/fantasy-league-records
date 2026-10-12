@@ -23580,6 +23580,28 @@ for name, df in TABLES.items():
         json.dump(_records(df), f, ensure_ascii=False, separators=(",",":"), default=str)
     print(f"WROTE | {name}.json | {len(df):,} rows")
 
+# Keep full historical waiver/free-agent names, including players never started.
+# Publish only referenced IDs rather than the entire Sleeper NFL directory.
+waiver_player_ids = set()
+for tx in transactions_df.itertuples(index=False):
+    if str(tx.transaction_type) not in ("waiver", "free_agent"):
+        continue
+    for direction in ("adds", "drops"):
+        moves = getattr(tx, direction, None)
+        if isinstance(moves, dict):
+            waiver_player_ids.update(str(pid) for pid in moves)
+waiver_player_names = {}
+for p in players_df[["player_id", "full_name", "position"]].itertuples(index=False):
+    pid = str(p.player_id)
+    if pid in waiver_player_ids and pd.notna(p.full_name):
+        waiver_player_names[pid] = {
+            "name": str(p.full_name),
+            "position": str(p.position) if pd.notna(p.position) else "",
+        }
+with (OUTPUT_DIR / "waiver_player_names.json").open("w", encoding="utf-8") as f:
+    json.dump(waiver_player_names, f, ensure_ascii=False, separators=(",", ":"))
+print(f"WROTE | waiver_player_names.json | {len(waiver_player_names):,} players")
+
 manifest = {name: len(df) for name,df in TABLES.items()}
 with (OUTPUT_DIR / "manifest.json").open("w", encoding="utf-8") as f:
     json.dump(manifest, f, indent=2)
