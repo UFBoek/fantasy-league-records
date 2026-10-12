@@ -12,3 +12,4 @@ python -m unittest discover -s tests -p 'test_draft_team_history.py'
 node tests/test_record_break_watch.js
 node tests/test_team_record_views.js
 node tests/test_single_season_watch.js
+node tests/test_trade_ratings.js
