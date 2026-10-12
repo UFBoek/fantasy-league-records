@@ -1,4 +1,4 @@
-/* v143: Trade Ratings — compact all-manager comparisons and cumulative scorecard. */
+/* v146: Trade Ratings — numeric outcome return and zero-value player handling. */
 .fig-tr-page {display:grid;gap:16px;min-width:0}
 .fig-tr-page .section {margin:0!important;min-width:0}
 .fig-tr-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
@@ -14,7 +14,7 @@
 .fig-tr-rank-name {min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}
 .fig-tr-rank-name strong {font:850 13px/1.2 Inter,system-ui,sans-serif;color:#243e31;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fig-tr-rank-name small {font:650 10px/1.3 Inter,system-ui,sans-serif;color:#63786d}
-.fig-tr-rank-score {display:flex;flex-direction:column;align-items:flex-end;font:900 19px/1.1 Inter,system-ui,sans-serif;color:#173e30;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.fig-tr-rank-score {display:flex;flex-direction:column;align-items:flex-end;font:900 18px/1.1 Inter,system-ui,sans-serif;color:#173e30;font-variant-numeric:tabular-nums;flex:0 0 auto;max-width:45%;overflow-wrap:anywhere;text-align:right}
 .fig-tr-rank-score small {font:800 9px/1.2 Inter,system-ui,sans-serif;color:#668374;margin-top:4px;letter-spacing:.02em}
 .fig-tr-controls {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:9px}
 .fig-tr-controls label {min-width:0;display:flex;flex-direction:column;gap:5px;font:800 10px/1.3 Inter,system-ui,sans-serif;color:#426253;letter-spacing:.04em}
@@ -40,19 +40,18 @@
 .fig-tr-asset-preview {font:650 10px/1.35 Inter,system-ui,sans-serif;color:#66776d;padding:3px 1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fig-tr-chevron {color:#4b7960;font-size:20px;transition:transform .15s ease}
 .fig-tr-card[open] .fig-tr-chevron {transform:rotate(180deg)}
-.fig-tr-grade {font:900 10px/1 Inter,system-ui,sans-serif;display:inline-flex;align-items:center;gap:4px;background:#e4efe7;color:#246046;border:1px solid #c6decf;border-radius:7px;padding:5px 6px;white-space:nowrap;flex:0 0 auto}
+.fig-tr-grade {font:900 10px/1 Inter,system-ui,sans-serif;display:inline-flex;align-items:center;gap:4px;background:#e4efe7;color:#246046;border:1px solid #c6decf;border-radius:7px;padding:5px 6px;white-space:nowrap;flex:0 0 auto;font-variant-numeric:tabular-nums}
 .fig-tr-grade strong {font-size:12px;font-variant-numeric:tabular-nums}
-.fig-tr-grade.grade-s,.fig-tr-grade.grade-a {background:#d9f0e3;color:#17603c;border-color:#abd8ba}
-.fig-tr-grade.grade-b {background:#e6f2da;color:#49702b;border-color:#c6dcae}
-.fig-tr-grade.grade-c {background:#f2efda;color:#796b29;border-color:#ded3ac}
-.fig-tr-grade.grade-d,.fig-tr-grade.grade-f {background:#f9e6e0;color:#8d4735;border-color:#e7c3b6}
+.fig-tr-grade.positive {background:#d9f0e3;color:#17603c;border-color:#abd8ba}
+.fig-tr-grade.even {background:#f2efda;color:#796b29;border-color:#ded3ac}
+.fig-tr-grade.negative {background:#f9e6e0;color:#8d4735;border-color:#e7c3b6}
 .fig-tr-grade.pending {background:#edf0ef;color:#657771;border-color:#d8e0dc;font-size:9px}
 .fig-tr-details {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:#f5f8f5;border-top:1px solid #e0e9e2;padding:10px}
 .fig-tr-detail-side {background:#fff;min-width:0;border:1px solid #d8e4db;border-radius:9px;padding:9px}
 .fig-tr-detail-head {display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between;align-items:center;border-bottom:1px solid #e6ede8;padding-bottom:8px}
 .fig-tr-detail-head .fig-owner-link {font:800 12px/1 Inter,system-ui,sans-serif;color:#28442f}
 .fig-tr-detail-head .fig-team-avatar {width:25px;height:25px}
-.fig-tr-detail-stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px 0}
+.fig-tr-detail-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:8px 0}
 .fig-tr-detail-stats>span {display:flex;flex-direction:column;gap:3px}
 .fig-tr-detail-stats b {color:#264737;font-size:16px;font-variant-numeric:tabular-nums}
 .fig-tr-detail-stats small {font:750 9px/1.3 Inter,system-ui,sans-serif;color:#6e8174}
