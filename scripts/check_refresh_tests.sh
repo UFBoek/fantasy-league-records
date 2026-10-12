@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Offline regression checks that remain valid when new league games/trades arrive.
+# Offline regression checks, including curated trade exclusions, remain valid when new league games/trades arrive.
 # Several legacy UI and trade snapshot tests assert fixed 2026 values and are
 # intentionally not used to gate a recurring live data refresh.
 set -euo pipefail
