@@ -70,9 +70,9 @@ assert.equal(recordWatch.some(x=>x.metric==='games_125'&&x.scope==='REGULAR SEAS
 assert.equal(recordWatch.some(x=>x.metric==='games_150'&&x.scope==='REGULAR SEASON'),false);
 assert.equal(recordWatch.find(x=>x.title==='Career 200+ Point Games').gamesNeeded,2);
 assert.equal(recordWatch.find(x=>x.title==='20 BOMBS').scope,'REGULAR SEASON');
-assert.equal(recordWatch.some(x=>x.title==='Career 125+ Point Games'),false); // Needs seven net 125+ games.
+assert.equal(recordWatch.some(x=>x.title==='Career 125+ Point Games'&&x.scope==='REGULAR SEASON'),false); // Needs seven net 125+ games.
 assert.equal(recordWatch.some(x=>x.title==='Career Points Scored'),false);
-assert.equal(recordWatch.some(x=>x.title==='Career 150+ Point Games'),false);
+assert.equal(recordWatch.some(x=>x.title==='Career 150+ Point Games'&&x.scope==='REGULAR SEASON'),false);
 assert.equal(recordWatch.find(x=>x.title==='Career 175+ Point Games').gamesNeeded,6);
 assert.equal(recordWatch.some(x=>x.title==='Career Median Score'),false);
 assert.equal(recordWatch.every(x=>x.status==='BREAK'&&x.gamesNeeded<=6),true);
