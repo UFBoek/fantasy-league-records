@@ -1076,8 +1076,24 @@ async function team(id,selectedTab,selectedDraftYear){
 async function records(){
  await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog','leagueSettings']);navActive('records');
  let view='Regular Season';
+ const podiumById=new Map((DATA.playoffCareer||[]).map(x=>[+x.franchise_id,x]));
+ const allTime=[...(DATA.standingsCareer||[])].sort((a,b)=>num(b.win_pct)-num(a.win_pct)||num(b.wins)-num(a.wins));
+ const rows=allTime.map((x,i)=>{
+   const p=podiumById.get(+x.franchise_id)||{};
+   const gold=num(p.championships),silver=Math.max(0,num(p.finals_appearances)-gold),bronze=num(p.third_place_finishes);
+   return {rank:i+1,team:ownerLink(x.owner_name,x.franchise_id),
+    gold:`<span class="fig-medal fig-gold">●</span> ${gold}`,
+    silver:`<span class="fig-medal fig-silver">●</span> ${silver}`,
+    bronze:`<span class="fig-medal fig-bronze">●</span> ${bronze}`,
+    win:pct(x.win_pct),w:num(x.wins),l:num(x.losses),pf:money(x.points_for),
+    _sort:{rank:i+1,team:displayOwnerName(x.owner_name,x.franchise_id),gold,silver,bronze,win:num(x.win_pct),w:num(x.wins),l:num(x.losses),pf:num(x.points_for)}};
+ });
+ const hallBoard=section('ALL-TIME STANDINGS',
+   sortableTable([{label:'#',key:'rank'},{label:'TEAM',key:'team'},{label:'1ST',key:'gold'},{label:'2ND',key:'silver'},
+    {label:'3RD',key:'bronze'},{label:'WIN %',key:'win'},{label:'W',key:'w'},{label:'L',key:'l'},{label:'PF',key:'pf'}],rows),
+   'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','Regular-season, playoff and single-season records.')+
- `<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`+
+ hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`+
  figWatchSection('records',figBuildTeamRecordWatch(),figWatchLatestWeek(DATA.games,[]))+
  figSingleSeasonWatchSection(figBuildSingleSeasonWatch(DATA.teamSeasonMaster,DATA.singleSeasonRecords,DATA.leagueSettings,singleSeasonBombRows(),teamBombLeaderboard));
  figWireWatch('figRecordWatch');
