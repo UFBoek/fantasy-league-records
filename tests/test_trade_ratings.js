@@ -175,7 +175,13 @@ const boekVsJames=triangle.partnerships.find(p=>p.key==='1:10');
 assert.equal(boekVsJames.netA,4500); // 5k to Boek less 500 to James
 assert.equal(triangle.partnerships.find(p=>p.key==='3:10').netA,1250);
 assert.equal(triangle.partnerships.some(p=>p.key==='1:3'),false);
-for(const p of triangle.partnerships)assert.equal(p.netA+p.netB,0);
+assert.equal(boekVsJames.netB,-5750);
+assert.equal(boekVsJames.directNetA,4500);
+assert.equal(boekVsJames.directNetB,-4500);
+assert.equal(triangle.partnerships.find(p=>p.key==='3:10').netB,-5750);
+// The listed whole-trade net is intentionally not forced to zero sum when
+// a third manager participated.
+assert.equal(boekVsJames.netA+boekVsJames.netB,-1250);
 // Isolate the requested 2023 three-party transaction, not other picks/trades.
 const slotPick={...asset('997041669574823936',1,'Received','Draft Pick',null,2024,1,10),
  season:2023,week:1,counterparty_franchise_id:10};
@@ -198,6 +204,28 @@ assert.equal(boq.items[0].market,2265);
 assert.equal(boq.items[0].selection,undefined);
 assert.equal(boq.market,2265);
 assert.equal(boq.net,765);
+// Every partnership's two displayed values must equal the sum of the
+// individual trade cards featuring a *direct* exchange between the pair.
+function verifyPartnershipSums(model){
+ for(const p of model.partnerships){
+  const shared=model.trades.filter(t=>t.rated&&
+   t.participants.some(x=>x.id===p.aId)&&t.participants.some(x=>x.id===p.bId)&&
+   t.participants.some(x=>x.items.some(a=>
+     (x.id===p.aId&&Number(a.asset.counterparty_franchise_id)===p.bId)||
+     (x.id===p.bId&&Number(a.asset.counterparty_franchise_id)===p.aId))));
+  assert.equal(p.netA,shared.reduce((n,t)=>n+t.participants.find(x=>x.id===p.aId).net,0));
+  assert.equal(p.netB,shared.reduce((n,t)=>n+t.participants.find(x=>x.id===p.bId).net,0));
+  assert.equal(p.rated,shared.length);
+  assert.equal(p.directNetA,-p.directNetB);
+ }
+ for(let i=1;i<model.partnerships.length;i++){
+  const before=model.partnerships[i-1],after=model.partnerships[i];
+  assert.ok(Math.abs(before.netA-before.netB)>=Math.abs(after.netA-after.netB));
+ }
+}
+verifyPartnershipSums(m);
+verifyPartnershipSums(triangle);
+verifyPartnershipSums(multi);
 const otherPickTrade=figTradeRatingModel({
  trades:[trade('other',2023,1,[1,10])],
  tradeSides:[side('other',1),side('other',10)],
@@ -248,7 +276,9 @@ assert.match(markup,/TRADE HISTORY/);
 assert.match(markup,/MOST LOPSIDED PARTNERSHIPS/);
 assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 1/);
 assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 2/);
-assert.match(node('#figTrPartnershipRows').innerHTML,/NET ADVANTAGE/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/fig-tr-partnership-scores/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 1 <b>/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 2 <b>/);
 assert.match(markup,/Total net value gained or lost/);
 assert.match(markup,/HOW IS GAIN \/ LOSS CALCULATED/);
 assert.doesNotMatch(markup,/RETURN %|OVERALL RETURN|AVG SCORE|GRADE|HIGHEST RETURN|LOWEST RETURN/);
@@ -264,7 +294,8 @@ assert.match(node('#figTrResults').innerHTML,/data-opponent="2"/);
 node('#figTrVersus').onchange({target:{value:'2'}});
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
-assert.match(node('#figTrResults').innerHTML,/FROM MANAGER 2/);
+assert.match(node('#figTrResults').innerHTML,/VALUE RECEIVED/);
+assert.match(node('#figTrResults').innerHTML,/VALUE SENT/);
 assert.match(node('#figTrResults').innerHTML,/VALUE GAINED/);
 assert.match(node('#figTrResults').innerHTML,/VALUE LOST/);
 // With a manager chosen, order by their signed net outcome, not return ratios.
@@ -308,4 +339,4 @@ assert.ok(app.includes('figTradeRatingsPage(model,'));
 assert.ok(index.includes('trade-ratings-v143.js?v=150'));
 assert.ok(index.includes('trade-ratings-v143.css?v=150'));
 assert.ok(sw.includes('trade-ratings-v143.js?v=150'));
-console.log('Trade valuations, direct partnerships, manager comparison, and sorting passed.');
+console.log('Partnership cards, per-manager totals, three-team attribution and sorting passed.');
