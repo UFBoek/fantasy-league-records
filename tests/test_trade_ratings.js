@@ -1,4 +1,4 @@
-/* Trade Ratings regression: percent return, zero-value players, incomplete deals and pair filtering. */
+/* Trade Ratings regression: net gains/losses, zero-value players, sorting and pair filtering. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const code=fs.readFileSync('trade-ratings-v143.js','utf8');
@@ -48,13 +48,13 @@ assert.equal(m.rated,3);
 assert.equal(m.rankings.length,2);
 const first=m.trades.find(x=>x.id==='t1');
 assert.equal(first.participants[0].lineup,52); // Ends at next recorded outgoing trade.
-assert.ok(first.participants[0].returnPct>first.participants[1].returnPct);
-assert.equal(Math.round(first.participants[0].returnPct),Math.round(first.participants[0].impact/first.participants[0].sent*100));
+assert.ok(first.participants[0].net>first.participants[1].net);
+assert.equal(first.participants[0].net,first.participants[0].impact-first.participants[0].sent);
 assert.equal(first.participants[0].net,-first.participants[1].net);
 assert.equal(first.participants[0].items[0].exit,true);
 const pending=m.trades.find(x=>x.id==='t3');
 assert.equal(pending.rated,false);
-assert.ok(pending.participants.every(p=>p.returnPct===null));
+assert.ok(pending.participants.every(p=>p.net===null));
 const draft=m.trades.find(x=>x.id==='t4').participants[0].items[0];
 assert.equal(draft.converted,true);
 assert.equal(draft.market,7000);
@@ -62,7 +62,8 @@ const fresh=m.trades.find(x=>x.id==='t2');
 assert.equal(fresh.participants[0].lineup,15);
 assert.equal(fresh.participants[1].market,3000);
 assert.ok(m.rankings[0].rated>=3);
-assert.equal(m.rankings[0].returnPct,m.rankings[0].gained/m.rankings[0].sent*100);
+assert.equal(m.rankings[0].net,m.rankings[0].gained-m.rankings[0].sent);
+assert.ok(m.rankings[0].net>=m.rankings[1].net);
 assert.ok(!('grade' in m.rankings[0]));
 assert.equal(figTradeRatingModel({trades:[],tradeSides:[],tradeAssets:[]},tools).rated,0);
 // Historical 2023 startup slots have no honest equivalent in a current rookie pick price.
@@ -84,7 +85,7 @@ const missing=figTradeRatingModel({
  ]
 }, {...tools,playerValue:id=>id===null?null:undefined});
 assert.equal(missing.rated,1);
-assert.ok(missing.trades[0].participants.every(p=>p.items[0].market===0&&p.net===0&&p.returnPct===null));
+assert.ok(missing.trades[0].participants.every(p=>p.items[0].market===0&&p.net===0));
 // But an unavailable full valuation feed must not be faked as a zero-value market.
 const outage=figTradeRatingModel({
  trades:[trade('outage',2026,2,[1,2])],tradeSides:[side('outage',1),side('outage',2)],
@@ -94,7 +95,7 @@ const outage=figTradeRatingModel({
  ]
 }, {...tools,valuesReady:false,playerValue:()=>null});
 assert.equal(outage.rated,0);
-// Zero-cost gain displays an unbounded return rather than dividing by zero.
+// A zero-value outgoing asset still produces a regular numeric net gain.
 const free=figTradeRatingModel({
  trades:[trade('free',2026,2,[1,2])],tradeSides:[side('free',1),side('free',2)],
  tradeAssets:[
@@ -102,7 +103,8 @@ const free=figTradeRatingModel({
   {...asset('free',2,'Received','Player',4444444),season:2026,week:2}
  ]
 },tools);
-assert.equal(free.trades[0].participants.find(p=>p.id===1).returnPct,Infinity);
+assert.equal(free.trades[0].participants.find(p=>p.id===1).net,5000);
+assert.equal(free.trades[0].participants.find(p=>p.id===2).net,-5000);
 let markup='';
 const nodes={};
 const node=id=>nodes[id]??=( {innerHTML:'',value:'',dataset:{},onclick:null,onchange:null,oninput:null,
@@ -113,9 +115,11 @@ figTradeRatingsPage(m,{
 });
 assert.match(markup,/OVERALL TRADE RANKINGS/);
 assert.match(markup,/TRADE HISTORY/);
-assert.match(markup,/Total received ÷ total sent/);
-assert.match(markup,/HOW IS RETURN CALCULATED/);
-assert.doesNotMatch(markup,/S ≥90|AVG SCORE|GRADE/);
+assert.match(markup,/Total net value gained or lost/);
+assert.match(markup,/HOW IS GAIN \/ LOSS CALCULATED/);
+assert.doesNotMatch(markup,/RETURN %|OVERALL RETURN|AVG SCORE|GRADE|HIGHEST RETURN|LOWEST RETURN/);
+assert.match(markup,/<option value="gain">VALUE GAINED<\/option>/);
+assert.match(markup,/<option value="loss">VALUE LOST<\/option>/);
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 assert.match(node('#figTrResults').innerHTML,/3 RATED/);
 node('#figTrManager').onchange({target:{value:'1'}});
@@ -124,7 +128,18 @@ node('#figTrVersus').onchange({target:{value:'2'}});
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
 assert.match(node('#figTrResults').innerHTML,/RECEIVED VALUE/);
-assert.match(node('#figTrResults').innerHTML,/OVERALL RETURN/);
+assert.match(node('#figTrResults').innerHTML,/VALUE GAINED/);
+assert.match(node('#figTrResults').innerHTML,/VALUE LOST/);
+// With a manager chosen, order by their signed net outcome, not return ratios.
+node('#figTrSort').onchange({target:{value:'gain'}});
+let sorted=node('#figTrResults').innerHTML;
+assert.ok(sorted.indexOf('2025<small>W1')<sorted.indexOf('2024<small>W1'));
+assert.ok(sorted.indexOf('2024<small>W1')<sorted.indexOf('2025<small>W2'));
+node('#figTrSort').onchange({target:{value:'loss'}});
+sorted=node('#figTrResults').innerHTML;
+assert.ok(sorted.indexOf('2025<small>W2')<sorted.indexOf('2024<small>W1'));
+assert.ok(sorted.indexOf('2024<small>W1')<sorted.indexOf('2025<small>W1'));
+assert.doesNotMatch(sorted,/RETURN %|OVERALL RETURN|∞%/);
 assert.match(node('#figTrResults').innerHTML,/LINEUP PTS/);
 node('#figTrYear').onchange({target:{value:'2026'}});
 assert.match(node('#figTrResults').innerHTML,/1 MATCHING TRADES/);
@@ -136,7 +151,7 @@ assert.match(node('#figTrResults').innerHTML,/CURRENT VALUE/);
 const app=fs.readFileSync('app.js','utf8'),index=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8');
 assert.ok(app.includes("const model=figTradeRatingModel(DATA,"));
 assert.ok(app.includes('figTradeRatingsPage(model,'));
-assert.ok(index.includes('trade-ratings-v143.js?v=146'));
-assert.ok(index.includes('trade-ratings-v143.css?v=146'));
-assert.ok(sw.includes('trade-ratings-v143.js?v=146'));
-console.log('Trade return percentages, zero-value players, filters and route checks passed.');
+assert.ok(index.includes('trade-ratings-v143.js?v=147'));
+assert.ok(index.includes('trade-ratings-v143.css?v=147'));
+assert.ok(sw.includes('trade-ratings-v143.js?v=147'));
+console.log('Trade net values, gain/loss sorting, zero-value players and pair filters passed.');
