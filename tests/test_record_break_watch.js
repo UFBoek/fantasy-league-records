@@ -5,19 +5,19 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const source=fs.readFileSync('record-break-watch-v133.js','utf8');
 const teamRows=[
- {category:'Career 200+ Point Games',metric:'games_200',scoring_view:'All-Time Combined',franchise_id:6,record_holder:'HaydenM',value:12},
- {category:'Career 200+ Point Games',metric:'games_200',scoring_view:'All-Time Combined',franchise_id:1,record_holder:'jackboek1',value:11},
- {category:'Career Points Scored',metric:'total_points',scoring_view:'All-Time Combined',franchise_id:6,record_holder:'HaydenM',value:10000},
- {category:'Career Points Scored',metric:'total_points',scoring_view:'All-Time Combined',franchise_id:1,record_holder:'jackboek1',value:9200},
+ {category:'Career 200+ Point Games',metric:'games_200',scoring_view:'Playoffs',franchise_id:6,record_holder:'HaydenM',value:12},
+ {category:'Career 200+ Point Games',metric:'games_200',scoring_view:'Playoffs',franchise_id:1,record_holder:'jackboek1',value:11},
+ {category:'Career Points Scored',metric:'total_points',scoring_view:'Playoffs',franchise_id:6,record_holder:'HaydenM',value:10000},
+ {category:'Career Points Scored',metric:'total_points',scoring_view:'Playoffs',franchise_id:1,record_holder:'jackboek1',value:9200},
  {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:40},
  {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'Regular Season',franchise_id:1,record_holder:'jackboek1',value:34},
  {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:40},
  {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'Regular Season',franchise_id:1,record_holder:'jackboek1',value:33},
  // A tie at the top can be broken with one qualifying game. Both leaders qualify.
- {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'All-Time Combined',franchise_id:6,record_holder:'HaydenM',value:45},
- {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'All-Time Combined',franchise_id:1,record_holder:'jackboek1',value:45},
- {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'All-Time Combined',franchise_id:6,record_holder:'HaydenM',value:40},
- {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'All-Time Combined',franchise_id:1,record_holder:'jackboek1',value:40},
+ {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'Playoffs',franchise_id:6,record_holder:'HaydenM',value:45},
+ {category:'Career 125+ Point Games',metric:'games_125',scoring_view:'Playoffs',franchise_id:1,record_holder:'jackboek1',value:45},
+ {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'Playoffs',franchise_id:6,record_holder:'HaydenM',value:40},
+ {category:'Career 150+ Point Games',metric:'games_150',scoring_view:'Playoffs',franchise_id:1,record_holder:'jackboek1',value:40},
  {category:'Career 175+ Point Games',metric:'games_175',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:30},
  {category:'Career 175+ Point Games',metric:'games_175',scoring_view:'Regular Season',franchise_id:1,record_holder:'jackboek1',value:25},
  {category:'20 BOMBS',metric:'b20',scoring_view:'Regular Season',franchise_id:6,record_holder:'HaydenM',value:125},
@@ -76,6 +76,8 @@ assert.equal(recordWatch.some(x=>x.title==='Career 150+ Point Games'&&x.scope===
 assert.equal(recordWatch.find(x=>x.title==='Career 175+ Point Games').gamesNeeded,6);
 assert.equal(recordWatch.some(x=>x.title==='Career Median Score'),false);
 assert.equal(recordWatch.every(x=>x.status==='BREAK'&&x.gamesNeeded<=6),true);
+assert.equal(recordWatch.some(x=>x.scope==='ALL-TIME'),false);
+assert.equal(recordWatch.some(x=>x.scope==='PLAYOFFS'),true);
 assert.match(context.figWatchRow(recordWatch.find(x=>x.metric==='games_125'),false),/NEXT GAME/);
 assert.equal(context.figWatchLatestWeek([{season:'2026',week:3}],streaks),'Through 2026 W4');
 const html=context.figWatchSection('streaks',streakWatch,'Through 2026 W4');
