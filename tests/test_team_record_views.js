@@ -36,7 +36,7 @@ const data={
  standingsCareer:[{franchise_id:1,owner_name:'Boek'},{franchise_id:6,owner_name:'Hayden'}],
  games:[
   {season:2026,week:1,game_type:'Regular Season',franchise_1:1,owner_1:'Boek',score_1:225,franchise_2:6,owner_2:'Hayden',score_2:198},
-  {season:2025,week:15,game_type:'Playoffs',franchise_1:1,owner_1:'Boek',score_1:189,franchise_2:6,owner_2:'Hayden',score_2:202}
+  {season:2025,week:15,game_type:'Playoffs',franchise_1:1,owner_1:'Boek',score_1:280,franchise_2:6,owner_2:'Hayden',score_2:202}
  ]
 };
 const recordFixtures=[
@@ -51,6 +51,38 @@ assert.ok(snapshot.careerTopRecords.every(x=>x.view==='Regular Season'));
 assert.ok(snapshot.scopedSpecialRows.length>0);
 assert.ok(snapshot.scopedSpecialRows.every(x=>x.view==='Regular Season'));
 assert.ok(snapshot.scopedSpecialRows.every(x=>!String(x.href).includes('Playoffs')));
+const highs=snapshot.scopedSpecialRows.filter(x=>x.label==='HIGHEST SCORING WEEK');
+const lows=snapshot.scopedSpecialRows.filter(x=>x.label==='LOWEST SCORING WEEK');
+assert.equal(highs[0].value,280); // A playoff score is the #1 all-game team performance.
+assert.equal(highs[0].game_type,'Playoffs');
+assert.equal(highs[0].rank,1);
+assert.equal(highs[0].href,'#/special/teamweeks/Regular%20Season');
+assert.ok(highs.some(x=>x.game_type==='Regular Season'));
+assert.ok(lows.every(x=>x.game_type!=='Playoffs'));
+assert.ok(lows.every(x=>x.value!==280));
+assert.ok(snapshot.scopedSpecialRows.filter(x=>x.label==='WEEKLY HIGH SCORES').every(x=>x.value<=1));
+// The Records podium shares the exception, but not the low-score or weekly-count categories.
+const podiumStart=records.indexOf(' const renderSpecialRecords=()=>{');
+const podiumEnd=records.indexOf(' const renderSingleSeason=()=>{',podiumStart);
+assert.ok(podiumStart>=0&&podiumEnd>podiumStart);
+const renderSpecial=new Function('DATA','view','gamesForView','weeklySummary','recordPodiumCard','money','num',
+ records.slice(podiumStart,podiumEnd)+';return renderSpecialRecords();');
+const podiums=[];
+renderSpecial(data,'Regular Season',()=>data.games.filter(g=>g.game_type==='Regular Season'),
+ ()=>[{id:1,owner:'Boek',high:1,top3:1}],
+ card=>{podiums.push(card);return '';},n=>String(n),n=>Number(n||0));
+const highCard=podiums.find(x=>x.title==='HIGHEST SCORING WEEK');
+const lowCard=podiums.find(x=>x.title==='LOWEST SCORING WEEK');
+assert.equal(highCard.leaders[0].value,280);
+assert.ok(highCard.leaders.some(x=>x.game_type==='Playoffs'));
+assert.match(highCard.note,/PLAYOFFS/);
+assert.ok(lowCard.leaders.every(x=>x.game_type!=='Playoffs'));
+// The full leaderboard must include playoff scores in Regular Season mode,
+// but the Playoffs view itself stays playoff-only.
+const specialSource=segment('async function specialRecord(kind,viewEnc)','function gamesForFranchise(');
+assert.ok(specialSource.includes("const allGamesHighest=kind==='teamweeks'&&view==='Regular Season'"));
+assert.ok(specialSource.includes('allGamesHighest||'));
+
 
 // Rank ordering must be #1, T1, #2, T2, #3, T3 in each team list.
 const rankStart=app.indexOf('function figTeamSnapshotRankCompare(');
@@ -86,8 +118,8 @@ assert.ok(streaks.includes("section('ALL-TIME STREAK RECORDS'"));
 assert.ok(streaks.includes('figBuildStreakRecordWatch(DATA.websiteStreaks)'));
 const index=fs.readFileSync('index.html','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
-assert.ok(index.includes('app.js?v=141'));
+assert.ok(index.includes('app.js?v=142'));
 assert.ok(index.includes('record-break-watch-v133.js?v=139'));
-assert.ok(sw.includes('app.js?v=141'));
+assert.ok(sw.includes('app.js?v=142'));
 assert.ok(sw.includes('record-break-watch-v133.js?v=139'));
 console.log('Regular-season-only team snapshot, rank ordering, and scoped record views passed.');
