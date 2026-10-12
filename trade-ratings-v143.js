@@ -303,6 +303,7 @@ function figTradeRatingsPage(model,helpers){
   '<details class="fig-tr-method section"><summary>HOW IS GAIN / LOSS CALCULATED?</summary>'+
   '<p>Net value = current market value of received assets minus current market value of sent assets, using the same RosterAudit valuations on both sides. Positive values are gains; negative values are losses. Lineup points are shown as separate context but never converted into dynasty value. Manager totals add together all valued trades; at least three are required for an official ranking.</p>'+
   '<p>If a trade sends assets one way for nothing in return, the empty receiving side is worth 0 and both managers are rated. Players missing from RosterAudit also count as 0 if the feed is available. A full provider outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked.</p>'+
+  '<p>Partnership credits always balance: winners in multi-team trades receive their net gains against the managers who lost value, split in proportion to those losses. Each opponent shows one mirrored gain/loss number, and every manager’s credited values sum to their full trade outcome.</p>'+
   '<p><strong>These use current market values, not historical trade-date prices.</strong> The separate lineup-point stat stops when a player is traded away; verified drafted picks can use the selected player’s current value.</p></details></div>');
  const root=el('#tradeRatingsRoot');
  const results=el('#figTrResults');
@@ -319,7 +320,14 @@ function figTradeRatingsPage(model,helpers){
    // With a manager selected, use only that manager's gain/loss.
    const metric=t=>{
     if(!t.rated)return null;
-    if(manager!=='all')return t.participants.find(p=>String(p.id)===manager)?.net??null;
+    if(manager!=='all'){
+     if(versus!=='all'&&manager!==versus){
+      const credit=figTradePairCredits(t).find(p=>
+       p.key===[Math.min(+manager,+versus),Math.max(+manager,+versus)].join(':'));
+      return credit?(+manager===credit.aId?credit.netA:credit.netB):null;
+     }
+     return t.participants.find(p=>String(p.id)===manager)?.net??null;
+    }
     const values=t.participants.map(p=>p.net).filter(x=>x!==null);
     return values.length?(sort==='loss'?Math.min(...values):Math.max(...values)):null;
    };
