@@ -1,0 +1,45 @@
+/* Regression checks for removing combined all-time TEAM records.
+   Player career stats and the streak archive intentionally remain intact. */
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const app=fs.readFileSync('app.js','utf8');
+const engine=fs.readFileSync('record-break-watch-v133.js','utf8');
+const segment=(begin,end)=>{
+ const i=app.indexOf(begin),j=app.indexOf(end,i+begin.length);
+ assert.ok(i>=0&&j>i,'Missing section: '+begin);
+ return app.slice(i,j);
+};
+const records=segment('async function records(){','async function recordDetail(');
+assert.ok(records.includes("let view='Regular Season'"));
+assert.ok(records.includes("{value:'Regular Season',label:'REGULAR SEASON'}"));
+assert.ok(records.includes("{value:'Playoffs',label:'PLAYOFFS'}"));
+assert.ok(records.includes("{value:'Single Season',label:'SINGLE SEASON'}"));
+assert.ok(!records.includes("{value:'All-Time Combined',label:'ALL-TIME'}"));
+assert.ok(!records.includes("section('ALL-TIME STANDINGS'"));
+assert.ok(!records.includes('hallBoard'));
+assert.ok(records.includes("figSingleSeasonWatchSection(figBuildSingleSeasonWatch("));
+const team=segment('async function team(id,selectedTab,selectedDraftYear){','async function records(){');
+assert.ok(team.includes("cleanTeamRecordRows(view)"));
+assert.ok(team.includes("['Regular Season','Playoffs'].flatMap(view"));
+assert.ok(!team.includes("cleanTeamRecordRows('All-Time Combined')"));
+assert.ok(!team.includes('All-Time%20Combined'));
+assert.ok(team.includes("r.view==='Playoffs'?'PLAYOFFS':'REGULAR SEASON'"));
+const teamDetail=segment('async function recordDetail(', 'function figActiveStreakOrder(');
+assert.ok(teamDetail.includes("const teamView=view==='All-Time Combined'?'Regular Season':view"));
+assert.ok(teamDetail.includes('cleanTeamRecordRows(teamView)'));
+const special=segment('async function specialRecord(', 'function gamesForFranchise(');
+assert.ok(special.includes("const view=requestedView==='Playoffs'?'Playoffs':'Regular Season'"));
+const watch=engine.slice(engine.indexOf('function figBuildTeamRecordWatch()'),engine.indexOf('function figStreakCondition('));
+assert.ok(watch.includes("['Regular Season','Playoffs']"));
+assert.ok(!watch.includes('All-Time Combined'));
+assert.ok(!watch.includes("scope:'ALL-TIME'"));
+const streaks=segment('async function streaks(){','async function streakDetail(');
+assert.ok(streaks.includes("section('ALL-TIME STREAK RECORDS'"));
+assert.ok(streaks.includes('figBuildStreakRecordWatch(DATA.websiteStreaks)'));
+const index=fs.readFileSync('index.html','utf8');
+const sw=fs.readFileSync('sw.js','utf8');
+assert.ok(index.includes('app.js?v=137'));
+assert.ok(index.includes('record-break-watch-v133.js?v=137'));
+assert.ok(sw.includes('app.js?v=137'));
+assert.ok(sw.includes('record-break-watch-v133.js?v=137'));
+console.log('Regular-season and playoff-only team records checks passed.');
