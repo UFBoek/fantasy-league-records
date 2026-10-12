@@ -49,7 +49,10 @@ assert.equal(m.rankings.length,2);
 const first=m.trades.find(x=>x.id==='t1');
 assert.equal(first.participants[0].lineup,52); // Ends at next recorded outgoing trade.
 assert.ok(first.participants[0].net>first.participants[1].net);
-assert.equal(first.participants[0].net,first.participants[0].impact-first.participants[0].sent);
+assert.equal(first.participants[0].net,first.participants[0].market-first.participants[0].sent);
+assert.equal(first.participants[0].sent,first.participants[1].market);
+assert.equal(first.participants[0].net,3500); // 5000 received - 1500 sent, not 52 * 4 more
+assert.ok(!('impact' in first.participants[0]));
 assert.equal(first.participants[0].net,-first.participants[1].net);
 assert.equal(first.participants[0].items[0].exit,true);
 const pending=m.trades.find(x=>x.id==='t3');
@@ -63,6 +66,7 @@ assert.equal(fresh.participants[0].lineup,15);
 assert.equal(fresh.participants[1].market,3000);
 assert.ok(m.rankings[0].rated>=3);
 assert.equal(m.rankings[0].net,m.rankings[0].gained-m.rankings[0].sent);
+assert.equal(m.rankings.reduce((a,b)=>a+b.net,0),0);
 assert.ok(m.rankings[0].net>=m.rankings[1].net);
 assert.ok(!('grade' in m.rankings[0]));
 assert.equal(figTradeRatingModel({trades:[],tradeSides:[],tradeAssets:[]},tools).rated,0);
@@ -95,6 +99,24 @@ const outage=figTradeRatingModel({
  ]
 }, {...tools,valuesReady:false,playerValue:()=>null});
 assert.equal(outage.rated,0);
+// Lineup points never change dynasty value gained or lost.
+// Reproduce the screenshot numbers exactly: 6541 received - 3088 sent,
+// independent of 333.5 points from previous starts.
+const screenshot=figTradeRatingModel({
+ trades:[trade('snapshot',2023,1,[6,10])],
+ tradeSides:[side('snapshot',6),side('snapshot',10)],
+ tradeAssets:[
+  {...asset('snapshot',6,'Received','Player',777),season:2023,week:1,counterparty_franchise_id:10},
+  {...asset('snapshot',10,'Received','Player',888),season:2023,week:1,counterparty_franchise_id:6}
+ ],
+ playerLog:[{season:2024,week:2,franchise_id:6,player_id:777,starter_points:333.5}],
+ draftAudit:[]
+}, {...tools,playerValue:id=>({777:6541,888:3088})[id]??0});
+const hayden=screenshot.trades[0].participants.find(p=>p.id===6);
+assert.equal(hayden.market,6541);
+assert.equal(hayden.sent,3088);
+assert.equal(hayden.lineup,333.5);
+assert.equal(hayden.net,3453);
 // A zero-value outgoing asset still produces a regular numeric net gain.
 const free=figTradeRatingModel({
  trades:[trade('free',2026,2,[1,2])],tradeSides:[side('free',1),side('free',2)],
@@ -147,11 +169,14 @@ node('#figTrSearch').oninput({target:{value:'no matching asset'}});
 assert.match(node('#figTrResults').innerHTML,/No trades match these filters/);
 node('#figTrClear').onclick();
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
-assert.match(node('#figTrResults').innerHTML,/CURRENT VALUE/);
+assert.match(node('#figTrResults').innerHTML,/VALUE RECEIVED/);
+assert.match(node('#figTrResults').innerHTML,/VALUE SENT/);
+assert.match(node('#figTrResults').innerHTML,/Lineup points are shown separately and never added to value/);
+assert.doesNotMatch(node('#figTrResults').innerHTML,/SENT OUTCOME|4×/);
 const app=fs.readFileSync('app.js','utf8'),index=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8');
 assert.ok(app.includes("const model=figTradeRatingModel(DATA,"));
 assert.ok(app.includes('figTradeRatingsPage(model,'));
-assert.ok(index.includes('trade-ratings-v143.js?v=147'));
+assert.ok(index.includes('trade-ratings-v143.js?v=148'));
 assert.ok(index.includes('trade-ratings-v143.css?v=147'));
-assert.ok(sw.includes('trade-ratings-v143.js?v=147'));
+assert.ok(sw.includes('trade-ratings-v143.js?v=148'));
 console.log('Trade net values, gain/loss sorting, zero-value players and pair filters passed.');
