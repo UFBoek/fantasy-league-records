@@ -2132,6 +2132,7 @@ async function trades(){
   return;
  }
  const model=figTradeRatingModel(DATA,{
+  valuesReady:raReady(),
   playerValue:raPlayer,
   pickValue:raPickValuation,
   pickLabel:(label)=>tradeArchiveAssetLabel(label),
