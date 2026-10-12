@@ -918,7 +918,7 @@ async function team(id,selectedTab,selectedDraftYear){
    const top3CountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.top3})),true)
     .map(x=>({...x,view,label:'TOP-3 WEEKLY SCORES',href:'#/special/top3/'+viewKey}));
    return [...highRows,...lowRows,...highCountRows,...top3CountRows];
- })();
+ });
  // Preserve secondary leaderboard placements for single-week records instead of collapsing a
  // franchise to only its best occurrence. Highest/lowest scoring weeks show every top-10 slot
  // occupied by this franchise; aggregate weekly-count records remain top-3 franchise records.
