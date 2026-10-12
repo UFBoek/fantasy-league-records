@@ -385,18 +385,21 @@ function standingsTableFor(season,view){
  return sortableTable(heads.map(([key,label])=>({key,label})),rows);
 }
 
+// Every first-level league section lives here, shared by Home and More.
+const LEAGUE_MENU_ITEMS=[
+ {icon:'◎',label:'TEAMS',href:'#/teams'},
+ {icon:'★',label:'TEAM RECORDS',href:'#/records'},
+ {icon:'◌',label:'PLAYER RECORDS',href:'#/players'},
+ {icon:'⚡',label:'STREAKS',href:'#/streaks'},
+ {icon:'▤',label:'DRAFT RANKINGS',href:'#/draft'},
+ {icon:'⇄',label:'TRADE RATINGS',href:'#/trades'},
+ {icon:'▥',label:'DYNASTY VALUES',href:'#/dynasty'},
+ {icon:'↔',label:'HEAD-TO-HEAD',href:'#/h2h'},
+ {icon:'♛',label:'CHAMPIONS',href:'#/champions'},
+ {icon:'▦',label:'GAME ARCHIVE',href:'#/games'}
+];
 function appLauncher(){
- const items=[
-  {icon:'♛',label:'CHAMPIONS',href:'#/champions'},
-  {icon:'★',label:'TEAM RECORDS',href:'#/records'},
-  {icon:'◌',label:'PLAYER RECORDS',href:'#/players'},
-  {icon:'⚡',label:'STREAKS',href:'#/streaks'},
-  {icon:'◎',label:'TEAMS',href:'#/teams'},
-  {icon:'▥',label:'DYNASTY VALUES',href:'#/dynasty'},
-  {icon:'▣',label:'MINIGAMES',href:'#/minigames'},
-  {icon:'↔',label:'H2H',href:'#/h2h'},
-  {icon:'▦',label:'GAME ARCHIVE',href:'#/games'}
- ];
+ const items=LEAGUE_MENU_ITEMS;
  return `<section class="app-menu-section"><div class="app-menu-title-wrap"><h2 class="app-menu-title">MENU</h2></div><div class="app-menu-shell"><div class="app-menu-grid">${items.map(i=>`<a class="app-tile" href="${i.href}"><div class="app-tile-icon">${i.icon}</div><div class="app-tile-label">${i.label}</div></a>`).join('')}</div></div></section>`
 }
 
@@ -2170,20 +2173,9 @@ async function minigames(){
 
 async function more(){
  navActive('');
- const items=[
-  ['◎','Teams','#/teams'],
-  ['★','Team Records','#/records'],
-  ['⚡','Streaks','#/streaks'],
-  ['◌','Player Records','#/players'],
-  ['↔','Head-to-Head','#/h2h'],
-  ['▥','Dynasty Values','#/dynasty'],
-  ['♛','Champions','#/champions'],
-  ['▤','Draft Rankings','#/draft'],
-  ['⇄','Trade Ratings','#/trades'],
-  ['▦','Game Archive','#/games']
- ];
+ const items=LEAGUE_MENU_ITEMS;
  app.innerHTML=hero('LEAGUE ARCHIVE','MORE','Explore league history, live dynasty values and every completed game.')+
- section('EXPLORE',`<div class="team-grid fig-more-grid">${items.map(([icon,label,href])=>`<a class="team-card fig-more-item" href="${href}"><div class="avatar" aria-hidden="true">${icon}</div><div class="team-name">${label}</div><span class="fig-more-open" aria-hidden="true">OPEN →</span></a>`).join('')}</div>`);
+ section('EXPLORE',`<div class="team-grid fig-more-grid">${items.map(item=>`<a class="team-card fig-more-item" href="${item.href}"><div class="avatar" aria-hidden="true">${item.icon}</div><div class="team-name">${item.label}</div><span class="fig-more-open" aria-hidden="true">OPEN →</span></a>`).join('')}</div>`);
 }
 
 
