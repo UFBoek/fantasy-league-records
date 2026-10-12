@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const code=fs.readFileSync('trade-ratings-v143.js','utf8');
-const {figTradeRatingModel,figTradeRatingsPage}=new Function(code+';return {figTradeRatingModel,figTradeRatingsPage};')();
+const {figTradeRatingModel,figTradeRatingsPage,figTradePartnerships}=new Function(code+';return {figTradeRatingModel,figTradeRatingsPage,figTradePartnerships};')();
 const trade=(id,season,week,ids)=>({transaction_id:id,season,week,franchises_involved:ids.length,franchise_ids:ids,total_player_assets:2,total_pick_assets:0});
 const side=(id,franchise)=>({transaction_id:id,franchise_id:franchise,owner_name:'Manager '+franchise,assets_received:[]});
 const asset=(id,franchise,direction,type,playerId=null,year=null,round=null,origin=null)=>({
@@ -46,6 +46,10 @@ const m=figTradeRatingModel(data,tools);
 assert.equal(m.trades.length,4);
 assert.equal(m.rated,4);
 assert.equal(m.rankings.length,2);
+assert.equal(m.partnerships.length,1);
+assert.equal(m.partnerships[0].trades,4);
+assert.equal(m.partnerships[0].rated,4);
+assert.equal(m.partnerships[0].netA,-m.partnerships[0].netB);
 const first=m.trades.find(x=>x.id==='t1');
 assert.equal(first.participants[0].lineup,52); // Ends at next recorded outgoing trade.
 assert.ok(first.participants[0].net>first.participants[1].net);
@@ -154,6 +158,58 @@ assert.equal(hayden.market,6541);
 assert.equal(hayden.sent,3088);
 assert.equal(hayden.lineup,333.5);
 assert.equal(hayden.net,3453);
+// A three-party exchange creates direct pairings only for actual sent assets.
+const triangle=figTradeRatingModel({
+ trades:[trade('triangle',2024,1,[1,3,10])],
+ tradeSides:[side('triangle',1),side('triangle',3),side('triangle',10)],
+ tradeAssets:[
+  {...asset('triangle',1,'Received','Player',10),season:2024,week:1,counterparty_franchise_id:10},
+  {...asset('triangle',3,'Received','Player',20),season:2024,week:1,counterparty_franchise_id:10},
+  {...asset('triangle',10,'Received','Player',30),season:2024,week:1,counterparty_franchise_id:1},
+  {...asset('triangle',10,'Received','Player',40),season:2024,week:1,counterparty_franchise_id:3}
+ ]
+},tools);
+assert.equal(triangle.rated,1);
+assert.deepEqual(triangle.partnerships.map(p=>p.key),['1:10','3:10']);
+const boekVsJames=triangle.partnerships.find(p=>p.key==='1:10');
+assert.equal(boekVsJames.netA,4500); // 5k to Boek less 500 to James
+assert.equal(triangle.partnerships.find(p=>p.key==='3:10').netA,1250);
+assert.equal(triangle.partnerships.some(p=>p.key==='1:3'),false);
+for(const p of triangle.partnerships)assert.equal(p.netA+p.netB,0);
+// Isolate the requested 2023 three-party transaction, not other picks/trades.
+const slotPick={...asset('997041669574823936',1,'Received','Draft Pick',null,2024,1,10),
+ season:2023,week:1,counterparty_franchise_id:10};
+const oneDeal=figTradeRatingModel({
+ trades:[trade('997041669574823936',2023,1,[1,3,10])],
+ tradeSides:[side('997041669574823936',1),side('997041669574823936',3),side('997041669574823936',10)],
+ tradeAssets:[
+  slotPick,
+  {...asset('997041669574823936',10,'Received','Player',20),season:2023,week:1,counterparty_franchise_id:1},
+  {...asset('997041669574823936',3,'Received','Player',30),season:2023,week:1,counterparty_franchise_id:10},
+  {...asset('997041669574823936',10,'Received','Player',40),season:2023,week:1,counterparty_franchise_id:3}
+ ],
+ draftAudit:[{draft_kind:'rookie',draft_year:2024,round:1,original_franchise:10,
+  resolution_status:'DIRECT_DRAFT_SLOT_MATCH',selection_verified_by_draft_slot:true,
+  selecting_franchise:1,player_id:99,player_name:'Draft Star'}]
+},tools);
+assert.equal(oneDeal.rated,1);
+const boq=oneDeal.trades[0].participants.find(p=>p.id===1);
+assert.equal(boq.items[0].market,2265);
+assert.equal(boq.items[0].selection,undefined);
+assert.equal(boq.market,2265);
+assert.equal(boq.net,765);
+const otherPickTrade=figTradeRatingModel({
+ trades:[trade('other',2023,1,[1,10])],
+ tradeSides:[side('other',1),side('other',10)],
+ tradeAssets:[
+  {...slotPick,transaction_id:'other'},
+  {...asset('other',10,'Received','Player',20),season:2023,week:1,counterparty_franchise_id:1}
+ ],
+ draftAudit:[{draft_kind:'rookie',draft_year:2024,round:1,original_franchise:10,
+  resolution_status:'DIRECT_DRAFT_SLOT_MATCH',selection_verified_by_draft_slot:true,
+  selecting_franchise:1,player_id:99,player_name:'Draft Star'}]
+},tools);
+assert.equal(otherPickTrade.trades[0].participants.find(p=>p.id===1).items[0].market,7000);
 // A zero-value outgoing asset still produces a regular numeric net gain.
 const free=figTradeRatingModel({
  trades:[trade('free',2026,2,[1,2])],tradeSides:[side('free',1),side('free',2)],
@@ -167,13 +223,24 @@ assert.equal(free.trades[0].participants.find(p=>p.id===2).net,-5000);
 let markup='';
 const nodes={};
 const node=id=>nodes[id]??=( {innerHTML:'',value:'',dataset:{},onclick:null,onchange:null,oninput:null,
- scrollIntoView(){},querySelectorAll(selector){if(selector==='.fig-tr-rank-row')return m.rankings.map(r=>({dataset:{manager:String(r.id)},onclick:null}));return []} });
+ scrollIntoView(){},querySelectorAll(selector){
+  if(selector==='.fig-tr-rank-row')return m.rankings.map(r=>({dataset:{manager:String(r.id)},onclick:null}));
+  if(selector==='.fig-tr-opponent')return [...this.innerHTML.matchAll(/data-opponent="(\\d+)"/g)]
+   .map(m=>({dataset:{opponent:m[1]},onclick:null}));
+  if(selector==='.fig-tr-partnership-row')return [...this.innerHTML.matchAll(/data-pair-a="(\\d+)" data-pair-b="(\\d+)"/g)]
+   .map(m=>({dataset:{pairA:m[1],pairB:m[2]},onclick:null}));
+  return [];
+ } });
 figTradeRatingsPage(m,{
  html:(id,str)=>{markup=str;node('#'+id).innerHTML=str;},
  el:node,escape:x=>String(x),money:x=>String(Math.round(x)),avatar:id=>'<i>'+id+'</i>',ownerLink:(name,id)=>name
 });
 assert.match(markup,/OVERALL TRADE RANKINGS/);
 assert.match(markup,/TRADE HISTORY/);
+assert.match(markup,/MOST LOPSIDED PARTNERSHIPS/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 1/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/Manager 2/);
+assert.match(node('#figTrPartnershipRows').innerHTML,/NET ADVANTAGE/);
 assert.match(markup,/Total net value gained or lost/);
 assert.match(markup,/HOW IS GAIN \/ LOSS CALCULATED/);
 assert.doesNotMatch(markup,/RETURN %|OVERALL RETURN|AVG SCORE|GRADE|HIGHEST RETURN|LOWEST RETURN/);
@@ -184,10 +251,12 @@ assert.match(node('#figTrResults').innerHTML,/4 RATED/);
 assert.match(node('#figTrResults').innerHTML,/Nothing received · 0 value/);
 node('#figTrManager').onchange({target:{value:'1'}});
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
+assert.match(node('#figTrResults').innerHTML,/AGAINST EVERY MANAGER/);
+assert.match(node('#figTrResults').innerHTML,/data-opponent="2"/);
 node('#figTrVersus').onchange({target:{value:'2'}});
 assert.match(node('#figTrResults').innerHTML,/4 MATCHING TRADES/);
 assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
-assert.match(node('#figTrResults').innerHTML,/RECEIVED VALUE/);
+assert.match(node('#figTrResults').innerHTML,/FROM MANAGER 2/);
 assert.match(node('#figTrResults').innerHTML,/VALUE GAINED/);
 assert.match(node('#figTrResults').innerHTML,/VALUE LOST/);
 // With a manager chosen, order by their signed net outcome, not return ratios.
@@ -201,6 +270,15 @@ assert.ok(sorted.indexOf('2025<small>W2')<sorted.indexOf('2024<small>W1'));
 assert.ok(sorted.indexOf('2024<small>W1')<sorted.indexOf('2025<small>W1'));
 assert.doesNotMatch(sorted,/RETURN %|OVERALL RETURN|∞%/);
 assert.match(node('#figTrResults').innerHTML,/LINEUP PTS/);
+const firstPartner=node('#figTrPartnershipRows').querySelectorAll('.fig-tr-partnership-row')[0];
+assert.ok(firstPartner);
+node('#figTrClear').onclick();
+firstPartner.onclick=()=>{}; // The actual handler is attached to a fresh generated element.
+node('#figTrManager').onchange({target:{value:'1'}});
+const firstOpponent=node('#figTrResults').querySelectorAll('.fig-tr-opponent')[0];
+assert.equal(firstOpponent.dataset.opponent,'2');
+node('#figTrVersus').onchange({target:{value:firstOpponent.dataset.opponent}});
+assert.match(node('#figTrResults').innerHTML,/DIRECT TRADES/);
 node('#figTrYear').onchange({target:{value:'2026'}});
 assert.match(node('#figTrResults').innerHTML,/1 MATCHING TRADES/);
 node('#figTrSearch').oninput({target:{value:'no matching asset'}});
@@ -214,7 +292,7 @@ assert.doesNotMatch(node('#figTrResults').innerHTML,/SENT OUTCOME|4×/);
 const app=fs.readFileSync('app.js','utf8'),index=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8');
 assert.ok(app.includes("const model=figTradeRatingModel(DATA,"));
 assert.ok(app.includes('figTradeRatingsPage(model,'));
-assert.ok(index.includes('trade-ratings-v143.js?v=149'));
-assert.ok(index.includes('trade-ratings-v143.css?v=147'));
-assert.ok(sw.includes('trade-ratings-v143.js?v=149'));
-console.log('Trade-for-nothing valuation, multi-party attribution, net sorting and filters passed.');
+assert.ok(index.includes('trade-ratings-v143.js?v=150'));
+assert.ok(index.includes('trade-ratings-v143.css?v=150'));
+assert.ok(sw.includes('trade-ratings-v143.js?v=150'));
+console.log('Trade valuations, direct partnerships, manager comparison, and sorting passed.');
