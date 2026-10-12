@@ -909,7 +909,13 @@ async function team(id,selectedTab,selectedDraftYear){
      return {...x,rank,tied:sorted.filter(y=>sameRecordValue(y.value,x.value)).length>1}});
    };
    const viewKey=encodeURIComponent(view);
-   const highRows=rankRows(teamWeeks,true).map(x=>({...x,view,label:'HIGHEST SCORING WEEK',href:'#/special/teamweeks/'+viewKey}));
+   // Highest Scoring Week is the lone all-games exception in team Records.
+   // Keep lowest weeks, top-3 finishes and weekly highs regular-season-only.
+   const allWeeks=(DATA.games||[]).flatMap(g=>[
+    {franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week,game_type:g.game_type},
+    {franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week,game_type:g.game_type}
+   ]);
+   const highRows=rankRows(allWeeks,true).map(x=>({...x,view,label:'HIGHEST SCORING WEEK',href:'#/special/teamweeks/'+viewKey}));
    const lowRows=rankRows(teamWeeks,false).map(x=>({...x,view,label:'LOWEST SCORING WEEK',href:'#/special/teamweeks-low/'+viewKey}));
    const weekly={};(DATA.standingsCareer||[]).forEach(x=>weekly[+x.franchise_id]={franchise_id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});
    const byWeek={};teamWeeks.forEach(x=>(byWeek[x.season+'-'+x.week]??=[]).push(x));
@@ -930,7 +936,7 @@ async function team(id,selectedTab,selectedDraftYear){
    if(+x.franchise_id!==id||num(x.value)<0)return false;
    if(x.label==='HIGHEST SCORING WEEK'||x.label==='LOWEST SCORING WEEK')return num(x.rank)<=10;
    return num(x.rank)<=3;
- }).map(x=>({source:'special',rank:x.rank,label:x.label,value:x.value,season:x.season,week:x.week,view:x.view,tied:x.tied,href:x.href}));
+ }).map(x=>({source:'special',rank:x.rank,label:x.label,value:x.value,season:x.season,week:x.week,game_type:x.game_type,view:x.view,tied:x.tied,href:x.href}));
  // Career/aggregate categories have one meaningful row per franchise, so dedupe those by label.
  // Single-week special rows are intentionally NOT deduped because #1, #2, #3, etc. are separate
  // record-book placements that should all appear on the franchise snapshot.
@@ -1044,7 +1050,7 @@ async function team(id,selectedTab,selectedDraftYear){
 
  const renderRecords=()=>{
    const activeHtml=activeStreaks.length?activeStreaks.map(s=>`<a class="mini-record accent-streak" href="#/breakdown/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}/${s.franchise_id}/${s.start_season}/${s.start_week}/${s.end_season}/${s.end_week}"><b>${esc(s.streak_type)}</b><span>${s.length} ACTIVE · VIEW GAMES →</span></a>`).join(''):'<div class="snapshot-empty">No active qualifying streaks.</div>';
-   const recordHtml=teamTopRecords.length?teamTopRecords.map(r=>{const when=(r.season&&r.week)?` <small>• ${esc(r.season)} W${esc(r.week)}</small>`:'';return `<a class="mini-record accent-record" href="${r.href||`#/record/team/${encodeURIComponent(r.label)}/${encodeURIComponent(r.view)}`}"><b>${tiedRankLabel(r.rank,r.tied)} ${esc(r.label)}</b><span>${typeof r.value==='number'?money(r.value):esc(r.value)}${when}</span></a>`}).join(''):'<div class="snapshot-empty">No qualifying team records.</div>';
+   const recordHtml=teamTopRecords.length?teamTopRecords.map(r=>{const when=(r.season&&r.week)?` <small>• ${esc(r.season)} W${esc(r.week)}${r.game_type==='Playoffs'?' · PLAYOFFS':''}</small>`:'';return `<a class="mini-record accent-record" href="${r.href||`#/record/team/${encodeURIComponent(r.label)}/${encodeURIComponent(r.view)}`}"><b>${tiedRankLabel(r.rank,r.tied)} ${esc(r.label)}</b><span>${typeof r.value==='number'?money(r.value):esc(r.value)}${when}</span></a>`}).join(''):'<div class="snapshot-empty">No qualifying team records.</div>';
    const streakUnique=[];const seen=new Set();for(const s of streakTop){const k=`${s.streak_type}-${s._rank}-${s.length}`;if(!seen.has(k)){seen.add(k);streakUnique.push(s)}}
    streakUnique.sort((a,b)=>figTeamSnapshotRankCompare(a,b)||String(a.streak_type).localeCompare(String(b.streak_type))||num(b.length)-num(a.length));
    const streakHtml=streakUnique.length?streakUnique.map(s=>`<a class="mini-record accent-streak" href="#/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}"><b>${tiedRankLabel(s._rank,s._tied)} ${esc(s.streak_type)}</b><span>${s.length}</span></a>`).join(''):'<div class="snapshot-empty">No top-3 streak records.</div>';
@@ -1115,13 +1121,20 @@ async function records(){
      perf.push({id:+g.franchise_1,name:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});
      perf.push({id:+g.franchise_2,name:g.owner_2,value:num(g.score_2),season:g.season,week:g.week});
    });
-   const high=[...perf].sort((a,b)=>b.value-a.value).map(x=>({...x,display:money(x.value),note:`${x.season} W${x.week}`}));
+   // Regular-season Highest Scoring Week is actually an all-games leaderboard.
+   const highPool=view==='Regular Season'
+    ?(DATA.games||[]).flatMap(g=>[
+       {id:+g.franchise_1,name:g.owner_1,value:num(g.score_1),season:g.season,week:g.week,game_type:g.game_type},
+       {id:+g.franchise_2,name:g.owner_2,value:num(g.score_2),season:g.season,week:g.week,game_type:g.game_type}
+     ])
+    :perf;
+   const high=[...highPool].sort((a,b)=>b.value-a.value).map(x=>({...x,display:money(x.value),note:`${x.season} W${x.week}${x.game_type==='Playoffs'?' · PLAYOFFS':''}`}));
    const low=[...perf].sort((a,b)=>a.value-b.value).map(x=>({...x,display:money(x.value),note:`${x.season} W${x.week}`}));
    const wins=weeklySummary();
    const highWeeks=[...wins].sort((a,b)=>b.high-a.high||b.top3-a.top3).map(x=>({id:x.id,name:x.owner,value:x.high}));
    const topThree=[...wins].sort((a,b)=>b.top3-a.top3||b.high-a.high).map(x=>({id:x.id,name:x.owner,value:x.top3}));
    const items=[
-    {title:'HIGHEST SCORING WEEK',href:`#/special/teamweeks/${viewKey}`,leaders:high,badge:'SCORING RECORD',tone:'mint',allowRepeat:true},
+    {title:'HIGHEST SCORING WEEK',href:`#/special/teamweeks/${viewKey}`,leaders:high,badge:'SCORING RECORD',tone:'mint',allowRepeat:true,note:view==='Regular Season'?'REGULAR SEASON + PLAYOFFS':''},
     {title:'LOWEST SCORING WEEK',href:`#/special/teamweeks-low/${viewKey}`,leaders:low,badge:'SCORING RECORD',tone:'coral',allowRepeat:true}
    ];
    if(view!=='Playoffs')items.push(
@@ -2313,8 +2326,11 @@ async function specialRecord(kind,viewEnc){
  await load(['games','standingsSeasons','standingsCareer']);navActive('records');
  const requestedView=decodeURIComponent(viewEnc||'Regular Season');
  const view=requestedView==='Playoffs'?'Playoffs':'Regular Season';
- const viewGames=DATA.games.filter(g=>view==='Regular Season'?g.game_type==='Regular Season':g.game_type!=='Regular Season');
- const viewLabel=view.toUpperCase();
+ // The Regular Season highest-scoring-week leaderboard is the single exception:
+ // it ranks ALL completed scores including playoffs. Other views stay scoped.
+ const allGamesHighest=kind==='teamweeks'&&view==='Regular Season';
+ const viewGames=DATA.games.filter(g=>allGamesHighest||(view==='Regular Season'?g.game_type==='Regular Season':g.game_type!=='Regular Season'));
+ const viewLabel=allGamesHighest?'ALL GAMES · REGULAR SEASON + PLAYOFFS':view.toUpperCase();
  if(kind==='teamweeks'||kind==='teamweeks-low'){
   const rows=[];
   viewGames.forEach(g=>{
