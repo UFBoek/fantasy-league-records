@@ -1,6 +1,6 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const app=$('#app'), DATA={};
-const fileMap={league:'league_history',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
+const fileMap={league:'league_history',leagueSettings:'league_settings',games:'games',standingsCareer:'standings_career',standingsSeasons:'standings_seasons',allPlayCareer:'all_play_career',allPlaySeasons:'all_play_seasons',luckSeasons:'luck_seasons',playoffs:'playoffs',playoffCareer:'playoff_career',h2h:'h2h',rivalries:'rivalries',streaks:'streaks',records:'records',playerLog:'player_game_log',playerCareers:'player_careers',playerSeasons:'player_seasons',franchiseCareer:'franchise_player_career',franchiseSeason:'franchise_player_season',positions:'franchise_positions',leaders:'franchise_player_leaders',draftPicks:'draft_picks',draftAudit:'draft_pick_outcomes_audit',draftValue:'draft_value',trades:'trades',tradeSides:'trade_sides',tradeAssets:'trade_assets',tradeLineage:'trade_lineage',transactions:'transactions',waiver:'waiver_fa',teamSeasonMaster:'team_season_master',currentStandings:'current_standings_web',currentRoster:'current_roster',currentPicks:'current_future_picks',currentAssets:'current_team_assets',weeklyRosters:'weekly_full_rosters',weeklyRanks:'weekly_scoring_ranks',websiteStreaks:'website_streaks',singleSeasonRecords:'single_season_records',teamSeasonTop3:'team_season_top3',completedAccomplishments:'completed_accomplishments',allGames:'all_games',raValues:'rosteraudit_values'};
 const JACK_ID=1,HAYDEN_ID=6;
 const OWNER_DISPLAY_BY_ID={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 // Permanent, franchise-ID keyed images; independent of Sleeper refreshes.
@@ -1053,7 +1053,7 @@ async function team(id,selectedTab,selectedDraftYear){
 
 
 async function records(){
- await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog']);navActive('records');
+ await load(['records','standingsCareer','playoffCareer','teamSeasonMaster','weeklyRanks','singleSeasonRecords','games','playerLog','leagueSettings']);navActive('records');
  let view='All-Time Combined';
  const podiumById=new Map((DATA.playoffCareer||[]).map(x=>[+x.franchise_id,x]));
  const allTime=[...(DATA.standingsCareer||[])].sort((a,b)=>num(b.win_pct)-num(a.win_pct)||num(b.wins)-num(a.wins));
@@ -1073,8 +1073,10 @@ async function records(){
    'Official completed results · swipe to see placements and scoring');
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','League bests, record holders and the full historical leaderboard.')+
  hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'All-Time Combined',label:'ALL-TIME'},{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}<div id="recordBody" class="control-output"></div></section>`+
- figWatchSection('records',figBuildTeamRecordWatch(),figWatchLatestWeek(DATA.games,[]));
+ figWatchSection('records',figBuildTeamRecordWatch(),figWatchLatestWeek(DATA.games,[]))+
+ figSingleSeasonWatchSection(figBuildSingleSeasonWatch(DATA.teamSeasonMaster,DATA.singleSeasonRecords,DATA.leagueSettings,singleSeasonBombRows(),teamBombLeaderboard));
  figWireWatch('figRecordWatch');
+ figWireWatch('figSeasonRecordWatch');
  const gamesForView=()=>DATA.games.filter(g=>view==='All-Time Combined'?true:view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);
  const weeklySummary=()=>{const out={};DATA.standingsCareer.forEach(x=>out[+x.franchise_id]={id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});const perf=[];gamesForView().forEach(g=>{perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_1,owner:g.owner_1,score:num(g.score_1)});perf.push({season:String(g.season),week:num(g.week),id:+g.franchise_2,owner:g.owner_2,score:num(g.score_2)})});const groups={};perf.forEach(x=>(groups[`${x.season}-${x.week}`]??=[]).push(x));Object.values(groups).forEach(rows=>{rows.sort((a,b)=>b.score-a.score);rows.forEach((x,i)=>{if(i===0&&out[x.id])out[x.id].high++;if(i<3&&out[x.id])out[x.id].top3++})});return Object.values(out)};
 
