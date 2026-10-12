@@ -1,4 +1,4 @@
-/* v137: Regular-season and playoff six-game record watches (125+/150+ require next-game break), three-game ended-streak watches. Finalized rows only;
+/* v139: Regular-season-only six-game record watches (125+/150+ require next-game break), three-game ended-streak watches. Finalized rows only;
    never count a live Sleeper matchup toward an official record. */
 function figWatchLatestWeek(games,streaks){
  const items=(games||[]).map(x=>({season:Number(x.season)||0,week:Number(x.week)||0}))
@@ -20,7 +20,7 @@ function figWatchRate(metric){
   all_play_wins:4,total_points:60,point_differential:65})[metric]||0;
 }
 // 125+ and 150+ career-game totals only qualify when a new outright leader
-// could emerge on the very next completed game, in either scoring view.
+// could emerge on the very next completed regular-season game.
 function figWatchHorizon(metric){return metric==='games_125'||metric==='games_150'?1:FIG_WATCH_RECORD_GAMES;}
 function figWatchCap(metric){return figWatchHorizon(metric)*figWatchRate(metric);}
 function figWatchGameEstimate(metric,required){
@@ -40,7 +40,7 @@ function figWatchRequirement(metric,needed){
 }
 function figBuildTeamRecordWatch(){
  const entries=[];
- for(const view of ['Regular Season','Playoffs']){
+ for(const view of ['Regular Season']){
   const groups=new Map();
   for(const x of cleanTeamRecordRows(view)){
    if(!Number.isFinite(Number(x.value))||Number(x.value)<=0||!Number.isInteger(Number(x.franchise_id)))continue;
@@ -65,7 +65,7 @@ function figBuildTeamRecordWatch(){
     const gamesNeeded=figWatchGameEstimate(metric,needed);
     if(gamesNeeded>figWatchHorizon(metric))continue;
     entries.push({teamId:+contender.franchise_id,team:displayOwnerName(contender.record_holder,contender.franchise_id),
-     title:category,scope:view==='Regular Season'?'REGULAR SEASON':'PLAYOFFS',
+     title:category,scope:'REGULAR SEASON',
      current,record:best,recordHolder,status:'BREAK',needed,metric,gamesNeeded,
      requirement:figWatchRequirement(metric,needed),
      href:'#/record/team/'+encodeURIComponent(category)+'/'+encodeURIComponent(view)});
@@ -73,7 +73,6 @@ function figBuildTeamRecordWatch(){
   }
  }
  return entries.sort((a,b)=>a.gamesNeeded-b.gamesNeeded||
-  (a.scope==='REGULAR SEASON'?0:1)-(b.scope==='REGULAR SEASON'?0:1)||
   a.needed-b.needed||a.title.localeCompare(b.title)||a.team.localeCompare(b.team));
 }
 function figStreakCondition(type){
@@ -138,7 +137,7 @@ function figWatchRow(x,streak=false){
 function figWatchSection(kind,entries,through){
  const isStreak=kind==='streaks',id=isStreak?'figStreakWatch':'figRecordWatch';
  const subtitle=isStreak?'Only ended streak records that could be surpassed within 3 consecutive games.':
-  'Regular-season and playoff records within 6 games; career 125+/150+ only within 1 game.';
+  'Regular-season records within 6 games; career 125+/150+ only within 1 game.';
  const list=entries.length?
   entries.map((x,i)=>'<div class="fig-watch-item"'+(i>=6?' hidden':'')+'>'+figWatchRow(x,isStreak)+'</div>').join(''):
   '<div class="fig-watch-empty">No outright record breaks are currently within the '+(isStreak?'3-game':'6-game')+' watch window.</div>';
