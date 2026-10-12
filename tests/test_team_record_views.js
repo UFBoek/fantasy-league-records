@@ -30,7 +30,7 @@ const specialStart=team.indexOf(" const scopedSpecialRows=['Regular Season','Pla
 const specialEnd=team.indexOf(' // Preserve secondary leaderboard placements',specialStart);
 assert.ok(specialStart>=0&&specialEnd>specialStart);
 const specialSource=team.slice(specialStart,specialEnd);
-const runSpecial=new Function('DATA','num',specialSource+'; return scopedSpecialRows;');
+const runSpecial=new Function('DATA','num','sameRecordValue',specialSource+'; return scopedSpecialRows;');
 const data={
  standingsCareer:[{franchise_id:1,owner_name:'Boek'},{franchise_id:6,owner_name:'Hayden'}],
  games:[
@@ -38,7 +38,7 @@ const data={
   {season:2025,week:15,game_type:'Playoffs',franchise_1:1,owner_1:'Boek',score_1:189,franchise_2:6,owner_2:'Hayden',score_2:202}
  ]
 };
-const specialRows=runSpecial(data,n=>Number(n||0));
+const specialRows=runSpecial(data,n=>Number(n||0),(a,b)=>Number(a)===Number(b));
 assert.ok(Array.isArray(specialRows));
 assert.ok(specialRows.some(x=>x.view==='Regular Season'&&x.label==='HIGHEST SCORING WEEK'));
 assert.ok(specialRows.some(x=>x.view==='Playoffs'&&x.label==='HIGHEST SCORING WEEK'));
