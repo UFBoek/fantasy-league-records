@@ -1,5 +1,5 @@
-/* Trade Ratings v148 — signed net market value, no conversion from lineup points.
-   The production figures are context only and never affect value or rankings. */
+/* Trade Ratings v149 — include legitimate trades for nothing in net market value.
+   Empty received-asset sides are worth 0; unknown market values remain unrated. */
 function figTradeNetLabel(value,money){
  if(value===null||!Number.isFinite(value))return '—';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
@@ -89,7 +89,7 @@ function figTradeRatingModel(data,tools){
    const lineup=items.reduce((n,a)=>n+a.points,0);
    const starts=items.reduce((n,a)=>n+a.starts,0);
    return {id:+p.franchise_id,name:tools.name(p.owner_name,p.franchise_id),items,market,lineup,starts,
-    priced:priced.length,total:items.length,complete:priced.length===items.length&&items.length>0,
+    priced:priced.length,total:items.length,complete:priced.length===items.length,
     sent:0,net:null};
   });
   // Compare current market value RECEIVED with current market value SENT.
@@ -104,9 +104,12 @@ function figTradeRatingModel(data,tools){
     .reduce((n,a)=>n+(Number(a.market)||0),0),0);
    p.net=p.market-p.sent;
   }
-  // Unrecorded or unpriced draft picks still make a trade incomplete, but
-  // catalog-missing players with a legitimate zero valuation do not.
-  const rated=part.length>=2&&sourceComplete&&part.every(p=>p.complete);
+  // A real, one-way trade may have zero Received assets on one side: that
+  // manager received nothing (value 0), not a missing market valuation.
+  // Require at least one actual transferred asset, two parties, attributable
+  // senders and complete values on any assets that DO exist.
+  const rated=part.length>=2&&part.some(p=>p.total>0)&&sourceComplete&&
+   part.every(p=>p.complete);
   if(!rated)for(const p of part)p.net=null;
   return {id:String(t.transaction_id),season:String(t.season),week:Number(t.week),participants:part,
    rated,players:Number(t.total_player_assets)||0,picks:Number(t.total_pick_assets)||0,
@@ -157,13 +160,13 @@ function figTradeRatingsPage(model,helpers){
    (a.type==='PLAYER'&&a.exit?'<small>Later traded away</small>':'')+
    '</div><div class="fig-tr-item-value">'+(a.market!==null?money(a.market):'UNVALUED')+
    (a.type==='PLAYER'?'<small>'+money(a.points)+' lineup pts</small>':'')+'</div></div>').join(''):
-   '<div class="fig-tr-item fig-tr-no-assets">No recorded assets received</div>')+'</div></div>';
+   '<div class="fig-tr-item fig-tr-no-assets">Nothing received · 0 value</div>')+'</div></div>';
  const card=t=>'<details class="fig-tr-card"><summary class="fig-tr-summary">'+
   '<span class="fig-tr-trade-date">'+escape(t.season)+'<small>W'+t.week+' · '+t.participants.length+' TEAMS</small></span>'+
   '<div class="fig-tr-mini-matchup">'+t.participants.map(p=>compactSide(p,t.rated)).join('')+'</div>'+
   '<span class="fig-tr-chevron" aria-hidden="true">⌄</span></summary>'+
   '<div class="fig-tr-details">'+t.participants.map(p=>detailSide(p,t.rated)).join('')+'</div>'+
-  (!t.rated?'<div class="fig-tr-unrated-note">Value unavailable: a side is missing assets, pick values, or sender information.</div>':
+  (!t.rated?'<div class="fig-tr-unrated-note">Value unavailable: no assets were transferred, or an asset price or sender is missing.</div>':
   '<div class="fig-tr-outcome-note">Net value = current received asset value − current sent asset value. Lineup points are shown separately and never added to value.</div>')+
   '</details>';
  const rankRow=(m,i)=>'<button type="button" class="fig-tr-rank-row" data-manager="'+m.id+'">'+
@@ -194,7 +197,7 @@ function figTradeRatingsPage(model,helpers){
   '<div id="figTrResults"></div></section>'+
   '<details class="fig-tr-method section"><summary>HOW IS GAIN / LOSS CALCULATED?</summary>'+
   '<p>Net value = current market value of received assets minus current market value of sent assets, using the same RosterAudit valuations on both sides. Positive values are gains; negative values are losses. Lineup points are shown as separate context but never converted into dynasty value. Manager totals add together all valued trades; at least three are required for an official ranking.</p>'+
-  '<p>Players missing from RosterAudit count as 0 if the feed is available. A full provider outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked.</p>'+
+  '<p>If a trade sends assets one way for nothing in return, the empty receiving side is worth 0 and both managers are rated. Players missing from RosterAudit also count as 0 if the feed is available. A full provider outage is not treated as zero. Unpriced historical startup picks and incomplete transfers remain unranked.</p>'+
   '<p><strong>These use current market values, not historical trade-date prices.</strong> The separate lineup-point stat stops when a player is traded away; verified drafted picks can use the selected player’s current value.</p></details></div>');
  const root=el('#tradeRatingsRoot');
  const results=el('#figTrResults');
