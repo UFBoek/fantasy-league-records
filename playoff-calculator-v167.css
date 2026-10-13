@@ -127,3 +127,5 @@
 .page-wrap .pcl-home-link small{font:650 11px Inter,sans-serif;color:#5b7663}
 .page-wrap .pcl-home-link>span:last-child{white-space:nowrap;color:#178e70}
 @media(max-width:699px){.page-wrap .pcl-home-link{padding:13px 11px}.page-wrap .pcl-home-link strong{font-size:14px}.page-wrap .pcl-home-link small{font-size:10px}}
+
+.page-wrap .pcl-section-head select{min-width:130px;max-width:100%;background:#f0f5f0;color:#315d44;border:1px solid #cadfce;border-radius:9px;padding:8px 12px;font:850 12px Inter,sans-serif}
