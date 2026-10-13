@@ -254,7 +254,7 @@
        return {game:x,forA:forA,forB:forB,ownSwing:ownSwing,leagueSwing:leagueSwing};
      });
    var own=all.filter(function(v){return v.game.a===id||v.game.b===id;}).sort(function(a,b){return b.ownSwing-a.ownSwing||a.game.week-b.game.week;}).slice(0,3);
-   var others=all.filter(function(v){return v.game.a!==id&&v.game.b!==id;})
+   var others=all.filter(function(v){return v.game.a!==id&&v.game.b!==id&&v.game.a!==10&&v.game.b!==10;})
       .sort(function(a,b){return (b.ownSwing*.65+b.leagueSwing*.35)-(a.ownSwing*.65+a.leagueSwing*.35)||a.game.week-b.game.week;}).slice(0,3);
    return {own:own,others:others};
  }
@@ -280,7 +280,7 @@
      '<div><small>TOP-3 BYE</small><strong>'+pc(r.bye)+'</strong></div>'+
      '<div><small>FIRST SEED</small><strong>'+pc(r.one)+'</strong></div>'+
      '<div><small>PROJECTED WINS</small><strong>'+r.w.toFixed(1)+'</strong></div></div>':
-     '<div class="pcl-warning">Official standings are available, but some future matchups are missing. Use the schedule editor below to enable accurate odds.</div>';
+     '<div class="pcl-warning">Official standings are available, but some future matchups are missing. Use the main What-If Calculator to complete the schedule and enable accurate odds.</div>';
    var pathRows='',likely=null,likelyProb=null,mostCommon=null;
    if(r){
      for(var w=0;w<=remaining;w++){
@@ -329,23 +329,18 @@
      '<p class="pcl-route-intro">How different final records affect '+safe(t.name)+'’s playoff chances, accounting for every other matchup and the Points For tiebreaker.</p>'+insights+
      (r?'<div class="pcl-route-table-wrap"><table class="pcl-table pcl-route-table"><thead><tr><th>WINS FROM HERE</th><th>FINAL RECORD</th><th>CHANCE OF RECORD</th><th>PLAYOFF ODDS</th><th>TOP-3 BYE</th></tr></thead><tbody>'+pathRows+'</tbody></table></div>'+
      '<p class="pcl-caption">Odds by final record are conditional estimates. “—” indicates fewer than 15 simulated finishes, not elimination or an official clinch.</p>':
-     '<p class="pcl-caption">Complete the missing schedule below to see the path by final record.</p>')+
+     '<p class="pcl-caption">Complete the missing schedule in the main What-If Calculator to see the path by final record.</p>')+
      '<div class="pcl-route-actions"><button data-path="win">SIMULATE WINNING OUT</button><button data-path="lose">SIMULATE LOSING OUT</button><button data-path="reset">RESET '+safe(t.name).toUpperCase()+' MATCHUPS</button></div></section>'+
      impactSection+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>REMAINING SCHEDULE</h2><span>CHOOSE WIN · LOSS · AUTO DIRECTLY BELOW</span></div>'+
      '<div class="pcl-route-summary"><span>OPPONENT AVG <b>'+(s.opp.length?fmt(s.oppAvg):'—')+'</b></span><span>LEAGUE AVG <b>'+fmt(leagueAvg)+'</b></span>'+
      '<span>MODEL POINTS/WK <b>'+fmt(s.model.mean)+'</b></span></div>'+
      '<div class="pcl-route-games">'+(schedule||'<div class="pcl-caption">No confirmed future matchups available.</div>')+'</div></section>'+
-     '<section class="section pcl-section pcl-whatif pcl-route-whatif"><div class="pcl-section-head"><h2>ALL REMAINING MATCHUPS</h2><span>EVERY GAME · EVERY WEEK · EDIT HERE</span></div>'+
-     '<p class="pcl-route-intro">Choose a week, then tap the winner for any of the five matchups. AUTO removes your selection and uses the score model. Every change updates playoff odds throughout the calculator.</p>'+
-     '<div class="pcl-actions"><button type="button" data-reset="1">RESET ALL PICKS</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
-     '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>SEED OUTLOOK</h2><span>FIRST THROUGH FIFTH SEED</span></div>'+seedHtml+
      '<div class="pcl-route-detail-stats"><span>LAST 3 AVG <b>'+fmt(s.model.recent)+'</b></span><span>SEASON AVG <b>'+fmt(s.model.season)+'</b></span>'+
      '<span>ALL-PLAY <b>'+pc(s.model.allPlay)+'</b></span></div></section>'+
      '<a class="pcl-path-link pcl-bottom-cta" href="#/playoff-calculator">ALL-TEAM PLAYOFF ODDS →</a>'+
      '<p class="pcl-caption">Simulated probabilities are estimates, not mathematical clinches. Only finalized weeks count toward official records; your what-if picks are local to this device.</p>';
-   renderWeeks();
  }
  function renderWeeks(){
    var controls=root.querySelector('#pclWeeks');
