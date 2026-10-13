@@ -281,7 +281,6 @@
     '<span>ALL-PLAY <b>'+pc(s.model.allPlay)+'</b></span></div></section>'+
     '<a class="pcl-path-link pcl-bottom-cta" href="#/playoff-calculator">OPEN FULL WHAT-IF CALCULATOR →</a>'+
     '<p class="pcl-caption">Model odds, not mathematical clinching status. Only finalized regular-season games affect official records. Scenario picks are saved on this device.</p>';
-   root.addEventListener('click',handleClick);
  }
  function renderWeeks(){
    var controls=root.querySelector('#pclWeeks');
@@ -394,7 +393,10 @@
    root=document.getElementById('figPlayoffCalc');
    if(routeMode==='main'){
      renderShell();root.querySelector('#pclOdds').innerHTML='<div class="pcl-loading">Checking upcoming matchups with Sleeper…</div>';
-   }else root.innerHTML='<div class="pcl-loading">Loading '+safe(name(selectedTeam))+' playoff path…</div>';
+   }else{
+     root.innerHTML='<div class="pcl-loading">Loading '+safe(name(selectedTeam))+' playoff path…</div>';
+     root.addEventListener('click',handleClick);
+   }
    await loadSchedule();
    if(!root.isConnected||!location.hash.startsWith('#/playoff-calculator'))return;
   // With no remaining regular-season games, the model produces exact 0/100% seed odds.
