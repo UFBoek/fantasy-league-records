@@ -35,8 +35,8 @@ const runCore=new Function('DATA','id','num','sameRecordValue','cleanTeamRecordR
 const data={
  standingsCareer:[{franchise_id:1,owner_name:'Boek'},{franchise_id:6,owner_name:'Hayden'}],
  games:[
-  {season:2026,week:1,game_type:'Regular Season',franchise_1:1,owner_1:'Boek',score_1:225,franchise_2:6,owner_2:'Hayden',score_2:198},
-  {season:2025,week:15,game_type:'Playoffs',franchise_1:1,owner_1:'Boek',score_1:280,franchise_2:6,owner_2:'Hayden',score_2:202}
+  {season:2026,week:1,matchup_id:2,game_type:'Regular Season',franchise_1:1,owner_1:'Boek',score_1:225,franchise_2:6,owner_2:'Hayden',score_2:198},
+  {season:2025,week:15,matchup_id:1,game_type:'Playoffs',franchise_1:1,owner_1:'Boek',score_1:280,franchise_2:6,owner_2:'Hayden',score_2:202}
  ]
 };
 const recordFixtures=[
@@ -56,7 +56,7 @@ const lows=snapshot.scopedSpecialRows.filter(x=>x.label==='LOWEST SCORING WEEK')
 assert.equal(highs[0].value,280); // A playoff score is the #1 all-game team performance.
 assert.equal(highs[0].game_type,'Playoffs');
 assert.equal(highs[0].rank,1);
-assert.equal(highs[0].href,'#/special/teamweeks/Regular%20Season');
+assert.equal(highs[0].href,'#/game/2025/15/1'); // Each snapshot performance opens its exact matchup.
 assert.ok(highs.some(x=>x.game_type==='Regular Season'));
 assert.ok(lows.every(x=>x.game_type!=='Playoffs'));
 assert.ok(lows.every(x=>x.value!==280));
