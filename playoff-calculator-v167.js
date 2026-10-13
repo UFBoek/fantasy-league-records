@@ -3,7 +3,7 @@
  'use strict';
  var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults;
  var N=8000, END=14, SPOTS=5, BYES=3;
- var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;','"':'&#39;'}[c] || '&#39;';});};
+ var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || '&#39;';});};
  var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
  var pc=function(x){return (100*x).toFixed(1)+'%';};
  var round=function(n){return Math.round(n*100)/100;};
@@ -16,7 +16,7 @@
  var read=function(suffix){try{return JSON.parse(localStorage.getItem(storeKey(suffix))||'{}')||{};}catch(e){return {};}};
  function getStandings(){
    var current=(DATA.currentStandings||[]), league=DATA.leagueSettings||[];
-   var match=league.find(function(s){return +s.season===2026;})||league[league.length-1]||{};
+   var match=league.slice().sort(function(a,b){return Number(b.season)-Number(a.season);})[0]||{};
    year=Number(match.season)||2026;
    leagueId=String(match.league_id||'');
    var settings={};try{settings=JSON.parse(match.settings_json||'{}');}catch(e){}
@@ -305,11 +305,7 @@
    root.querySelector('#pclOdds').innerHTML='<div class="pcl-loading">Checking upcoming matchups with Sleeper…</div>';
    await loadSchedule();
    if(!root.isConnected||!location.hash.startsWith('#/playoff-calculator'))return;
-   if(firstWeek>END){
-     // Completed regular season: finished seeds are exact.
-     oddsResults={};standings.slice().sort(standingsSort).forEach(function(t,i){var seeds=Array(10).fill(0);seeds[i]=1;oddsResults[t.id]={id:t.id,playoffs:i<5?1:0,bye:i<3?1:0,one:i===0?1:0,w:t.wins+t.ties*.5,pf:t.pf,seeds:seeds};});
-     renderOdds=function(){return;};
-   }
+  // With no remaining regular-season games, the model produces exact 0/100% seed odds.
    reRender();
  }
  window.figPlayoffCalculator=launch;
