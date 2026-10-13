@@ -133,21 +133,23 @@
  function standingsSort(a,b){return (b.wins+b.ties*.5)-(a.wins+a.ties*.5)||b.pf-a.pf||a.id-b.id;}
  function runOdds(){
    if(!noMissing())return null;
-   var games=allGames(),results={};
+   var games=allGames(),results={},impacts={};
+    games.forEach(function(g){impacts[g.key]={key:g.key,a:g.a,b:g.b,week:g.week,count:[0,0],made:[{},{}],bye:[{},{}],locked:!!(picked[g.key]&&picked[g.key].winner)};});
    standings.forEach(function(t){results[t.id]={id:t.id,playoffs:0,bye:0,one:0,w:0,pf:0,path:{},seeds:[0,0,0,0,0,0,0,0,0,0]};});
    var rng=rand(0xC0FFEE+firstWeek*31);
    for(var n=0;n<N;n++){
-     var rows=baseRows(),lookup={};rows.forEach(function(t){lookup[t.id]=t;});
+     var rows=baseRows(),lookup={},roundWinners=[];rows.forEach(function(t){lookup[t.id]=t;});
      for(var g=0;g<games.length;g++){
        var match=games[g],pts=pickScores(match,picked[match.key],rng);
        var a=lookup[match.a],b=lookup[match.b];
        a.pf+=pts[0];b.pf+=pts[1];
-       if(pts[0]>pts[1]){a.wins++;b.losses++;}
-       else if(pts[1]>pts[0]){b.wins++;a.losses++;}
+       if(pts[0]>pts[1]){a.wins++;b.losses++;roundWinners.push({key:match.key,side:0});}
+       else if(pts[1]>pts[0]){b.wins++;a.losses++;roundWinners.push({key:match.key,side:1});}
        else {a.ties++;b.ties++;}
      }
      rows.sort(standingsSort);
-     rows.forEach(function(t,i){
+     var seeds={};
+     rows.forEach(function(t,i){seeds[t.id]=i;
        var r=results[t.id];
        if(i<SPOTS)r.playoffs++;
        if(i<BYES)r.bye++;
@@ -160,7 +162,13 @@
        r.w+=t.wins+t.ties*.5;
        r.pf+=t.pf;
      });
+     roundWinners.forEach(function(w){
+       var x=impacts[w.key];if(x.locked)return;
+       var side=w.side;x.count[side]++;
+       standings.forEach(function(t){var id=t.id,i=seeds[id];if(i<SPOTS)x.made[side][id]=(x.made[side][id]||0)+1;if(i<BYES)x.bye[side][id]=(x.bye[side][id]||0)+1;});
+     });
    }
+   Object.defineProperty(results,'_impacts',{value:impacts,enumerable:false});
    Object.values(results).forEach(function(x){x.playoffs/=N;x.bye/=N;x.one/=N;x.w/=N;x.pf/=N;x.seeds=x.seeds.map(function(v){return v/N;});});
    return results;
  }
