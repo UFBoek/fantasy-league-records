@@ -9,12 +9,13 @@ Reject, rather than publish, data that includes an in-progress week.
 import json
 import math
 from pathlib import Path
+from week_finalization import previous_verified, week_cutoff
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 
 
-def cutoff_by_season(history, league_settings=None):
+def cutoff_by_season(history, league_settings=None, verified_weeks=None):
     # While a week is in progress, leg may advance before Sleeper officially
     # finalizes scoring. Never exceed its last_scored_leg when available.
     last_scored = {}
@@ -29,17 +30,16 @@ def cutoff_by_season(history, league_settings=None):
         season = str(item["season"])
         leg = int(item.get("current_leg") or 0)
         status = str(item.get("status", "")).lower()
-        if status == "complete":
-            out[season] = leg
-        else:
-            out[season] = min(max(0, leg - 1), last_scored.get(season, leg))
+        out[season] = week_cutoff(
+            status, leg, last_scored.get(season),
+            (verified_weeks or {}).get(season, 0))
     return out
 
 
-def normalize_player_log(rows, history, league_settings=None):
+def normalize_player_log(rows, history, league_settings=None, verified_weeks=None):
     if not isinstance(rows, list) or not rows:
         raise ValueError("Missing completed player starter data")
-    cutoff = cutoff_by_season(history, league_settings)
+    cutoff = cutoff_by_season(history, league_settings, verified_weeks)
     output = []
     seen = set()
     for row in rows:
@@ -92,7 +92,7 @@ def main():
     history = json.loads((DATA / "league_history.json").read_text(encoding="utf8"))
     settings = json.loads((DATA / "league_settings.json").read_text(encoding="utf8"))
     raw = json.loads(target.read_text(encoding="utf8"))
-    converted = normalize_player_log(raw, history, settings)
+    converted = normalize_player_log(raw, history, settings, previous_verified())
     tmp = target.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(converted, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf8")
     tmp.replace(target)
