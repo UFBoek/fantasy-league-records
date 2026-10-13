@@ -916,13 +916,13 @@ async function team(id,selectedTab,selectedDraftYear){
  const careerTopRecords=records.filter(x=>+x.franchise_id===id&&num(x.rank)<=3&&num(x.value)>0).map(x=>({
    source:'career',rank:x.rank,label:x.category,value:x.value,view,
    tied:records.filter(y=>y.category===x.category&&sameRecordValue(y.value,x.value)).length>1,
-   href:'#/record/team/'+encodeURIComponent(x.category)+'/'+encodeURIComponent(view)
+   href:'#/breakdown/teamrecord/'+encodeURIComponent(x.category)+'/'+encodeURIComponent(view)+'/'+id
   }));
  const scopedSpecialRows=(()=>{
    const teamWeeks=[];
    (DATA.games||[]).filter(g=>g.game_type==='Regular Season').forEach(g=>{
-    teamWeeks.push({franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week});
-    teamWeeks.push({franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week});
+    teamWeeks.push({franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week,matchup_id:g.matchup_id});
+    teamWeeks.push({franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week,matchup_id:g.matchup_id});
    });
    const rankRows=(rows,descending=true)=>{
     const sorted=[...rows].sort((a,b)=>descending?num(b.value)-num(a.value):num(a.value)-num(b.value));
@@ -934,11 +934,11 @@ async function team(id,selectedTab,selectedDraftYear){
    // Highest Scoring Week is the lone all-games exception in team Records.
    // Keep lowest weeks, top-3 finishes and weekly highs regular-season-only.
    const allWeeks=(DATA.games||[]).flatMap(g=>[
-    {franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week,game_type:g.game_type},
-    {franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week,game_type:g.game_type}
+    {franchise_id:+g.franchise_1,owner:g.owner_1,value:num(g.score_1),season:g.season,week:g.week,game_type:g.game_type,matchup_id:g.matchup_id},
+    {franchise_id:+g.franchise_2,owner:g.owner_2,value:num(g.score_2),season:g.season,week:g.week,game_type:g.game_type,matchup_id:g.matchup_id}
    ]);
-   const highRows=rankRows(allWeeks,true).map(x=>({...x,view,label:'HIGHEST SCORING WEEK',href:'#/special/teamweeks/'+viewKey}));
-   const lowRows=rankRows(teamWeeks,false).map(x=>({...x,view,label:'LOWEST SCORING WEEK',href:'#/special/teamweeks-low/'+viewKey}));
+   const highRows=rankRows(allWeeks,true).map(x=>({...x,view,label:'HIGHEST SCORING WEEK',href:`#/game/${x.season}/${x.week}/${x.matchup_id}`}));
+   const lowRows=rankRows(teamWeeks,false).map(x=>({...x,view,label:'LOWEST SCORING WEEK',href:`#/game/${x.season}/${x.week}/${x.matchup_id}`}));
    const weekly={};(DATA.standingsCareer||[]).forEach(x=>weekly[+x.franchise_id]={franchise_id:+x.franchise_id,owner:x.owner_name,high:0,top3:0});
    const byWeek={};teamWeeks.forEach(x=>(byWeek[x.season+'-'+x.week]??=[]).push(x));
    Object.values(byWeek).forEach(rows=>{rows.sort((a,b)=>num(b.value)-num(a.value));rows.forEach((x,i)=>{
@@ -946,9 +946,9 @@ async function team(id,selectedTab,selectedDraftYear){
    })});
    const weeklyRows=Object.values(weekly);
    const highCountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.high})),true)
-    .map(x=>({...x,view,label:'WEEKLY HIGH SCORES',href:'#/special/highscores/'+viewKey}));
+    .map(x=>({...x,view,label:'WEEKLY HIGH SCORES',href:`#/breakdown/weekly/highscores/${viewKey}/${x.franchise_id}`}));
    const top3CountRows=rankRows(weeklyRows.map(x=>({franchise_id:x.franchise_id,owner:x.owner,value:x.top3})),true)
-    .map(x=>({...x,view,label:'TOP-3 WEEKLY SCORES',href:'#/special/top3/'+viewKey}));
+    .map(x=>({...x,view,label:'TOP-3 WEEKLY SCORES',href:`#/breakdown/weekly/top3/${viewKey}/${x.franchise_id}`}));
    return [...highRows,...lowRows,...highCountRows,...top3CountRows];
  })();
  // Preserve secondary leaderboard placements for single-week records instead of collapsing a
@@ -991,7 +991,7 @@ async function team(id,selectedTab,selectedDraftYear){
   {label:'WEEKS #1',value:meWeekly.high,rank:rankValue(weeklyCareerRows,id,x=>num(x.high)),accent:'gold'},
   {label:'TOP-3 WEEKS',value:meWeekly.top3,rank:rankValue(weeklyCareerRows,id,x=>num(x.top3)),accent:'coral'}
  ];
- const careerStatsHtml=careerStats.map(x=>`<div class="team-stat-tile stat-${x.accent}"><span>${x.label}</span><strong>${x.value}</strong>${x.rank?`<em>RANK: #${x.rank}</em>`:''}</div>`).join('');
+ const careerStatsHtml=careerStats.map(x=>{const href=x.label==='WEEKS #1'?`#/breakdown/weekly/highscores/Regular%20Season/${id}`:x.label==='TOP-3 WEEKS'?`#/breakdown/weekly/top3/Regular%20Season/${id}`:`#/breakdown/teamrecord/${encodeURIComponent(x.label)}/Regular%20Season/${id}`;return `<a class="team-stat-tile stat-${x.accent} fig-team-stat-link" href="${href}" aria-label="View ${esc(x.label)} game history"><span>${x.label}</span><strong>${x.value}</strong>${x.rank?`<em>RANK: #${x.rank}</em>`:''}</a>`}).join('');
  const championshipBanners=figTeamChampionshipBanners(id);
  const teamHeader=`<section class="team-profile-shell"><div class="team-profile-top${championshipBanners?' fig-has-championships':''}">${ownerAvatar(id,"team-profile-photo")}<div class="team-profile-copy"><div class="eyebrow">FRANCHISE ARCHIVE</div><h1>${displayOwnerName(c.owner_name,id)}</h1><div class="team-profile-sub">${c.wins}-${c.losses} CAREER RECORD</div></div>${championshipBanners}</div>${championshipBanners?'<div class="fig-team-championship-mobile">'+championshipBanners+'</div>':''}${raTeamPanel(id)}<div class="career-stats-title"><span></span><h2>CAREER STATS</h2><span></span></div><div class="team-career-stats">${careerStatsHtml}</div><div class="tabs team-profile-tabs" id="teamTabs"><button class="active" data-tab="records">RECORDS</button><button data-tab="roster">ROSTER</button><button data-tab="players">PLAYER RECORDS</button><button data-tab="seasons">SEASONS</button><button data-tab="drafts">DRAFT HISTORY</button><button data-tab="waivers">WAIVER HISTORY</button></div></section><div id="teamTabBody"></div>`;
  app.innerHTML=teamHeader;
@@ -1076,9 +1076,9 @@ async function team(id,selectedTab,selectedDraftYear){
    const recordHtml=teamTopRecords.length?teamTopRecords.map(r=>{const when=(r.season&&r.week)?` <small>• ${esc(r.season)} W${esc(r.week)}${r.game_type==='Playoffs'?' · PLAYOFFS':''}</small>`:'';return `<a class="mini-record accent-record" href="${r.href||`#/record/team/${encodeURIComponent(r.label)}/${encodeURIComponent(r.view)}`}"><b>${tiedRankLabel(r.rank,r.tied)} ${esc(r.label)}</b><span>${typeof r.value==='number'?money(r.value):esc(r.value)}${when}</span></a>`}).join(''):'<div class="snapshot-empty">No qualifying team records.</div>';
    const streakUnique=[];const seen=new Set();for(const s of streakTop){const k=`${s.streak_type}-${s._rank}-${s.length}`;if(!seen.has(k)){seen.add(k);streakUnique.push(s)}}
    streakUnique.sort((a,b)=>figTeamSnapshotRankCompare(a,b)||String(a.streak_type).localeCompare(String(b.streak_type))||num(b.length)-num(a.length));
-   const streakHtml=streakUnique.length?streakUnique.map(s=>`<a class="mini-record accent-streak" href="#/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}"><b>${tiedRankLabel(s._rank,s._tied)} ${esc(s.streak_type)}</b><span>${s.length}</span></a>`).join(''):'<div class="snapshot-empty">No top-3 streak records.</div>';
-   const seasonHtml=accomplishments.length?accomplishments.map(a=>`<div class="season-accomplishment"><span>${a.season}</span><b>${esc(a.label)}</b></div>`).join(''):'<div class="snapshot-empty">No qualifying past-season accomplishments.</div>';
-   const ssHtml=seasonTopRecords.length?seasonTopRecords.map(r=>`<a class="single-season-team-record" href="#/singleseasons/${encodeURIComponent(r.record_category)}"><div><span>${r.season}</span><b>${esc(r.record_category)}</b></div><strong>${tiedRankLabel(r.rank,r.tied)}</strong><em>${typeof r.value==='number'?money(r.value):esc(r.value)}</em></a>`).join(''):'<div class="snapshot-empty">No top-3 single-season records.</div>';
+   const streakHtml=streakUnique.length?streakUnique.map(s=>`<a class="mini-record accent-streak" href="#/breakdown/streak/${encodeURIComponent(s.streak_type)}/${encodeURIComponent(s.streak_mode)}/${s.franchise_id}/${s.start_season}/${s.start_week}/${s.end_season}/${s.end_week}"><b>${tiedRankLabel(s._rank,s._tied)} ${esc(s.streak_type)}</b><span>${s.length}</span></a>`).join(''):'<div class="snapshot-empty">No top-3 streak records.</div>';
+   const seasonHtml=accomplishments.length?accomplishments.map(a=>`<a class="season-accomplishment" href="#/teamseason/${id}/${a.season}" aria-label="View ${esc(a.season)} season details"><span>${a.season}</span><b>${esc(a.label)}</b></a>`).join(''):'<div class="snapshot-empty">No qualifying past-season accomplishments.</div>';
+   const ssHtml=seasonTopRecords.length?seasonTopRecords.map(r=>`<a class="single-season-team-record" href="#/breakdown/season/${encodeURIComponent(r.record_category)}/${id}/${r.season}"><div><span>${r.season}</span><b>${esc(r.record_category)}</b></div><strong>${tiedRankLabel(r.rank,r.tied)}</strong><em>${typeof r.value==='number'?money(r.value):esc(r.value)}</em></a>`).join(''):'<div class="snapshot-empty">No top-3 single-season records.</div>';
    $('#teamTabBody').innerHTML=`<section class="team-record-dashboard"><div class="records-dashboard-head"><div><span>FRANCHISE RECORDS</span><h2>RECORD SNAPSHOT</h2></div></div><div class="two-col-record-snapshot"><div><h3>ACTIVE STREAKS</h3><div class="mini-record-list">${activeHtml}</div><h3 class="spaced">TOP CAREER RECORDS</h3><div class="mini-record-list">${recordHtml}</div><h3 class="spaced">TOP-3 STREAK RECORDS</h3><div class="mini-record-list">${streakHtml}</div></div><div><h3>PAST SEASON ACCOMPLISHMENTS</h3><div class="season-accomplishments">${seasonHtml}</div></div></div></section><section class="team-single-season-section"><div class="section-head"><div><div class="eyebrow">HISTORICAL PEAKS</div><h2 class="section-title">SINGLE-SEASON RECORDS</h2></div><a class="section-link" href="#/singleseasons">FULL LEAGUE BOOK →</a></div><div class="single-season-team-grid">${ssHtml}</div></section>`;
  };
  const renderSeasons=()=>{
