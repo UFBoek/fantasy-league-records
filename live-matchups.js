@@ -5,7 +5,7 @@
   const NAMES = {1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
   const PORTRAITS = {1:'boek',2:'fru',3:'fromm',4:'sack',5:'leyton',6:'hayden',7:'line',8:'winston',9:'camnol',10:'james'};
   const clean = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const photo = roster => PORTRAITS[roster] ? '<img class="fig-team-avatar" src="assets/avatars/' + PORTRAITS[roster] + '.webp" alt="" loading="lazy">' : '';
+  const photo = roster => PORTRAITS[roster] ? '<img class="fig-team-avatar" src="assets/avatars/' + (Number(roster)===6?'hayden-2026.svg':PORTRAITS[roster]+'.webp') + '" alt="" loading="lazy">' : '';
   const teamLabel = roster => photo(roster) + '<span>' + clean(NAMES[roster] || 'Roster ' + roster) + '</span>';
   const POLL_MS = 30 * 1000;
   const META_MS = 5 * 60 * 1000;
