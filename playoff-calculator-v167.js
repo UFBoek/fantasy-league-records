@@ -2,7 +2,7 @@
 (function () {
  'use strict';
  var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults;
- var N=8000, END=14, SPOTS=5, BYES=3;
+ var N=8000, END=14, SPOTS=5, BYES=3, lastOddsKey=null, cachedOdds=null;
  var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || '&#39;';});};
  var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
  var pc=function(x){return (100*x).toFixed(1)+'%';};
@@ -181,7 +181,9 @@
      wrap.innerHTML='<div class="pcl-warning"><strong>Schedule still needed</strong><p>Sleeper has not provided complete matchup pairs for Week'+(missing.length===1?' ':'s ')+missing.join(', ')+'. Set those weeks below to enable schedule-aware playoff odds. We will not guess opponents or show fake percentages.</p></div>';
      oddsResults=null;return;
    }
-   oddsResults=runOdds();
+   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek;
+   if(lastOddsKey!==key||!cachedOdds){cachedOdds=runOdds();lastOddsKey=key;}
+   oddsResults=cachedOdds;
    var ranked=projectedTable(oddsResults).slice().sort(function(a,b){return b.playoffs-a.playoffs||b.w-a.w;});
    var body=ranked.map(function(r){
      var t=teamById[r.id],s=strength[r.id],sel=selectedTeam===r.id;
@@ -204,6 +206,7 @@
  }
  function renderTeamDetails(){
    var wrap=root.querySelector('#pclTeamDetails'),s=quickStats(selectedTeam),r=oddsResults&&oddsResults[selectedTeam];
+   var chooser=root.querySelector('#pclTeamSelect');if(chooser)chooser.value=String(selectedTeam);
    var remaining=s.opp.map(function(x){return '<span class="pcl-opponent">W'+x.week+' · '+safe(name(x.id))+'</span>';}).join('');
    var seedRow=r?'<div class="pcl-seed-grid">'+r.seeds.slice(0,5).map(function(p,i){return '<span><strong>#'+(i+1)+'</strong>'+pc(p)+'</span>';}).join('')+'</div>':'<p>Complete the remaining schedule to estimate seed probabilities.</p>';
    wrap.innerHTML='<div class="pcl-detail-head">'+img(selectedTeam,'pcl-detail-avatar')+'<div><strong>'+safe(name(selectedTeam))+'</strong><span>'+s.team.wins+'–'+s.team.losses+' · '+fmt(s.team.pf)+' PF</span></div></div>'+
@@ -269,7 +272,9 @@
    }
  }
  function handleChange(event){
-   var t=event.target;if(!t||!t.dataset||!t.dataset.score)return;
+   var t=event.target;if(!t)return;
+   if(t.id==='pclTeamSelect'){selectedTeam=+t.value;reRender();return;}
+   if(!t.dataset||!t.dataset.score)return;
    var key=t.dataset.score,side=t.dataset.scoreSide;
    if(!scoreDrafts[key])scoreDrafts[key]={};
    scoreDrafts[key][side]=t.value;
@@ -281,12 +286,12 @@
    save();reRender();
  }
  function renderShell(){
-   root.innerHTML='<section class="pcl-overview"><div class="pcl-kicker">2026 · FIVE-TEAM PLAYOFF FORMAT · WEEKS 1–14</div>'+
+   root.innerHTML='<section class="pcl-overview"><div class="pcl-kicker">'+year+' · FIVE-TEAM PLAYOFF FORMAT · WEEKS 1–14</div>'+
      '<div class="pcl-headline"><div><h2>THE PLAYOFF LAB</h2><p>Schedule-aware playoff odds and a week-by-week what-if simulator. <b>Wins first, total Points For as the tiebreaker.</b></p></div>'+
      '<div class="pcl-status"><span class="pcl-status-label">OFFICIAL RESULTS THROUGH</span><strong>WEEK '+(firstWeek-1)+'</strong><span id="pclMissing"></span></div></div>'+
      '<div class="pcl-model"><span><b>40%</b> LAST 3 GAMES</span><span><b>30%</b> SEASON SCORING</span><span><b>30%</b> ALL-PLAY</span><span><b>100%</b> REAL REMAINING OPPONENTS</span></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PLAYOFF ODDS</h2><span>TOP 5 QUALIFY · TOP 3 BYES</span></div><div id="pclOdds"></div></section>'+
-     '<section class="section pcl-section"><div class="pcl-section-head"><h2>TEAM OUTLOOK</h2><span>SELECT A TEAM ABOVE</span></div><div id="pclTeamDetails"></div></section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>TEAM OUTLOOK</h2><select id="pclTeamSelect" aria-label="Choose a team outlook">'+standings.map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('')+'</select></div><div id="pclTeamDetails"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>SELECT WINNERS OR EXACT SCORES</span></div>'+
      '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
@@ -299,7 +304,7 @@
    await load(['currentStandings','weeklyRanks','leagueSettings']);
    navActive('');
    getStandings();computeStrength();
-   picked=read('picks');customSchedule=read('schedule');scoreDrafts={};selectedTeam=1;
+   picked=read('picks');customSchedule=read('schedule');scoreDrafts={};selectedTeam=1;lastOddsKey=null;cachedOdds=null;
    app.innerHTML=hero('LEAGUE PLAYOFF PICTURE','PLAYOFF CALCULATOR','Five teams make it. Play out the remaining schedule, or let the odds model do the work.')+'<div id="figPlayoffCalc" class="pcl"></div>';
    root=document.getElementById('figPlayoffCalc');renderShell();
    root.querySelector('#pclOdds').innerHTML='<div class="pcl-loading">Checking upcoming matchups with Sleeper…</div>';
