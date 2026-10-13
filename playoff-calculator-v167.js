@@ -311,6 +311,7 @@
  }
  function reRender(){
    if(!document.getElementById('figPlayoffCalc'))return;
+   if(routeMode==='team'){renderTeamRoute();return;}
    renderOdds();
    renderTeamDetails();
    renderBracket(oddsResults);
@@ -318,7 +319,16 @@
    root.querySelector('#pclMissing').textContent=missingWeeks().length?'Missing schedules: '+missingWeeks().map(function(w){return 'W'+w;}).join(', '):'All remaining weeks scheduled';
  }
  function handleClick(event){
+   var row=event.target.closest('[data-team-row]');
+   if(row&&root.contains(row)){location.hash='#/playoff-calculator/team/'+row.dataset.teamRow;return;}
    var b=event.target.closest('button');if(!b||!root.contains(b))return;
+   if(b.dataset.path){
+     allGames().filter(function(g){return g.a===selectedTeam||g.b===selectedTeam;}).forEach(function(g){
+       if(b.dataset.path==='reset')delete picked[g.key];
+       else picked[g.key]={winner:b.dataset.path==='win'?selectedTeam:g.a===selectedTeam?g.b:g.a};
+     });
+     scoreDrafts={};save();reRender();return;
+   }
    if(b.dataset.team){selectedTeam=+b.dataset.team;reRender();return;}
    if(b.dataset.week){selectedWeek=+b.dataset.week;renderWeeks();return;}
    if(b.dataset.reset!==undefined){picked={};scoreDrafts={};save();reRender();return;}
@@ -357,29 +367,41 @@
    root.innerHTML='<section class="pcl-overview"><div class="pcl-kicker">'+year+' · FIVE-TEAM PLAYOFF FORMAT · WEEKS 1–14</div>'+
      '<div class="pcl-headline"><div><h2>THE PLAYOFF LAB</h2><p>Schedule-aware playoff odds and a week-by-week what-if simulator. <b>Wins first, total Points For as the tiebreaker.</b></p></div>'+
      '<div class="pcl-status"><span class="pcl-status-label">OFFICIAL RESULTS THROUGH</span><strong>WEEK '+(firstWeek-1)+'</strong><span id="pclMissing"></span></div></div>'+
-     '<div class="pcl-model"><span><b>40%</b> LAST 3 GAMES</span><span><b>30%</b> SEASON SCORING</span><span><b>30%</b> ALL-PLAY</span><span><b>100%</b> REAL REMAINING OPPONENTS</span></div></section>'+
+     '</section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PLAYOFF ODDS</h2><span>TOP 5 QUALIFY · TOP 3 BYES</span></div><div id="pclOdds"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>TEAM OUTLOOK</h2><select id="pclTeamSelect" aria-label="Choose a team outlook">'+standings.map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('')+'</select></div><div id="pclTeamDetails"></div></section>'+
-     '<section class="section pcl-section"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>SELECT WINNERS OR EXACT SCORES</span></div>'+
+     '<section id="pclWeekArea" class="section pcl-section pcl-whatif"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>SELECT WINNERS OR EXACT SCORES</span></div>'+
      '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PROJECTED PLAYOFF BRACKET</h2><span>BASED ON PROJECTED SEEDS</span></div><div id="pclBracket"></div></section>'+
      '<div class="pcl-disclaimer">Probabilities are estimates, not guarantees or mathematical clinches. Simulations draw future weekly scores from each team’s observed scoring distribution. Last three completed games have extra weight; all-play captures performance against the full league. Scheduled opponents determine every game, and projected PF breaks record ties. Unofficial live scores never count until published as completed.</div>';
    root.addEventListener('click',handleClick);
+   root.addEventListener('keydown',function(e){
+     var row=e.target.closest('[data-team-row]');
+     if(row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();location.hash='#/playoff-calculator/team/'+row.dataset.teamRow;}
+   });
    root.addEventListener('change',handleChange);
  }
- async function launch(){
+ async function launch(routeType,routeValue){
    await load(['currentStandings','weeklyRanks','leagueSettings']);
    navActive('');
    getStandings();computeStrength();
-   picked=read('picks');customSchedule=read('schedule');scoreDrafts={};selectedTeam=1;lastOddsKey=null;cachedOdds=null;
+   picked=read('picks');customSchedule=read('schedule');scoreDrafts={};
+   routeMode=routeType==='team'?'team':'main';selectedTeam=routeMode==='team'&&teamById[+routeValue]?+routeValue:1;
+   lastOddsKey=null;cachedOdds=null;
+   if(routeType==='week'&&Number.isInteger(+routeValue)&&+routeValue>=firstWeek&&+routeValue<=END)selectedWeek=+routeValue;
    app.innerHTML=hero('LEAGUE PLAYOFF PICTURE','PLAYOFF CALCULATOR','Five teams make it. Play out the remaining schedule, or let the odds model do the work.')+'<div id="figPlayoffCalc" class="pcl"></div>';
-   root=document.getElementById('figPlayoffCalc');renderShell();
-   root.querySelector('#pclOdds').innerHTML='<div class="pcl-loading">Checking upcoming matchups with Sleeper…</div>';
+   root=document.getElementById('figPlayoffCalc');
+   if(routeMode==='main'){
+     renderShell();root.querySelector('#pclOdds').innerHTML='<div class="pcl-loading">Checking upcoming matchups with Sleeper…</div>';
+   }else root.innerHTML='<div class="pcl-loading">Loading '+safe(name(selectedTeam))+' playoff path…</div>';
    await loadSchedule();
    if(!root.isConnected||!location.hash.startsWith('#/playoff-calculator'))return;
   // With no remaining regular-season games, the model produces exact 0/100% seed odds.
    reRender();
+   if(routeType==='week'){
+     var weekArea=document.getElementById('pclWeekArea');if(weekArea)weekArea.scrollIntoView({block:'start'});
+   }
  }
  window.figPlayoffCalculator=launch;
 })();
