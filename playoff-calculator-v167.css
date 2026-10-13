@@ -241,3 +241,77 @@
  .page-wrap .pcl-route-table th{font-size:9px}
  .page-wrap .pcl-route-table td{font-size:11px}
 }
+
+
+/* v170: results-only simulation and expanded team playoff paths. */
+.page-wrap .pcl-whatif .pcl-match{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr) 58px;gap:6px;min-height:53px;padding:6px 9px}
+.page-wrap .pcl-whatif .pcl-match-options{display:none}
+.page-wrap .pcl-whatif .pcl-side{min-height:39px}
+.page-wrap .pcl-whatif .pcl-side span{font-size:12px}
+.page-wrap .pcl-whatif .pcl-auto{grid-column:4;align-self:stretch;min-height:35px}
+.page-wrap .pcl-whatif .pcl-auto.pcl-choice-on{background:#e0f1e6;border-color:#97c8aa;color:#13754e}
+.page-wrap .pcl-match-featured{border-color:#acd8ba!important}
+.page-wrap .pcl-whatif .pcl-match-list{gap:5px}
+.page-wrap .pcl-whatif .pcl-week-tabs{scroll-margin-top:10px}
+.page-wrap .pcl-road-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:13px 0 14px}
+.page-wrap .pcl-road-insights span{background:#edf4ef;border:1px solid #dae9df;border-radius:10px;display:flex;flex-direction:column;gap:4px;padding:12px 13px;min-width:0}
+.page-wrap .pcl-road-insights small{font:850 10px Inter,sans-serif;letter-spacing:.04em;color:#587e66}
+.page-wrap .pcl-road-insights b{font:900 clamp(14px,1.7vw,20px) Inter,sans-serif;color:#254332;overflow-wrap:anywhere}
+.page-wrap .pcl-route-likelihood{display:block;position:relative;min-width:70px;padding-bottom:8px;font-weight:850}
+.page-wrap .pcl-route-likelihood i{position:absolute;bottom:0;left:0;height:4px;background:#199a73;border-radius:10px;max-width:100%}
+.page-wrap .pcl-route-table th:nth-child(3),.page-wrap .pcl-route-table td:nth-child(3){color:#52685b}
+.page-wrap .pcl-implication-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.page-wrap .pcl-implication-column{min-width:0}
+.page-wrap .pcl-implication-column h3{font:900 11px Inter,sans-serif;color:#3d6a52;letter-spacing:.075em;margin:0 0 10px}
+.page-wrap .pcl-implication{border:1px solid #e0e8e1;background:#fbfcfb;border-radius:11px;padding:10px 12px;margin-bottom:8px}
+.page-wrap .pcl-implication-top{display:flex;align-items:center;gap:9px;min-height:29px}
+.page-wrap .pcl-implication-week{font:900 11px Inter,sans-serif;color:#177c59;flex:0 0 28px}
+.page-wrap .pcl-implication-teams{display:flex;align-items:center;min-width:0;flex-wrap:wrap;gap:4px;font:900 12px Inter,sans-serif}
+.page-wrap .pcl-implication-teams img{width:22px;height:22px;border-radius:6px;object-fit:cover}
+.page-wrap .pcl-implication-teams em{font:750 9px Inter,sans-serif;color:#889a8b;margin:0 4px}
+.page-wrap .pcl-implication-swing{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+.page-wrap .pcl-implication-swing b{font:900 15px Inter,sans-serif;color:#158262}
+.page-wrap .pcl-implication-swing small{font:850 8px Inter,sans-serif;color:#687d70;letter-spacing:.025em}
+.page-wrap .pcl-implication-bottom{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px;padding-top:7px;border-top:1px solid #edf1ed}
+.page-wrap .pcl-implication-context{display:flex;gap:7px;flex-wrap:wrap;align-items:center;min-width:0}
+.page-wrap .pcl-implication-branch{font:700 9px Inter,sans-serif;color:#66816d}
+.page-wrap .pcl-implication-branch b{font-weight:900;color:#244a35}
+.page-wrap .pcl-implication-picks{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.page-wrap .pcl-implication-picks button,
+.page-wrap .pcl-route-quick-controls button{border:1px solid #d5e4d9;background:#f0f4f0;color:#45604e;font:850 9px Inter,sans-serif;padding:7px 8px;border-radius:7px;min-height:30px;cursor:pointer}
+.page-wrap .pcl-implication-picks button.pcl-choice-on,
+.page-wrap .pcl-route-quick-controls button.pcl-choice-on{color:#0a633d;border-color:#81c99f;background:#dbf4e4}
+.page-wrap .pcl-implication-picks button:hover,
+.page-wrap .pcl-route-quick-controls button:hover{background:#d8ebdd}
+.page-wrap .pcl-route-game{grid-template-columns:37px 33px minmax(0,1fr) 102px minmax(142px,auto);gap:8px}
+.page-wrap .pcl-route-quick-controls{display:flex;gap:4px;justify-content:flex-end;flex-wrap:nowrap}
+.page-wrap .pcl-route-quick-controls button{min-width:41px}
+.page-wrap .pcl-route-whatif{scroll-margin-top:12px}
+.page-wrap .pcl-route-whatif .pcl-match-featured{background:#f3f9f4}
+@media(max-width:900px){
+.page-wrap .pcl-implication-columns{grid-template-columns:minmax(0,1fr)}
+.page-wrap .pcl-implication-column{min-width:0}
+.page-wrap .pcl-route-game{grid-template-columns:35px 30px minmax(0,1fr) 95px;gap:6px}
+.page-wrap .pcl-route-quick-controls{grid-column:1/-1;justify-content:flex-start;margin:0 0 2px 69px}
+.page-wrap .pcl-whatif .pcl-match{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr) 58px}
+}
+@media(max-width:699px){
+.page-wrap .pcl-road-insights{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.page-wrap .pcl-road-insights span{padding:10px}
+.page-wrap .pcl-road-insights small{font-size:9px}
+.page-wrap .pcl-road-insights b{font-size:15px}
+.page-wrap .pcl-road-insights span:last-child{grid-column:1/-1}
+.page-wrap .pcl-implication{padding:9px}
+.page-wrap .pcl-implication-swing b{font-size:13px}
+.page-wrap .pcl-implication-teams{font-size:11px}
+.page-wrap .pcl-implication-bottom{flex-direction:column;align-items:flex-start}
+.page-wrap .pcl-route-game{grid-template-columns:28px 27px minmax(0,1fr) 67px;gap:5px}
+.page-wrap .pcl-route-quick-controls{margin-left:60px}
+.page-wrap .pcl-whatif .pcl-match{grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr) 43px;padding:5px;gap:3px;min-height:45px}
+.page-wrap .pcl-whatif .pcl-side{padding:4px;gap:4px;min-height:37px}
+.page-wrap .pcl-whatif .pcl-side img{width:22px;height:22px;flex-basis:22px}
+.page-wrap .pcl-whatif .pcl-side span{font-size:10px!important}
+.page-wrap .pcl-whatif .pcl-auto{font-size:8px;padding:4px 2px;min-height:32px}
+.page-wrap .pcl-route-table th,.page-wrap .pcl-route-table td{padding:9px 7px}
+.page-wrap .pcl-route-likelihood{min-width:50px}
+}
