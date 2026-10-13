@@ -246,27 +246,43 @@
 
  function playoffImpactGames(results,id){
    if(!results||!results._impacts)return {own:[],others:[]};
-   var all=Object.values(results._impacts).filter(function(x){return !x.locked&&x.count[0]>=150&&x.count[1]>=150;})
-     .map(function(x){
-       function make(team,side){return (x.made[side][team]||0)/x.count[side];}
-       var forA=make(id,0),forB=make(id,1),ownSwing=Math.abs(forA-forB);
-       var leagueSwing=standings.reduce(function(sum,t){return sum+Math.abs(make(t.id,0)-make(t.id,1));},0)/2;
-       return {game:x,forA:forA,forB:forB,ownSwing:ownSwing,leagueSwing:leagueSwing};
-     });
-   var own=all.filter(function(v){return v.game.a===id||v.game.b===id;}).sort(function(a,b){return b.ownSwing-a.ownSwing||a.game.week-b.game.week;}).slice(0,3);
-   var others=all.filter(function(v){return v.game.a!==id&&v.game.b!==id&&v.game.a!==10&&v.game.b!==10;})
-      .sort(function(a,b){return (b.ownSwing*.65+b.leagueSwing*.35)-(a.ownSwing*.65+a.leagueSwing*.35)||a.game.week-b.game.week;}).slice(0,3);
+   // Exclude James matchups from the highlighted list only, never from the
+   // simulation itself or the team's remaining schedule.
+   var all=Object.values(results._impacts).filter(function(x){
+     return !x.locked&&x.a!==10&&x.b!==10&&x.count[0]>=150&&x.count[1]>=150;
+   }).map(function(x){
+     function make(team,side){return (x.made[side][team]||0)/x.count[side];}
+     var forA=make(id,0),forB=make(id,1),ownSwing=Math.abs(forA-forB);
+     var aWin=make(x.a,0),aLoss=make(x.a,1);
+     var bWin=make(x.b,1),bLoss=make(x.b,0);
+     return {game:x,forA:forA,forB:forB,ownSwing:ownSwing,
+       participants:[{id:x.a,win:aWin,loss:aLoss,swing:Math.abs(aWin-aLoss)},
+                     {id:x.b,win:bWin,loss:bLoss,swing:Math.abs(bWin-bLoss)}]};
+   });
+   var own=all.filter(function(v){return v.game.a===id||v.game.b===id;})
+     .sort(function(a,b){return b.ownSwing-a.ownSwing||a.game.week-b.game.week;}).slice(0,3);
+   // Rank outside games by how much they move this selected team's chances.
+   var others=all.filter(function(v){return v.game.a!==id&&v.game.b!==id;})
+     .sort(function(a,b){return b.ownSwing-a.ownSwing||
+       Math.max(b.participants[0].swing,b.participants[1].swing)-
+       Math.max(a.participants[0].swing,a.participants[1].swing)||
+       a.game.week-b.game.week;}).slice(0,3);
    return {own:own,others:others};
  }
  function implicationCard(entry,own){
-   var g=entry.game,lock=picked[g.key]||{},significant=own?entry.ownSwing:Math.max(entry.ownSwing,entry.leagueSwing);
-   var line=own?'PLAYOFF ODDS SWING':'LEAGUE PLAYOFF SWING';
-   var a=entry.forA,b=entry.forB,labels='<span class="pcl-implication-branch">'+safe(name(g.a))+' WIN: <b>'+pc(a)+'</b></span>'+
-      '<span class="pcl-implication-branch">'+safe(name(g.b))+' WIN: <b>'+pc(b)+'</b></span>';
-   if(!own&&entry.ownSwing<.005)labels='<span class="pcl-caption">Your playoff odds change by '+pc(entry.ownSwing)+'; this game has stronger implications elsewhere in the league.</span>';
+   var g=entry.game,lock=picked[g.key]||{};
+   var labels='<span class="pcl-implication-branch">'+safe(name(g.a))+' WIN: <b>'+pc(entry.forA)+'</b></span>'+
+     '<span class="pcl-implication-branch">'+safe(name(g.b))+' WIN: <b>'+pc(entry.forB)+'</b></span>';
+   var participantImpact=!own?'<div class="pcl-other-impact"><span class="pcl-other-impact-heading">HOW THIS AFFECTS THEIR PLAYOFF CHANCES</span>'+
+     entry.participants.map(function(p){
+       return '<div class="pcl-other-impact-team"><strong>'+safe(name(p.id))+'</strong>'+
+         '<span>WIN <b>'+pc(p.win)+'</b></span><span>LOSS <b>'+pc(p.loss)+'</b></span>'+
+         '<span class="pcl-other-impact-swing">'+pc(p.swing)+' pt swing</span></div>';
+     }).join('')+'</div>':'';
    return '<article class="pcl-implication"><div class="pcl-implication-top"><span class="pcl-implication-week">W'+g.week+'</span>'+
      '<span class="pcl-implication-teams">'+img(g.a)+safe(name(g.a))+'<em>vs</em>'+img(g.b)+safe(name(g.b))+'</span>'+
-     '<span class="pcl-implication-swing"><b>'+pc(significant)+'</b><small>'+line+'</small></span></div>'+
+     '<span class="pcl-implication-swing"><b>'+pc(entry.ownSwing)+'</b><small>IMPACT ON '+safe(name(selectedTeam).toUpperCase())+'</small></span></div>'+
+     participantImpact+
      '<div class="pcl-implication-bottom"><div class="pcl-implication-context">'+labels+'</div>'+
      '<div class="pcl-implication-picks"><button data-key="'+g.key+'" data-winner="'+g.a+'" class="'+(lock.winner===g.a?'pcl-choice-on':'')+'">'+safe(name(g.a))+'</button>'+
      '<button data-key="'+g.key+'" data-winner="'+g.b+'" class="'+(lock.winner===g.b?'pcl-choice-on':'')+'">'+safe(name(g.b))+'</button>'+
@@ -314,13 +330,13 @@
    }).join('');
    var biggest=playoffImpactGames(all,selectedTeam);
    var impactSection='<section class="section pcl-section"><div class="pcl-section-head"><h2>BIGGEST PLAYOFF-IMPLICATION GAMES</h2><span>BASED ON SIMULATED ODDS SWINGS</span></div>'+
-     '<p class="pcl-route-intro">These are the remaining games that most affect playoff chances. Pick either winner here to update the entire playoff picture. The odds swing estimates compare simulations in which each side wins.</p>'+
+     '<p class="pcl-route-intro">Highlighted games ranked by their impact on '+safe(t.name)+'’s playoff chances. Other games also show how each participating team’s odds change with a win or loss.</p>'+
      '<div class="pcl-implication-columns">'+
      '<div class="pcl-implication-column"><h3>YOUR MOST IMPORTANT MATCHUPS</h3>'+
      (biggest.own.length?biggest.own.map(function(o){return implicationCard(o,true);}).join(''):'<p class="pcl-caption">All of your available matchups are already picked, or the schedule is incomplete.</p>')+'</div>'+
      '<div class="pcl-implication-column"><h3>OTHER GAMES TO WATCH</h3>'+
      (biggest.others.length?biggest.others.map(function(o){return implicationCard(o,false);}).join(''):'<p class="pcl-caption">Other matchups need valid simulation samples before they can be ranked.</p>')+'</div></div>'+
-     '<p class="pcl-caption">Win-impact estimates are model-based, not guaranteed outcomes; already selected matchups are excluded from the impact rankings.</p></section>';
+     '<p class="pcl-caption">Odds swings are changes in percentage points estimated from the simulation. Games you have already picked are excluded from the highlighted list, but still count toward standings and playoff odds.</p></section>';
    root.innerHTML='<a href="#/playoff-calculator" class="pcl-route-back">← ALL PLAYOFF ODDS</a>'+
      '<section class="pcl-route-hero"><div class="pcl-route-person">'+img(selectedTeam,'pcl-route-portrait')+
      '<div><div class="pcl-kicker">TEAM PLAYOFF OUTLOOK</div><h2>'+safe(t.name)+'</h2><p>'+t.wins+'–'+t.losses+' · '+fmt(t.pf)+' PF · '+pc(s.model.allPlay)+' ALL-PLAY</p></div></div>'+
