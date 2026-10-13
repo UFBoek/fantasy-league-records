@@ -131,7 +131,7 @@ function recordPodiumCard({title,href,leaders,badge='RECORD',tone='mint',note=''
  // The top portrait mosaic already includes every tied winning manager.
  const rivalCandidates=ranked.filter(x=>!sameRecordValue(x.value,top.value));
  const rivalSlots=Math.max(0,3-tiedEntries.length);
- const boundary=rivalSlots>0 ? rivalCandidates[rivalSlots-1] : undefined;
+ const boundary=rivalSlots>0 ? rivalCandidates[Math.min(rivalSlots,rivalCandidates.length)-1] : undefined;
  const rivals=boundary
   ? rivalCandidates.filter((x,i)=>i<rivalSlots||sameRecordValue(x.value,boundary.value))
   : [];
