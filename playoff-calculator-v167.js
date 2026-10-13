@@ -2,7 +2,7 @@
 (function () {
  'use strict';
  var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults;
- var N=8000, END=14, SPOTS=5, BYES=3, lastOddsKey=null, cachedOdds=null;
+ var N=8000, END=14, SPOTS=5, BYES=3, lastOddsKey=null, cachedOdds=null, routeMode='main';
  var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || '&#39;';});};
  var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
  var pc=function(x){return (100*x).toFixed(1)+'%';};
@@ -134,7 +134,7 @@
  function runOdds(){
    if(!noMissing())return null;
    var games=allGames(),results={};
-   standings.forEach(function(t){results[t.id]={id:t.id,playoffs:0,bye:0,one:0,w:0,pf:0,seeds:[0,0,0,0,0,0,0,0,0,0]};});
+   standings.forEach(function(t){results[t.id]={id:t.id,playoffs:0,bye:0,one:0,w:0,pf:0,path:{},seeds:[0,0,0,0,0,0,0,0,0,0]};});
    var rng=rand(0xC0FFEE+firstWeek*31);
    for(var n=0;n<N;n++){
      var rows=baseRows(),lookup={};rows.forEach(function(t){lookup[t.id]=t;});
@@ -153,6 +153,10 @@
        if(i<BYES)r.bye++;
        if(i===0)r.one++;
        r.seeds[i]++;
+       var remainingWins=t.wins-teamById[t.id].wins;
+       var pathKey=String(remainingWins);
+       var outcome=r.path[pathKey]||(r.path[pathKey]={samples:0,made:0,bye:0});
+       outcome.samples++;if(i<SPOTS)outcome.made++;if(i<BYES)outcome.bye++;
        r.w+=t.wins+t.ties*.5;
        r.pf+=t.pf;
      });
@@ -167,6 +171,12 @@
    var rs=standings.map(function(t){var r=result&&result[t.id];return {id:t.id,w:r?r.w:t.wins+t.ties*.5,pf:r?r.pf:t.pf,playoffs:r?r.playoffs:0,bye:r?r.bye:0,one:r?r.one:0};}).sort(function(a,b){return b.w-a.w||b.pf-a.pf;});
    return rs;
  }
+ function oddsForCurrentScenario(){
+   if(!noMissing()){oddsResults=null;return null;}
+   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek;
+   if(lastOddsKey!==key||!cachedOdds){cachedOdds=runOdds();lastOddsKey=key;}
+   oddsResults=cachedOdds;return cachedOdds;
+ }
  function quickStats(id){
    var t=teamById[id],s=strength[id];
    var opp=allGames().filter(function(g){return g.a===id||g.b===id;}).map(function(g){return {week:g.week,id:g.a===id?g.b:g.a};});
@@ -178,22 +188,21 @@
    var wrap=root.querySelector('#pclOdds');
    var missing=missingWeeks();
    if(missing.length){
-     wrap.innerHTML='<div class="pcl-warning"><strong>Schedule still needed</strong><p>Sleeper has not provided complete matchup pairs for Week'+(missing.length===1?' ':'s ')+missing.join(', ')+'. Set those weeks below to enable schedule-aware playoff odds. We will not guess opponents or show fake percentages.</p></div>';
+     wrap.innerHTML='<div class="pcl-warning"><strong>Schedule still needed</strong><p>Missing matchup data for Week'+(missing.length===1?' ':'s ')+missing.join(', ')+'. Complete those weeks in the What-If Calculator to enable accurate, schedule-based odds.</p></div>';
      oddsResults=null;return;
    }
-   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek;
-   if(lastOddsKey!==key||!cachedOdds){cachedOdds=runOdds();lastOddsKey=key;}
-   oddsResults=cachedOdds;
+   oddsForCurrentScenario();
    var ranked=projectedTable(oddsResults).slice().sort(function(a,b){return b.playoffs-a.playoffs||b.w-a.w;});
    var body=ranked.map(function(r){
-     var t=teamById[r.id],s=strength[r.id],sel=selectedTeam===r.id;
-     return '<tr class="'+(sel?'pcl-selected':'')+'"><td><button type="button" class="pcl-team-btn" data-team="'+r.id+'">'+img(r.id)+'<span>'+safe(t.name)+'</span></button></td>'+
+     var t=teamById[r.id],s=strength[r.id];
+     return '<tr class="pcl-clickable-row" data-team-row="'+r.id+'" role="link" tabindex="0" aria-label="Open '+safe(t.name)+' playoff path">'+
+       '<td><span class="pcl-team-btn">'+img(r.id)+'<span>'+safe(t.name)+'</span></span></td>'+
        '<td>'+t.wins+'–'+t.losses+'</td><td>'+fmt(t.pf)+'</td><td>'+pc(s.allPlay)+'</td>'+
        '<td class="pcl-prob">'+pctCell(r.playoffs)+'</td><td class="pcl-prob">'+pctCell(r.bye)+'</td>'+
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
    wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-     '<div class="pcl-legend">Estimated from '+N.toLocaleString()+' simulated seasons · Regular-season seed #1 also earns a bye · Records tied on wins are sorted by total projected Points For.</div>';
+     '<div class="pcl-legend">Tap any team row for its route to the playoffs, remaining schedule, and possible finishing records. '+N.toLocaleString()+' simulations · wins and Points For determine seeding.</div>';
  }
  function renderBracket(result){
    var rs=projectedTable(result);
