@@ -7,6 +7,8 @@ on:
     # GitHub-hosted schedules are best effort and can be delayed or skipped.
     - cron: '2,7,12,22,27,32,37,42,47,52,57 * * * *'
     - cron: '17 * * * *'
+    # Monday 11:45 PM Eastern (Tuesday UTC); summer/winter triggers are gated locally.
+    - cron: '45 3,4 * * 2'
   workflow_dispatch:
   push:
     branches: [main]
@@ -14,6 +16,12 @@ on:
       - '.github/workflows/update-league-data.yml'
       - 'tests/test_draft_team_history.py'
       - 'scripts/check_refresh_tests.sh'
+      - 'scripts/week_finalization.py'
+      - 'scripts/quick_refresh_check.py'
+      - 'scripts/build_site_data.py'
+      - 'scripts/prepare_player_records.py'
+      - 'scripts/validate_refresh.py'
+      - 'tests/test_week_finalization.py'
 
 # Use the same deployment queue as the website publisher.
 concurrency:
