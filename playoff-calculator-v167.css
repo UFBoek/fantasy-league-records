@@ -120,3 +120,10 @@
 .page-wrap .pcl-edit-pair{grid-template-columns:46px 1fr 16px 1fr;gap:4px;font-size:9px}
 .page-wrap .pcl-edit-pair select{font-size:11px}
 }
+
+.page-wrap .pcl-home-link{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 17px;border:1px solid #cfe2d4;background:#e8f4ea;color:#205b42;text-decoration:none;border-radius:14px;margin:13px 0;font:850 11px Inter,sans-serif}
+.page-wrap .pcl-home-link>span:first-child{display:flex;flex-direction:column;gap:5px}
+.page-wrap .pcl-home-link strong{font:900 16px "Archivo Black",Inter,sans-serif;letter-spacing:-.02em}
+.page-wrap .pcl-home-link small{font:650 11px Inter,sans-serif;color:#5b7663}
+.page-wrap .pcl-home-link>span:last-child{white-space:nowrap;color:#178e70}
+@media(max-width:699px){.page-wrap .pcl-home-link{padding:13px 11px}.page-wrap .pcl-home-link strong{font-size:14px}.page-wrap .pcl-home-link small{font-size:10px}}
