@@ -315,3 +315,19 @@
 .page-wrap .pcl-route-table th,.page-wrap .pcl-route-table td{padding:9px 7px}
 .page-wrap .pcl-route-likelihood{min-width:50px}
 }
+
+/* v171: readable win/loss impact on playoff rivals. */
+.page-wrap .pcl-other-impact{display:grid;gap:6px;padding:10px 0 9px;margin-top:9px;border-top:1px solid #e7ede8}
+.page-wrap .pcl-other-impact-heading{font:900 9px Inter,sans-serif;letter-spacing:.065em;color:#427459}
+.page-wrap .pcl-other-impact-team{display:grid;grid-template-columns:minmax(65px,1fr) auto auto auto;align-items:center;gap:9px;background:#f0f6f1;border-radius:7px;padding:8px 9px;font:750 10px Inter,sans-serif;color:#5a7060}
+.page-wrap .pcl-other-impact-team strong{font-weight:900;font-size:11px;color:#293e31}
+.page-wrap .pcl-other-impact-team b{font-weight:900;color:#273e30}
+.page-wrap .pcl-other-impact-swing{font-weight:900!important;color:#128264;white-space:nowrap}
+.page-wrap .pcl-implication-swing small{max-width:138px;line-height:1.25;text-align:right}
+@media(max-width:699px){
+ .page-wrap .pcl-other-impact{gap:4px}
+ .page-wrap .pcl-other-impact-team{grid-template-columns:minmax(55px,1fr) auto auto;gap:6px;padding:7px}
+ .page-wrap .pcl-other-impact-team strong{font-size:10px}
+ .page-wrap .pcl-other-impact-team span{font-size:9px}
+ .page-wrap .pcl-other-impact-swing{grid-column:2/-1;text-align:right}
+}
