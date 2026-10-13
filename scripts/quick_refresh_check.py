@@ -10,6 +10,7 @@ import os
 import sys
 import urllib.request
 from pathlib import Path
+from week_finalization import previous_verified, week_cutoff, independent_week_final, signature
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 API = "https://api.sleeper.app/v1/league"
@@ -66,6 +67,28 @@ def changes_present():
     status = str(league.get("status") or "")
     if leg != int(current.get("current_leg") or 0) or status != str(current.get("status")):
         return "Sleeper week or league status changed"
+
+    # Check whether Monday 11:45 PM Eastern has passed and every NFL game
+    # is finished. No Sleeper current-leg transition is needed to promote
+    # the week: the full pipeline will independently validate every matchup.
+    settings = league.get("settings") or {}
+    official = week_cutoff(status, leg, settings.get("last_scored_leg"),
+                           previous_verified().get(season, 0))
+    week_to_verify = official + 1
+    if status != "complete" and week_to_verify <= leg and independent_week_final(int(season), week_to_verify):
+        return f"Independent week finalization ready: {season} W{week_to_verify}"
+
+    # Poll the most recent three completed weeks for Sleeper score corrections.
+    # This catches stat changes even when the league week and rosters do not move.
+    previous_scores = read_snapshot("published_weekly_scores.json")
+    if str(previous_scores.get("season")) == season:
+        recent_weeks = sorted((int(x) for x in previous_scores.get("weeks", {})),
+                              reverse=True)[:3]
+        for week in recent_weeks:
+            existing = previous_scores["weeks"][str(week)]
+            current_scores = signature(sleeper_json(f"{API}/{league_id}/matchups/{week}"))
+            if current_scores is not None and current_scores != existing:
+                return f"Sleeper stat correction: {season} W{week}"
 
     live_rosters = sleeper_json(f"{API}/{league_id}/rosters")
     published_rosters = read_snapshot("current_roster.json")
