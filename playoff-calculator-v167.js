@@ -1,0 +1,316 @@
+/* FIG League Playoff Lab v167. Read-only Sleeper schedule; official results remain in published JSON. */
+(function () {
+ 'use strict';
+ var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults;
+ var N=8000, END=14, SPOTS=5, BYES=3;
+ var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;','"':'&#39;'}[c] || '&#39;';});};
+ var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
+ var pc=function(x){return (100*x).toFixed(1)+'%';};
+ var round=function(n){return Math.round(n*100)/100;};
+ var clamp=function(x,a,b){return Math.min(b,Math.max(a,x));};
+ var name=function(id){return (teamById[id]&&teamById[id].name)||('Team '+id);};
+ var img=function(id,cls){return '<img class="'+(cls||'pcl-avatar')+'" src="'+safe(OWNER_AVATAR_BY_ID[id]||'')+'" alt="" loading="lazy">';};
+ var matchKey=function(w,a,b){return w+'_'+Math.min(a,b)+'_'+Math.max(a,b);};
+ var storeKey=function(suffix){return 'fig-playoff-lab-'+year+'-'+firstWeek+'-'+suffix;};
+ var save=function(){try{localStorage.setItem(storeKey('picks'),JSON.stringify(picked));localStorage.setItem(storeKey('schedule'),JSON.stringify(customSchedule));}catch(e){}};
+ var read=function(suffix){try{return JSON.parse(localStorage.getItem(storeKey(suffix))||'{}')||{};}catch(e){return {};}};
+ function getStandings(){
+   var current=(DATA.currentStandings||[]), league=DATA.leagueSettings||[];
+   var match=league.find(function(s){return +s.season===2026;})||league[league.length-1]||{};
+   year=Number(match.season)||2026;
+   leagueId=String(match.league_id||'');
+   var settings={};try{settings=JSON.parse(match.settings_json||'{}');}catch(e){}
+   if(settings.playoff_teams!==SPOTS||settings.playoff_week_start!==15||settings.num_teams!==10){throw Error('Playoff settings have changed. Calculator requires the confirmed 10-team, five-playoff-team, Week 15 format.');}
+   standings=current.filter(function(t){return +t.season===year;}).map(function(t){
+     return {id:+t.franchise_id,name:displayOwnerName(t.owner_name,t.franchise_id),wins:+t.wins||0,losses:+t.losses||0,ties:+t.ties||0,pf:+t.points_for||0,apW:+t.all_play_wins||0,apL:+t.all_play_losses||0,apT:+t.all_play_ties||0,apPct:(+t.all_play_win_pct||0)/100};
+   });
+   if(standings.length!==10)throw Error('Official 2026 standings are incomplete; cannot calculate odds.');
+   teamById={};standings.forEach(function(x){teamById[x.id]=x;});
+   history=(DATA.weeklyRanks||[]).filter(function(x){return +x.season===year && Number.isFinite(+x.points_for);});
+   firstWeek=1+Math.max(0,...history.map(function(x){return +x.week||0;}));
+   firstWeek=clamp(firstWeek,1,15);
+   var gp=standings[0].wins+standings[0].losses+standings[0].ties;
+   if(firstWeek!==gp+1)throw Error('Official standings and completed weekly scoring data are out of sync. Please wait for the next Sleeper archive refresh.');
+   selectedWeek=firstWeek;
+ }
+ function computeStrength(){
+   var all=history.map(function(r){return +r.points_for;});
+   var avg=all.reduce(function(s,v){return s+v;},0)/Math.max(1,all.length);
+   var sd=Math.sqrt(all.reduce(function(s,v){return s+Math.pow(v-avg,2);},0)/Math.max(1,all.length));
+   sd=clamp(sd||42,28,85);
+   strength={};
+   standings.forEach(function(t){
+     var scores=history.filter(function(r){return +r.franchise_id===t.id;}).sort(function(a,b){return a.week-b.week;}).map(function(r){return +r.points_for;});
+     var season=scores.reduce(function(s,v){return s+v;},0)/Math.max(1,scores.length);
+     if(!scores.length)season=avg;
+     var recent=scores.slice(-3).reduce(function(s,v){return s+v;},0)/Math.max(1,Math.min(3,scores.length));
+     if(!scores.length)recent=avg;
+     // Equal-score week results contribute through ALL-PLAY regardless of schedule luck.
+     var apTotal=t.apW+t.apL+t.apT;
+     var ap=apTotal?(t.apW+t.apT*.5)/apTotal:.5;
+     var allPlaySignal=avg+(ap-.5)*2*sd*.82;
+     var mean=clamp(.40*recent+.30*season+.30*allPlaySignal,35,300);
+     if(scores.length<3)mean=avg+(mean-avg)*scores.length/3;
+     var varTeam=scores.reduce(function(s,v){return s+(v-season)*(v-season);},0)/Math.max(1,scores.length);
+     var variability=clamp(Math.sqrt(varTeam*.55+sd*sd*.45),22,78);
+     strength[t.id]={mean:mean,sd:variability,season:season,recent:recent,allPlay:ap};
+   });
+ }
+ function validPairs(pairs){
+   if(!Array.isArray(pairs)||pairs.length!==5)return false;
+   var ids=[];
+   for(var i=0;i<pairs.length;i++){
+     if(!Array.isArray(pairs[i])||pairs[i].length!==2)return false;
+     var a=+pairs[i][0],b=+pairs[i][1];
+     if(a===b||!teamById[a]||!teamById[b])return false;
+     ids.push(a,b);
+   }
+   return new Set(ids).size===10;
+ }
+ function parseSleeper(rows){
+   if(!Array.isArray(rows)||rows.length!==10)return null;
+   var m={};
+   rows.forEach(function(r){
+     if(r.matchup_id===null||r.matchup_id===undefined)return;
+     var key=String(r.matchup_id);
+     if(!m[key])m[key]=[];
+     m[key].push(+r.roster_id);
+   });
+   var pairs=Object.keys(m).sort(function(a,b){return +a-(+b);}).map(function(k){return m[k];});
+   return validPairs(pairs)?pairs:null;
+ }
+ async function loadSchedule(){
+   weeks={};sources={};
+   for(var w=firstWeek;w<=END;w++){weeks[w]=null;sources[w]='missing';}
+   if(firstWeek>END)return;
+   await Promise.all(Object.keys(weeks).map(async function(k){
+     var w=+k,pairs=null;
+     try{
+       var response=await fetch('https://api.sleeper.app/v1/league/'+encodeURIComponent(leagueId)+'/matchups/'+w,{cache:'no-store'});
+       if(!response.ok)throw Error('HTTP '+response.status);
+       pairs=parseSleeper(await response.json());
+     }catch(e){console.warn('Sleeper schedule Week '+w+': '+e.message);}
+     if(pairs){weeks[w]=pairs;sources[w]='sleeper';}
+     else if(validPairs(customSchedule[w])){weeks[w]=customSchedule[w];sources[w]='manual';}
+   }));
+ }
+ function allGames(){
+   var games=[];
+   for(var w=firstWeek;w<=END;w++){
+     if(!weeks[w])continue;
+     weeks[w].forEach(function(p){games.push({week:w,a:p[0],b:p[1],key:matchKey(w,p[0],p[1])});});
+   }
+   return games;
+ }
+ function noMissing(){for(var w=firstWeek;w<=END;w++)if(!validPairs(weeks[w]))return false;return true;}
+ function rand(seed){
+   var s=seed>>>0;
+   return function(){s=(Math.imul(s,1664525)+1013904223)>>>0;return (s+.5)/4294967296;};
+ }
+ function normal(rng){
+   var u=Math.max(1e-9,rng()),v=rng();
+   return Math.sqrt(-2*Math.log(u))*Math.cos(6.283185307179586*v);
+ }
+ function pickScores(g,locked,rng){
+   var a=strength[g.a],b=strength[g.b],pa,pb;
+   if(locked && Number.isFinite(+locked.aPts) && Number.isFinite(+locked.bPts) && locked.aPts!==null && locked.bPts!==null){
+     return [Number(locked.aPts),Number(locked.bPts)];
+   }
+   var attempts=locked&&locked.winner?40:1;
+   for(var x=0;x<attempts;x++){
+     pa=Math.max(0,a.mean+a.sd*normal(rng));pb=Math.max(0,b.mean+b.sd*normal(rng));
+     if(!locked||!locked.winner||(locked.winner===g.a&&pa>pb)||(locked.winner===g.b&&pb>pa))break;
+   }
+   if(locked&&locked.winner){
+     if(locked.winner===g.a&&pa<=pb){pa=Math.max(pa,pb+1);}
+     else if(locked.winner===g.b&&pb<=pa){pb=Math.max(pb,pa+1);}
+   }
+   return [round(pa),round(pb)];
+ }
+ function baseRows(){
+   return standings.map(function(t){return {id:t.id,wins:t.wins,losses:t.losses,ties:t.ties,pf:t.pf};});
+ }
+ function standingsSort(a,b){return (b.wins+b.ties*.5)-(a.wins+a.ties*.5)||b.pf-a.pf||a.id-b.id;}
+ function runOdds(){
+   if(!noMissing())return null;
+   var games=allGames(),results={};
+   standings.forEach(function(t){results[t.id]={id:t.id,playoffs:0,bye:0,one:0,w:0,pf:0,seeds:[0,0,0,0,0,0,0,0,0,0]};});
+   var rng=rand(0xC0FFEE+firstWeek*31);
+   for(var n=0;n<N;n++){
+     var rows=baseRows(),lookup={};rows.forEach(function(t){lookup[t.id]=t;});
+     for(var g=0;g<games.length;g++){
+       var match=games[g],pts=pickScores(match,picked[match.key],rng);
+       var a=lookup[match.a],b=lookup[match.b];
+       a.pf+=pts[0];b.pf+=pts[1];
+       if(pts[0]>pts[1]){a.wins++;b.losses++;}
+       else if(pts[1]>pts[0]){b.wins++;a.losses++;}
+       else {a.ties++;b.ties++;}
+     }
+     rows.sort(standingsSort);
+     rows.forEach(function(t,i){
+       var r=results[t.id];
+       if(i<SPOTS)r.playoffs++;
+       if(i<BYES)r.bye++;
+       if(i===0)r.one++;
+       r.seeds[i]++;
+       r.w+=t.wins+t.ties*.5;
+       r.pf+=t.pf;
+     });
+   }
+   Object.values(results).forEach(function(x){x.playoffs/=N;x.bye/=N;x.one/=N;x.w/=N;x.pf/=N;x.seeds=x.seeds.map(function(v){return v/N;});});
+   return results;
+ }
+ function missingWeeks(){
+   return Object.keys(weeks).filter(function(k){return !weeks[k];}).map(Number);
+ }
+ function projectedTable(result){
+   var rs=standings.map(function(t){var r=result&&result[t.id];return {id:t.id,w:r?r.w:t.wins+t.ties*.5,pf:r?r.pf:t.pf,playoffs:r?r.playoffs:0,bye:r?r.bye:0,one:r?r.one:0};}).sort(function(a,b){return b.w-a.w||b.pf-a.pf;});
+   return rs;
+ }
+ function quickStats(id){
+   var t=teamById[id],s=strength[id];
+   var opp=allGames().filter(function(g){return g.a===id||g.b===id;}).map(function(g){return {week:g.week,id:g.a===id?g.b:g.a};});
+   var oppAvg=opp.reduce(function(sum,o){return sum+strength[o.id].mean;},0)/Math.max(1,opp.length);
+   return {team:t,model:s,opp:opp,oppAvg:oppAvg};
+ }
+ function pctCell(n){return '<strong>'+pc(n)+'</strong><span class="pcl-odds-track"><span style="width:'+Math.max(0,Math.min(100,n*100))+'%"></span></span>';}
+ function renderOdds(){
+   var wrap=root.querySelector('#pclOdds');
+   var missing=missingWeeks();
+   if(missing.length){
+     wrap.innerHTML='<div class="pcl-warning"><strong>Schedule still needed</strong><p>Sleeper has not provided complete matchup pairs for Week'+(missing.length===1?' ':'s ')+missing.join(', ')+'. Set those weeks below to enable schedule-aware playoff odds. We will not guess opponents or show fake percentages.</p></div>';
+     oddsResults=null;return;
+   }
+   oddsResults=runOdds();
+   var ranked=projectedTable(oddsResults).slice().sort(function(a,b){return b.playoffs-a.playoffs||b.w-a.w;});
+   var body=ranked.map(function(r){
+     var t=teamById[r.id],s=strength[r.id],sel=selectedTeam===r.id;
+     return '<tr class="'+(sel?'pcl-selected':'')+'"><td><button type="button" class="pcl-team-btn" data-team="'+r.id+'">'+img(r.id)+'<span>'+safe(t.name)+'</span></button></td>'+
+       '<td>'+t.wins+'–'+t.losses+'</td><td>'+fmt(t.pf)+'</td><td>'+pc(s.allPlay)+'</td>'+
+       '<td class="pcl-prob">'+pctCell(r.playoffs)+'</td><td class="pcl-prob">'+pctCell(r.bye)+'</td>'+
+       '<td>'+r.w.toFixed(1)+'</td></tr>';
+   }).join('');
+   wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+     '<div class="pcl-legend">Estimated from '+N.toLocaleString()+' simulated seasons · Regular-season seed #1 also earns a bye · Records tied on wins are sorted by total projected Points For.</div>';
+ }
+ function renderBracket(result){
+   var rs=projectedTable(result);
+   var slot=function(i){var t=rs[i];return '<div class="pcl-bracket-team"><span class="pcl-seed">#'+(i+1)+'</span>'+img(t.id)+'<b>'+safe(name(t.id))+'</b></div>';};
+   root.querySelector('#pclBracket').innerHTML='<div class="pcl-bracket">'+
+     '<div class="pcl-bracket-round"><span class="pcl-round-label">W15 · PLAY-IN</span><div class="pcl-bracket-pair">'+slot(3)+'<em>vs</em>'+slot(4)+'</div><div class="pcl-bracket-note">Top 3 seeds receive byes</div></div>'+
+     '<div class="pcl-bracket-round"><span class="pcl-round-label">W16 · SEMIFINALS</span><div class="pcl-bracket-pair">'+slot(0)+'<em>vs</em><span class="pcl-bracket-unknown">#4 / #5 WINNER</span></div><div class="pcl-bracket-pair">'+slot(1)+'<em>vs</em>'+slot(2)+'</div></div>'+
+     '<div class="pcl-bracket-round"><span class="pcl-round-label">W17 · TITLE GAME</span><div class="pcl-bracket-pair"><span class="pcl-bracket-unknown">SEMIFINAL WINNER</span><em>vs</em><span class="pcl-bracket-unknown">SEMIFINAL WINNER</span></div></div>'+
+     '</div><p class="pcl-caption">Bracket uses the modeled final seed order, not a prediction of playoff-game winners. Top 5 qualify, with Points For breaking equal records.</p>';
+ }
+ function renderTeamDetails(){
+   var wrap=root.querySelector('#pclTeamDetails'),s=quickStats(selectedTeam),r=oddsResults&&oddsResults[selectedTeam];
+   var remaining=s.opp.map(function(x){return '<span class="pcl-opponent">W'+x.week+' · '+safe(name(x.id))+'</span>';}).join('');
+   var seedRow=r?'<div class="pcl-seed-grid">'+r.seeds.slice(0,5).map(function(p,i){return '<span><strong>#'+(i+1)+'</strong>'+pc(p)+'</span>';}).join('')+'</div>':'<p>Complete the remaining schedule to estimate seed probabilities.</p>';
+   wrap.innerHTML='<div class="pcl-detail-head">'+img(selectedTeam,'pcl-detail-avatar')+'<div><strong>'+safe(name(selectedTeam))+'</strong><span>'+s.team.wins+'–'+s.team.losses+' · '+fmt(s.team.pf)+' PF</span></div></div>'+
+      '<div class="pcl-detail-numbers"><div><small>LAST 3 AVG</small><strong>'+fmt(s.model.recent)+'</strong></div><div><small>FULL-SEASON AVG</small><strong>'+fmt(s.model.season)+'</strong></div><div><small>ALL-PLAY</small><strong>'+pc(s.model.allPlay)+'</strong></div><div><small>MODEL PTS/WK</small><strong>'+fmt(s.model.mean)+'</strong></div></div>'+
+      '<div class="pcl-detail-subhead">PROJECTED SEED CHANCES</div>'+seedRow+
+      '<div class="pcl-detail-subhead">REMAINING OPPONENTS'+(s.opp.length?' · '+s.opp.length+' WEEKS':'')+'</div><div class="pcl-opponents">'+(remaining||'<span class="pcl-caption">Waiting for official schedule information.</span>')+'</div>'+
+      (s.opp.length?'<div class="pcl-caption">Schedule difficulty: remaining opponents average '+fmt(s.oppAvg)+' model points/week (league average '+fmt(standings.reduce(function(a,t){return a+strength[t.id].mean;},0)/10)+'). This schedule is incorporated into every simulated matchup.</div>':'');
+ }
+ function renderWeeks(){
+   var controls=root.querySelector('#pclWeeks');
+   var options=Object.keys(weeks).map(function(w){return '<button type="button" class="'+(+w===selectedWeek?'pcl-week-active':'')+'" data-week="'+w+'">W'+w+(weeks[w]?'':' !')+'</button>';}).join('');
+   controls.innerHTML=options||'<span class="pcl-caption">Regular season is complete.</span>';
+   var holder=root.querySelector('#pclGames'),pairs=weeks[selectedWeek];
+   if(!pairs){holder.innerHTML='<div class="pcl-warning"><strong>Week '+selectedWeek+' schedule unavailable</strong><p>Sleeper has not exposed usable matchup pairs yet. Enter this week’s five matchups below to make your own schedule-aware projections.</p></div>'+scheduleEditor();return;}
+   var manual=sources[selectedWeek]==='manual'?'MANUALLY ENTERED':'SLEEPER SCHEDULE';
+   var rows=pairs.map(function(pair){
+     var a=+pair[0],b=+pair[1],key=matchKey(selectedWeek,a,b),lock=picked[key]||{},draft=scoreDrafts[key]||{};
+     var ma=strength[a],mb=strength[b],status=lock.winner===a?'pcl-choice-on':'',statusB=lock.winner===b?'pcl-choice-on':'';
+     var vA=draft.a!==undefined?draft.a:lock.aPts!==undefined&&lock.aPts!==null?lock.aPts:'';
+     var vB=draft.b!==undefined?draft.b:lock.bPts!==undefined&&lock.bPts!==null?lock.bPts:'';
+     return '<div class="pcl-match"><button type="button" class="pcl-side '+status+'" data-key="'+key+'" data-winner="'+a+'">'+img(a)+'<span>'+safe(name(a))+'</span><small>'+Math.round(ma.mean)+' proj</small></button>'+
+       '<span class="pcl-vs">VS</span>'+
+       '<button type="button" class="pcl-side '+statusB+'" data-key="'+key+'" data-winner="'+b+'">'+img(b)+'<span>'+safe(name(b))+'</span><small>'+Math.round(mb.mean)+' proj</small></button>'+
+       '<div class="pcl-match-options"><button type="button" class="pcl-auto '+(!lock.winner&&lock.aPts===undefined?'pcl-choice-on':'')+'" data-auto="'+key+'">AUTO</button>'+
+       '<label>'+safe(name(a))+' <input data-score="'+key+'" data-score-side="a" type="number" min="0" max="500" step="0.01" placeholder="'+Math.round(ma.mean)+'" value="'+safe(vA)+'" aria-label="'+safe(name(a))+' projected score"></label>'+
+       '<label>'+safe(name(b))+' <input data-score="'+key+'" data-score-side="b" type="number" min="0" max="500" step="0.01" placeholder="'+Math.round(mb.mean)+'" value="'+safe(vB)+'" aria-label="'+safe(name(b))+' projected score"></label></div></div>';
+   }).join('');
+   holder.innerHTML='<div class="pcl-schedule-source">'+manual+' · Tap a team to lock a win. Enter both scores to lock Points For, too.</div>'+rows;
+ }
+ function scheduleEditor(){
+   var options='<option value="">Choose team</option>'+standings.slice().sort(function(a,b){return a.id-b.id;}).map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('');
+   var rows=Array.from({length:5},function(_,i){return '<div class="pcl-edit-pair"><span>GAME '+(i+1)+'</span><select data-editor-row="'+i+'" data-editor-side="0">'+options+'</select><b>vs</b><select data-editor-row="'+i+'" data-editor-side="1">'+options+'</select></div>';}).join('');
+   return '<div class="pcl-schedule-editor"><h3>ENTER WEEK '+selectedWeek+' MATCHUPS</h3><p>Choose each team exactly once. This schedule will be saved on your device until Sleeper publishes its own matchups.</p>'+rows+'<button type="button" data-save-schedule="1" class="pcl-primary">USE THESE MATCHUPS</button><p class="pcl-editor-error" id="pclEditError"></p></div>';
+ }
+ function reRender(){
+   if(!document.getElementById('figPlayoffCalc'))return;
+   renderOdds();
+   renderTeamDetails();
+   renderBracket(oddsResults);
+   renderWeeks();
+   root.querySelector('#pclMissing').textContent=missingWeeks().length?'Missing schedules: '+missingWeeks().map(function(w){return 'W'+w;}).join(', '):'All remaining weeks scheduled';
+ }
+ function handleClick(event){
+   var b=event.target.closest('button');if(!b||!root.contains(b))return;
+   if(b.dataset.team){selectedTeam=+b.dataset.team;reRender();return;}
+   if(b.dataset.week){selectedWeek=+b.dataset.week;renderWeeks();return;}
+   if(b.dataset.reset!==undefined){picked={};scoreDrafts={};save();reRender();return;}
+   if(b.dataset.refresh!==undefined){b.disabled=true;b.textContent='REFRESHING…';loadSchedule().then(function(){reRender();}).finally(function(){b.disabled=false;b.textContent='RECHECK SLEEPER';});return;}
+   if(b.dataset.auto){delete picked[b.dataset.auto];delete scoreDrafts[b.dataset.auto];save();reRender();return;}
+   if(b.dataset.winner){
+     var key=b.dataset.key,winner=+b.dataset.winner;
+     if(picked[key]&&picked[key].winner===winner){delete picked[key];}else picked[key]={winner:winner};
+     delete scoreDrafts[key];save();reRender();return;
+   }
+   if(b.dataset.saveSchedule){
+     var selects=Array.from(root.querySelectorAll('[data-editor-row]')),pairs=Array.from({length:5},function(){return [null,null];});
+     selects.forEach(function(x){pairs[+x.dataset.editorRow][+x.dataset.editorSide]=+x.value;});
+     if(!validPairs(pairs)){
+       root.querySelector('#pclEditError').textContent='Choose exactly five valid matchups, with each of the 10 teams appearing once.';
+       return;
+     }
+     customSchedule[selectedWeek]=pairs;weeks[selectedWeek]=pairs;sources[selectedWeek]='manual';save();reRender();return;
+   }
+ }
+ function handleChange(event){
+   var t=event.target;if(!t||!t.dataset||!t.dataset.score)return;
+   var key=t.dataset.score,side=t.dataset.scoreSide;
+   if(!scoreDrafts[key])scoreDrafts[key]={};
+   scoreDrafts[key][side]=t.value;
+   var v=scoreDrafts[key],a=Number(v.a),b=Number(v.b);
+   if(v.a===''||v.b===''||!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<0||a>500||b>500)return;
+   var g=allGames().find(function(g){return g.key===key;});
+   if(!g)return;
+   picked[key]={aPts:round(a),bPts:round(b),winner:a>b?g.a:b>a?g.b:null};
+   save();reRender();
+ }
+ function renderShell(){
+   root.innerHTML='<section class="pcl-overview"><div class="pcl-kicker">2026 · FIVE-TEAM PLAYOFF FORMAT · WEEKS 1–14</div>'+
+     '<div class="pcl-headline"><div><h2>THE PLAYOFF LAB</h2><p>Schedule-aware playoff odds and a week-by-week what-if simulator. <b>Wins first, total Points For as the tiebreaker.</b></p></div>'+
+     '<div class="pcl-status"><span class="pcl-status-label">OFFICIAL RESULTS THROUGH</span><strong>WEEK '+(firstWeek-1)+'</strong><span id="pclMissing"></span></div></div>'+
+     '<div class="pcl-model"><span><b>40%</b> LAST 3 GAMES</span><span><b>30%</b> SEASON SCORING</span><span><b>30%</b> ALL-PLAY</span><span><b>100%</b> REAL REMAINING OPPONENTS</span></div></section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>PLAYOFF ODDS</h2><span>TOP 5 QUALIFY · TOP 3 BYES</span></div><div id="pclOdds"></div></section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>TEAM OUTLOOK</h2><span>SELECT A TEAM ABOVE</span></div><div id="pclTeamDetails"></div></section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>SELECT WINNERS OR EXACT SCORES</span></div>'+
+     '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
+     '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>PROJECTED PLAYOFF BRACKET</h2><span>BASED ON PROJECTED SEEDS</span></div><div id="pclBracket"></div></section>'+
+     '<div class="pcl-disclaimer">Probabilities are estimates, not guarantees or mathematical clinches. Simulations draw future weekly scores from each team’s observed scoring distribution. Last three completed games have extra weight; all-play captures performance against the full league. Scheduled opponents determine every game, and projected PF breaks record ties. Unofficial live scores never count until published as completed.</div>';
+   root.addEventListener('click',handleClick);
+   root.addEventListener('change',handleChange);
+ }
+ async function launch(){
+   await load(['currentStandings','weeklyRanks','leagueSettings']);
+   navActive('');
+   getStandings();computeStrength();
+   picked=read('picks');customSchedule=read('schedule');scoreDrafts={};selectedTeam=1;
+   app.innerHTML=hero('LEAGUE PLAYOFF PICTURE','PLAYOFF CALCULATOR','Five teams make it. Play out the remaining schedule, or let the odds model do the work.')+'<div id="figPlayoffCalc" class="pcl"></div>';
+   root=document.getElementById('figPlayoffCalc');renderShell();
+   root.querySelector('#pclOdds').innerHTML='<div class="pcl-loading">Checking upcoming matchups with Sleeper…</div>';
+   await loadSchedule();
+   if(!root.isConnected||!location.hash.startsWith('#/playoff-calculator'))return;
+   if(firstWeek>END){
+     // Completed regular season: finished seeds are exact.
+     oddsResults={};standings.slice().sort(standingsSort).forEach(function(t,i){var seeds=Array(10).fill(0);seeds[i]=1;oddsResults[t.id]={id:t.id,playoffs:i<5?1:0,bye:i<3?1:0,one:i===0?1:0,w:t.wins+t.ties*.5,pf:t.pf,seeds:seeds};});
+     renderOdds=function(){return;};
+   }
+   reRender();
+ }
+ window.figPlayoffCalculator=launch;
+})();
