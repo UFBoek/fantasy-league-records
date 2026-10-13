@@ -1407,15 +1407,15 @@ function playerTradeHistory(playerId){
 }
 
 async function player(id){
- await load(['playerCareers','playerSeasons','franchiseCareer','playerLog','tradeAssets','trades','tradeSides']);navActive('players');const c=DATA.playerCareers.find(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined');if(!c){app.innerHTML='<div class="empty">Player not found.</div>';return}const seasons=DATA.playerSeasons.filter(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined').sort((a,b)=>+b.season-+a.season),fr=DATA.franchiseCareer.filter(x=>String(x.player_id)===String(id)).sort((a,b)=>b.total_starter_points-a.total_starter_points),logs=DATA.playerLog.filter(x=>String(x.player_id)===String(id));
+ await load(['playerCareers','playerSeasons','franchiseCareer','playerLog','tradeAssets','trades','tradeSides','games']);navActive('players');const c=DATA.playerCareers.find(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined');if(!c){app.innerHTML='<div class="empty">Player not found.</div>';return}const seasons=DATA.playerSeasons.filter(x=>String(x.player_id)===String(id)&&x.scoring_view==='All-Time Combined').sort((a,b)=>+b.season-+a.season),fr=DATA.franchiseCareer.filter(x=>String(x.player_id)===String(id)).sort((a,b)=>b.total_starter_points-a.total_starter_points),logs=DATA.playerLog.filter(x=>String(x.player_id)===String(id));
  const exactBombs=(rows)=>{const b={b5:0,b20:0,b30:0,b40:0,b50:0};rows.forEach(r=>{const p=num(r.starter_points);if(p>=0&&p<10)b.b5++;if(p>=20&&p<30)b.b20++;if(p>=30&&p<40)b.b30++;if(p>=40&&p<50)b.b40++;if(p>=50)b.b50++});return b};
  const careerBombs=exactBombs(logs);
  const tradeCount=playerTradeEntries(c.player_id,DATA.tradeAssets,DATA.trades,DATA.tradeSides).length;
  app.innerHTML=hero('PLAYER ARCHIVE',esc(c.full_name),`${c.position} • ${c.starts} official starts • ${c.fantasy_franchises} fantasy franchise${c.fantasy_franchises===1?'':'s'} • ${tradeCount} recorded trade${tradeCount===1?'':'s'}`,[{value:money(c.total_points),label:'CAREER POINTS'},{value:money(c.average_points),label:'PTS / START'},{value:money(c.highest_score),label:'BEST GAME'},{value:careerBombs.b30,label:'30 BOMBS'}]).replace('class="hero"','class="hero fig-player-profile-hero"').replace('</h1>',`</h1>${playerHeadshot(c.player_id,c.full_name,'fig-nfl-photo-large')}`);
  const frows=fr.map(x=>{const b=exactBombs(logs.filter(r=>+r.franchise_id===+x.franchise_id));return{team:ownerLink(x.owner_name,x.franchise_id),starts:x.starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_game),g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50,_sort:{team:displayOwnerName(x.owner_name,x.franchise_id),starts:x.starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_game,g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50}}});
  const srows=seasons.map(x=>({year:x.season,starts:x.starts,points:money(x.total_points),pps:money(x.average_points),best:money(x.highest_score),teams:x.fantasy_franchises,_sort:{year:x.season,starts:x.starts,points:x.total_points,pps:x.average_points,best:x.highest_score,teams:x.fantasy_franchises}}));
- const grows=logs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week).map(x=>({year:x.season,week:x.week,type:x.game_type,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.starter_points),_sort:{year:x.season,week:x.week,type:x.game_type,team:displayOwnerName(x.owner_name,x.franchise_id),points:x.starter_points}}));
- app.innerHTML+=playerTradeHistory(c.player_id)+section('FRANCHISE HISTORY',sortableTable([{label:'TEAM',key:'team'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'5 BOMBS',key:'g5'},{label:'20 BOMBS',key:'g20'},{label:'30 BOMBS',key:'g30'},{label:'40 BOMBS',key:'g40'},{label:'50 BOMBS',key:'g50'}],frows))+section('SEASON HISTORY',sortableTable([{label:'YEAR',key:'year'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'TEAMS',key:'teams'}],srows))+section('START-BY-START LOG',sortableTable([{label:'YEAR',key:'year'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'}],grows));
+ const grows=logs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week).map(x=>({year:x.season,week:x.week,type:x.game_type,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.starter_points),open:figArchivedGameLink(x.season,x.week,x.franchise_id),_href:(()=>{const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);return game?`#/game/${game.season}/${game.week}/${game.matchup_id}`:null})(),_sort:{year:x.season,week:x.week,type:x.game_type,team:displayOwnerName(x.owner_name,x.franchise_id),points:x.starter_points}}));
+ app.innerHTML+=playerTradeHistory(c.player_id)+section('FRANCHISE HISTORY',sortableTable([{label:'TEAM',key:'team'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'5 BOMBS',key:'g5'},{label:'20 BOMBS',key:'g20'},{label:'30 BOMBS',key:'g30'},{label:'40 BOMBS',key:'g40'},{label:'50 BOMBS',key:'g50'}],frows))+section('SEASON HISTORY',sortableTable([{label:'YEAR',key:'year'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'TEAMS',key:'teams'}],srows))+section('START-BY-START LOG',sortableTable([{label:'YEAR',key:'year'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'},{label:'',key:'open'}],grows));
 }
 
 async function players(){
@@ -1484,7 +1484,7 @@ async function playerBombLeaderboard(bombEnc,seasonEnc,viewEnc){
 }
 
 async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseEnc){
- await load(['playerLog','standingsCareer']);navActive('players');
+ await load(['playerLog','standingsCareer','games']);navActive('players');
  const bomb=decodeURIComponent(bombEnc||''),season=decodeURIComponent(seasonEnc||'all');
  const view=decodeURIComponent(viewEnc||'All-Time Combined'),franchise=decodeURIComponent(franchiseEnc||'all');
  let logs=(DATA.playerLog||[]).filter(x=>String(x.player_id)===String(playerId)&&bombMatch(bomb,x.starter_points));
@@ -1496,14 +1496,18 @@ async function playerBombBreakdown(playerId,bombEnc,seasonEnc,viewEnc,franchiseE
  const playerName=logs[0]?.player_name||((DATA.playerLog||[]).find(x=>String(x.player_id)===String(playerId))?.player_name)||'Player';
  const context=[];if(season!=='all')context.push(season);if(view!=='All-Time Combined')context.push(view);
  if(franchise!=='all')context.push(displayOwnerName('',franchise));
- const cards=logs.map((x,i)=>`<article class="fig-bomb-entry">
+ const cards=logs.map((x,i)=>{
+  const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);
+  const tag=game?'a':'article',href=game?` href="#/game/${game.season}/${game.week}/${game.matchup_id}"`:'';
+  return `<${tag} class="fig-bomb-entry${game?' fig-bomb-game-link':''}"${href}>
    <span class="fig-bomb-rank" aria-label="Performance ${i+1} of ${logs.length}">${String(i+1).padStart(2,'0')}</span>
    <div class="fig-bomb-owner">${ownerAvatar(x.franchise_id,'fig-bomb-avatar')}<div>
     <b>${esc(displayOwnerName(x.owner_name,x.franchise_id))}</b>
     <span>${esc(x.season)} · WEEK ${esc(x.week)} · ${x.game_type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</span>
    </div></div>
    <div class="fig-bomb-points"><strong>${money(x.starter_points)}</strong><small>POINTS · ${esc(x.position)}</small></div>
-  </article>`).join('');
+  ${game?'<span class="fig-bomb-view">VIEW MATCHUP →</span>':''}
+  </${tag}>`}).join('');
  app.innerHTML=hero('PLAYER BOMB BREAKDOWN',`${esc(playerName)} • ${esc(bomb)}`,`${context.length?context.join(' • ')+' • ':''}${logs.length} qualifying started performances.`)+
   section('EVERY BOMB',`<div class="fig-bomb-list">${cards||'<div class="empty">No qualifying performances.</div>'}</div>`,'');
 }
@@ -2451,6 +2455,14 @@ function gamesForFranchise(fid,view='All-Time Combined',season=null){
  return out.sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week));
 }
 function bombMatch(label,score){const p=num(score);if(label==='5 BOMBS')return p>=0&&p<10;if(label==='20 BOMBS')return p>=20&&p<30;if(label==='30 BOMBS')return p>=30&&p<40;if(label==='40 BOMBS')return p>=40&&p<50;if(label==='50 BOMBS')return p>=50;return false}
+function figArchivedGameForPlayerWeek(season,week,fid){
+ return (DATA.games||[]).find(g=>String(g.season)===String(season)&&num(g.week)===num(week)&&
+  (+g.franchise_1===+fid||+g.franchise_2===+fid))||null;
+}
+function figArchivedGameLink(season,week,fid,label='VIEW GAME →'){
+ const game=figArchivedGameForPlayerWeek(season,week,fid);
+ return game?`<a class="fig-record-open" href="#/game/${game.season}/${game.week}/${game.matchup_id}">${esc(label)}</a>`:'—';
+}
 function figWeeklyRecordEntries(weeklyRanks,games,fid,high,season=null){
  const matchupByWeek=new Map();
  (games||[]).filter(g=>g.game_type==='Regular Season').forEach(g=>{
@@ -2492,8 +2504,8 @@ async function breakdown(kind,...parts){
   const category=decodeURIComponent(parts[0]||''),fid=+parts[1],season=parts[2];const owner=displayOwnerName('',fid);
   if(/^(5|20|30|40|50) BOMBS$/.test(category)){
    const logs=(DATA.playerLog||[]).filter(x=>+x.franchise_id===fid&&String(x.season)===String(season)&&x.game_type==='Regular Season'&&bombMatch(category,x.starter_points)).sort((a,b)=>num(a.week)-num(b.week)||num(b.starter_points)-num(a.starter_points));
-   const rows=logs.map((x,i)=>({n:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${esc(x.position)}</span>`,week:x.week,points:money(x.starter_points),_sort:{n:i+1,player:x.player_name,pos:x.position,week:num(x.week),points:num(x.starter_points)}}));
-   app.innerHTML=hero('RECORD BREAKDOWN',`${esc(owner)} • ${season} ${esc(category)}`,`${logs.length} qualifying starter performances make up this record.`)+section('EVERY QUALIFYING PERFORMANCE',sortableTable([{label:'#',key:'n'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'WEEK',key:'week'},{label:'POINTS',key:'points'}],rows));return;
+   const rows=logs.map((x,i)=>({n:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${esc(x.position)}</span>`,week:x.week,points:money(x.starter_points),open:figArchivedGameLink(x.season,x.week,x.franchise_id),_href:(()=>{const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);return game?`#/game/${game.season}/${game.week}/${game.matchup_id}`:null})(),_sort:{n:i+1,player:x.player_name,pos:x.position,week:num(x.week),points:num(x.starter_points)}}));
+   app.innerHTML=hero('RECORD BREAKDOWN',`${esc(owner)} • ${season} ${esc(category)}`,`${logs.length} qualifying starter performances make up this record.`)+section('EVERY QUALIFYING PERFORMANCE',sortableTable([{label:'#',key:'n'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'WEEK',key:'week'},{label:'POINTS',key:'points'},{label:'',key:'open'}],rows));return;
   }
   if(category==='Weekly High Scores'||category==='Weekly Top-3 Finishes'){
    const history=figWeeklyRecordHistory(fid,category==='Weekly High Scores',season);
@@ -2558,8 +2570,8 @@ async function breakdown(kind,...parts){
   await load(['records','playerLog','games','standingsCareer']);const category=decodeURIComponent(parts[0]||''),requestedView=decodeURIComponent(parts[1]||'Regular Season'),view=requestedView==='Playoffs'?'Playoffs':'Regular Season',fid=+parts[2],owner=displayOwnerName('',fid);
   if(/^(5|20|30|40|50) BOMBS$/.test(category)){
    const logs=(DATA.playerLog||[]).filter(x=>+x.franchise_id===fid&&(view==='All-Time Combined'||(view==='Regular Season'&&x.game_type==='Regular Season')||(view==='Playoffs'&&x.game_type!=='Regular Season'))&&bombMatch(category,x.starter_points)).sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week)||num(b.starter_points)-num(a.starter_points));
-   const rows=logs.map((x,i)=>({n:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${esc(x.position)}</span>`,season:x.season,week:x.week,points:money(x.starter_points),type:x.game_type,_sort:{n:i+1,player:x.player_name,pos:x.position,season:num(x.season),week:num(x.week),points:num(x.starter_points),type:x.game_type}}));
-   app.innerHTML=hero('RECORD BREAKDOWN',`${esc(owner)} • ${esc(category)}`,`${esc(view)} • ${logs.length} qualifying player performances.`)+section('EVERY QUALIFYING PERFORMANCE',sortableTable([{label:'#',key:'n'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'POINTS',key:'points'},{label:'TYPE',key:'type'}],rows));return;
+   const rows=logs.map((x,i)=>({n:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${esc(x.position)}</span>`,season:x.season,week:x.week,points:money(x.starter_points),type:x.game_type,open:figArchivedGameLink(x.season,x.week,x.franchise_id),_href:(()=>{const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);return game?`#/game/${game.season}/${game.week}/${game.matchup_id}`:null})(),_sort:{n:i+1,player:x.player_name,pos:x.position,season:num(x.season),week:num(x.week),points:num(x.starter_points),type:x.game_type}}));
+   app.innerHTML=hero('RECORD BREAKDOWN',`${esc(owner)} • ${esc(category)}`,`${esc(view)} • ${logs.length} qualifying player performances.`)+section('EVERY QUALIFYING PERFORMANCE',sortableTable([{label:'#',key:'n'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'POINTS',key:'points'},{label:'TYPE',key:'type'},{label:'',key:'open'}],rows));return;
   }
   if(category==='Total All-Play Wins'){
    const weeks=new Map();
@@ -2622,9 +2634,9 @@ async function breakdown(kind,...parts){
 }
 
 async function playerWeeks(){
- await load(['playerLog']);navActive('players');
+ await load(['playerLog','games']);navActive('players');
  const data=[...(DATA.playerLog||[])].sort((a,b)=>num(b.starter_points)-num(a.starter_points));
- const headers=[{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'}];
+ const headers=[{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'POINTS',key:'points'},{label:'TEAM',key:'team'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'',key:'open'}];
  const makeRow=(x,i)=>({
   rank: i+1,
   player:playerLink(x.player_id,x.player_name),
@@ -2632,6 +2644,8 @@ async function playerWeeks(){
   points:money(x.starter_points),
   team:`<a class="fig-playerweeks-team-photo" href="#/team/${+x.franchise_id}" aria-label="Open ${esc(displayOwnerName(x.owner_name,x.franchise_id))} team profile" title="${esc(displayOwnerName(x.owner_name,x.franchise_id))}">${ownerAvatar(x.franchise_id,'fig-playerweeks-avatar')}</a>`,
   season:x.season,week:x.week,type:x.game_type,
+  open:figArchivedGameLink(x.season,x.week,x.franchise_id),
+  _href:(()=>{const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);return game?`#/game/${game.season}/${game.week}/${game.matchup_id}`:null})(),
   _sort:{rank:i+1,player:x.player_name,pos:x.position,points:num(x.starter_points),team:displayOwnerName(x.owner_name,x.franchise_id),season:num(x.season),week:num(x.week),type:x.game_type}
  });
  app.innerHTML=hero('PLAYER RECORD','HIGHEST SCORING PLAYER WEEKS','Every official starter performance ranked by points.')+
