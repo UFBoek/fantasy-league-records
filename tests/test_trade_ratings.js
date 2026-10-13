@@ -394,13 +394,19 @@ verifyPartnershipSums(actual);
 // The 2023 W3 Boek/Fru/Winston transaction is the key allocation example.
 const weekThree=actual.trades.find(t=>t.id==='1011844265183535104');
 assert.ok(weekThree?.rated);
-assert.deepEqual(weekThree.participants.map(p=>[p.id,p.net]),
- [[1,5473],[2,-975],[8,-4498]]);
+// Use current market values (which naturally change on every refresh).
+// The 3-way trade still needs to balance exactly and allocate Boek's gain
+// against each counterparty's loss, rather than the full gain to both.
+const weekThreeNet=new Map(weekThree.participants.map(p=>[p.id,p.net]));
+assert.deepEqual([...weekThreeNet.keys()].sort((a,b)=>a-b),[1,2,8]);
+const gain=weekThreeNet.get(1),fruLoss=-weekThreeNet.get(2),winstonLoss=-weekThreeNet.get(8);
+assert.ok(gain>0&&fruLoss>0&&winstonLoss>0);
+assert.equal(gain,fruLoss+winstonLoss);
 const weekThreePairs=figTradePairCredits(weekThree);
-assert.equal(weekThreePairs.find(p=>p.key==='1:2').netA,975);
-assert.equal(weekThreePairs.find(p=>p.key==='1:8').netA,4498);
-assert.equal(weekThreePairs.find(p=>p.key==='1:2').netB,-975);
-assert.equal(weekThreePairs.find(p=>p.key==='1:8').netB,-4498);
+assert.equal(weekThreePairs.find(p=>p.key==='1:2').netA,fruLoss);
+assert.equal(weekThreePairs.find(p=>p.key==='1:8').netA,winstonLoss);
+assert.equal(weekThreePairs.find(p=>p.key==='1:2').netB,-fruLoss);
+assert.equal(weekThreePairs.find(p=>p.key==='1:8').netB,-winstonLoss);
 // In the focused trade view, the badges show opponent-allocated values.
 const liveNodes={};
 const liveNode=id=>liveNodes[id]??={innerHTML:'',value:'',dataset:{},
@@ -415,13 +421,13 @@ liveNode('#figTrVersus').onchange({target:{value:'2'}});
 liveNode('#figTrYear').onchange({target:{value:'2023'}});
 let htmlText=liveNode('#figTrResults').innerHTML;
 const weekThreeCard=htmlText.slice(htmlText.indexOf('2023<small>W3 · 3 TEAMS'));
-assert.match(weekThreeCard,/975<\/strong><small>PAIR GAINED/);
-assert.match(weekThreeCard,/975<\/strong><small>PAIR LOST/);
+assert.match(weekThreeCard,new RegExp(fruLoss+'<\\/strong><small>PAIR GAINED'));
+assert.match(weekThreeCard,new RegExp(fruLoss+'<\\/strong><small>PAIR LOST'));
 liveNode('#figTrVersus').onchange({target:{value:'8'}});
 htmlText=liveNode('#figTrResults').innerHTML;
 const winstonCard=htmlText.slice(htmlText.indexOf('2023<small>W3 · 3 TEAMS'));
-assert.match(winstonCard,/4498<\/strong><small>PAIR GAINED/);
-assert.match(winstonCard,/4498<\/strong><small>PAIR LOST/);
+assert.match(winstonCard,new RegExp(winstonLoss+'<\\/strong><small>PAIR GAINED'));
+assert.match(winstonCard,new RegExp(winstonLoss+'<\\/strong><small>PAIR LOST'));
 const allNames=new Map(actual.rankings.map(r=>[r.id,r.name]));
 for(const season of actual.years){
  const rows=actual.trades.filter(t=>t.season===season);
