@@ -292,24 +292,25 @@
  }
  function renderWeeks(){
    var controls=root.querySelector('#pclWeeks');
-   var options=Object.keys(weeks).map(function(w){return '<button type="button" class="'+(+w===selectedWeek?'pcl-week-active':'')+'" data-week="'+w+'">W'+w+(weeks[w]?'':' !')+'</button>';}).join('');
-   controls.innerHTML=options||'<span class="pcl-caption">Regular season is complete.</span>';
+   if(!controls)return;
+   controls.innerHTML=Object.keys(weeks).map(function(w){
+     return '<button type="button" class="'+(+w===selectedWeek?'pcl-week-active':'')+'" data-week="'+w+'">W'+w+(weeks[w]?'':' !')+'</button>';
+   }).join('')||'<span class="pcl-caption">Regular season is complete.</span>';
    var holder=root.querySelector('#pclGames'),pairs=weeks[selectedWeek];
-   if(!pairs){holder.innerHTML='<div class="pcl-warning"><strong>Week '+selectedWeek+' schedule unavailable</strong><p>Sleeper has not exposed usable matchup pairs yet. Enter this week’s five matchups below to make your own schedule-aware projections.</p></div>'+scheduleEditor();return;}
-   var manual=sources[selectedWeek]==='manual'?'MANUALLY ENTERED':'SLEEPER SCHEDULE';
+   if(!pairs){
+     holder.innerHTML='<div class="pcl-warning"><strong>Week '+selectedWeek+' schedule unavailable</strong><p>Sleeper has not exposed matchup pairs. Enter this week’s five games below to use them for the odds model.</p></div>'+scheduleEditor();
+     return;
+   }
    var rows=pairs.map(function(pair){
-     var a=+pair[0],b=+pair[1],key=matchKey(selectedWeek,a,b),lock=picked[key]||{},draft=scoreDrafts[key]||{};
-     var ma=strength[a],mb=strength[b],status=lock.winner===a?'pcl-choice-on':'',statusB=lock.winner===b?'pcl-choice-on':'';
-     var vA=draft.a!==undefined?draft.a:lock.aPts!==undefined&&lock.aPts!==null?lock.aPts:'';
-     var vB=draft.b!==undefined?draft.b:lock.bPts!==undefined&&lock.bPts!==null?lock.bPts:'';
-     return '<div class="pcl-match"><button type="button" class="pcl-side '+status+'" data-key="'+key+'" data-winner="'+a+'">'+img(a)+'<span>'+safe(name(a))+'</span><small>'+Math.round(ma.mean)+' proj</small></button>'+
+     var a=+pair[0],b=+pair[1],key=matchKey(selectedWeek,a,b),lock=picked[key]||{};
+     var status=lock.winner===a?'pcl-choice-on':'',statusB=lock.winner===b?'pcl-choice-on':'';
+     return '<div class="pcl-match'+(a===selectedTeam||b===selectedTeam?' pcl-match-featured':'')+'">'+
+       '<button type="button" class="pcl-side '+status+'" data-key="'+key+'" data-winner="'+a+'" aria-pressed="'+(lock.winner===a)+'">'+img(a)+'<span>'+safe(name(a))+'</span></button>'+
        '<span class="pcl-vs">VS</span>'+
-       '<button type="button" class="pcl-side '+statusB+'" data-key="'+key+'" data-winner="'+b+'">'+img(b)+'<span>'+safe(name(b))+'</span><small>'+Math.round(mb.mean)+' proj</small></button>'+
-       '<div class="pcl-match-options"><button type="button" class="pcl-auto '+(!lock.winner&&lock.aPts===undefined?'pcl-choice-on':'')+'" data-auto="'+key+'">AUTO</button>'+
-       '<label>'+safe(name(a))+' <input data-score="'+key+'" data-score-side="a" type="number" min="0" max="500" step="0.01" placeholder="'+Math.round(ma.mean)+'" value="'+safe(vA)+'" aria-label="'+safe(name(a))+' projected score"></label>'+
-       '<label>'+safe(name(b))+' <input data-score="'+key+'" data-score-side="b" type="number" min="0" max="500" step="0.01" placeholder="'+Math.round(mb.mean)+'" value="'+safe(vB)+'" aria-label="'+safe(name(b))+' projected score"></label></div></div>';
+       '<button type="button" class="pcl-side '+statusB+'" data-key="'+key+'" data-winner="'+b+'" aria-pressed="'+(lock.winner===b)+'">'+img(b)+'<span>'+safe(name(b))+'</span></button>'+
+       '<button type="button" class="pcl-auto '+(!lock.winner?'pcl-choice-on':'')+'" data-auto="'+key+'" aria-label="Automatically simulate '+safe(name(a))+' versus '+safe(name(b))+'">AUTO</button></div>';
    }).join('');
-   holder.innerHTML='<div class="pcl-schedule-source">'+manual+' · Tap a team to lock a win. Enter both scores to lock Points For, too.</div>'+rows;
+   holder.innerHTML='<div class="pcl-schedule-source">'+(sources[selectedWeek]==='manual'?'MANUAL SCHEDULE':'SLEEPER SCHEDULE')+' · Tap the winner or choose AUTO to simulate. Points For remains modeled.</div>'+rows;
  }
  function scheduleEditor(){
    var options='<option value="">Choose team</option>'+standings.slice().sort(function(a,b){return a.id-b.id;}).map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('');
@@ -359,16 +360,6 @@
  function handleChange(event){
    var t=event.target;if(!t)return;
    if(t.id==='pclTeamSelect'){selectedTeam=+t.value;reRender();return;}
-   if(!t.dataset||!t.dataset.score)return;
-   var key=t.dataset.score,side=t.dataset.scoreSide;
-   if(!scoreDrafts[key])scoreDrafts[key]={};
-   scoreDrafts[key][side]=t.value;
-   var v=scoreDrafts[key],a=Number(v.a),b=Number(v.b);
-   if(v.a===''||v.b===''||!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<0||a>500||b>500)return;
-   var g=allGames().find(function(g){return g.key===key;});
-   if(!g)return;
-   picked[key]={aPts:round(a),bPts:round(b),winner:a>b?g.a:b>a?g.b:null};
-   save();reRender();
  }
  function renderShell(){
    root.innerHTML='<section class="pcl-overview"><div class="pcl-kicker">'+year+' · FIVE-TEAM PLAYOFF FORMAT · WEEKS 1–14</div>'+
@@ -377,7 +368,7 @@
      '</section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PLAYOFF ODDS</h2><span>TOP 5 QUALIFY · TOP 3 BYES</span></div><div id="pclOdds"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>TEAM OUTLOOK</h2><select id="pclTeamSelect" aria-label="Choose a team outlook">'+standings.map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('')+'</select></div><div id="pclTeamDetails"></div></section>'+
-     '<section id="pclWeekArea" class="section pcl-section pcl-whatif"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>SELECT WINNERS OR EXACT SCORES</span></div>'+
+     '<section id="pclWeekArea" class="section pcl-section pcl-whatif"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>TAP A WINNER · NO SCORES NEEDED</span></div>'+
      '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PROJECTED PLAYOFF BRACKET</h2><span>BASED ON PROJECTED SEEDS</span></div><div id="pclBracket"></div></section>'+
@@ -393,7 +384,13 @@
    await load(['currentStandings','weeklyRanks','leagueSettings']);
    navActive('');
    getStandings();computeStrength();
-   picked=read('picks');customSchedule=read('schedule');scoreDrafts={};
+   picked=read('picks');
+   // Old manually entered scores should not silently override the new winner-only UI.
+   Object.keys(picked).forEach(function(key){
+     var p=picked[key];if(!p||typeof p!=='object'){delete picked[key];return;}
+     if(p.aPts!==undefined||p.bPts!==undefined){if(p.winner)picked[key]={winner:p.winner};else delete picked[key];}
+   });
+   customSchedule=read('schedule');scoreDrafts={};
    routeMode=routeType==='team'?'team':'main';selectedTeam=routeMode==='team'&&teamById[+routeValue]?+routeValue:1;
    lastOddsKey=null;cachedOdds=null;
    if(routeType==='week'&&Number.isInteger(+routeValue)&&+routeValue>=firstWeek&&+routeValue<=END)selectedWeek=+routeValue;
