@@ -27,6 +27,7 @@ SETUP
 import requests
 import pandas as pd
 import numpy as np
+from week_finalization import previous_verified, week_cutoff, independent_week_final, signature
 
 # ------------------------------------------------------------
 # LEAGUE CONFIG
@@ -610,6 +611,9 @@ import pandas as pd
 
 all_matchups = []
 season_info = {}
+previous_week_cutoffs = previous_verified()
+verified_week_cutoffs = {}
+
 
 # ============================================================
 # 1. DOWNLOAD MATCHUPS AND REFRESH LEAGUE STATUS
@@ -636,19 +640,20 @@ for _, season_row in history_df.iterrows():
         settings.get("playoff_week_start") or 15
     )
 
-    # Completed seasons: all official weeks through final leg.
-    #
-    # Active seasons: exclude the current leg because games
-    # may still be underway. Include only earlier weeks.
-    #
-    # This intentionally avoids depending on team scores
-    # being greater than zero.
-
-    if status == "complete":
-        last_completed_week = current_leg
-
-    else:
-        last_completed_week = max(0, current_leg - 1)
+    # Start independent verification at Monday 11:45 PM America/New_York.
+    # Finalize only when every NFL game that week is complete. A previously
+    # verified week stays completed while Sleeper updates its own status.
+    last_completed_week = week_cutoff(
+        status, current_leg, settings.get("last_scored_leg"),
+        previous_week_cutoffs.get(season, 0))
+    if status != "complete" and last_completed_week < current_leg:
+        candidate = last_completed_week + 1
+        if independent_week_final(int(season), candidate):
+            last_completed_week = candidate
+            print(f"Independently finalized {season} W{candidate}: all NFL games finished")
+    if status != "complete":
+        verified_week_cutoffs[season] = max(
+            int(previous_week_cutoffs.get(season, 0)), last_completed_week)
 
     season_info[season] = {
         "status": status,
@@ -23462,7 +23467,7 @@ _all_game_rows = []
 for (season, week, matchup_id), grp in all_matchup_team_rows_df.groupby(["season","week","matchup_id"], dropna=True):
     season_i, week_i = int(season), int(week)
     info = _hist[season_i]
-    last = int(info["current_leg"]) if str(info["status"]) == "complete" else max(0, int(info["current_leg"]) - 1)
+    last = int(season_info[str(season_i)]["last_completed_week"])
     if week_i > last or len(grp) != 2:
         continue
     rs = grp.to_dict(orient="records")
@@ -23573,6 +23578,25 @@ TABLES = {
     "league_settings": league_settings_archive_df,
     "all_games": all_games_df,
 }
+
+# Share the identical checked cutoff with the player log and publish validator.
+with (OUTPUT_DIR / "verified_week_cutoffs.json").open("w", encoding="utf-8") as f:
+    json.dump(verified_week_cutoffs, f, sort_keys=True, separators=(",", ":"))
+
+# Normalized Sleeper scores allow later stat corrections to trigger a refresh
+# even if Sleeper does not change its league's current leg.
+latest_season = str(max(int(y) for y in season_info))
+published_weekly_scores = {}
+for (season, week), group in official_matchups_df.groupby(["season", "week"]):
+    if str(season) != latest_season:
+        continue
+    scores = signature(group[["roster_id", "points"]].to_dict("records"))
+    if scores is None:
+        raise ValueError(f"Incomplete final score set: {season} W{week}")
+    published_weekly_scores[str(int(week))] = scores
+with (OUTPUT_DIR / "published_weekly_scores.json").open("w", encoding="utf-8") as f:
+    json.dump({"season": latest_season, "weeks": published_weekly_scores}, f,
+              sort_keys=True, separators=(",", ":"))
 
 for name, df in TABLES.items():
     path = OUTPUT_DIR / f"{name}.json"
