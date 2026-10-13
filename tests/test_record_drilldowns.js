@@ -7,7 +7,7 @@ assert.ok(boot>0,'main app boot marker must exist');
 const root={innerHTML:''};
 const document={
  querySelector:selector=>selector==='#app'?root:null,
- querySelectorAll:()=>[],addEventListener(){},getElementById:()=>null,
+ querySelectorAll:()=>[],addEventListener(){},getElementById:()=>null,hidden:true,
 };
 const api=new Function('document','window','location','setInterval','fetch','setTimeout',
  source.slice(0,boot)+
@@ -36,6 +36,8 @@ assert.ok(source.includes('figArchivedGameLink(x.season,x.week,x.franchise_id)')
  for(const id of [1,6]){
   const href='#/breakdown/weekly/highscores/Regular%20Season/'+id;
   assert.ok(root.innerHTML.includes('href="'+href+'"'),'Weekly highs owner '+id+' should open breakdown');
+ }
+ for(const id of [1,6]){
   const expected=api.DATA.weeklyRanks.filter(x=>Number(x.franchise_id)===id&&x.weekly_high_score===true).length;
   const rows=api.figWeeklyRecordEntries(api.DATA.weeklyRanks,api.DATA.games,id,true);
   assert.equal(rows.length,expected);
