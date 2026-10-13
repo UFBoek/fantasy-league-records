@@ -1,0 +1,29 @@
+/* Universal record/streak drilldowns: visible, compact and touch friendly. */
+.fig-owner-link.fig-owner-drilldown{display:inline-flex;align-items:center;text-decoration:none}
+.fig-owner-link.fig-owner-drilldown .fig-team-identity-name::after{
+ content:' ›';color:#16866e;font-weight:900;font-size:1.2em;vertical-align:-.02em
+}
+.fig-owner-link.fig-owner-drilldown:hover .fig-team-identity-name{text-decoration:underline;text-underline-offset:3px}
+.fig-owner-link.fig-owner-drilldown:focus-visible,
+.fig-record-open:focus-visible,.fig-team-stat-link:focus-visible,
+.fig-bomb-game-link:focus-visible{outline:3px solid #16866e;outline-offset:3px;border-radius:8px}
+tr.clickable-row{cursor:pointer}
+tr.clickable-row:hover>td{background:rgba(105,226,178,.12)}
+tr.clickable-row:focus-visible{outline:3px solid #16866e;outline-offset:-3px}
+.fig-record-open{display:inline-flex;align-items:center;white-space:nowrap;color:#137960;
+ font-size:11px;font-weight:900;text-decoration:underline;text-underline-offset:3px;padding:6px 0}
+.fig-record-open:hover{color:#164e43}
+.team-stat-tile.fig-team-stat-link{color:inherit;text-decoration:none;cursor:pointer;
+ transition:transform .14s ease,box-shadow .14s ease}
+.team-stat-tile.fig-team-stat-link:hover{transform:translateY(-2px);
+ box-shadow:0 5px 15px rgba(0,0,0,.08)}
+.season-accomplishment[href]{color:inherit;text-decoration:none}
+.season-accomplishment[href]:hover{text-decoration:underline;text-underline-offset:3px}
+.fig-bomb-game-link{color:inherit;text-decoration:none;cursor:pointer;position:relative}
+.fig-bomb-game-link:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.fig-bomb-view{color:#137960;font-size:10px;font-weight:900;white-space:nowrap;align-self:center}
+@media(max-width:700px){
+ .fig-bomb-game-link{flex-wrap:wrap}
+ .fig-bomb-view{width:100%;text-align:right}
+ .fig-record-open{font-size:10px}
+}
