@@ -333,7 +333,7 @@
      '<p class="pcl-route-intro">Highlighted games ranked by their impact on '+safe(t.name)+'’s playoff chances. Other games also show how each participating team’s odds change with a win or loss.</p>'+
      '<div class="pcl-implication-columns">'+
      '<div class="pcl-implication-column"><h3>YOUR MOST IMPORTANT MATCHUPS</h3>'+
-     (biggest.own.length?biggest.own.map(function(o){return implicationCard(o,true);}).join(''):'<p class="pcl-caption">All of your available matchups are already picked, or the schedule is incomplete.</p>')+'</div>'+
+     (biggest.own.length?biggest.own.map(function(o){return implicationCard(o,true);}).join(''):'<p class="pcl-caption">No eligible unpicked matchups to highlight. Your full remaining schedule is shown below.</p>')+'</div>'+
      '<div class="pcl-implication-column"><h3>OTHER GAMES TO WATCH</h3>'+
      (biggest.others.length?biggest.others.map(function(o){return implicationCard(o,false);}).join(''):'<p class="pcl-caption">Other matchups need valid simulation samples before they can be ranked.</p>')+'</div></div>'+
      '<p class="pcl-caption">Odds swings are changes in percentage points estimated from the simulation. Games you have already picked are excluded from the highlighted list, but still count toward standings and playoff odds.</p></section>';
