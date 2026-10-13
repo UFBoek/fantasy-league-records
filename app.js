@@ -178,7 +178,7 @@ function sortableTable(headers,rows,opts={}){
   const freeze=heads.length>=4&&['#','RANK'].includes(String(heads[0].label).trim().toUpperCase())&&
     ['TEAM','PLAYER','HOLDER','OWNER','OPPONENT'].includes(String(heads[1].label).trim().toUpperCase());
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
-  if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$('tbody tr[data-href]',t).forEach(tr=>{tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href}})}},0);
+  if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$('tbody tr[data-href]',t).forEach(tr=>{tr.tabIndex=0;tr.setAttribute('role','link');tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href};tr.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('a,button,input,select')){e.preventDefault();location.hash=tr.dataset.href}}})}},0);
   const html=`<div class="table-wrap"><table id="${id}" class="sortable"><thead><tr>${heads.map((h,i)=>`<th data-col="${i}" data-key="${esc(h.key)}"><button class="sort-head">${h.label}<span class="sort-icon">↕</span></button></th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`
   return freeze ? frozenTable(heads,rows,id,opts) : html;
 }
@@ -196,7 +196,7 @@ function frozenTable(heads, rows, id, opts={}) {
   const buildHead = (h, i) => {const selected=opts.sortState?.column===i;return `<th data-col="${i}" data-key="${esc(h.key)}"${selected?` aria-sort="${opts.sortState.descending?'descending':'ascending'}"`:''}><button class="sort-head" type="button" ${allowed(h) ? '' : 'disabled aria-disabled="true"'}>${esc(h.label)}<span class="sort-icon" aria-hidden="true">${allowed(h) ? (selected ? (opts.sortState.descending?'↓':'↑') : '↕') : ''}</span></button></th>`;};
   const renderRows = (start, columns) => rows.map((r, i) => {
     const cls = [r._class || '', r._href ? 'clickable-row' : ''].filter(Boolean).join(' ');
-    return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}"` : ''}>${columns.map(h => `<td data-key="${esc(h.key)}">${r[h.key] ?? ''}</td>`).join('')}</tr>`;
+    return `<tr class="${esc(cls)}" data-fig-row="${i}" data-row='${esc(JSON.stringify(r._sort || {}))}'${r._href ? ` data-href="${esc(r._href)}" tabindex="0" role="link"` : ''}>${columns.map(h => `<td data-key="${esc(h.key)}">${r[h.key] ?? ''}</td>`).join('')}</tr>`;
   }).join('');
   setTimeout(() => bindFrozenTable(id, heads, opts), 0);
   return `<div class="fig-table-hint">RANK + NAME STAY VISIBLE <span>SWIPE STATS →</span></div>` +
@@ -303,6 +303,14 @@ function bindFrozenTable(id, heads, opts={}) {
   };
   leftBody.addEventListener('click', openRow);
   rightBody.addEventListener('click', openRow);
+  const keyboardOpen=e=>{
+    if((e.key!=='Enter'&&e.key!==' ')||e.target.closest('a,button,input,select'))return;
+    const row=e.target.closest('tr[data-href]');
+    if(!row||!row.dataset.href)return;
+    e.preventDefault();location.hash=row.dataset.href;
+  };
+  leftBody.addEventListener('keydown',keyboardOpen);
+  rightBody.addEventListener('keydown',keyboardOpen);
 }
 
 /* Render at most 100 historical performances at first, with opt-in
