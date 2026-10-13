@@ -45,15 +45,27 @@
      if(!scores.length)season=avg;
      var recent=scores.slice(-3).reduce(function(s,v){return s+v;},0)/Math.max(1,Math.min(3,scores.length));
      if(!scores.length)recent=avg;
-     // Equal-score week results contribute through ALL-PLAY regardless of schedule luck.
-     var apTotal=t.apW+t.apL+t.apT;
-     var ap=apTotal?(t.apW+t.apT*.5)/apTotal:.5;
-     var allPlaySignal=avg+(ap-.5)*2*sd*.82;
-     var mean=clamp(.40*recent+.30*season+.30*allPlaySignal,35,300);
+     // Scoring predictions use only actual fantasy points: 4 parts for the
+     // last three games, 3 parts for the full season (relative 40:30 weights).
+     var mean=clamp((4*recent+3*season)/7,35,300);
      if(scores.length<3)mean=avg+(mean-avg)*scores.length/3;
      var varTeam=scores.reduce(function(s,v){return s+(v-season)*(v-season);},0)/Math.max(1,scores.length);
-     var variability=clamp(Math.sqrt(varTeam*.55+sd*sd*.45),22,78);
-     strength[t.id]={mean:mean,sd:variability,season:season,recent:recent,allPlay:ap};
+     var baseVariability=Math.sqrt(varTeam*.55+sd*sd*.45);
+     // All-play separately calibrates consistency only: high/low all-play
+     // with stable weekly league rankings produces a slightly tighter range.
+     // All-play can NEVER be converted to projected fantasy points.
+     var apTotal=t.apW+t.apL+t.apT;
+     var ap=apTotal?(t.apW+t.apT*.5)/apTotal:.5;
+     var rankPct=history.filter(function(r){return +r.franchise_id===t.id&&Number.isFinite(+r.weekly_score_rank)&&+r.weekly_score_rank>=1;})
+       .map(function(r){return (standings.length-(+r.weekly_score_rank))/(standings.length-1);});
+     var rankMean=rankPct.reduce(function(sum,v){return sum+v;},0)/Math.max(1,rankPct.length);
+     var rankSd=Math.sqrt(rankPct.reduce(function(sum,v){return sum+(v-rankMean)*(v-rankMean);},0)/Math.max(1,rankPct.length));
+     var rankConsistency=rankPct.length>=3?clamp(1-rankSd/.28,0,1):0;
+     var dominance=clamp(2*Math.abs(ap-.5),0,1);
+     var apReliability=rankConsistency*dominance*Math.min(1,scores.length/5);
+     // Maximum 12% SD reduction for demonstrated consistency, no score boost.
+     var variability=clamp(baseVariability*(1-.12*apReliability),22,78);
+     strength[t.id]={mean:mean,sd:variability,season:season,recent:recent,allPlay:ap,allPlayReliability:apReliability};
    });
  }
  function validPairs(pairs){
@@ -440,7 +452,7 @@
      '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PROJECTED PLAYOFF BRACKET</h2><span>BASED ON PROJECTED SEEDS</span></div><div id="pclBracket"></div></section>'+
-     '<div class="pcl-disclaimer">Probabilities are estimates, not guarantees or mathematical clinches. Simulations draw future weekly scores from each team’s observed scoring distribution. Last three completed games have extra weight; all-play captures performance against the full league. Scheduled opponents determine every game, and projected PF breaks record ties. Unofficial live scores never count until published as completed.</div>';
+     '<div class="pcl-disclaimer">Probabilities are estimates, not mathematical clinches. Projected points use only recent and season scoring (4:3 weighting). All-play can modestly adjust scoring consistency when weekly rankings support it, but never adds or subtracts projected points. Simulated games use the actual remaining schedule, and total Points For breaks record ties. Unofficial live scores never count until finalized.</div>';
    root.addEventListener('click',handleClick);
    root.addEventListener('keydown',function(e){
      var row=e.target.closest('[data-team-row]');
