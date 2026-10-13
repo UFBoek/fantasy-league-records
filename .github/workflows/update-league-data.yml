@@ -25,6 +25,7 @@ on:
       - 'tests/test_record_break_watch.js'
       - 'tests/test_team_record_views.js'
       - 'tests/test_trade_ratings.js'
+      - 'tests/test_record_drilldowns.js'
 
 # Use the same deployment queue as the website publisher.
 concurrency:
