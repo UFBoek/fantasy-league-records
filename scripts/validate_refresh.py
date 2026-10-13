@@ -91,8 +91,9 @@ def guard_completed_weeks(history):
     navigation, but rows tagged as official scoring must not be from those weeks.
     """
     from prepare_player_records import cutoff_by_season
+    from week_finalization import previous_verified
 
-    limits = cutoff_by_season(history, load("league_settings"))
+    limits = cutoff_by_season(history, load("league_settings"), previous_verified())
     # These exports represent completed, scored weeks ONLY.
     for name in ("games", "all_games", "player_game_log",
                  "weekly_scoring_ranks", "playoffs"):
@@ -129,8 +130,8 @@ def guard_completed_weeks(history):
               isinstance(row.get("starter_points"), (int, float)),
               "player_game_log.json missing player_name/starter_points; "
               "the Player Records interface would display blank statistics")
-    print("Official record week safety passed: every scored record stops "
-          "before the active Sleeper week.")
+    print("Official week safety passed: scored records come only from "
+          "Sleeper-completed or independently verified weeks.")
 
 
 
