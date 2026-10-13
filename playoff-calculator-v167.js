@@ -277,11 +277,11 @@
      entry.participants.map(function(p){
        return '<div class="pcl-other-impact-team"><strong>'+safe(name(p.id))+'</strong>'+
          '<span>WIN <b>'+pc(p.win)+'</b></span><span>LOSS <b>'+pc(p.loss)+'</b></span>'+
-         '<span class="pcl-other-impact-swing">'+pc(p.swing)+' pt swing</span></div>';
+         '<span class="pcl-other-impact-swing">'+(100*p.swing).toFixed(1)+' pp swing</span></div>';
      }).join('')+'</div>':'';
    return '<article class="pcl-implication"><div class="pcl-implication-top"><span class="pcl-implication-week">W'+g.week+'</span>'+
      '<span class="pcl-implication-teams">'+img(g.a)+safe(name(g.a))+'<em>vs</em>'+img(g.b)+safe(name(g.b))+'</span>'+
-     '<span class="pcl-implication-swing"><b>'+pc(entry.ownSwing)+'</b><small>IMPACT ON '+safe(name(selectedTeam).toUpperCase())+'</small></span></div>'+
+     '<span class="pcl-implication-swing"><b>'+(100*entry.ownSwing).toFixed(1)+' pp</b><small>IMPACT ON '+safe(name(selectedTeam).toUpperCase())+'</small></span></div>'+
      participantImpact+
      '<div class="pcl-implication-bottom"><div class="pcl-implication-context">'+labels+'</div>'+
      '<div class="pcl-implication-picks"><button data-key="'+g.key+'" data-winner="'+g.a+'" class="'+(lock.winner===g.a?'pcl-choice-on':'')+'">'+safe(name(g.a))+'</button>'+
