@@ -243,52 +243,109 @@
    var spread=Math.sqrt(strength[a].sd*strength[a].sd+strength[b].sd*strength[b].sd);
    return 1/(1+Math.exp(-1.7*diff/Math.max(1,spread)));
  }
+
+ function playoffImpactGames(results,id){
+   if(!results||!results._impacts)return {own:[],others:[]};
+   var all=Object.values(results._impacts).filter(function(x){return !x.locked&&x.count[0]>=150&&x.count[1]>=150;})
+     .map(function(x){
+       function make(team,side){return (x.made[side][team]||0)/x.count[side];}
+       var forA=make(id,0),forB=make(id,1),ownSwing=Math.abs(forA-forB);
+       var leagueSwing=standings.reduce(function(sum,t){return sum+Math.abs(make(t.id,0)-make(t.id,1));},0)/2;
+       return {game:x,forA:forA,forB:forB,ownSwing:ownSwing,leagueSwing:leagueSwing};
+     });
+   var own=all.filter(function(v){return v.game.a===id||v.game.b===id;}).sort(function(a,b){return b.ownSwing-a.ownSwing||a.game.week-b.game.week;}).slice(0,3);
+   var others=all.filter(function(v){return v.game.a!==id&&v.game.b!==id;})
+      .sort(function(a,b){return (b.ownSwing*.65+b.leagueSwing*.35)-(a.ownSwing*.65+a.leagueSwing*.35)||a.game.week-b.game.week;}).slice(0,3);
+   return {own:own,others:others};
+ }
+ function implicationCard(entry,own){
+   var g=entry.game,lock=picked[g.key]||{},significant=own?entry.ownSwing:Math.max(entry.ownSwing,entry.leagueSwing);
+   var line=own?'PLAYOFF ODDS SWING':'LEAGUE PLAYOFF SWING';
+   var a=entry.forA,b=entry.forB,labels='<span class="pcl-implication-branch">'+safe(name(g.a))+' WIN: <b>'+pc(a)+'</b></span>'+
+      '<span class="pcl-implication-branch">'+safe(name(g.b))+' WIN: <b>'+pc(b)+'</b></span>';
+   if(!own&&entry.ownSwing<.005)labels='<span class="pcl-caption">Your playoff odds change by '+pc(entry.ownSwing)+'; this game has stronger implications elsewhere in the league.</span>';
+   return '<article class="pcl-implication"><div class="pcl-implication-top"><span class="pcl-implication-week">W'+g.week+'</span>'+
+     '<span class="pcl-implication-teams">'+img(g.a)+safe(name(g.a))+'<em>vs</em>'+img(g.b)+safe(name(g.b))+'</span>'+
+     '<span class="pcl-implication-swing"><b>'+pc(significant)+'</b><small>'+line+'</small></span></div>'+
+     '<div class="pcl-implication-bottom"><div class="pcl-implication-context">'+labels+'</div>'+
+     '<div class="pcl-implication-picks"><button data-key="'+g.key+'" data-winner="'+g.a+'" class="'+(lock.winner===g.a?'pcl-choice-on':'')+'">'+safe(name(g.a))+'</button>'+
+     '<button data-key="'+g.key+'" data-winner="'+g.b+'" class="'+(lock.winner===g.b?'pcl-choice-on':'')+'">'+safe(name(g.b))+'</button>'+
+     '<button data-auto="'+g.key+'" class="'+(!lock.winner?'pcl-choice-on':'')+'">AUTO</button></div></div></article>';
+ }
  function renderTeamRoute(){
-   var s=quickStats(selectedTeam),t=s.team,r=oddsForCurrentScenario()&&oddsResults[selectedTeam];
-   var remaining=END-firstWeek+1;
+   var s=quickStats(selectedTeam),t=s.team,all=oddsForCurrentScenario(),r=all&&all[selectedTeam];
+   var remaining=Math.max(0,END-firstWeek+1),paths=r&&r.path;
    var modeled=r?'<div class="pcl-route-chances">'+
      '<div><small>MAKE PLAYOFFS</small><strong>'+pc(r.playoffs)+'</strong></div>'+
      '<div><small>TOP-3 BYE</small><strong>'+pc(r.bye)+'</strong></div>'+
      '<div><small>FIRST SEED</small><strong>'+pc(r.one)+'</strong></div>'+
      '<div><small>PROJECTED WINS</small><strong>'+r.w.toFixed(1)+'</strong></div></div>':
-     '<div class="pcl-warning">Complete the missing weeks of the schedule in the main calculator to see accurate odds. Current standings and recorded performance are shown below.</div>';
-   var pathRows='';
+     '<div class="pcl-warning">Official standings are available, but some future matchups are missing. Use the schedule editor below to enable accurate odds.</div>';
+   var pathRows='',likely=null,likelyProb=null,mostCommon=null;
    if(r){
-     for(var w=0;w<=Math.max(0,remaining);w++){
-       var p=r.path[String(w)],have=p&&p.samples>=15;
-       pathRows+='<tr><td><b>'+w+'</b> / '+remaining+'</td><td>'+ (t.wins+w)+'–'+(t.losses+remaining-w)+'</td>'+
-         '<td>'+(have?pc(p.made/p.samples):'—')+'</td><td>'+(have?pc(p.bye/p.samples):'—')+'</td></tr>';
+     for(var w=0;w<=remaining;w++){
+       var p=paths[String(w)],enough=p&&p.samples>=15,playoffs=enough?p.made/p.samples:null;
+       if(enough&&playoffs>=.5&&likely===null){likely=w;likelyProb=playoffs;}
+       if(!mostCommon||(p&&p.samples>mostCommon.samples))mostCommon={w:w,samples:p?p.samples:0};
+       pathRows+='<tr><td><b>'+w+'</b> of '+remaining+'</td><td>'+(t.wins+w)+'–'+(t.losses+remaining-w)+'</td>'+
+         '<td>'+(p?pc(p.samples/N):'—')+'</td>'+
+         '<td>'+(enough?'<span class="pcl-route-likelihood">'+pc(playoffs)+'<i style="width:'+Math.round(playoffs*100)+'%"></i></span>':'—')+'</td>'+
+         '<td>'+(enough?pc(p.bye/p.samples):'—')+'</td></tr>';
      }
    }
-   var seedHtml=r?'<div class="pcl-seed-grid">'+r.seeds.slice(0,5).map(function(p,i){return '<span><strong>#'+(i+1)+'</strong>'+pc(p)+'</span>';}).join('')+'</div>':'<p class="pcl-caption">Seed odds appear once all remaining matchups are available.</p>';
+   var insights=r?'<div class="pcl-road-insights">'+
+     '<span><small>PROJECTED REMAINING WINS</small><b>'+(r.w-t.wins).toFixed(1)+' / '+remaining+'</b></span>'+
+     '<span><small>50%+ PLAYOFF CHANCE</small><b>'+(likely===null?'No qualifying sample':likely+' more win'+(likely===1?'':'s'))+'</b></span>'+
+     '<span><small>MOST COMMON FINISH</small><b>'+(t.wins+(mostCommon?mostCommon.w:0))+'–'+(t.losses+remaining-(mostCommon?mostCommon.w:0))+'</b></span></div>':'';
+   var seedHtml=r?'<div class="pcl-seed-grid">'+r.seeds.slice(0,5).map(function(p,i){
+      return '<span><strong>#'+(i+1)+'</strong>'+pc(p)+'</span>';
+   }).join('')+'</div>':'<p class="pcl-caption">Seed odds become available when the schedule is complete.</p>';
    var leagueAvg=standings.reduce(function(a,x){return a+strength[x.id].mean;},0)/standings.length;
-   var schedule=s.opp.map(function(o){
-     var opp=teamById[o.id],chance=modelMatchWinChance(selectedTeam,o.id);
-     var game=allGames().find(function(g){return g.week===o.week&&(g.a===selectedTeam||g.b===selectedTeam);});
-     var lock=game&&picked[game.key],state=lock?(lock.winner===selectedTeam?' · PICKED WIN':lock.winner===o.id?' · PICKED LOSS':' · SET SCORE'):'';
-     return '<a class="pcl-route-game" href="#/playoff-calculator/week/'+o.week+'"><span class="pcl-route-week">W'+o.week+'</span>'+
-       img(o.id)+'<span class="pcl-route-opp"><b>'+safe(opp.name)+'</b><small>'+opp.wins+'–'+opp.losses+' · '+fmt(strength[o.id].mean)+' model PPG'+safe(state)+'</small></span>'+
-       '<span class="pcl-route-win">'+pc(chance)+'<small>MODEL WIN CHANCE</small></span><span class="pcl-route-edit">EDIT ↗</span></a>';
+   var games=allGames(),schedule=s.opp.map(function(o){
+     var opponent=teamById[o.id],chance=modelMatchWinChance(selectedTeam,o.id);
+     var game=games.find(function(g){return g.week===o.week&&(g.a===selectedTeam||g.b===selectedTeam);});
+     var lock=game&&picked[game.key]||{},selected=lock.winner===selectedTeam,against=lock.winner===o.id;
+     return '<div class="pcl-route-game"><span class="pcl-route-week">W'+o.week+'</span>'+img(o.id)+
+       '<span class="pcl-route-opp"><b>'+safe(opponent.name)+'</b><small>'+opponent.wins+'–'+opponent.losses+' · '+fmt(strength[o.id].mean)+' model PPG</small></span>'+
+       '<span class="pcl-route-win">'+pc(chance)+'<small>MODEL WIN CHANCE</small></span>'+
+       '<div class="pcl-route-quick-controls"><button data-key="'+game.key+'" data-winner="'+selectedTeam+'" class="'+(selected?'pcl-choice-on':'')+'">WIN</button>'+
+       '<button data-key="'+game.key+'" data-winner="'+o.id+'" class="'+(against?'pcl-choice-on':'')+'">LOSS</button>'+
+       '<button data-auto="'+game.key+'" class="'+(!lock.winner?'pcl-choice-on':'')+'">AUTO</button></div></div>';
    }).join('');
+   var biggest=playoffImpactGames(all,selectedTeam);
+   var impactSection='<section class="section pcl-section"><div class="pcl-section-head"><h2>BIGGEST PLAYOFF-IMPLICATION GAMES</h2><span>BASED ON SIMULATED ODDS SWINGS</span></div>'+
+     '<p class="pcl-route-intro">These are the remaining games that most affect playoff chances. Pick either winner here to update the entire playoff picture. The odds swing estimates compare simulations in which each side wins.</p>'+
+     '<div class="pcl-implication-columns">'+
+     '<div class="pcl-implication-column"><h3>YOUR MOST IMPORTANT MATCHUPS</h3>'+
+     (biggest.own.length?biggest.own.map(function(o){return implicationCard(o,true);}).join(''):'<p class="pcl-caption">All of your available matchups are already picked, or the schedule is incomplete.</p>')+'</div>'+
+     '<div class="pcl-implication-column"><h3>OTHER GAMES TO WATCH</h3>'+
+     (biggest.others.length?biggest.others.map(function(o){return implicationCard(o,false);}).join(''):'<p class="pcl-caption">Other matchups need valid simulation samples before they can be ranked.</p>')+'</div></div>'+
+     '<p class="pcl-caption">Win-impact estimates are model-based, not guaranteed outcomes; already selected matchups are excluded from the impact rankings.</p></section>';
    root.innerHTML='<a href="#/playoff-calculator" class="pcl-route-back">← ALL PLAYOFF ODDS</a>'+
-    '<section class="pcl-route-hero"><div class="pcl-route-person">'+img(selectedTeam,'pcl-route-portrait')+
-    '<div><div class="pcl-kicker">TEAM PLAYOFF OUTLOOK</div><h2>'+safe(t.name)+'</h2><p>'+t.wins+'–'+t.losses+' · '+fmt(t.pf)+' PF · '+pc(s.model.allPlay)+' ALL-PLAY</p></div></div>'+
-    modeled+'</section>'+
-    '<section class="section pcl-section"><div class="pcl-section-head"><h2>ROAD TO THE PLAYOFFS</h2><span>'+remaining+' GAMES LEFT · FIVE TEAMS QUALIFY</span></div>'+
-    '<p class="pcl-route-intro">How likely '+safe(t.name)+' is to qualify based on how many remaining games it wins. Each percentage accounts for other teams’ results and the Points For tiebreaker.</p>'+
-    (r?'<div class="pcl-route-table-wrap"><table class="pcl-table pcl-route-table"><thead><tr><th>WINS FROM HERE</th><th>FINAL RECORD</th><th>PLAYOFF ODDS</th><th>TOP-3 BYE</th></tr></thead><tbody>'+pathRows+'</tbody></table></div>'+
-    '<p class="pcl-caption">Percentages are conditional on simulated finishing records. A dash means that fewer than 15 simulations produced that record; this is not an automatic elimination or clinch.</p>':
-    '<p class="pcl-caption">Missing weeks prevent a complete route calculation; return to the simulator to fill them.</p>')+
-    '<div class="pcl-route-actions"><button data-path="win">SIMULATE WINNING OUT</button><button data-path="lose">SIMULATE LOSING OUT</button><button data-path="reset">RESET '+safe(t.name).toUpperCase()+' MATCHUPS</button></div></section>'+
-    '<section class="section pcl-section"><div class="pcl-section-head"><h2>REMAINING SCHEDULE</h2><span>SELECT A WEEK TO EDIT ITS RESULTS</span></div>'+
-    '<div class="pcl-route-summary"><span>OPPONENT AVG <b>'+ (s.opp.length?fmt(s.oppAvg):'—')+'</b></span><span>LEAGUE AVG <b>'+fmt(leagueAvg)+'</b></span>'+
-    '<span>MODEL POINTS/WK <b>'+fmt(s.model.mean)+'</b></span></div>'+
-    '<div class="pcl-route-games">'+(schedule||'<div class="pcl-caption">No confirmed future matchups available.</div>')+'</div></section>'+
-    '<section class="section pcl-section"><div class="pcl-section-head"><h2>SEED OUTLOOK</h2><span>FIRST THROUGH FIFTH SEED</span></div>'+seedHtml+
-    '<div class="pcl-route-detail-stats"><span>LAST 3 AVG <b>'+fmt(s.model.recent)+'</b></span><span>SEASON AVG <b>'+fmt(s.model.season)+'</b></span>'+
-    '<span>ALL-PLAY <b>'+pc(s.model.allPlay)+'</b></span></div></section>'+
-    '<a class="pcl-path-link pcl-bottom-cta" href="#/playoff-calculator">OPEN FULL WHAT-IF CALCULATOR →</a>'+
-    '<p class="pcl-caption">Model odds, not mathematical clinching status. Only finalized regular-season games affect official records. Scenario picks are saved on this device.</p>';
+     '<section class="pcl-route-hero"><div class="pcl-route-person">'+img(selectedTeam,'pcl-route-portrait')+
+     '<div><div class="pcl-kicker">TEAM PLAYOFF OUTLOOK</div><h2>'+safe(t.name)+'</h2><p>'+t.wins+'–'+t.losses+' · '+fmt(t.pf)+' PF · '+pc(s.model.allPlay)+' ALL-PLAY</p></div></div>'+
+     modeled+'</section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>ROAD TO THE PLAYOFFS</h2><span>'+remaining+' GAMES LEFT · FIVE TEAMS QUALIFY</span></div>'+
+     '<p class="pcl-route-intro">How different final records affect '+safe(t.name)+'’s playoff chances, accounting for every other matchup and the Points For tiebreaker.</p>'+insights+
+     (r?'<div class="pcl-route-table-wrap"><table class="pcl-table pcl-route-table"><thead><tr><th>WINS FROM HERE</th><th>FINAL RECORD</th><th>CHANCE OF RECORD</th><th>PLAYOFF ODDS</th><th>TOP-3 BYE</th></tr></thead><tbody>'+pathRows+'</tbody></table></div>'+
+     '<p class="pcl-caption">Odds by final record are conditional estimates. “—” indicates fewer than 15 simulated finishes, not elimination or an official clinch.</p>':
+     '<p class="pcl-caption">Complete the missing schedule below to see the path by final record.</p>')+
+     '<div class="pcl-route-actions"><button data-path="win">SIMULATE WINNING OUT</button><button data-path="lose">SIMULATE LOSING OUT</button><button data-path="reset">RESET '+safe(t.name).toUpperCase()+' MATCHUPS</button></div></section>'+
+     impactSection+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>REMAINING SCHEDULE</h2><span>CHOOSE WIN · LOSS · AUTO DIRECTLY BELOW</span></div>'+
+     '<div class="pcl-route-summary"><span>OPPONENT AVG <b>'+(s.opp.length?fmt(s.oppAvg):'—')+'</b></span><span>LEAGUE AVG <b>'+fmt(leagueAvg)+'</b></span>'+
+     '<span>MODEL POINTS/WK <b>'+fmt(s.model.mean)+'</b></span></div>'+
+     '<div class="pcl-route-games">'+(schedule||'<div class="pcl-caption">No confirmed future matchups available.</div>')+'</div></section>'+
+     '<section class="section pcl-section pcl-whatif pcl-route-whatif"><div class="pcl-section-head"><h2>ALL REMAINING MATCHUPS</h2><span>EVERY GAME · EVERY WEEK · EDIT HERE</span></div>'+
+     '<p class="pcl-route-intro">Choose a week, then tap the winner for any of the five matchups. AUTO removes your selection and uses the score model. Every change updates playoff odds throughout the calculator.</p>'+
+     '<div class="pcl-actions"><button type="button" data-reset="1">RESET ALL PICKS</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
+     '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>SEED OUTLOOK</h2><span>FIRST THROUGH FIFTH SEED</span></div>'+seedHtml+
+     '<div class="pcl-route-detail-stats"><span>LAST 3 AVG <b>'+fmt(s.model.recent)+'</b></span><span>SEASON AVG <b>'+fmt(s.model.season)+'</b></span>'+
+     '<span>ALL-PLAY <b>'+pc(s.model.allPlay)+'</b></span></div></section>'+
+     '<a class="pcl-path-link pcl-bottom-cta" href="#/playoff-calculator">ALL-TEAM PLAYOFF ODDS →</a>'+
+     '<p class="pcl-caption">Simulated probabilities are estimates, not mathematical clinches. Only finalized weeks count toward official records; your what-if picks are local to this device.</p>';
+   renderWeeks();
  }
  function renderWeeks(){
    var controls=root.querySelector('#pclWeeks');
