@@ -22,6 +22,8 @@ on:
       - 'scripts/prepare_player_records.py'
       - 'scripts/validate_refresh.py'
       - 'tests/test_week_finalization.py'
+      - 'tests/test_record_break_watch.js'
+      - 'tests/test_team_record_views.js'
 
 # Use the same deployment queue as the website publisher.
 concurrency:
