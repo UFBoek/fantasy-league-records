@@ -9,7 +9,10 @@ Reject, rather than publish, data that includes an in-progress week.
 import json
 import math
 from pathlib import Path
-from week_finalization import previous_verified, week_cutoff
+try:
+    from scripts.week_finalization import previous_verified, week_cutoff
+except ModuleNotFoundError:
+    from week_finalization import previous_verified, week_cutoff
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
