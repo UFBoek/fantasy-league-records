@@ -905,3 +905,9 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
   .jh-toolbar-right{gap:9px}
   .jh-rule-note{padding:16px}
 }
+
+/* Player-profile start log: straightforward desktop sort without changing its columns. */
+.fig-player-start-sort{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin:0 0 11px;font:800 10px Inter,system-ui,sans-serif;letter-spacing:.045em;color:#5b7166}
+.fig-player-start-sort label{white-space:nowrap}
+.fig-player-start-sort select{min-height:37px;min-width:170px;max-width:100%;background:#f0f5f0;color:#315d44;border:1px solid #cadfce;border-radius:8px;padding:7px 10px;font:800 12px Inter,system-ui,sans-serif;letter-spacing:0}
+@media(max-width:699px){.fig-player-start-sort{display:none!important}}
