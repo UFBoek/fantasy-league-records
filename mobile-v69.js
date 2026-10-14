@@ -143,6 +143,7 @@
     const sectionTitle=(tableSection?.querySelector('.section-head .section-title')?.textContent||'').trim().toUpperCase();
     const isPlayerStartLog=route==='player'&&sectionTitle==='START-BY-START LOG';
     const isPlayerSeasonHistory=route==='player'&&sectionTitle==='SEASON HISTORY';
+    if(isPlayerSeasonHistory)wrap.classList.add('fig-player-season-history');
     const typeIndex = labels.findIndex(value => /^TYPE$/i.test(value));
     const lengthIndex = labels.findIndex(value => /^LENGTH$/i.test(value));
     const valueIndex = labels.findIndex(value => /^(VALUE|POINTS|COUNT|SCORE)$/i.test(value));
