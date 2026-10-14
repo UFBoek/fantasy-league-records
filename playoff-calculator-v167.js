@@ -203,6 +203,20 @@
    var oppAvg=opp.reduce(function(sum,o){return sum+strength[o.id].mean;},0)/Math.max(1,opp.length);
    return {team:t,model:s,opp:opp,oppAvg:oppAvg};
  }
+ function scenarioRecords(){
+   // Only explicitly selected winners count here. AUTO is simulated for odds
+   // but must never turn an unplayed game into a displayed W–L result.
+   var records={};
+   standings.forEach(function(t){records[t.id]={wins:t.wins,losses:t.losses,ties:t.ties,picks:0};});
+   allGames().forEach(function(game){
+     var chosen=picked[game.key],winner=chosen&&Number(chosen.winner);
+     if(winner!==game.a&&winner!==game.b)return;
+     var loser=winner===game.a?game.b:game.a;
+     records[winner].wins++;records[loser].losses++;
+     records[winner].picks++;records[loser].picks++;
+   });
+   return records;
+ }
  function pctCell(n){return '<strong>'+pc(n)+'</strong><span class="pcl-odds-track"><span style="width:'+Math.max(0,Math.min(100,n*100))+'%"></span></span>';}
  function renderOdds(){
    var wrap=root.querySelector('#pclOdds');
@@ -212,17 +226,24 @@
      oddsResults=null;return;
    }
    oddsForCurrentScenario();
+   var scenario=scenarioRecords(),pickedMatchups=allGames().filter(function(g){return picked[g.key]&&(Number(picked[g.key].winner)===g.a||Number(picked[g.key].winner)===g.b);}).length;
    var ranked=projectedTable(oddsResults).slice().sort(function(a,b){return b.playoffs-a.playoffs||b.w-a.w;});
    var body=ranked.map(function(r){
-     var t=teamById[r.id],s=strength[r.id];
+     var t=teamById[r.id],s=strength[r.id],record=scenario[r.id];
+     var label=record.wins+'–'+record.losses+(record.ties?'–'+record.ties:'');
+     var displayedRecord=record.picks?
+       '<span class="pcl-scenario-record"><strong>'+label+'</strong><small>'+record.picks+' picked</small></span>':label;
      return '<tr class="pcl-clickable-row" data-team-row="'+r.id+'" role="link" tabindex="0" aria-label="Open '+safe(t.name)+' playoff path">'+
        '<td><span class="pcl-team-btn">'+img(r.id)+'<span>'+safe(t.name)+'</span></span></td>'+
-       '<td>'+t.wins+'–'+t.losses+'</td><td>'+fmt(t.pf)+'</td><td>'+pc(s.allPlay)+'</td>'+
+       '<td>'+displayedRecord+'</td><td>'+fmt(t.pf)+'</td><td>'+pc(s.allPlay)+'</td>'+
        '<td class="pcl-prob">'+pctCell(r.playoffs)+'</td><td class="pcl-prob">'+pctCell(r.bye)+'</td>'+
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
    wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-     '<div class="pcl-legend">Tap any team row for its route to the playoffs, remaining schedule, and possible finishing records. '+N.toLocaleString()+' simulations · wins and Points For determine seeding.</div>';
+     '<div class="pcl-legend">'+(pickedMatchups?
+       '<strong>WHAT-IF ACTIVE:</strong> W–L includes '+pickedMatchups+' selected result'+(pickedMatchups===1?'':'s')+'. Unpicked games are not added; official standings, PF and all-play are unchanged. ':
+       'W–L shows official completed games. Pick a What-If winner to update the displayed records. ')+
+       'Tap any row for that team’s playoff path. '+N.toLocaleString()+' simulations · Points For breaks record ties.</div>';
  }
  function renderBracket(result){
    var rs=projectedTable(result);
