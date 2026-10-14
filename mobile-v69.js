@@ -139,6 +139,10 @@
     const label = document.createElement('label');label.textContent = 'SORT LEADERS BY';
     const select = document.createElement('select');select.setAttribute('aria-label','Sort leaderboard');
     const route = routeName();
+    const tableSection=wrap.closest('section');
+    const sectionTitle=(tableSection?.querySelector('.section-head .section-title')?.textContent||'').trim().toUpperCase();
+    const isPlayerStartLog=route==='player'&&sectionTitle==='START-BY-START LOG';
+    const isPlayerSeasonHistory=route==='player'&&sectionTitle==='SEASON HISTORY';
     const typeIndex = labels.findIndex(value => /^TYPE$/i.test(value));
     const lengthIndex = labels.findIndex(value => /^LENGTH$/i.test(value));
     const valueIndex = labels.findIndex(value => /^(VALUE|POINTS|COUNT|SCORE)$/i.test(value));
@@ -156,17 +160,22 @@
         !/^(PLAYER|TEAM|NAME|OWNER|POS|POSITION|TYPE|STATUS|SEASON|YEAR|WEEK)$/i.test(labels[i])
       ) : labels.map((_,i) => i);
     if (!allowedIndices.length) allowedIndices.push(mainIndex);
+    if(isPlayerStartLog){
+      const recency=document.createElement('option');
+      recency.value='recency';recency.textContent='RECENCY (NEWEST FIRST)';
+      select.add(recency);
+    }
     allowedIndices.forEach(index => {
       const option = document.createElement('option'); option.value=String(index);
       option.textContent=labels[index] || 'STAT';
       select.add(option);
     });
-    select.value=String(mainIndex);
+    select.value=isPlayerStartLog?'recency':String(mainIndex);
     if (isRecordHistory) {
       label.textContent = route === 'streak' || valueIndex < 0 ? 'SORT BY STREAK LENGTH' : 'SORT BY VALUE';
       select.hidden=true;
     } else {
-      label.textContent = isActiveStreaks ? 'SORT ACTIVE STREAKS BY' : 'SORT LEADERS BY';
+      label.textContent = isPlayerStartLog ? 'SORT STARTS BY' : isActiveStreaks ? 'SORT ACTIVE STREAKS BY' : 'SORT LEADERS BY';
     }
     label.append(select);
     const dirButton = document.createElement('button');dirButton.type='button';dirButton.textContent='↓';
@@ -191,7 +200,7 @@
     }
     // Keep the headline number AND its label synced with the selected sort stat.
     function refreshPrimary() {
-      const idx=Number(select.value);
+      const idx=isPlayerStartLog&&select.value==='recency'?metricIndex:Number(select.value);
       if (!Number.isInteger(idx) || idx<0 || idx>=headings.length ||
           idx===keyIndex || idx===rankIndex) return;
       const priorities=[
@@ -249,9 +258,10 @@
       }
     }
     function sort() {
-      const idx=Number(select.value);
+      const recencySort=isPlayerStartLog&&select.value==='recency';
+      const idx=recencySort?metricIndex:Number(select.value);
       const body=table.tBodies[0];
-      const field=headings[idx]?.dataset.key;
+      const field=recencySort?'recency':headings[idx]?.dataset.key;
       const textField=/^(PLAYER|TEAM|NAME|HOLDER|OWNER|TYPE|STATUS|POS|POSITION)$/i.test(labels[idx]);
       const current=[...body.rows];
       const getSortValue=(row) => {
@@ -336,14 +346,21 @@
         stat.append(value);detail.append(stat);
       });
       if (detail.children.length) {
-        const exp=document.createElement('td');exp.className='fig-expand-cell';
-        const toggle=document.createElement('button');toggle.type='button';toggle.className='fig-expand-button';
-        toggle.textContent='+ Stats';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls',detail.id);
-        toggle.addEventListener('click',()=> {
-          const expanded=row.classList.toggle('fig-expanded');
-          toggle.textContent=expanded?'− Less':'+ Stats';toggle.setAttribute('aria-expanded',String(expanded));
-        });
-        exp.append(toggle);row.append(exp,detail);
+        if(isPlayerSeasonHistory){
+          // Show all season stats immediately. Only this table loses the
+          // extra "+ Stats" step; other mobile tables retain the toggle.
+          row.classList.add('fig-expanded');
+          row.append(detail);
+        }else{
+          const exp=document.createElement('td');exp.className='fig-expand-cell';
+          const toggle=document.createElement('button');toggle.type='button';toggle.className='fig-expand-button';
+          toggle.textContent='+ Stats';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls',detail.id);
+          toggle.addEventListener('click',()=> {
+            const expanded=row.classList.toggle('fig-expanded');
+            toggle.textContent=expanded?'− Less':'+ Stats';toggle.setAttribute('aria-expanded',String(expanded));
+          });
+          exp.append(toggle);row.append(exp,detail);
+        }
       }
     });
     wrap.classList.add('fig-list-table');wrap.dataset.figVersion='69';
