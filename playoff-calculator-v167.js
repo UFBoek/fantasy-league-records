@@ -401,7 +401,6 @@
    if(!document.getElementById('figPlayoffCalc'))return;
    if(routeMode==='team'){renderTeamRoute();return;}
    renderOdds();
-   renderTeamDetails();
    renderBracket(oddsResults);
    renderWeeks();
    root.querySelector('#pclMissing').textContent=missingWeeks().length?'Missing schedules: '+missingWeeks().map(function(w){return 'W'+w;}).join(', '):'All remaining weeks scheduled';
@@ -447,7 +446,6 @@
      '<div class="pcl-status"><span class="pcl-status-label">OFFICIAL RESULTS THROUGH</span><strong>WEEK '+(firstWeek-1)+'</strong><span id="pclMissing"></span></div></div>'+
      '</section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PLAYOFF ODDS</h2><span>TOP 5 QUALIFY · TOP 3 BYES</span></div><div id="pclOdds"></div></section>'+
-     '<section class="section pcl-section"><div class="pcl-section-head"><h2>TEAM OUTLOOK</h2><select id="pclTeamSelect" aria-label="Choose a team outlook">'+standings.map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('')+'</select></div><div id="pclTeamDetails"></div></section>'+
      '<section id="pclWeekArea" class="section pcl-section pcl-whatif"><div class="pcl-section-head"><h2>WHAT-IF CALCULATOR</h2><span>TAP A WINNER · NO SCORES NEEDED</span></div>'+
      '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
