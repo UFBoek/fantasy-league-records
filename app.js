@@ -1416,8 +1416,27 @@ async function player(id){
  app.innerHTML=hero('PLAYER ARCHIVE',esc(c.full_name),`${c.position} • ${c.starts} official starts • ${c.fantasy_franchises} fantasy franchise${c.fantasy_franchises===1?'':'s'} • ${tradeCount} recorded trade${tradeCount===1?'':'s'}`,[{value:money(c.total_points),label:'CAREER POINTS'},{value:money(c.average_points),label:'PTS / START'},{value:money(c.highest_score),label:'BEST GAME'},{value:careerBombs.b30,label:'30 BOMBS'}]).replace('class="hero"','class="hero fig-player-profile-hero"').replace('</h1>',`</h1>${playerHeadshot(c.player_id,c.full_name,'fig-nfl-photo-large')}`);
  const frows=fr.map(x=>{const b=exactBombs(logs.filter(r=>+r.franchise_id===+x.franchise_id));return{team:ownerLink(x.owner_name,x.franchise_id),starts:x.starts,points:money(x.total_starter_points),pps:money(x.points_per_start),best:money(x.best_game),g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50,_sort:{team:displayOwnerName(x.owner_name,x.franchise_id),starts:x.starts,points:x.total_starter_points,pps:x.points_per_start,best:x.best_game,g5:b.b5,g20:b.b20,g30:b.b30,g40:b.b40,g50:b.b50}}});
  const srows=seasons.map(x=>({year:x.season,starts:x.starts,points:money(x.total_points),pps:money(x.average_points),best:money(x.highest_score),teams:x.fantasy_franchises,_sort:{year:x.season,starts:x.starts,points:x.total_points,pps:x.average_points,best:x.highest_score,teams:x.fantasy_franchises}}));
- const grows=logs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week).map(x=>({year:x.season,week:x.week,type:x.game_type,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.starter_points),open:figArchivedGameLink(x.season,x.week,x.franchise_id),_href:(()=>{const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);return game?`#/game/${game.season}/${game.week}/${game.matchup_id}`:null})(),_sort:{year:x.season,week:x.week,type:x.game_type,team:displayOwnerName(x.owner_name,x.franchise_id),points:x.starter_points}}));
- app.innerHTML+=playerTradeHistory(c.player_id)+section('FRANCHISE HISTORY',sortableTable([{label:'TEAM',key:'team'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'5 BOMBS',key:'g5'},{label:'20 BOMBS',key:'g20'},{label:'30 BOMBS',key:'g30'},{label:'40 BOMBS',key:'g40'},{label:'50 BOMBS',key:'g50'}],frows))+section('SEASON HISTORY',sortableTable([{label:'YEAR',key:'year'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'TEAMS',key:'teams'}],srows))+section('START-BY-START LOG',sortableTable([{label:'YEAR',key:'year'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'},{label:'',key:'open'}],grows));
+ const grows=logs.sort((a,b)=>+b.season-+a.season||+b.week-+a.week).map(x=>({year:x.season,week:x.week,type:x.game_type,team:ownerLink(x.owner_name,x.franchise_id),points:money(x.starter_points),open:figArchivedGameLink(x.season,x.week,x.franchise_id),_href:(()=>{const game=figArchivedGameForPlayerWeek(x.season,x.week,x.franchise_id);return game?`#/game/${game.season}/${game.week}/${game.matchup_id}`:null})(),_sort:{year:x.season,week:x.week,recency:num(x.season)*100+num(x.week),type:x.game_type,team:displayOwnerName(x.owner_name,x.franchise_id),points:x.starter_points}}));
+ app.innerHTML+=playerTradeHistory(c.player_id)+section('FRANCHISE HISTORY',sortableTable([{label:'TEAM',key:'team'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'5 BOMBS',key:'g5'},{label:'20 BOMBS',key:'g20'},{label:'30 BOMBS',key:'g30'},{label:'40 BOMBS',key:'g40'},{label:'50 BOMBS',key:'g50'}],frows))+section('SEASON HISTORY',sortableTable([{label:'YEAR',key:'year'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'BEST',key:'best'},{label:'TEAMS',key:'teams'}],srows))+section('START-BY-START LOG',`<div class="fig-player-start-sort"><label for="figPlayerStartSort">SORT STARTS BY</label><select id="figPlayerStartSort" aria-label="Sort start-by-start log"><option value="recency">MOST RECENT</option><option value="oldest">OLDEST FIRST</option><option value="highpoints">HIGHEST POINTS</option><option value="lowpoints">LOWEST POINTS</option><option value="" disabled>TABLE COLUMN SORT</option></select></div>`+sortableTable([{label:'YEAR',key:'year'},{label:'WEEK',key:'week'},{label:'TYPE',key:'type'},{label:'TEAM',key:'team'},{label:'POINTS',key:'points'},{label:'',key:'open'}],grows));
+ // Desktop sort dropdown. Mobile uses the main mobile leaderboard sort selector.
+ setTimeout(()=>{
+  const sorter=$('#figPlayerStartSort'),table=sorter?.closest('section')?.querySelector('table.sortable');
+  if(!sorter||!table)return;
+  const body=table.tBodies[0];
+  sorter.addEventListener('change',()=>{
+   const order=sorter.value;
+   const rows=[...body.rows];
+   rows.sort((a,b)=>{
+    const av=JSON.parse(a.dataset.row||'{}'),bv=JSON.parse(b.dataset.row||'{}');
+    return order==='oldest'?num(av.recency)-num(bv.recency):
+     order==='highpoints'?num(bv.points)-num(av.points):
+     order==='lowpoints'?num(av.points)-num(bv.points):
+     num(bv.recency)-num(av.recency);
+   });
+   rows.forEach(row=>body.appendChild(row));
+  });
+  table.querySelectorAll('thead th').forEach(th=>th.addEventListener('click',()=>{sorter.value='';}));
+ },0);
 }
 
 async function players(){
