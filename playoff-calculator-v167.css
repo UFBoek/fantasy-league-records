@@ -331,3 +331,10 @@
  .page-wrap .pcl-other-impact-team span{font-size:9px}
  .page-wrap .pcl-other-impact-swing{grid-column:2/-1;text-align:right}
 }
+
+/* v174 — distinguish hypothetical W-L from finalized standings. */
+.page-wrap .pcl-scenario-record{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;vertical-align:middle}
+.page-wrap .pcl-scenario-record strong{font-weight:900;color:#116748;font-variant-numeric:tabular-nums}
+.page-wrap .pcl-scenario-record small{display:block;font:850 9px Inter,sans-serif;color:#378466;white-space:nowrap}
+.page-wrap .pcl-legend strong{color:#157a57;font-weight:900}
+@media(max-width:699px){.page-wrap .pcl-scenario-record small{font-size:8px}}
