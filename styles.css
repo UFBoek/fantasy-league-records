@@ -911,3 +911,12 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
 .fig-player-start-sort label{white-space:nowrap}
 .fig-player-start-sort select{min-height:37px;min-width:170px;max-width:100%;background:#f0f5f0;color:#315d44;border:1px solid #cadfce;border-radius:8px;padding:7px 10px;font:800 12px Inter,system-ui,sans-serif;letter-spacing:0}
 @media(max-width:699px){.fig-player-start-sort{display:none!important}}
+
+/* Show every player season-history stat on phones, without a + Stats toggle. */
+@media(max-width:699px){
+  .page-wrap .fig-list-table.fig-player-season-history table.sortable tbody tr.fig-expanded td.fig-expanded-stats{
+    display:grid!important;grid-column:1/-1;grid-row:3;
+    grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 7px;
+    margin-top:8px;padding:10px 0 2px;border-top:1px solid #d8e0dc;
+  }
+}
