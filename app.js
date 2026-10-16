@@ -1140,10 +1140,10 @@ function figTeamRecordBookMarkup(fid){
   </article>`;
  };
  const nav='<div class="fig-tr-filters" role="group" aria-label="Team record categories">'+
-  [{key:'all',label:'ALL'},...sets.map(({key,label})=>({key,label}))].map((x,i)=>
+  sets.map(({key,label})=>({key,label})).map((x,i)=>
   `<button type="button" data-team-book-view="${x.key}" aria-pressed="${i===0?'true':'false'}" class="${i===0?'active':''}">${x.label}</button>`).join('')+'</div>';
  const panels=sets.map(set=>
-  `<section class="fig-tr-section" data-team-book-section="${set.key}">`+
+  `<section class="fig-tr-section" data-team-book-section="${set.key}"${set.key==='regular'?'':' hidden'}>`+
   `<div class="fig-tr-section-head"><h2>${set.key==='streaks'?'STREAK RECORDS':set.key==='season'?'SINGLE-SEASON RECORDS':set.label+' RECORDS'}</h2><span>${set.items.length} CATEGORIES</span></div>`+
   `<div class="fig-tr-grid">${ordered(set.items).map(renderCard).join('')}</div></section>`).join('');
  return `<div class="fig-team-record-book"><div class="fig-tr-page-head"><div class="eyebrow">FRANCHISE ARCHIVE</div><h2>TEAM RECORD BOOK</h2><p>Every franchise record and streak, with your league placement and top three performances in team history.</p></div>${nav}${panels}</div>`;
@@ -1352,7 +1352,7 @@ async function team(id,selectedTab,selectedDraftYear){
    button.onclick=()=>{
     const mode=button.dataset.teamBookView;
     buttons.forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
-    panels.forEach(panel=>{panel.hidden=mode!=='all'&&panel.dataset.teamBookSection!==mode;});
+    panels.forEach(panel=>{panel.hidden=panel.dataset.teamBookSection!==mode;});
    };
   });
  };
