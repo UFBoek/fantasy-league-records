@@ -26,16 +26,16 @@ function figBuildSingleSeasonWatch(master,records,settings,bombHistory,bombLeade
  const complete=new Set(seasons.filter(x=>x.season_complete===true||String(x.season_complete)==='true').map(x=>String(x.season)));
  const unfinished=seasons.filter(x=>!complete.has(String(x.season))&&!(x.season_complete===true||String(x.season_complete)==='true'));
  const season=unfinished.length?Math.max(...unfinished.map(x=>Number(x.season)).filter(Number.isFinite)):0;
- const current=unfinished.filter(x=>Number(x.season)===season&&Number(x.games)>0);
+ const current=unfinished.filter(x=>figRecordAllowed(x.franchise_id)&&Number(x.season)===season&&Number(x.games)>0);
  const target=figSeasonWatchLength(season,settings,seasons.filter(x=>complete.has(String(x.season))));
  const games=current.length?Math.max(...current.map(x=>Number(x.games))):0;
  const empty={season,targetGames:target||0,completedGames:games,entries:[]};
  if(!season||!target||!current.length||games>=target)return empty;
  const currentBombs=typeof bombLeaderboard==='function'?bombLeaderboard('Regular Season',season):[];
  const bombById=new Map((currentBombs||[]).map(x=>[Number(x.franchise_id),x]));
- const historic=(records||[]).filter(x=>complete.has(String(x.season))&&Number(x.value)>0&&
+ const historic=(records||[]).filter(x=>figRecordAllowed(x.franchise_id)&&complete.has(String(x.season))&&Number(x.value)>0&&
   !['All-Play Wins','Scoring Average'].includes(String(x.record_category||'')))
-  .concat((bombHistory||[]).filter(x=>complete.has(String(x.season))&&Number(x.value)>0));
+  .concat((bombHistory||[]).filter(x=>figRecordAllowed(x.franchise_id)&&complete.has(String(x.season))&&Number(x.value)>0));
  const recordsByCategory=new Map();
  for(const x of historic){
   const cat=String(x.record_category||''),value=Number(x.value);
