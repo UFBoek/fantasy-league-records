@@ -1002,7 +1002,7 @@ function figTeamRecordBookMarkup(fid){
    const me=rows.find(x=>+x.franchise_id===id);
    const valid=rows.filter(x=>num(x.value)>0);
    const hasData=me&&num(me.value)>0;
-   const rank=hasData?placement(valid,me):{rank:null,tied:false};
+   const rank=hasData?{rank:num(me.rank),tied:valid.some(x=>x!==me&&sameRecordValue(x.value,me.value))}:{rank:null,tied:false};
    const history=seasonalCareerHistory(category,view);
    const href=`#/record/team/${encodeURIComponent(category)}/${encodeURIComponent(view)}`;
    items.push({title:category,value:hasData?num(me.value):null,rank:rank.rank,tied:rank.tied,
