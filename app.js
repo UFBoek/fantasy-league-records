@@ -2845,12 +2845,12 @@ async function breakdown(kind,...parts){
    const k=num(g.season)*100+num(g.week);
    return k>=ss*100+sw&&k<=es*100+ew&&(!scoringStreak||rankedWeeks.has(String(g.season)+'|'+String(g.week)));
   }).sort((a,b)=>num(a.season)-num(b.season)||num(a.week)-num(b.week));
-  const gameCards=all.map((g,i)=>`<a class="fig-streak-game" href="#/game/${g.season}/${g.week}/${g.matchup_id}">
-    <span class="fig-streak-game-index">#${i+1}</span>
-    <div class="fig-streak-game-when"><b>${g.season} · WEEK ${g.week}</b><small>${medianStreak?'LEAGUE MEDIAN '+money(medianByWeek.get(String(g.season)+'|'+String(g.week))):scoringStreak?'LEAGUE RANK #'+rankedWeeks.get(String(g.season)+'|'+String(g.week)):g.type==='Regular Season'?'REGULAR SEASON':'POSTSEASON'}</small></div>
-    <div class="fig-streak-game-opponent">${ownerAvatar(g.oppId,'fig-streak-game-avatar')}<span>VS <b>${esc(displayOwnerName(g.opp,g.oppId))}</b></span></div>
-    <div class="fig-streak-game-result"><b>${money(g.pf)} – ${money(g.pa)}</b><span class="fig-season-outcome fig-season-${g.result.toLowerCase()}">${g.result}</span></div>
-    <span class="fig-streak-game-open">VIEW LINEUPS →</span>
+  const gameCards=all.map((g,i)=>`<a class="fig-rd-streak-row" href="#/game/${g.season}/${g.week}/${g.matchup_id}" aria-label="View ${g.season} week ${g.week} versus ${esc(displayOwnerName(g.opp,g.oppId))} game and lineups">
+    <span class="fig-rd-streak-number">${i+1}</span>
+    <span class="fig-rd-streak-week"><strong>${g.season} · WEEK ${g.week}</strong><small>${medianStreak?'MEDIAN '+money(medianByWeek.get(String(g.season)+'|'+String(g.week))):scoringStreak?'LEAGUE #'+rankedWeeks.get(String(g.season)+'|'+String(g.week)):g.type==='Regular Season'?'REGULAR SEASON':'PLAYOFFS'}</small></span>
+    <span class="fig-rd-streak-opponent">${ownerAvatar(g.oppId,'fig-rd-streak-avatar')}<span>VS <b>${esc(displayOwnerName(g.opp,g.oppId))}</b></span></span>
+    <span class="fig-rd-streak-result"><strong>${money(g.pf)} – ${money(g.pa)}</strong><em class="fig-rd-result-${g.result.toLowerCase()}">${g.result}</em></span>
+    <span class="fig-rd-streak-arrow" aria-hidden="true">›</span>
    </a>`).join('');
   app.innerHTML=hero(isActive?'ACTIVE STREAK':'STREAK BREAKDOWN',`${esc(owner)} • ${esc(type)}`,`${esc(mode)} • ${ss} W${sw} through ${es} W${ew} • ${all.length} qualifying completed games.`)+
    section('EVERY GAME IN THE STREAK',`<div class="fig-streak-games">${gameCards||'<div class="empty">No qualifying games found.</div>'}</div>`,'In playing order · select any matchup to see its starting lineups and bench.');return;
@@ -2968,7 +2968,24 @@ async function liveMatchPage(weekArg, matchupArg) {
  setTimeout(()=>window.dispatchEvent(new Event('fig:live-route')),0);
 }
 
-async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoff-calculator')await window.figPlayoffCalculator(parts[1],parts[2]);else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft'){if(parts[1]==='team')await draftTeamRanking(parts[2],parts[3]);else await draft(parts[1]);}else if(parts[0]==='trades')await trades();else if(parts[0]==='manager-ratings')await managerRatings();else if(parts[0]==='manager')await managerRatings(parts[1]);else if(parts[0]==='more')await more();else await home()}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
+function figRecordDetailNavigation(kind){
+ const heroElement=app.querySelector(':scope > .hero');
+ if(!heroElement)return;
+ const nav=document.createElement('nav');
+ nav.className='fig-rd-navigation';
+ nav.setAttribute('aria-label','Record detail navigation');
+ const link=document.createElement('a');
+ link.href=kind==='streak'?'#/streaks':'#/records';
+ link.textContent=kind==='streak'?'← STREAKS':'← RECORDS';
+ const locationLabel=document.createElement('span');
+ locationLabel.textContent='HISTORICAL BREAKDOWN';
+ nav.append(link,locationLabel);
+ app.insertBefore(nav,heroElement);
+}
+async function route(){window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');
+ const recordDetails=['breakdown','record','special','streak','playerweeks','playerbombrank','playerbomb'].includes(parts[0])||(parts[0]==='singleseasons'&&Boolean(parts[1]));
+ app.classList.toggle('fig-record-detail-page',recordDetails);
+ try{if(parts[0]==='home')await home();else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoff-calculator')await window.figPlayoffCalculator(parts[1],parts[2]);else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft'){if(parts[1]==='team')await draftTeamRanking(parts[2],parts[3]);else await draft(parts[1]);}else if(parts[0]==='trades')await trades();else if(parts[0]==='manager-ratings')await managerRatings();else if(parts[0]==='manager')await managerRatings(parts[1]);else if(parts[0]==='more')await more();else await home();if(recordDetails)figRecordDetailNavigation(parts[0]);}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
 // Check the published snapshot, not Sleeper itself. One tiny request per visible
 // browser tab every minute; the server-side build owns official records.
 // Inactive tabs do not poll. A changed snapshot is applied without a hard reload.
