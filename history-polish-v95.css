@@ -1,4 +1,4 @@
-/* v95 — Refinements to player, season, roster, streak and lineup detail views.
+/* v184 — Refinements to player, season, roster, streak and lineup detail views.
    Keeps all original archive and live-data calculations intact. */
 .page-wrap .fig-bomb-entry {
  grid-template-columns:42px minmax(0,1fr) max-content!important;
@@ -59,9 +59,13 @@
  color:#2d4132!important;font:800 12px/1.2 Inter,system-ui,sans-serif!important;
 }
 .page-wrap .fig-roster-mix>span b {color:#116c4e!important;}
-.page-wrap .fig-roster-boards .sleeper-player-row:hover {background:#eef6f0!important;}
-.page-wrap .fig-roster-boards .fig-roster-player-copy b {color:#27362b!important;}
-.page-wrap .fig-roster-boards .fig-roster-player-copy small {color:#547161!important;}
+/* v184: contrast-safe player text on the dark starter, bench, IR and taxi rows. */
+.page-wrap .fig-roster-boards .sleeper-player-row:hover,
+.page-wrap .fig-roster-boards .sleeper-player-row:focus-visible {background:#42516a!important;}
+.page-wrap .fig-roster-boards .fig-roster-player-copy b {color:#f4f7fb!important;}
+.page-wrap .fig-roster-boards .fig-roster-player-copy small {color:#bfccdc!important;opacity:1!important;}
+.page-wrap .fig-roster-boards .sleeper-player-tag .ra-roster-val {color:#62e6ae!important;}
+.page-wrap .fig-roster-boards .sleeper-player-row:focus-visible {outline:3px solid #62e6ae;outline-offset:-3px;}
 
 /* Starter totals and equivalent lineup slots are always side by side. */
 .page-wrap .fig-lineup-summary {
