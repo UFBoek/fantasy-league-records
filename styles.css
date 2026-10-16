@@ -1003,7 +1003,6 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
  .fig-tr-page-head{padding:19px 17px;border-radius:18px}
  .fig-tr-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
  .fig-tr-filters button{font-size:10px;padding:10px 8px;min-height:38px}
- .fig-tr-filters button:first-child{grid-column:1/-1}
  .fig-tr-grid{grid-template-columns:1fr;gap:12px}
  .fig-tr-card{min-height:0;border-radius:17px}
  .fig-tr-card-head{padding:10px 14px 4px}
