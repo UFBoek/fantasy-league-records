@@ -1346,8 +1346,8 @@ async function team(id,selectedTab,selectedDraftYear){
   const body=$('#teamTabBody');
   if(!body)return;
   body.innerHTML=figTeamRecordBookMarkup(id);
-  const buttons=$('[data-team-book-view]',body);
-  const panels=$('[data-team-book-section]',body);
+  const buttons=body.querySelectorAll('[data-team-book-view]');
+  const panels=body.querySelectorAll('[data-team-book-section]');
   buttons.forEach(button=>{
    button.onclick=()=>{
     const mode=button.dataset.teamBookView;
