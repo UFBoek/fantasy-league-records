@@ -920,3 +920,34 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
     margin-top:8px;padding:10px 0 2px;border-top:1px solid #d8e0dc;
   }
 }
+
+/* v176 — Independent, persistent Boek/Hayden exclusions for record leaderboards. */
+.fig-record-exclusions{
+ display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px;
+}
+.fig-record-exclusion-toggle{
+ appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+ min-height:43px;padding:10px 15px;border:1.5px solid #b9c1ca;
+ border-radius:13px;background:#f2f4f6;color:#273444;
+ font:800 11px/1.25 "Inter",sans-serif;letter-spacing:.035em;text-align:center;
+ cursor:pointer;transition:background .14s,border-color .14s,box-shadow .14s;
+}
+.fig-record-exclusion-toggle:hover{background:#e7ebee;border-color:#6f8296}
+.fig-record-exclusion-toggle:focus-visible{outline:3px solid #53a6db;outline-offset:3px}
+.fig-record-toggle-indicator{
+ display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;
+ border-radius:7px;background:#dce4e9;color:#2a554d;font-size:14px;font-weight:900;
+}
+.fig-record-exclusion-toggle.is-excluded{
+ background:#303b4d;border-color:#303b4d;color:#fff;
+ box-shadow:inset 3px 0 0 #f2ba5d;
+}
+.fig-record-exclusion-toggle.is-excluded:hover{background:#3c495c}
+.fig-record-exclusion-toggle.is-excluded .fig-record-toggle-indicator{
+ background:#f2ba5d;color:#303b4d;
+}
+@media(max-width:699px){
+ .fig-record-exclusions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 16px}
+ .fig-record-exclusion-toggle{min-width:0;padding:9px 7px;gap:6px;font-size:10px;letter-spacing:0}
+ .fig-record-toggle-indicator{width:19px;height:19px;flex-basis:19px;font-size:13px}
+}
