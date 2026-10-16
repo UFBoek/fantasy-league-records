@@ -1003,10 +1003,9 @@ function figTeamRecordBookMarkup(fid){
    const valid=rows.filter(x=>num(x.value)!==0);
    const hasData=me&&num(me.value)!==0;
    const rank=hasData?{rank:num(me.rank),tied:valid.some(x=>x!==me&&sameRecordValue(x.value,me.value))}:{rank:null,tied:false};
-   const history=seasonalCareerHistory(category,view);
    const href=`#/record/team/${encodeURIComponent(category)}/${encodeURIComponent(view)}`;
    items.push({title:category,value:hasData?num(me.value):null,rank:rank.rank,tied:rank.tied,
-    href,scope:view==='Playoffs'?'PLAYOFF RECORD':'REGULAR-SEASON RECORD',top:history,unit:'TOP 3 IN TEAM HISTORY',primaryLabel:category==='Career Points Scored'?'TEAM TOTAL':'PERSONAL BEST'});
+    href,scope:view==='Playoffs'?'PLAYOFF RECORD':'REGULAR-SEASON RECORD',top:[]});
   }
   return items;
  };
@@ -1043,11 +1042,11 @@ function figTeamRecordBookMarkup(fid){
    const ordered=[...rows].sort((a,b)=>num(b.length)-num(a.length)||num(b.total_points)-num(a.total_points));
    const owned=ordered.filter(x=>+x.franchise_id===id);
    const streakHref=x=>`#/breakdown/streak/${encodeURIComponent(type)}/${encodeURIComponent(x.streak_mode)}/${id}/${x.start_season}/${x.start_week}/${x.end_season}/${x.end_week}`;
-   const top=owned.slice(0,3).map(x=>({
-    value:num(x.length),
-    label:`${x.start_season} W${x.start_week} → ${x.end_season} W${x.end_week}`,
-    href:streakHref(x),extra:isTrue(x.active)?'ACTIVE':'ENDED'
-   }));
+   const top=owned.slice(0,3).map(x=>{
+    const overall=placement(rows,x,'length');
+    return {value:num(x.length),label:`${x.start_season} W${x.start_week} → ${x.end_season} W${x.end_week}`,
+     href:streakHref(x),league:rankLabel(overall.rank,overall.tied),extra:isTrue(x.active)?'ACTIVE':'ENDED'};
+   });
    const best=owned[0]||null,place=placement(rows,best,'length');
    items.push({title:type.toUpperCase()+' STREAK',value:best?num(best.length):null,rank:place.rank,tied:place.tied,
     href:`#/streak/${encodeURIComponent(type)}/Career%20Games`,
@@ -1124,18 +1123,20 @@ function figTeamRecordBookMarkup(fid){
   {key:'streaks',label:'STREAKS',items:buildStreak()}
  ];
  const ordered=items=>items.sort((a,b)=>(a.rank??Infinity)-(b.rank??Infinity)||a.title.localeCompare(b.title));
- const renderCard=(x,i)=>{
+ const renderCard=(x,i,view)=>{
+  const showHistory=view==='season'||view==='streaks';
+  const primaryLabel=view==='regular'?'REGULAR SEASON TOTAL':view==='playoffs'?'PLAYOFF TOTAL':view==='season'?'SINGLE-SEASON BEST':'LONGEST STREAK';
   const tone=['mint','blue','gold','coral'][i%4];
   const rows=x.top.length?x.top.map((r,index)=>
    `<a class="fig-tr-best-row" href="${esc(r.href||x.href)}"><span class="fig-tr-best-rank">${index+1}</span>`+
    `<span class="fig-tr-best-info"><strong>${esc(r.label)}</strong>${r.league?`<small>LEAGUE ${esc(r.league)}</small>`:''}${r.extra?`<small>${esc(r.extra)}</small>`:''}</span>`+
    `<b>${mark(r.value)}${x.suffix||''}</b></a>`).join(''):
    '<div class="fig-tr-no-history">No qualifying performance yet.</div>';
-  return `<article class="fig-tr-card fig-tr-${tone}">
+  const historyMarkup=showHistory?`<div class="fig-tr-history-heading">${esc(x.unit)}</div><div class="fig-tr-history">${rows}</div>`:'';
+  return `<article class="fig-tr-card fig-tr-${tone}${showHistory?'':' fig-tr-compact'}">
    <div class="fig-tr-card-head"><span>${esc(x.scope)}</span><span class="${x.rank===1?'fig-tr-leader':''}">${x.rank?'LEAGUE '+rankLabel(x.rank,x.tied):'UNRANKED'}</span></div>
-   <div class="fig-tr-primary">${ownerAvatar(id,'fig-tr-photo')}<div class="fig-tr-primary-copy"><h3>${esc(x.title)}</h3><strong>${x.value===null?'—':mark(x.value)}${x.value===null?'':x.suffix||''}</strong><small>${x.value===null?'NO QUALIFYING RECORD':esc(x.primaryLabel||'PERSONAL BEST')}</small></div></div>
-   <div class="fig-tr-history-heading">${esc(x.unit)}</div>
-   <div class="fig-tr-history">${rows}</div>
+   <div class="fig-tr-primary">${ownerAvatar(id,'fig-tr-photo')}<div class="fig-tr-primary-copy"><h3>${esc(x.title)}</h3><strong>${x.value===null?'—':mark(x.value)}${x.value===null?'':x.suffix||''}</strong><small>${x.value===null?'NO QUALIFYING RECORD':esc(primaryLabel)}</small></div></div>
+   ${historyMarkup}
    <a class="fig-tr-open" href="${esc(x.href)}">VIEW FULL LEADERBOARD <span aria-hidden="true">→</span></a>
   </article>`;
  };
@@ -1145,7 +1146,7 @@ function figTeamRecordBookMarkup(fid){
  const panels=sets.map(set=>
   `<section class="fig-tr-section" data-team-book-section="${set.key}"${set.key==='regular'?'':' hidden'}>`+
   `<div class="fig-tr-section-head"><h2>${set.key==='streaks'?'STREAK RECORDS':set.key==='season'?'SINGLE-SEASON RECORDS':set.label+' RECORDS'}</h2><span>${set.items.length} CATEGORIES</span></div>`+
-  `<div class="fig-tr-grid">${ordered(set.items).map(renderCard).join('')}</div></section>`).join('');
+  `<div class="fig-tr-grid">${ordered(set.items).map((item,i)=>renderCard(item,i,set.key)).join('')}</div></section>`).join('');
  return `<div class="fig-team-record-book"><div class="fig-tr-page-head"><div class="eyebrow">FRANCHISE ARCHIVE</div><h2>TEAM RECORD BOOK</h2><p>Every franchise record and streak, with your league placement and top three performances in team history.</p></div>${nav}${panels}</div>`;
 }
 
