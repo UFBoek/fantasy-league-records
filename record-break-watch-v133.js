@@ -43,6 +43,7 @@ function figBuildTeamRecordWatch(){
  for(const view of ['Regular Season']){
   const groups=new Map();
   for(const x of cleanTeamRecordRows(view)){
+   if(!figRecordAllowed(x.franchise_id))continue;
    if(!Number.isFinite(Number(x.value))||Number(x.value)<=0||!Number.isInteger(Number(x.franchise_id)))continue;
    const metric=String(x.metric||'');
    if(!figWatchRate(metric))continue; // Do not predict medians and unsupported statistics.
@@ -86,7 +87,7 @@ function figStreakCondition(type){
  return points?'Score '+points[1]+'+ points':'Extend the streak next game';
 }
 function figBuildStreakRecordWatch(streaks){
- const career=(streaks||[]).filter(x=>x.streak_mode==='Career Games'&&
+ const career=(streaks||[]).filter(x=>figRecordAllowed(x.franchise_id)&&x.streak_mode==='Career Games'&&
   Number(x.length)>=2&&!['100+ Points','180+ Points','190+ Points'].includes(String(x.streak_type)));
  const groups=new Map();
  career.forEach(x=>{
