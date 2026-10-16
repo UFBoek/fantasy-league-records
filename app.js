@@ -1006,7 +1006,7 @@ function figTeamRecordBookMarkup(fid){
    const history=seasonalCareerHistory(category,view);
    const href=`#/record/team/${encodeURIComponent(category)}/${encodeURIComponent(view)}`;
    items.push({title:category,value:hasData?num(me.value):null,rank:rank.rank,tied:rank.tied,
-    href,scope:view==='Playoffs'?'PLAYOFF RECORD':'REGULAR-SEASON RECORD',top:history,unit:'TOP 3 IN TEAM HISTORY'});
+    href,scope:view==='Playoffs'?'PLAYOFF RECORD':'REGULAR-SEASON RECORD',top:history,unit:'TOP 3 IN TEAM HISTORY',primaryLabel:category==='Career Points Scored'?'TEAM TOTAL':'PERSONAL BEST'});
   }
   return items;
  };
@@ -1133,7 +1133,7 @@ function figTeamRecordBookMarkup(fid){
    '<div class="fig-tr-no-history">No qualifying performance yet.</div>';
   return `<article class="fig-tr-card fig-tr-${tone}">
    <div class="fig-tr-card-head"><span>${esc(x.scope)}</span><span class="${x.rank===1?'fig-tr-leader':''}">${x.rank?'LEAGUE '+rankLabel(x.rank,x.tied):'UNRANKED'}</span></div>
-   <div class="fig-tr-primary">${ownerAvatar(id,'fig-tr-photo')}<div class="fig-tr-primary-copy"><h3>${esc(x.title)}</h3><strong>${x.value===null?'—':mark(x.value)}${x.value===null?'':x.suffix||''}</strong><small>${x.value===null?'NO QUALIFYING RECORD':'PERSONAL BEST'}</small></div></div>
+   <div class="fig-tr-primary">${ownerAvatar(id,'fig-tr-photo')}<div class="fig-tr-primary-copy"><h3>${esc(x.title)}</h3><strong>${x.value===null?'—':mark(x.value)}${x.value===null?'':x.suffix||''}</strong><small>${x.value===null?'NO QUALIFYING RECORD':esc(x.primaryLabel||'PERSONAL BEST')}</small></div></div>
    <div class="fig-tr-history-heading">${esc(x.unit)}</div>
    <div class="fig-tr-history">${rows}</div>
    <a class="fig-tr-open" href="${esc(x.href)}">VIEW FULL LEADERBOARD <span aria-hidden="true">→</span></a>
