@@ -951,3 +951,67 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
  .fig-record-exclusion-toggle{min-width:0;padding:9px 7px;gap:6px;font-size:10px;letter-spacing:0}
  .fig-record-toggle-indicator{width:19px;height:19px;flex-basis:19px;font-size:13px}
 }
+
+/* v177 — full franchise record book; distinct from the compact snapshot. */
+.fig-team-record-book{margin:22px 0 40px;color:#253040}
+.fig-tr-page-head{margin:0 0 14px;padding:22px 24px;background:#e2e5e8;border-radius:24px}
+.fig-tr-page-head .eyebrow{color:#526274;font-size:11px;letter-spacing:.12em;font-weight:900}
+.fig-tr-page-head h2{margin:5px 0 7px;font:clamp(23px,3vw,33px)/1.08 "Archivo Black",sans-serif;letter-spacing:-.025em}
+.fig-tr-page-head p{margin:0;color:#52606e;font-size:13px;line-height:1.45;font-weight:600}
+.fig-tr-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:15px 0 24px}
+.fig-tr-filters button{cursor:pointer;border:1px solid #c4ccd4;background:#f3f5f7;color:#3a4757;border-radius:11px;font:800 11px/1.25 "Inter",sans-serif;letter-spacing:.03em;padding:11px 14px;min-height:40px}
+.fig-tr-filters button.active{background:#263344;border-color:#263344;color:#fff}
+.fig-tr-filters button:hover:not(.active){background:#e2e7eb}
+.fig-tr-filters button:focus-visible,.fig-tr-best-row:focus-visible,.fig-tr-open:focus-visible{outline:3px solid #39a891;outline-offset:2px}
+.fig-tr-section{margin-bottom:31px}
+.fig-tr-section[hidden]{display:none!important}
+.fig-tr-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 12px;padding:0 2px 10px;border-bottom:2px solid #b9c1cb}
+.fig-tr-section-head h2{font:clamp(18px,2.3vw,23px)/1.15 "Archivo Black",sans-serif;margin:0;letter-spacing:-.025em;color:#293644}
+.fig-tr-section-head span{color:#657385;font:800 10px "Inter",sans-serif;letter-spacing:.055em;white-space:nowrap}
+.fig-tr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.fig-tr-card{min-width:0;display:flex;flex-direction:column;overflow:hidden;min-height:325px;background:#f4f5f6;border:1px solid #cfd6dd;border-radius:18px;box-shadow:0 3px 10px #1b2e4010}
+.fig-tr-card-head{display:flex;justify-content:space-between;align-items:center;gap:7px;border-top:5px solid var(--mint);padding:11px 15px 6px}
+.fig-tr-blue .fig-tr-card-head{border-top-color:var(--blue)}
+.fig-tr-gold .fig-tr-card-head{border-top-color:var(--gold)}
+.fig-tr-coral .fig-tr-card-head{border-top-color:var(--coral)}
+.fig-tr-card-head span{font:900 9px/1.2 "Inter",sans-serif;letter-spacing:.04em;color:#6b7685}
+.fig-tr-card-head span:last-child{background:#e3e8ec;border-radius:7px;color:#394959;padding:5px 7px;white-space:nowrap}
+.fig-tr-card-head span.fig-tr-leader{background:#bde9db;color:#205d4f}
+.fig-tr-primary{display:flex;align-items:center;gap:12px;padding:7px 15px 14px;min-width:0}
+.fig-tr-photo{height:62px;width:62px;flex:0 0 62px;border-radius:15px;object-fit:cover;background:#d8e1e9;border:2px solid #c1cbd5}
+.fig-tr-primary-copy{min-width:0;flex:1}
+.fig-tr-primary h3{font:800 13px/1.22 "Fredoka",sans-serif;margin:0 0 5px;color:#4c5d6c;overflow-wrap:break-word}
+.fig-tr-primary strong{display:block;font:clamp(22px,2.3vw,29px)/1.12 "Archivo Black",sans-serif;color:#26323e;letter-spacing:-.03em}
+.fig-tr-primary small{display:block;color:#73808d;font:900 9px/1.4 "Inter",sans-serif;letter-spacing:.06em;margin-top:5px}
+.fig-tr-history-heading{font:900 10px/1.2 "Inter",sans-serif;letter-spacing:.05em;padding:9px 15px;color:#596979;background:#e2e7eb}
+.fig-tr-history{flex:1;display:flex;flex-direction:column;padding:6px 12px}
+.fig-tr-best-row{display:grid;align-items:center;grid-template-columns:21px minmax(0,1fr) auto;gap:8px;text-decoration:none!important;border-bottom:1px solid #dce2e8;padding:10px 3px;color:#2c3947!important}
+.fig-tr-best-row:last-child{border-bottom:0}
+.fig-tr-best-row:hover{background:#ebf1f4}
+.fig-tr-best-rank{width:21px;height:21px;border-radius:7px;display:grid;place-items:center;background:#d4dde5;color:#435769;font:900 10px "Inter",sans-serif}
+.fig-tr-best-info{display:flex;min-width:0;flex-direction:column;gap:3px}
+.fig-tr-best-info strong{font:800 11px/1.25 "Inter",sans-serif;overflow-wrap:anywhere}
+.fig-tr-best-info small{font:800 9px/1.2 "Inter",sans-serif;color:#6b7a89}
+.fig-tr-best-row b{font:800 12px/1.2 "Inter",sans-serif;white-space:nowrap;text-align:right}
+.fig-tr-no-history{padding:18px 4px;color:#818b95;font-size:12px;font-weight:600}
+.fig-tr-open{display:flex;justify-content:space-between;align-items:center;text-decoration:none!important;background:#263344;color:#fff!important;padding:13px 15px;font:900 10px/1.2 "Inter",sans-serif;letter-spacing:.04em;margin-top:auto}
+.fig-tr-open:hover{background:#386d64}
+.fig-tr-open span{font-size:16px;line-height:1}
+.team-profile-tabs{gap:18px}
+@media(max-width:1060px){.fig-tr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ .fig-tr-page-head{padding:19px 17px;border-radius:18px}
+ .fig-tr-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .fig-tr-filters button{font-size:10px;padding:10px 8px;min-height:38px}
+ .fig-tr-filters button:first-child{grid-column:1/-1}
+ .fig-tr-grid{grid-template-columns:1fr;gap:12px}
+ .fig-tr-card{min-height:0;border-radius:17px}
+ .fig-tr-card-head{padding:10px 14px 4px}
+ .fig-tr-primary{padding:10px 14px 13px;gap:12px}
+ .fig-tr-photo{height:57px;width:57px;flex-basis:57px}
+ .fig-tr-primary strong{font-size:28px}
+ .fig-tr-history{padding:5px 12px}
+ .fig-tr-best-row{padding:11px 4px}
+ .fig-tr-section{margin-bottom:26px}
+ .team-profile-tabs{gap:17px}
+}
