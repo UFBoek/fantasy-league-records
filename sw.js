@@ -1,5 +1,5 @@
-/* FIG League v180 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v180';
+/* FIG League v181 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v181';
 const APP_SHELL = [
   './',
   './index.html',
@@ -52,7 +52,8 @@ const APP_SHELL = [
   './waiver-history-v156.js?v=156',
   './manager-ratings-v155.js?v=157',
   './playoff-calculator-v167.js?v=174',
-  './app.js?v=180',
+  './record-detail-compact-v181.css?v=181',
+  './app.js?v=181',
   './manifest.webmanifest?v=132',
   './assets/icons/puka-192.png?v=132',
   './assets/icons/puka-512.png?v=132',
