@@ -1,4 +1,4 @@
-/* FIG League Playoff Lab v187. Read-only Sleeper schedule; official results remain in published JSON. */
+/* FIG League Playoff Lab v188. Read-only Sleeper schedule; official results remain in published JSON. */
 (function () {
  'use strict';
  var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores;
@@ -50,9 +50,8 @@
      if(!scores.length)season=avg;
      var recent=scores.slice(-3).reduce(function(s,v){return s+v;},0)/Math.max(1,Math.min(3,scores.length));
      if(!scores.length)recent=avg;
-     // Projected averages remain current-season only, weighted 4:3 for
-     // the last three games and the full current season.
-     var mean=clamp((4*recent+3*season)/7,35,300);
+     // Projected averages use 65% full-season and 35% last-three-game scoring.
+     var mean=clamp(.65*season+.35*recent,35,300);
      if(scores.length<3)mean=avg+(mean-avg)*scores.length/3;
      // Estimate each franchise's volatility from its last eight completed
      // regular-season games. Fill any missing current-season games with the
