@@ -7,7 +7,8 @@ on:
     # GitHub-hosted schedules are best effort and can be delayed or skipped.
     - cron: '2,7,12,22,27,32,37,42,47,52,57 * * * *'
     - cron: '17 * * * *'
-    # Monday 11:45 PM Eastern (Tuesday UTC); summer/winter triggers are gated locally.
+    # Monday 11:45 PM Eastern (Tuesday UTC): dedicated full finalization build.
+    # 03:45 UTC is EDT; 04:45 UTC is EST. The refresh step gates by local time.
     - cron: '45 3,4 * * 2'
   workflow_dispatch:
   push:
@@ -48,7 +49,7 @@ jobs:
           ref: main
           fetch-depth: 1
 
-      - name: Five-minute Sleeper change probe
+      - name: Choose full rebuild or five-minute change probe
         id: quick
         shell: bash
         run: |
@@ -56,7 +57,16 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" != "schedule" || "${{ github.event.schedule }}" == "17 * * * *" ]]; then
             echo "refresh=true" >> "$GITHUB_OUTPUT"
             echo "Full refresh requested."
+          # Monday 11:45 PM Eastern is a guaranteed full attempt, not merely a
+          # probe. Local-time gating keeps the duplicate DST UTC trigger from
+          # running an unnecessary hour early or late.
+          elif [[ "${{ github.event.schedule }}" == "45 3,4 * * 2" ]] && \
+            python -c 'from datetime import datetime; from zoneinfo import ZoneInfo; n = datetime.now(ZoneInfo("America/New_York")); valid = (n.weekday() == 0 and (n.hour, n.minute) >= (23, 45)) or (n.weekday() == 1 and (n.hour, n.minute) < (0, 45)); raise SystemExit(0 if valid else 1)'; then
+            echo "refresh=true" >> "$GITHUB_OUTPUT"
+            echo "Monday 11:45 PM Eastern: immediately rebuild completed-week records."
           else
+            # Subsequent checks every five minutes catch provider delays or
+            # final scores posted after the initial Monday-night attempt.
             python scripts/quick_refresh_check.py
           fi
 
