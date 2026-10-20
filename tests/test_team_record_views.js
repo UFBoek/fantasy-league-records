@@ -10,7 +10,10 @@ const segment=(begin,end)=>{
  return app.slice(i,j);
 };
 const records=segment('async function records(){','async function recordDetail(');
-assert.ok(records.includes("let view='Regular Season'"));
+// The initial Records view is Regular Season, but navigation back to Records
+// should retain whichever record category was selected in this session.
+assert.ok(app.includes("let figRecordViewSelection='Regular Season';"));
+assert.ok(records.includes("let view=figRecordViewSelection;"));
 assert.ok(records.includes("{value:'Regular Season',label:'REGULAR SEASON'}"));
 assert.ok(records.includes("{value:'Playoffs',label:'PLAYOFFS'}"));
 assert.ok(records.includes("{value:'Single Season',label:'SINGLE SEASON'}"));
