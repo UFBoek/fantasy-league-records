@@ -1,0 +1,34 @@
+name: Verify website interface
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - '*.js'
+      - 'tests/*.js'
+      - 'scripts/check_website_tests.sh'
+      - '.github/workflows/verify-website.yml'
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - '*.js'
+      - 'tests/*.js'
+      - 'scripts/check_website_tests.sh'
+      - '.github/workflows/verify-website.yml'
+
+jobs:
+  website-tests:
+    name: Check website regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check interface behavior without blocking Sleeper updates
+        run: bash scripts/check_website_tests.sh
