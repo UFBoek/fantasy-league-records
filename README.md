@@ -1,3 +1,14 @@
+## v185 — Team-only rolling playoff volatility
+
+- Playoff simulations now estimate each team's scoring standard deviation from its own last eight completed regular-season games.
+- When fewer than eight games have been completed this season, the window fills with that franchise's most recent regular-season scores from the immediately preceding season. Older-season playoff games and unfinished live scores are excluded.
+- Each selected score is centered on its own season's scoring baseline (prior season's full regular-season mean, current season's rolling-window mean). This avoids treating year-over-year scoring improvement or decline as random volatility.
+- Removed the 55% team / 45% league variance blend, rank/all-play consistency modifier, and arbitrary volatility clamps. Other franchises' scoring no longer changes a team's simulated standard deviation.
+- Projected averages are unchanged: current season only, with the last three games and full-season scoring weighted 4:3. All-play remains informational, and the 8,000 schedule-based playoff simulations and standings tiebreakers are unchanged.
+- Validated with 2026 official scoring history (six current games + two from 2025 per team), a rolling-window cutoff, past-season shifts, cross-team independence, and missing-prior-year data.
+
+---
+
 ## v131 — New illustrated league home-screen icon
 
 - Replaced the FIG favicon and PWA icons with the approved Puka-inspired portrait illustration, using exactly navy, Rams blue and gold.
