@@ -1,4 +1,4 @@
-/* FIG League Playoff Lab v167. Read-only Sleeper schedule; official results remain in published JSON. */
+/* FIG League Playoff Lab v185. Read-only Sleeper schedule; official results remain in published JSON. */
 (function () {
  'use strict';
  var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults;
@@ -26,7 +26,7 @@
    });
    if(standings.length!==10)throw Error('Official 2026 standings are incomplete; cannot calculate odds.');
    teamById={};standings.forEach(function(x){teamById[x.id]=x;});
-   history=(DATA.weeklyRanks||[]).filter(function(x){return +x.season===year && Number.isFinite(+x.points_for);});
+   history=(DATA.weeklyRanks||[]).filter(function(x){return +x.season===year && +x.week>=1 && +x.week<=END && Number.isFinite(+x.points_for);});
    firstWeek=1+Math.max(0,...history.map(function(x){return +x.week||0;}));
    firstWeek=clamp(firstWeek,1,15);
    var gp=standings[0].wins+standings[0].losses+standings[0].ties;
@@ -36,36 +36,47 @@
  function computeStrength(){
    var all=history.map(function(r){return +r.points_for;});
    var avg=all.reduce(function(s,v){return s+v;},0)/Math.max(1,all.length);
-   var sd=Math.sqrt(all.reduce(function(s,v){return s+Math.pow(v-avg,2);},0)/Math.max(1,all.length));
-   sd=clamp(sd||42,28,85);
+   // Prior-season results are used ONLY to fill an eight-game deviation window.
+   // They never contribute to a team's projected current-season scoring mean.
+   var priorHistory=(DATA.weeklyRanks||[]).filter(function(r){
+     return +r.season===year-1 && +r.week>=1 && +r.week<=END && Number.isFinite(+r.points_for);
+   });
    strength={};
    standings.forEach(function(t){
-     var scores=history.filter(function(r){return +r.franchise_id===t.id;}).sort(function(a,b){return a.week-b.week;}).map(function(r){return +r.points_for;});
+     var scores=history.filter(function(r){return +r.franchise_id===t.id;})
+       .sort(function(a,b){return a.week-b.week;}).map(function(r){return +r.points_for;});
      var season=scores.reduce(function(s,v){return s+v;},0)/Math.max(1,scores.length);
      if(!scores.length)season=avg;
      var recent=scores.slice(-3).reduce(function(s,v){return s+v;},0)/Math.max(1,Math.min(3,scores.length));
      if(!scores.length)recent=avg;
-     // Scoring predictions use only actual fantasy points: 4 parts for the
-     // last three games, 3 parts for the full season (relative 40:30 weights).
+     // Projected averages remain current-season only, weighted 4:3 for
+     // the last three games and the full current season.
      var mean=clamp((4*recent+3*season)/7,35,300);
      if(scores.length<3)mean=avg+(mean-avg)*scores.length/3;
-     var varTeam=scores.reduce(function(s,v){return s+(v-season)*(v-season);},0)/Math.max(1,scores.length);
-     var baseVariability=Math.sqrt(varTeam*.55+sd*sd*.45);
-     // All-play separately calibrates consistency only: high/low all-play
-     // with stable weekly league rankings produces a slightly tighter range.
-     // All-play can NEVER be converted to projected fantasy points.
+     // Estimate each franchise's volatility from its last eight completed
+     // regular-season games. Fill any missing current-season games with the
+     // most recent regular-season games from the immediately prior season.
+     var currentWindow=scores.slice(-8);
+     var missing=Math.max(0,8-currentWindow.length);
+     var previous=priorHistory.filter(function(r){return +r.franchise_id===t.id;})
+       .sort(function(a,b){return a.week-b.week;}).map(function(r){return +r.points_for;});
+     var priorWindow=missing?previous.slice(-missing):[];
+     // Normalize prior-season games against that season's full regular-season
+     // mean. Center current games on their selected rolling-window mean.
+     // This prevents a change in team strength between seasons from being
+     // mistaken for week-to-week volatility.
+     var currentAvg=currentWindow.reduce(function(s,v){return s+v;},0)/Math.max(1,currentWindow.length);
+     var previousAvg=previous.reduce(function(s,v){return s+v;},0)/Math.max(1,previous.length);
+     var squared=currentWindow.reduce(function(sum,v){return sum+Math.pow(v-currentAvg,2);},0)+
+       priorWindow.reduce(function(sum,v){return sum+Math.pow(v-previousAvg,2);},0);
+     var sampleSize=currentWindow.length+priorWindow.length;
+     var variability=sampleSize?Math.sqrt(squared/sampleSize):0;
+     // All-play is displayed as an official league metric, but it does not
+     // change predicted points or a team's own scoring standard deviation.
      var apTotal=t.apW+t.apL+t.apT;
      var ap=apTotal?(t.apW+t.apT*.5)/apTotal:.5;
-     var rankPct=history.filter(function(r){return +r.franchise_id===t.id&&Number.isFinite(+r.weekly_score_rank)&&+r.weekly_score_rank>=1;})
-       .map(function(r){return (standings.length-(+r.weekly_score_rank))/(standings.length-1);});
-     var rankMean=rankPct.reduce(function(sum,v){return sum+v;},0)/Math.max(1,rankPct.length);
-     var rankSd=Math.sqrt(rankPct.reduce(function(sum,v){return sum+(v-rankMean)*(v-rankMean);},0)/Math.max(1,rankPct.length));
-     var rankConsistency=rankPct.length>=3?clamp(1-rankSd/.28,0,1):0;
-     var dominance=clamp(2*Math.abs(ap-.5),0,1);
-     var apReliability=rankConsistency*dominance*Math.min(1,scores.length/5);
-     // Maximum 12% SD reduction for demonstrated consistency, no score boost.
-     var variability=clamp(baseVariability*(1-.12*apReliability),22,78);
-     strength[t.id]={mean:mean,sd:variability,season:season,recent:recent,allPlay:ap,allPlayReliability:apReliability};
+     strength[t.id]={mean:mean,sd:variability,season:season,recent:recent,allPlay:ap,
+       sdGames:sampleSize,sdPriorGames:priorWindow.length};
    });
  }
  function validPairs(pairs){
@@ -471,7 +482,7 @@
      '<div class="pcl-actions"><button type="button" data-reset="1">RESET SCENARIO</button><button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '<div class="pcl-week-tabs" id="pclWeeks"></div><div class="pcl-match-list" id="pclGames"></div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>PROJECTED PLAYOFF BRACKET</h2><span>BASED ON PROJECTED SEEDS</span></div><div id="pclBracket"></div></section>'+
-     '<div class="pcl-disclaimer">Probabilities are estimates, not mathematical clinches. Projected points use only recent and season scoring (4:3 weighting). All-play can modestly adjust scoring consistency when weekly rankings support it, but never adds or subtracts projected points. Simulated games use the actual remaining schedule, and total Points For breaks record ties. Unofficial live scores never count until finalized.</div>';
+     '<div class="pcl-disclaimer">Probabilities are estimates, not mathematical clinches. Projected points use only recent and season scoring (4:3 weighting). Scoring variation uses each team’s last eight completed regular-season games, filled from the prior season when needed, with scores centered on their respective season averages. All-play is informational only. Simulated games use the actual remaining schedule, and total Points For breaks record ties. Unofficial live scores never count until finalized.</div>';
    root.addEventListener('click',handleClick);
    root.addEventListener('keydown',function(e){
      var row=e.target.closest('[data-team-row]');
