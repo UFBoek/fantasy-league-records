@@ -7,7 +7,8 @@ const context={
  money:v=>Number(v).toLocaleString('en-US',{maximumFractionDigits:2}),
  displayOwnerName:(n,id)=>({1:'Boek',6:'Hayden',10:'James'})[Number(id)]||n,
  esc:s=>String(s),
- ownerAvatar:()=>'<img>'
+ ownerAvatar:()=>'<img>',
+ figRecordAllowed:()=>true
 };
 vm.createContext(context);
 vm.runInContext(source,context);
