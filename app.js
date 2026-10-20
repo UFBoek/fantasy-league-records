@@ -868,7 +868,7 @@ async function gamesArchive(){
  const teamPills=teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)}));
  app.innerHTML=hero('LEAGUE ARCHIVE','GAME ARCHIVE','Final scores and starting lineups from every completed league matchup.')+
    `<section class="section fig-archive-page">
-    <div class="fig-archive-intro"><strong>EVERY GAME. EVERY RIVALRY.</strong><p>Browse final scores from regular-season and postseason matchups, including consolation games. Select a game to see its complete lineup.</p></div>
+    
     <div class="control-label">SEASON</div>${pills('gameSeason',seasonPills,season)}
     <div class="control-label spaced">TEAM</div>${pills('gameTeam',teamPills,team)}
     <div id="gameArchiveBody" class="fig-archive-results"></div>
@@ -1883,7 +1883,7 @@ async function h2h(){
  };
  app.innerHTML=hero('LEAGUE HISTORY','HEAD-TO-HEAD','Actual matchups and the games you would have won against every other team.')+
   `<section class="section fig-h2h-page">
-   <div class="fig-h2h-intro"><strong>TWO WAYS TO MEASURE A RIVALRY</strong><p><b>Head-to-head</b> counts scheduled regular-season and playoff games. <b>All-play</b> compares your completed scores every regular-season week, plus playoff weeks when both teams played, even if you faced different opponents.</p></div>
+   
    <div class="control-label">CHOOSE A TEAM</div>
    ${pills('h2hTeamPills',teams.map(t=>({value:t.franchise_id,label:displayOwnerName(t.owner_name,t.franchise_id)})),selected)}
    <div id="h2hResults" class="fig-h2h-results"></div>
@@ -2617,7 +2617,7 @@ async function teamSeason(teamId,year){
  app.innerHTML=hero('TEAM SEASON',`${esc(displayOwnerName(team.owner_name,fid))} • ${esc(season)}`,`${summary.season_complete?'COMPLETED SEASON':'SEASON IN PROGRESS'} · #${summary.regular_season_finish||'—'} REGULAR-SEASON FINISH`)+
   `<div class="fig-season-back"><a href="#/team/${fid}">← BACK TO TEAM PROFILE</a></div>`+
   section('SEASON AT A GLANCE',statsHtml,'Official regular-season statistics. Playoffs appear in the game log below.')+
-  section('ALL-PLAY VS EVERY TEAM',`<p class="fig-season-explainer">How this team scored against each opponent in the same completed regular-season weeks — even when they were not scheduled to face each other. Tap a team to inspect every comparison.</p><div class="fig-season-opponents">${pairCards}</div>`,'Regular season only')+
+  section('ALL-PLAY VS EVERY TEAM',`<div class="fig-season-opponents">${pairCards}</div>`,'Regular season only')+
   section('SEASON SCORING LEADERS',`<div class="fig-season-players">${playerCards||'<div class="empty">No finished starts yet.</div>'}</div>`,'')+
   section('EVERY GAME',`<div class="fig-season-games">${gameCards||'<div class="empty">No completed games yet.</div>'}</div>`,'');
 }
