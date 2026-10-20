@@ -28,6 +28,7 @@ const teamRows=[
 const owners={1:'Boek',6:'Hayden',7:'Line'};
 const context={
  cleanTeamRecordRows:view=>teamRows.filter(x=>x.scoring_view===view),
+ figRecordAllowed:()=>true,
  displayOwnerName:(name,id)=>owners[id]||name,
  money:n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2}),
  esc:s=>String(s),
