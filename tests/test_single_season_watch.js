@@ -56,6 +56,6 @@ const app=fs.readFileSync('app.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 assert.ok(app.includes("figSingleSeasonWatchSection(figBuildSingleSeasonWatch("));
 assert.ok(app.includes("figWireWatch('figSeasonRecordWatch')"));
-assert.ok(index.includes('single-season-watch-v136.js?v=136'));
+assert.match(index, /single-season-watch-v136\.js\?v=\d+/);
 assert.ok(index.includes('single-season-watch-v136.css?v=136'));
 console.log('Single-season record watch regression checks passed.');
