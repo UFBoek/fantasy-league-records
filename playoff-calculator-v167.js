@@ -1,4 +1,4 @@
-/* FIG League Playoff Lab v186. Read-only Sleeper schedule; official results remain in published JSON. */
+/* FIG League Playoff Lab v187. Read-only Sleeper schedule; official results remain in published JSON. */
 (function () {
  'use strict';
  var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores;
@@ -172,7 +172,7 @@
    var games=allGames(),results={},impacts={};
     games.forEach(function(g){impacts[g.key]={key:g.key,a:g.a,b:g.b,week:g.week,count:[0,0],made:[{},{}],bye:[{},{}],locked:!!(picked[g.key]&&picked[g.key].winner)};});
    standings.forEach(function(t){results[t.id]={id:t.id,playoffs:0,bye:0,one:0,champ:0,w:0,pf:0,path:{},seeds:[0,0,0,0,0,0,0,0,0,0]};});
-   var rng=rand(0xC0FFEE+firstWeek*31);
+   var rng=rand(0xC0FFEE+firstWeek*31),titleRng=rand(0xFACEB00C+firstWeek*17);
    for(var n=0;n<N;n++){
      var rows=baseRows(),lookup={},roundWinners=[];rows.forEach(function(t){lookup[t.id]=t;});
      for(var g=0;g<games.length;g++){
@@ -184,7 +184,7 @@
        else {a.ties++;b.ties++;}
      }
      rows.sort(standingsSort);
-     var title=postSeason(rows.slice(0,SPOTS).map(function(t){return t.id;}),rng);
+     var title=postSeason(rows.slice(0,SPOTS).map(function(t){return t.id;}),titleRng);
      results[title.champion].champ++;
      var seeds={};
      rows.forEach(function(t,i){seeds[t.id]=i;
