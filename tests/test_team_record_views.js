@@ -33,7 +33,7 @@ assert.ok(!team.includes("r.view==='Playoffs'?'PLAYOFFS':'REGULAR SEASON'"));
 const coreStart=team.indexOf(" const view='Regular Season';");
 const coreEnd=team.indexOf(' // Preserve secondary leaderboard placements',coreStart);
 assert.ok(coreStart>=0&&coreEnd>coreStart);
-const runCore=new Function('DATA','id','num','sameRecordValue','cleanTeamRecordRows',
+const runCore=new Function('DATA','id','num','sameRecordValue','cleanTeamRecordRows','figRecordAllowed',
  team.slice(coreStart,coreEnd)+'; return {careerTopRecords,scopedSpecialRows};');
 const data={
  standingsCareer:[{franchise_id:1,owner_name:'Boek'},{franchise_id:6,owner_name:'Hayden'}],
@@ -47,7 +47,7 @@ const recordFixtures=[
  {category:'Playoff High Points',rank:1,value:350,franchise_id:1,record_holder:'Boek',scoring_view:'Playoffs'}
 ];
 const snapshot=runCore(data,1,n=>Number(n||0),(a,b)=>Number(a)===Number(b),
- view=>recordFixtures.filter(x=>x.scoring_view===view));
+ view=>recordFixtures.filter(x=>x.scoring_view===view),()=>true);
 assert.equal(snapshot.careerTopRecords.length,1);
 assert.equal(snapshot.careerTopRecords[0].label,'Regular High Points');
 assert.ok(snapshot.careerTopRecords.every(x=>x.view==='Regular Season'));
@@ -68,12 +68,12 @@ assert.ok(snapshot.scopedSpecialRows.filter(x=>x.label==='WEEKLY HIGH SCORES').e
 const podiumStart=records.indexOf(' const renderSpecialRecords=()=>{');
 const podiumEnd=records.indexOf(' const renderSingleSeason=()=>{',podiumStart);
 assert.ok(podiumStart>=0&&podiumEnd>podiumStart);
-const renderSpecial=new Function('DATA','view','gamesForView','weeklySummary','recordPodiumCard','money','num',
+const renderSpecial=new Function('DATA','view','gamesForView','weeklySummary','recordPodiumCard','money','num','figRecordAllowed',
  records.slice(podiumStart,podiumEnd)+';return renderSpecialRecords();');
 const podiums=[];
 renderSpecial(data,'Regular Season',()=>data.games.filter(g=>g.game_type==='Regular Season'),
  ()=>[{id:1,owner:'Boek',high:1,top3:1}],
- card=>{podiums.push(card);return '';},n=>String(n),n=>Number(n||0));
+ card=>{podiums.push(card);return '';},n=>String(n),n=>Number(n||0),()=>true);
 const highCard=podiums.find(x=>x.title==='HIGHEST SCORING WEEK');
 const lowCard=podiums.find(x=>x.title==='LOWEST SCORING WEEK');
 assert.equal(highCard.leaders[0].value,280);
