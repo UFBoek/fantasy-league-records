@@ -8,3 +8,4 @@ node tests/test_single_season_watch.js
 node tests/test_trade_ratings.js
 node tests/test_record_drilldowns.js
 node tests/test_waiver_history.js
+node tests/test_historical_predictions.js
