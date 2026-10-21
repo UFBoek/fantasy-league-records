@@ -24,7 +24,7 @@ function setup(data,runTimer=false,fetchImpl=null){
     displayOwnerName:(_,id)=>names[id],
     ownerAvatar:(id)=>'<img data-id="'+id+'">',
     setTimeout(fn){if(runTimer)fn();},
-    fetch:fetchImpl||async()=>{throw new Error('Unexpected live schedule request');}
+    fetch:fetchImpl||(async()=>{throw new Error('Unexpected live schedule request');})
   };
   vm.runInNewContext(script,context,{filename:'historical-predictions-v189.js'});
   return {view:context.window.figHistoricalPredictions,app,elements};
