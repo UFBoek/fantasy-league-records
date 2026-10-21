@@ -1,8 +1,8 @@
 /* Historical predictions: date-cutoff, read-only retrospective probabilities. */
 (function(){
 'use strict';
-var N=8000, timelineN=4000, oddsCache={}, scoresCache={}, scheduleCache={};
-var currentYear=2025,currentWeek=7,selectedId=1,selectedMetric='champ',loadingTimeline=false;
+var N=8000, timelineN=4000, FIRST_WEEK=5, oddsCache={}, scoresCache={}, scheduleCache={};
+var currentYear=2026,currentWeek=7,selectedId=1,selectedMetric='champ';
 var fmt=function(n){return Number(n||0).toLocaleString(undefined,{maximumFractionDigits:1});};
 var p100=function(n){return (100*(n||0)).toFixed(1)+'%';};
 var safe=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x];});};
@@ -36,13 +36,13 @@ function cdf(x){
  return x>=0?result:1-result;
 }
 function forecast(year,week){
+ // Do not calculate predictions from fewer than four completed weeks.
+ if(week<FIRST_WEEK||week>15)return null;
  var key=year+':'+week;
  if(scoresCache[key])return scoresCache[key];
  var ids=rosterIds(),history=DATA.weeklyRanks||[];
  var current=history.filter(function(x){return +x.season===year && +x.week<week && +x.week>=1 && +x.week<=14;});
  var previous=history.filter(function(x){return +x.season===year-1 && +x.week>=1 && +x.week<=14;});
- if(week===1 && year===2023)return null;
- var leagueMean=mean(current.map(function(x){return +x.points_for;}));
  var pooledVariance=0,pooledCount=0;
  ids.forEach(function(id){
   var xs=current.filter(function(x){return +x.franchise_id===id;}).map(function(x){return +x.points_for;});
@@ -54,12 +54,7 @@ function forecast(year,week){
   var scores=current.filter(function(x){return +x.franchise_id===id;}).sort(function(a,b){return +a.week-+b.week;}).map(function(x){return +x.points_for;});
   var prior=previous.filter(function(x){return +x.franchise_id===id;}).sort(function(a,b){return +a.week-+b.week;}).map(function(x){return +x.points_for;});
   var season=mean(scores),recent=mean(scores.slice(-3));
-  var m=0;
-  if(week===1){m=mean(prior);}
-  else{
-   m=clip(.65*season+.35*recent,35,300);
-   if(scores.length<3)m=leagueMean+(m-leagueMean)*scores.length/3;
-  }
+  var m=clip(.65*season+.35*recent,35,300);
   var currentWindow=scores.slice(-8),missing=Math.max(0,8-currentWindow.length),past=prior.slice(-missing||prior.length);
   if(!missing)past=[];
   var cavg=mean(currentWindow),pavg=mean(prior),sq=0;
@@ -131,6 +126,7 @@ function playoffChampion(seeds,model,rng){
  return game(game(seeds[0],q45,model,rng,seeds),game(seeds[1],q36,model,rng,seeds),model,rng,seeds);
 }
 function simulate(year,week,iterations){
+ if(week<FIRST_WEEK||week>15)return null;
  var key=year+':'+week+':'+iterations;
  if(oddsCache[key])return oddsCache[key];
  var settingsYear=settings(year),model=forecast(year,week),schedule=historicalSchedule(year);
@@ -195,60 +191,59 @@ function historyPlot(series){
  if(!series.length)return '';
  var high=selectedMetric==='ppg'?Math.max(250,Math.ceil(Math.max.apply(null,series.map(function(x){return x.value;}))/25)*25):100;
  var width=740,height=190,left=40,right=12,top=12,bottom=26;
- var mx=function(x){return left+(x-1)*(width-left-right)/14;};
+ var mx=function(x){return left+(x-FIRST_WEEK)*(width-left-right)/(15-FIRST_WEEK);};
  var my=function(y){return top+(high-y)*(height-top-bottom)/high;};
  var pts=series.map(function(s){return mx(s.week).toFixed(1)+','+my(s.value).toFixed(1);}).join(' ');
  var grid=[0,.25,.5,.75,1].map(function(f){var y=my(high*f);return '<line x1="'+left+'" x2="'+(width-right)+'" y1="'+y+'" y2="'+y+'" class="fig-hist-grid"/><text x="'+(left-6)+'" y="'+(y+4)+'" text-anchor="end">'+(selectedMetric==='ppg'?Math.round(high*f):Math.round(high*f)+'%')+'</text>';}).join('');
  var dots=series.map(function(s){return '<circle cx="'+mx(s.week)+'" cy="'+my(s.value)+'" r="'+(s.week===currentWeek?5:3)+'" class="'+(s.week===currentWeek?'focus':'')+'"><title>Entering Week '+s.week+': '+(selectedMetric==='ppg'?fmt(s.value)+' PPG':s.value.toFixed(1)+'%')+'</title></circle>';}).join('');
- var labels=[1,3,5,7,9,11,13,15].map(function(x){return '<text x="'+mx(x)+'" y="'+(height-4)+'" text-anchor="middle">'+x+'</text>';}).join('');
+ var labels=[5,7,9,11,13,15].map(function(x){return '<text x="'+mx(x)+'" y="'+(height-4)+'" text-anchor="middle">'+x+'</text>';}).join('');
  return '<svg class="fig-hist-chart" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+safe(title(selectedId))+' '+safe(selectedMetric)+' historical trend">'+grid+'<polyline points="'+pts+'" />'+dots+labels+'</svg>';
 }
 function metricLabel(key){return ({champ:'TITLE ODDS',playoffs:'PLAYOFF ODDS',ppg:'PROJECTED PPG'})[key]||key;}
-function renderTrend(year,maxWeek){
+function renderTrend(year,asOfWeek){
  var area=document.getElementById('figHistoricalTrend');
  if(!area)return;
  var series=[];
- for(var w=(year===2023?2:1);w<=Math.min(15,maxWeek);w++){
+ for(var w=FIRST_WEEK;w<=Math.min(15,asOfWeek);w++){
   if(!forecast(year,w))continue;
   var data=simulate(year,w,timelineN);
   if(data)series.push({week:w,value:metricValue(data,selectedId,selectedMetric)});
  }
  area.innerHTML=series.length?historyPlot(series):'<div class="fig-hist-empty">Trend unavailable until the remaining schedule is available.</div>';
 }
-function bindPage(year,maxWeek){
+function bindPage(year){
  var yr=document.getElementById('figHistYear'),wk=document.getElementById('figHistWeek');
- if(yr)yr.onchange=function(){location.hash='#/historical-predictions/'+yr.value+'/'+(yr.value==='2023'?'2':'1');};
+ if(yr)yr.onchange=function(){location.hash='#/historical-predictions/'+yr.value+'/5';};
  if(wk)wk.onchange=function(){location.hash='#/historical-predictions/'+year+'/'+wk.value;};
  document.querySelectorAll('[data-team]').forEach(function(btn){btn.onclick=function(){
   selectedId=+btn.dataset.team;document.querySelectorAll('[data-team]').forEach(function(b){b.closest('tr').classList.toggle('is-selected',+b.dataset.team===selectedId);});
-  renderTrend(year,maxWeek);
+  renderTrend(year,currentWeek);
   var head=document.getElementById('figHistTrendName');if(head)head.textContent=title(selectedId);
  };});
  document.querySelectorAll('[data-hist-metric]').forEach(function(btn){btn.onclick=function(){
   selectedMetric=btn.dataset.histMetric;
   document.querySelectorAll('[data-hist-metric]').forEach(function(b){b.classList.toggle('active',b.dataset.histMetric===selectedMetric);b.setAttribute('aria-pressed',b.dataset.histMetric===selectedMetric?'true':'false');});
-  renderTrend(year,maxWeek);
+  renderTrend(year,currentWeek);
  };});
 }
 window.figHistoricalPredictions=async function(yearParam,weekParam){
  await load(['league','leagueSettings','allGames','weeklyRanks']);
  navActive('historical-predictions');
  var allYears=(DATA.league||[]).map(function(x){return +x.season;}).filter(Number.isFinite).sort(function(a,b){return a-b;});
+ var availableYears=allYears.filter(function(y){return completeWeek(y)>=FIRST_WEEK-1;});
  var yr=+yearParam;
- if(!allYears.includes(yr))yr=allYears.includes(2025)?2025:allYears[allYears.length-1];
- var done=completeWeek(yr), maxWeek=clip(done+1,1,15);
- if(done>=14)maxWeek=15;
- var minWeek=yr===2023?2:1;
- var wk=+weekParam;
- if(!Number.isInteger(wk)||wk<minWeek||wk>maxWeek)wk=yr===2025?Math.min(7,maxWeek):maxWeek;
+ if(!availableYears.includes(yr))yr=availableYears[availableYears.length-1];
+ if(!yr){app.innerHTML='<div class="empty">Historical predictions begin in Week 5.</div>';return;}
+ var done=completeWeek(yr), maxWeek=Math.min(15,done+1);
+ var requestedWeek=+weekParam;
+ var wk=Number.isInteger(requestedWeek)&&requestedWeek>=FIRST_WEEK?Math.min(requestedWeek,maxWeek):(!weekParam?maxWeek:FIRST_WEEK);
  currentYear=yr;currentWeek=wk;
  if(!rosterIds().includes(selectedId))selectedId=1;
  await ensureSchedule(yr,wk);
- var model=forecast(yr,wk),result=simulate(yr,wk,N),options=(yr===2023?'': '<option value="1">PRESEASON</option>');
- for(var w=2;w<=maxWeek;w++)options+='<option value="'+w+'">'+(w===15?'PLAYOFFS':'WEEK '+w)+'</option>';
- var yearOptions=allYears.map(function(y){return '<option value="'+y+'"'+(y===yr?' selected':'')+'>'+y+'</option>';}).join('');
- var notice=wk===1?(yr===2023?'No prior-year baseline available.':'Preseason estimates use previous-season scoring; offseason roster changes are not modeled.'):
-  '65% season / 35% last 3 · volatility from up to 8 prior completed games';
+ var model=forecast(yr,wk),result=simulate(yr,wk,N),options='';
+ for(var w=FIRST_WEEK;w<=maxWeek;w++)options+='<option value="'+w+'">'+(w===15?'PLAYOFFS':'WEEK '+w)+'</option>';
+ var yearOptions=availableYears.map(function(y){return '<option value="'+y+'"'+(y===yr?' selected':'')+'>'+y+'</option>';}).join('');
+ var notice='65% season / 35% last 3 · scoring deviation from recent games';
  var panel=result?'<div class="fig-hist-kpi"><div><span>SCORING LEADER</span><strong>'+safe(title(Object.keys(model).sort(function(a,b){return model[b].mean-model[a].mean;})[0]))+'</strong><small>'+fmt(Math.max.apply(null,Object.keys(model).map(function(k){return model[k].mean;})))+' PPG</small></div>'+
  '<div><span>TITLE FAVORITE</span><strong>'+safe(title(Object.keys(result.counts).sort(function(a,b){return result.counts[b].champ-result.counts[a].champ;})[0]))+'</strong><small>'+p100(Math.max.apply(null,Object.keys(result.counts).map(function(k){return result.counts[k].champ;})))+'</small></div>'+
  '<div><span>PLAYOFF SPOTS</span><strong>'+settings(yr).spots+' TEAMS</strong><small>'+yr+' format</small></div></div>'+
@@ -262,10 +257,10 @@ window.figHistoricalPredictions=async function(yearParam,weekParam){
  '<div class="fig-hist-controls"><label>SEASON <select id="figHistYear">'+yearOptions+'</select></label><label>AS OF <select id="figHistWeek">'+options+'</select></label></div>'+
  '<div class="fig-hist-note">'+safe(notice)+'</div>'+panel+'</div>';
  var select=document.getElementById('figHistWeek');if(select)select.value=String(wk);
- bindPage(yr,maxWeek);
+ bindPage(yr);
  if(result){
   // Paint the standings first, then calculate the historical chart.
-  setTimeout(function(){if(currentYear===yr&&currentWeek===wk)renderTrend(yr,maxWeek);},30);
+  setTimeout(function(){if(currentYear===yr&&currentWeek===wk)renderTrend(yr,wk);},30);
  }
 };
 })();
