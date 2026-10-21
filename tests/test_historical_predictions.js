@@ -54,17 +54,32 @@ function clone(data){return JSON.parse(JSON.stringify(data));}
   assert.strictEqual(table(b.app.innerHTML),original,'Future scores leaked into a historical forecast');
   await a.view(2024,7);
   assert(a.app.innerHTML.includes('6 TEAMS'),'2024 must use six playoff teams');
+  // Removed early periods must not be accessible through controls or old hash URLs.
   await a.view(2023,2);
   assert(a.app.innerHTML.includes('6 TEAMS'),'2023 must use six playoff teams');
-  assert(!a.app.innerHTML.includes('<option value="1">PRESEASON</option>'),'2023 preseason should not invent a prior-year PPG');
+  for(const week of [1,2,3,4]){
+    assert(!a.app.innerHTML.includes('<option value="'+week+'">'),'Weeks 1-4 must not be in the selector');
+  }
+  assert.strictEqual(a.elements.figHistWeek.value,'5','2023 Week 2 old link must start at Week 5');
   await a.view(2025,1);
-  assert(a.app.innerHTML.includes('offseason roster changes are not modeled'),'Preseason baseline must be labeled');
-  assert(a.app.innerHTML.includes('0–0'),'Preseason standings must start at zero');
+  assert.strictEqual(a.elements.figHistWeek.value,'5','Preseason old link must go to Week 5');
+  assert(a.app.innerHTML.includes('WEEK 5 MATCHUP ODDS'));
+  await a.view(2026,4);
+  assert.strictEqual(a.elements.figHistWeek.value,'5','2026 Week 4 link must go to Week 5');
+  await a.view(2024,3);
+  assert.strictEqual(a.elements.figHistWeek.value,'5','2024 Week 3 link must go to Week 5');
   await a.view(2025,15);
   assert(a.app.innerHTML.includes('Playoffs begin in Week 15'),'Week 15 shows bracket-stage odds');
   let chart=setup(clone(fixture),true);
   await chart.view(2025,7);
   assert(chart.elements.figHistoricalTrend.innerHTML.includes('<svg'),'Historical team trend failed to render');
+  assert(chart.elements.figHistoricalTrend.innerHTML.includes('Entering Week 5:'));
+  assert(chart.elements.figHistoricalTrend.innerHTML.includes('Entering Week 7:'));
+  assert(!chart.elements.figHistoricalTrend.innerHTML.includes('Entering Week 4:'),'Week 4 still appears in graph');
+  assert(!chart.elements.figHistoricalTrend.innerHTML.includes('Entering Week 8:'),'Future weeks must not appear in graph');
+  await chart.view(2025,5);
+  assert(chart.elements.figHistoricalTrend.innerHTML.includes('Entering Week 5:'));
+  assert(!chart.elements.figHistoricalTrend.innerHTML.includes('Entering Week 6:'),'Week 5 chart includes future results');
   // The current year must not use unfinished weekly scores.
   const schedule=fixture.allGames.filter(g=>+g.season===2025 && +g.week>=7 && +g.week<=14 && g.game_type==='Regular Season');
   let current=setup(clone(fixture),false,async url=>{
@@ -78,5 +93,5 @@ function clone(data){return JSON.parse(JSON.stringify(data));}
   await current.view(2026,7);
   assert(current.app.innerHTML.includes('5 TEAMS'),'Current year requires five-team playoff format');
   assert(current.app.innerHTML.includes('WEEK 7 MATCHUP ODDS'));
-  console.log('Historical predictions tests passed: as-of cutoff, formats, preseason, trend, 2026 schedule.');
+  console.log('Historical predictions tests passed: Week 5 minimum, removed early routes, as-of charts, scoring cutoff, formats, 2026 schedule.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
