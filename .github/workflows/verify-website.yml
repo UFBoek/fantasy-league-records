@@ -8,6 +8,10 @@ on:
       - 'index.html'
       - 'sw.js'
       - '*.js'
+      - '*.css'
+      - 'scripts/build_css_bundle.py'
+      - 'scripts/stage_pages.sh'
+      - 'tests/test_css_bundle.py'
       - 'tests/*.js'
       - 'scripts/check_website_tests.sh'
       - '.github/workflows/verify-website.yml'
@@ -31,4 +35,6 @@ jobs:
         with:
           node-version: '22'
       - name: Check interface behavior without blocking Sleeper updates
-        run: bash scripts/check_website_tests.sh
+        run: |
+          bash scripts/check_website_tests.sh
+          python -m unittest discover -s tests -p 'test_css_bundle.py'

@@ -12,6 +12,9 @@ mkdir -p "$destination"
 # Only static root-level CSS/JS is present; backend code stays under scripts/.
 cp index.html ./*.css ./*.js manifest.webmanifest sw.js "$destination/"
 
+# Compile only the deployed HTML/CSS/service worker. Keep the source site editable.
+python3 scripts/build_css_bundle.py "$destination"
+
 # Fail publishing if the HTML references a root-level versioned asset that did
 # not make it into the artifact. This prevents future "deployed but unchanged" UI.
 while IFS= read -r asset; do
@@ -20,7 +23,7 @@ while IFS= read -r asset; do
     printf 'Missing published asset: %s\n' "$asset" >&2
     exit 1
   fi
-done < <(grep -oE '(href|src)="[^"]+\.(css|js)\?v=[0-9]+"' index.html | cut -d '"' -f 2 | cut -d '?' -f 1)
+done < <(grep -oE '(href|src)="[^"]+\.(css|js)\?v=[0-9a-f]+"' "$destination/index.html" | cut -d '"' -f 2 | cut -d '?' -f 1)
 cp -R data assets resources "$destination/"
 # The abandoned injury-history research is retained in GitHub but is not part
 # of the public site. Remove all related data and styles from Pages artifacts.
