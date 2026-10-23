@@ -421,14 +421,14 @@ function figTradeRatingsPage(model,helpers){
    el('#figTrManager').value=manager;el('#figTrVersus').value=versus;
    el('#figTrYear').value='all';el('#figTrSort').value='recent';
    if(input)input.value='';
-   render();el('#tradeRatingsHistory')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+   render();el('#tradeRatingsHistory')?.scrollIntoView?.({behavior:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'instant':'smooth',block:'start'});
   };
  };
  renderPartnerships();
  for(const button of root.querySelectorAll('.fig-tr-rank-row'))button.onclick=()=>{
   manager=String(button.dataset.manager);versus='all';year='all';search='';sort='recent';limit=24;
   el('#figTrManager').value=manager;el('#figTrVersus').value='all';el('#figTrYear').value='all';el('#figTrSort').value='recent';
-  if(input)input.value='';render();el('#tradeRatingsHistory')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+  if(input)input.value='';render();el('#tradeRatingsHistory')?.scrollIntoView?.({behavior:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'instant':'smooth',block:'start'});
  };
  render();
 }

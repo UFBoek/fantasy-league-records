@@ -1,8 +1,16 @@
-/* FIG League v190 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v190';
+/* FIG League v191 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v191';
 const APP_SHELL = [
   './',
   './index.html',
+  './ui-platform.css?v=191',
+  './ui-platform.js?v=191',
+  './assets/fonts/barlow-400.woff2',
+  './assets/fonts/barlow-500.woff2',
+  './assets/fonts/barlow-600.woff2',
+  './assets/fonts/barlow-700.woff2',
+  './assets/fonts/barlow-condensed-600.woff2',
+  './assets/fonts/barlow-condensed-700.woff2',
   './styles.css?v=69',
   './mobile-v67.css?v=67',
   './mobile-v68.css?v=68',
@@ -49,13 +57,13 @@ const APP_SHELL = [
   './mobile-v69.js?v=175',
   './record-break-watch-v133.js?v=176',
   './single-season-watch-v136.js?v=176',
-  './trade-ratings-v143.js?v=153',
+  './trade-ratings-v143.js?v=191',
   './waiver-history-v156.js?v=156',
   './manager-ratings-v155.js?v=157',
   './playoff-calculator-v167.js?v=188',
   './historical-predictions-v189.js?v=190',
   './record-detail-compact-v181.css?v=181',
-  './app.js?v=189',
+  './app.js?v=191',
   './manifest.webmanifest?v=132',
   './assets/icons/puka-192.png?v=132',
   './assets/icons/puka-512.png?v=132',
@@ -101,7 +109,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Network first for versioned JS/CSS, manifest and icon assets.
-  if (!/\.(?:js|css|webmanifest|png)$/.test(url.pathname)) return;
+  if (!/\.(?:js|css|webmanifest|png|ttf|woff2)$/.test(url.pathname)) return;
   event.respondWith(
     fetch(request).then((response) => {
       if (response.ok) {

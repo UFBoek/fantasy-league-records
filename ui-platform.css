@@ -1,0 +1,714 @@
+/* FIG platform presentation. Existing data renderers and their hooks stay intact. */
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-500.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-600.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:Barlow;src:url('assets/fonts/barlow-700.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Barlow Condensed';src:url('assets/fonts/barlow-condensed-600.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'Barlow Condensed';src:url('assets/fonts/barlow-condensed-700.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{
+  color-scheme:light;
+  --ui-font:Barlow,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --ui-display:'Barlow Condensed',Barlow,sans-serif;
+  --ui-ground:#f2f5f9;--ui-surface:#fff;--ui-soft:#f7f9fc;--ui-ink:#16243b;
+  --ui-muted:#596a80;--ui-line:#dce3ec;--ui-navy:#101d35;--ui-blue:#2459cc;
+  --ui-blue-soft:#eaf0ff;--ui-win:#17704c;--ui-loss:#b53c43;--ui-gold:#94671b;
+  --ui-radius:14px;--ui-control-radius:8px;--ui-rail:224px;
+  --ui-shadow:0 6px 20px rgb(22 36 59 / .06);--ui-ease:cubic-bezier(.16,1,.3,1);
+  --fig-bg:var(--ui-ground);--fig-panel:var(--ui-surface);--fig-elevated:var(--ui-soft);--fig-text:var(--ui-ink);--fig-muted:var(--ui-muted);--fig-line:var(--ui-line);--fig-mint:var(--ui-blue);
+  --paper:var(--ui-ground);--ink:var(--ui-ink);--muted:var(--ui-muted);--line:var(--ui-line);
+  --card:var(--ui-soft);--white:var(--ui-surface);--accent:var(--ui-blue);--success:var(--ui-win);--danger:var(--ui-loss);
+}
+html{overflow-anchor:none;scroll-behavior:auto;scroll-padding-top:88px;background:var(--ui-ground)}
+body.fig-platform{margin:0;background:var(--ui-ground)!important;color:var(--ui-ink)!important;font:400 15px/1.5 var(--ui-font);-webkit-font-smoothing:antialiased;overflow-x:clip}
+body.fig-platform *{box-sizing:border-box}
+body.fig-platform :is(#app,.site-header,.site-footer,.fig-sidebar,.app-dock) *{font-family:var(--ui-font)!important}
+body.fig-platform ::selection{background:#cddcff;color:#10294d}
+body.fig-platform :is(button,a,input,select,summary,[tabindex]):focus-visible{outline:3px solid #487eeb!important;outline-offset:3px!important}
+body.fig-platform :is(input,select){accent-color:var(--ui-blue);caret-color:var(--ui-blue)}
+body.fig-platform a{text-underline-offset:3px}
+body.fig-platform [hidden]{display:none!important}
+body.fig-platform button{cursor:pointer;touch-action:manipulation}
+body.fig-platform :is(button,a,summary){-webkit-tap-highlight-color:transparent}
+body.fig-platform button:disabled{cursor:default}
+.fig-icon{width:21px;height:21px;display:inline-block;flex:none;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.fig-skip{position:fixed;left:16px;top:-80px;background:var(--ui-blue);color:#fff;padding:12px 20px;z-index:200;border-radius:8px}
+.fig-skip:focus{top:12px}
+.fig-sr{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* App shell: full navigation on desktop; a safe-area-aware dock on phones. */
+body.fig-platform .app-shell{max-width:none!important;min-height:100dvh;padding:0 0 0 var(--ui-rail)!important;background:var(--ui-ground)!important;box-shadow:none!important;border:0!important}
+body.fig-platform .fig-sidebar{position:fixed;inset:0 auto 0 0;width:var(--ui-rail);background:var(--ui-navy);color:#e8effc;z-index:60;display:flex;flex-direction:column;padding:26px 16px 16px}
+body.fig-platform .fig-sidebar-brand{display:flex;gap:12px;align-items:center;margin:0 8px 28px;color:white}
+.fig-sidebar-brand img{width:44px;height:44px;border-radius:12px}
+body.fig-platform .fig-sidebar-brand strong{display:block;font-size:21px;letter-spacing:-.03em;line-height:1.1}
+body.fig-platform .fig-sidebar-brand small{display:block;margin-top:5px;font-size:11px;color:#abbad3;letter-spacing:.04em}
+body.fig-platform #topNav{display:flex!important;flex:1;min-height:0;overflow-y:auto;position:static!important;clip:auto!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;flex-direction:column;align-items:stretch;gap:4px;background:none!important}
+body.fig-platform #topNav .fig-nav-label{font-size:11px;letter-spacing:.12em;color:#91a3c1;padding:18px 12px 6px;font-weight:600}
+body.fig-platform #topNav a{display:flex;align-items:center;gap:12px;flex:none;font-size:13px;font-weight:500;line-height:1.25;padding:12px;border:0!important;border-radius:8px;color:#c4d1e7;letter-spacing:0;white-space:normal;transition:background-color 180ms,color 180ms}
+body.fig-platform #topNav a:is(.active,[aria-current=page]){background:#24447b;color:#fff;font-weight:600}
+body.fig-platform #topNav a:hover{background:#1c3153;color:#fff}
+.fig-sidebar-foot{font-size:11px;color:#91a3c1;margin-top:16px;border-top:1px solid #2a3951;padding:16px 10px 0}
+body.fig-platform .site-header.app-header{max-width:none;min-height:76px;height:auto;padding:12px 32px;position:sticky;top:0;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:12px;align-items:center;border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;background:var(--ui-surface)!important;backdrop-filter:none!important;box-shadow:none!important;z-index:40;margin:0!important}
+body.fig-platform .site-header .brand{display:flex;gap:10px;min-width:0;flex:none;width:auto!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+body.fig-platform .site-header .brand-mark{display:none!important;width:38px!important;height:38px!important;border:0!important;border-radius:10px!important}
+body.fig-platform .site-header .brand-name{font-size:13px!important;letter-spacing:.045em!important;line-height:1.3;color:var(--ui-ink)!important;font-weight:700}
+body.fig-platform .site-header .brand-sub{font-size:11px!important;margin-top:2px;color:var(--ui-muted)!important;letter-spacing:.04em!important;font-weight:500}
+.fig-header-location{display:flex;align-items:center;gap:12px;margin-left:16px;padding-left:24px;border-left:1px solid var(--ui-line);color:var(--ui-muted);font-size:13px;min-width:0;flex:1}
+.fig-header-current{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50ch}
+.fig-header-actions{margin-left:auto;display:flex;align-items:center;gap:12px;flex:none}
+.fig-season-badge{font-size:12px;font-weight:600;color:var(--ui-muted);border:1px solid var(--ui-line);padding:5px 10px;border-radius:6px}
+body.fig-platform .fig-header-explore{display:flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;border-radius:8px;color:var(--ui-ink);background:var(--ui-soft)}
+body.fig-platform .fig-back-button{position:static!important;display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px!important;height:40px!important;min-height:40px;border:1px solid var(--ui-line)!important;background:var(--ui-surface)!important;color:var(--ui-ink)!important;border-radius:9px!important;padding:0!important;box-shadow:none!important;margin:0!important;font-size:20px;transform:none!important}
+body.fig-platform #fig-topnav,body.fig-platform #menuButton{display:none!important}
+body.fig-platform .app-dock{display:none!important}
+body.fig-platform #app.page-wrap{max-width:1440px!important;width:100%;min-width:0;margin:0 auto!important;padding:28px 32px 48px!important;color:var(--ui-ink)!important;background:transparent!important;min-height:70dvh}
+body.fig-platform .site-footer{max-width:1376px;margin:0 auto;padding:0 32px 24px!important;background:transparent!important;color:var(--ui-muted)!important;border:0!important;font-size:12px;display:block!important}
+body.fig-platform .site-footer .footer-rule{height:1px;background:var(--ui-line);margin-bottom:16px}
+body.fig-platform .site-footer .footer-grid{display:block}.site-footer strong{font-size:12px;font-weight:600}
+body.fig-platform .site-footer .footer-grid>div{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* Shared hierarchy and surfaces. Specificity intentionally contains legacy !important rules. */
+body.fig-platform #app :is(h1,h2,h3,h4){color:var(--ui-ink)!important;letter-spacing:-.015em!important;text-wrap:balance}
+body.fig-platform #app .hero{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;padding:0 0 24px!important;margin:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:0!important}
+body.fig-platform #app .hero h1{font:700 42px/1.05 var(--ui-display)!important;letter-spacing:-.02em!important;max-width:none!important;flex-basis:100%;order:0;margin:0!important}
+body.fig-platform #app .hero .eyebrow{order:1;color:var(--ui-muted)!important;font-size:12px!important;letter-spacing:.02em!important;font-weight:500!important;margin:0!important}
+body.fig-platform #app .hero h1 br{display:none}
+body.fig-platform #app .hero h1 br::after{content:' '}
+body.fig-platform #app .hero-strip{order:3;flex:1 0 100%;margin:18px 0 0!important;border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;box-shadow:none!important;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--ui-surface)!important;overflow:hidden}
+body.fig-platform #app .hero-stat{background:var(--ui-surface)!important;padding:16px 20px!important;border-right:1px solid var(--ui-line)!important}
+body.fig-platform #app .hero-stat:last-child{border-right:0!important}
+body.fig-platform #app .hero-stat .k{font:700 30px/1.1 var(--ui-display)!important;color:var(--ui-ink)!important;letter-spacing:0!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app .hero-stat .l{font-size:11px!important;color:var(--ui-muted)!important;letter-spacing:.03em!important;font-weight:500!important;margin-top:6px}
+body.fig-platform #app .section{padding:0!important;margin:0 0 28px!important;border:0!important;background:transparent}
+body.fig-platform #app .section-head{gap:12px;margin:0 0 16px!important;align-items:center;flex-wrap:wrap}
+body.fig-platform #app .section-title{font:600 21px/1.25 var(--ui-font)!important;color:var(--ui-ink)!important;letter-spacing:-.015em!important}
+body.fig-platform #app :is(.section-note,.muted,.hero-copy){color:var(--ui-muted)!important;font-size:12px;line-height:1.5}
+body.fig-platform #app .section-note{max-width:55ch;text-align:left;font-weight:400!important}
+body.fig-platform #app .section-head .section-note{margin-left:auto}
+body.fig-platform #app :is(.section-link,.fig-season-back,.pcl-route-back,.fig-mr-back){color:var(--ui-blue)!important;font-size:12px!important;font-weight:600;letter-spacing:0;display:inline-flex;align-items:center;min-height:40px}
+body.fig-platform #app :is(.control-label,.ra-eyebrow){font-size:11px!important;letter-spacing:.04em!important;color:var(--ui-muted)!important;font-weight:600!important}
+body.fig-platform #app .spaced{margin-top:16px!important}
+body.fig-platform #app .eyebrow{color:var(--ui-muted)!important;font-size:11px!important;font-weight:500!important;letter-spacing:.04em!important}
+body.fig-platform #app :is(.card-grid,.record-index-grid,.record-list,.compact-streak-records,.compact-record-feature-grid,.fig-podium-grid){background:transparent!important;border:0!important;padding:0!important;gap:16px!important;border-radius:0!important;overflow:visible!important}
+body.fig-platform #app :is(.card,.card.dark,.record-index-card,.record-card,.compact-record-feature,.fig-podium-card,.team-card,.fig-season-preview,.fig-roster-dashboard,.fig-roster-picks-panel,.team-record-dashboard,.team-single-season-section,.player-book-section,.fig-mr-panel,.fig-wv-board,.fig-hist-panel,.pcl-section){background:var(--ui-surface)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;box-shadow:none!important}
+body.fig-platform #app :is(.card,.card.dark){padding:20px!important}
+body.fig-platform #app :is(.card-label,.record-index-label,.record-card .rank-line){font-size:11px!important;font-weight:600!important;letter-spacing:.025em!important;color:var(--ui-muted)!important}
+body.fig-platform #app :is(.card-value,.card.dark .card-value,.record-index-value,.record-card .value){font:700 34px/1.1 var(--ui-display)!important;color:var(--ui-ink)!important;letter-spacing:-.015em!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app :is(.card-sub,.card.dark .card-sub,.record-index-holder,.record-card .holder,.record-card .meta){color:var(--ui-muted)!important;font-weight:500!important;font-size:12px!important}
+body.fig-platform #app .positive{color:var(--ui-win)!important}body.fig-platform #app .negative{color:var(--ui-loss)!important}
+
+/* Controls have one vocabulary; neither rows nor hidden statistics are removed. */
+body.fig-platform #app :is(.pill-row,.tabs,.fig-draft-page-tabs){gap:6px!important}
+body.fig-platform #app :is(.pill,.btn-lite,.jh-year,.jh-expand-all,.fig-mr-sort,.fig-draft-rank-sort,.fig-draft-year-tabs button,.fig-draft-page-tabs button,.fig-leader-tabs button,.fig-record-exclusion-toggle,.pcl-week-tabs button,.pcl-auto){min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:9px 14px!important;border:1px solid var(--ui-line)!important;border-radius:var(--ui-control-radius)!important;background:var(--ui-surface)!important;color:var(--ui-muted)!important;font:600 12px/1.25 var(--ui-font)!important;letter-spacing:0!important;box-shadow:none!important;transition:background-color 180ms,color 180ms,border-color 180ms,transform 150ms}
+body.fig-platform #app :is(.pill.active,.jh-year.active,.fig-mr-sort.active,.fig-draft-rank-sort.active,.fig-draft-year-tabs button.active,.fig-draft-page-tabs button.active,.fig-leader-tabs button[aria-pressed=true],.pcl-week-tabs .pcl-week-active){background:var(--ui-blue)!important;color:#fff!important;border-color:var(--ui-blue)!important}
+body.fig-platform #app .fig-record-exclusion-toggle.is-excluded{color:var(--ui-loss)!important;background:#fff1f2!important;border-color:#e8b5b9!important}
+body.fig-platform #app :is(.tabs,.team-profile-tabs){display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;background:transparent!important;padding:0!important;margin:24px 0 0!important;gap:24px!important;overscroll-behavior-x:contain}
+body.fig-platform #app .tabs button{background:transparent!important;color:var(--ui-muted)!important;border:0!important;border-bottom:3px solid transparent!important;border-radius:0!important;padding:12px 0!important;min-height:48px;font-size:12px!important;font-weight:600!important;white-space:nowrap;flex:none}
+body.fig-platform #app .tabs button.active{color:var(--ui-blue)!important;border-bottom-color:var(--ui-blue)!important}
+body.fig-platform #app :is(input:not([type=checkbox]):not([type=radio]),select,.search){font:400 14px/1.4 var(--ui-font)!important;color:var(--ui-ink)!important;background:var(--ui-surface)!important;border:1px solid #b8c5d6!important;border-radius:8px!important;min-height:42px;padding:9px 12px!important;max-width:100%;box-shadow:none!important}
+body.fig-platform #app input::placeholder{color:#63748a;opacity:1}
+body.fig-platform #app .search{min-width:0!important;width:240px}
+body.fig-platform #app :is(.toolbar,.player-book-tools,.fig-draft-explorer-filters){gap:10px!important}
+body.fig-platform #app :is(.fig-list-controls,.fig-draft-rank-sortbar,.fig-mr-sortbar,.fig-tr-controls,.fig-wv-filters,.pcl-model,.fig-hist-controls){background:var(--ui-soft)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-muted)!important;padding:12px!important}
+body.fig-platform #app :is(.fig-history-more,.fig-table-more,.fig-tr-more,.fig-tr-partner-more,.fig-watch-more,.pcl-primary){border:0!important;border-radius:8px!important;background:var(--ui-blue)!important;color:#fff!important;font-size:13px!important;font-weight:600!important;min-height:44px;padding:10px 18px!important;box-shadow:none!important}
+body.fig-platform #app :is(.fig-results-count,.fig-history-count,.fig-table-hint,.player-book-scroll-tip){color:var(--ui-muted)!important;font-size:11px!important;letter-spacing:0!important;font-weight:500!important}
+body.fig-platform #app :is(.fig-table-hint,.player-book-scroll-tip){padding:4px 0 9px!important}
+body.fig-platform #app :is(.fig-table-hint span,.player-book-scroll-tip span){color:var(--ui-blue)!important}
+
+/* Aligned, quiet table chrome. Keep the two-pane frozen-column row geometry. */
+body.fig-platform #app .table-wrap{border:1px solid var(--ui-line)!important;border-radius:12px!important;background:var(--ui-surface)!important;box-shadow:none!important;scrollbar-width:thin;scrollbar-color:#acbbce transparent}
+body.fig-platform #app table{color:var(--ui-ink)!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app th{background:var(--ui-soft)!important;color:var(--ui-muted)!important;font-size:11px!important;font-weight:600!important;letter-spacing:.025em!important;border-color:var(--ui-line)!important}
+body.fig-platform #app td{background:var(--ui-surface);color:var(--ui-ink)!important;font-size:13px!important;font-weight:400!important;border-color:#e8edf3!important;line-height:1.4!important}
+body.fig-platform #app .sort-head{color:inherit!important;background:transparent!important;font:600 11px/1.3 var(--ui-font)!important;min-height:32px;letter-spacing:0!important}
+body.fig-platform #app .sort-icon{color:#6e80a0!important}
+body.fig-platform #app .fig-frozen-grid{--fig-fixed-size:188px!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;overflow:hidden!important;background:var(--ui-surface)!important}
+body.fig-platform #app .fig-frozen-identity{border-right:1px solid var(--ui-line)!important;background:var(--ui-surface)!important}
+body.fig-platform #app .fig-frozen-stats{border:0!important;border-radius:0!important;max-width:100%;min-width:0;background:var(--ui-surface)!important}
+body.fig-platform #app .fig-frozen-grid th{height:44px!important;border-width:0 0 1px!important;padding:6px 10px!important}
+body.fig-platform #app .fig-frozen-grid td{height:54px!important;max-height:54px!important;border-width:0 0 1px!important;padding:6px 10px!important}
+body.fig-platform #app .fig-frozen-identity :is(th,td):nth-child(1){width:32px!important;min-width:32px!important;max-width:32px!important;padding:6px!important;text-align:center;color:var(--ui-muted)!important;font-size:12px!important}
+body.fig-platform #app .fig-frozen-identity :is(th,td):nth-child(2){width:156px!important;min-width:156px!important;max-width:156px!important;padding:6px 10px!important}
+body.fig-platform #app .fig-frozen-stats :is(th,td){min-width:86px!important;width:86px!important;text-align:right}
+body.fig-platform #app .fig-frozen-stats :is([data-key=pos],[data-key=w],[data-key=l],[data-key=rank],[data-key=gold],[data-key=silver],[data-key=bronze]){min-width:56px!important;width:56px!important;text-align:center}
+body.fig-platform #app .fig-frozen-identity .fig-team-avatar{height:32px!important;width:32px!important;flex-basis:32px!important;border:0!important}
+body.fig-platform #app .fig-team-identity-name{font-size:13px!important;font-weight:600!important;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-nfl-photo{border:0!important;background:#edf1f6!important;color:#566781!important}
+body.fig-platform #app .fig-player-person-name{font-size:13px!important;font-weight:600!important;line-height:1.3!important;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-team-avatar{border:0!important}
+body.fig-platform #app .identity-badge{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border:0!important;font-size:11px!important;padding:2px 4px;border-radius:4px}
+body.fig-platform #app .pos{background:var(--ui-soft)!important;color:var(--ui-muted)!important;border:0!important;border-radius:4px!important;font-size:11px!important;min-width:28px;padding:4px 6px!important}
+
+/* Home: scores first; two useful work areas across a wide viewport. */
+body.fig-platform #app[data-route=home]{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:20px 24px;align-items:start}
+body.fig-platform #app[data-route=home]>.hero{grid-column:1/-1;padding-bottom:4px!important}
+body.fig-platform #app[data-route=home]>.hero h1{font-size:38px!important;flex-basis:auto}
+body.fig-platform #app[data-route=home]>.hero .eyebrow{margin-left:auto!important}
+body.fig-platform #app[data-route=home]>.fig-live-panel{grid-column:1/-1;margin:0!important;padding:20px!important;background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:14px!important}
+body.fig-platform #app[data-route=home]>.pcl-home-link{grid-row:3;margin:0!important;min-height:80px;gap:12px;background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;padding:16px 20px!important;color:var(--ui-ink)!important}
+body.fig-platform #app[data-route=home]>.pcl-home-link strong{font-size:14px!important;font-weight:600!important;color:var(--ui-ink)!important}
+body.fig-platform #app[data-route=home]>.pcl-home-link small{font-size:12px!important;font-weight:400!important;color:var(--ui-muted)!important;margin-top:3px}
+body.fig-platform #app[data-route=home]>.pcl-home-link>span:last-child{font-size:11px;color:var(--ui-blue)!important;white-space:nowrap}
+body.fig-platform #app[data-route=home]>.home-standings{grid-column:1;grid-row:4;margin:0!important;padding:20px!important;border:1px solid var(--ui-line)!important;border-radius:14px!important;background:var(--ui-surface)!important;min-width:0}
+body.fig-platform #app[data-route=home]>.app-menu-section{grid-column:2;grid-row:4;margin:0!important;min-width:0}
+body.fig-platform #app[data-route=home]>.section:last-child{grid-column:1/-1}
+body.fig-platform #app .home-standings .section-head{align-items:start}
+body.fig-platform #app .home-standings .section-note{font-size:11px;flex-basis:100%;margin:0}
+body.fig-platform #app .home-standings .control-label{margin:12px 0 6px}
+body.fig-platform #app #homeStandingsTable{margin-top:14px}
+body.fig-platform #app .app-menu-section{padding:20px!important;background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:14px!important}
+body.fig-platform #app .app-menu-title-wrap{margin:0 0 14px;padding:0!important;border:0!important}
+body.fig-platform #app .app-menu-title{font:600 21px/1.25 var(--ui-font)!important;letter-spacing:-.015em!important;color:var(--ui-ink)!important}
+body.fig-platform #app .app-menu-shell{background:none!important;padding:0!important;border:0!important;border-radius:0!important}
+body.fig-platform #app .app-menu-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 16px!important;padding:0!important;background:none!important}
+body.fig-platform #app .app-tile{display:flex!important;align-items:center;justify-content:flex-start;gap:10px;padding:15px 0!important;min-height:58px!important;border:0!important;border-bottom:1px solid #e8edf3!important;border-radius:0!important;background:transparent!important;color:var(--ui-ink)!important;box-shadow:none!important;text-align:left;transform:none!important}
+body.fig-platform #app .app-tile-icon{width:24px!important;height:24px!important;display:flex;align-items:center;justify-content:center;color:var(--ui-blue)!important;background:none!important;border:0!important;border-radius:0!important;margin:0!important;flex:none}
+body.fig-platform #app .app-tile-label{font-size:11px!important;font-weight:600!important;line-height:1.3!important;color:var(--ui-ink)!important;letter-spacing:0!important}
+
+/* Matchups: real scoreboards, not oversized feature tiles. */
+body.fig-platform #app .fig-live-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+body.fig-platform #app .fig-live-match{min-width:0;border:1px solid var(--ui-line)!important;border-radius:10px!important;background:var(--ui-soft)!important;padding:14px!important;color:var(--ui-ink)!important;box-shadow:none!important}
+body.fig-platform #app .fig-live-match-label{color:var(--ui-muted)!important;font-size:11px!important;letter-spacing:.04em!important;font-weight:500!important;margin-bottom:12px}
+body.fig-platform #app .fig-live-side{gap:6px!important;min-width:0;margin:10px 0!important}
+body.fig-platform #app .fig-live-side .fig-team-avatar{width:28px!important;height:28px!important;flex-basis:28px!important}
+body.fig-platform #app .fig-live-name{font-size:12px!important;font-weight:600!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-live-score{font:600 24px/1 var(--ui-display)!important;letter-spacing:0!important;color:var(--ui-ink)!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+body.fig-platform #app .fig-live-summary{padding:0!important;margin:0 0 16px!important;color:var(--ui-muted)!important;font-size:11px!important}
+body.fig-platform #app .fig-live-badge{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border:0!important;border-radius:4px!important;font-size:11px!important;font-weight:600!important;padding:4px 7px!important}
+body.fig-platform #app .fig-live-open{font-size:11px!important;color:var(--ui-blue)!important;padding-top:10px!important;border-color:var(--ui-line)!important}
+body.fig-platform #app .fig-live-footer{font-size:11px!important;color:var(--ui-muted)!important;margin:14px 0 0!important;line-height:1.5}
+body.fig-platform #app .fig-live-empty{background:var(--ui-soft)!important;border:1px dashed #bfccdc!important;border-radius:10px!important;color:var(--ui-muted)!important;padding:20px!important;font-size:13px!important}
+
+/* Franchise directory and profiles. */
+body.fig-platform #app .team-grid:not(.fig-more-grid){grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+body.fig-platform #app .team-card{position:relative;overflow:hidden;padding:24px 18px 16px!important;transform:none!important;transition:border-color 180ms,background-color 180ms}
+body.fig-platform #app .team-card-photo{width:88px!important;height:88px!important;border-radius:50%!important;border:0!important;margin:0 0 16px!important;object-fit:cover;box-shadow:none!important;background:var(--ui-soft)}
+body.fig-platform #app .team-name{font:700 22px/1.2 var(--ui-font)!important;color:var(--ui-ink)!important;margin:0 0 4px!important;letter-spacing:-.02em!important}
+body.fig-platform #app .team-record{font-size:12px!important;color:var(--ui-muted)!important;font-weight:500!important}
+body.fig-platform #app .team-meta{border-top:1px solid var(--ui-line)!important;margin-top:16px!important;padding-top:12px!important;display:flex;gap:12px;justify-content:space-between;color:var(--ui-muted)!important;font-size:11px!important}
+body.fig-platform #app .team-meta strong{display:block;font-size:14px!important;color:var(--ui-ink)!important;font-weight:600!important}
+body.fig-platform #app .team-profile-shell{border:1px solid var(--ui-line)!important;background:var(--ui-surface)!important;color:var(--ui-ink)!important;padding:24px!important;border-radius:16px!important;box-shadow:none!important;margin:0 0 24px!important}
+body.fig-platform #app .team-profile-top{background:transparent!important;border-radius:0!important;display:flex!important;align-items:center;gap:20px!important;padding:0 0 20px!important;border:0!important;min-height:0!important}
+body.fig-platform #app .team-profile-photo{flex:0 0 104px!important;aspect-ratio:1;width:104px!important;height:104px!important;border-radius:50%!important;border:0!important;background:var(--ui-soft)!important;box-shadow:none!important;object-fit:cover}
+body.fig-platform #app .team-profile-copy h1{font:700 48px/1.05 var(--ui-display)!important;color:var(--ui-ink)!important;margin:4px 0 8px!important}
+body.fig-platform #app .team-profile-sub{color:var(--ui-muted)!important;font-size:12px!important;font-weight:500!important;letter-spacing:.02em!important}
+body.fig-platform #app .ra-team-overview{padding:16px!important;background:var(--ui-soft)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important}
+body.fig-platform #app :is(.ra-team-overview .ra-value,.ra-team-overview strong,.ra-team-overview h3){color:var(--ui-ink)!important}
+body.fig-platform #app .ra-team-overview small{color:var(--ui-muted)!important}
+body.fig-platform #app .ra-breakdown{gap:12px!important}
+body.fig-platform #app .ra-breakdown>div{background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:8px!important;padding:12px!important}
+body.fig-platform #app .career-stats-title{margin:24px 0 12px!important}
+body.fig-platform #app .career-stats-title h2{font:600 14px/1.3 var(--ui-font)!important;letter-spacing:.04em!important}
+body.fig-platform #app .career-stats-title span{height:1px!important;background:var(--ui-line)!important}
+body.fig-platform #app .team-career-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0!important;background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;overflow:hidden}
+body.fig-platform #app .team-stat-tile{display:flex!important;flex-direction:column;align-items:stretch!important;justify-content:flex-start!important;gap:0!important;height:auto!important;background:var(--ui-surface)!important;border:0!important;border-right:1px solid var(--ui-line)!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;padding:16px!important;min-height:96px!important;text-align:left!important;box-shadow:none!important;overflow:hidden}
+body.fig-platform #app .team-stat-tile::before{display:none!important}
+body.fig-platform #app .team-stat-tile:nth-child(4n){border-right:0!important}
+body.fig-platform #app .team-stat-tile:nth-child(n+5){border-bottom:0!important}
+body.fig-platform #app .team-stat-tile>span{color:var(--ui-muted)!important;font-size:11px!important;letter-spacing:.04em!important;font-weight:600!important}
+body.fig-platform #app .team-stat-tile>strong{display:block;font:600 27px/1.2 var(--ui-display)!important;margin:6px 0 4px!important;color:var(--ui-ink)!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app .team-stat-tile>em{margin:0!important;text-align:left!important;font-size:11px!important;color:var(--ui-blue)!important;font-weight:500!important;letter-spacing:.02em!important}
+body.fig-platform #app :is(.team-record-dashboard,.team-single-season-section,.fig-roster-dashboard,.fig-roster-picks-panel,.player-book-section){padding:20px!important;margin-bottom:24px!important}
+body.fig-platform #app :is(.records-dashboard-head h2,.fig-roster-title h2,.fig-roster-picks-title h2){font-size:20px!important;line-height:1.3!important;letter-spacing:-.015em!important;color:var(--ui-ink)!important}
+body.fig-platform #app :is(.mini-record,.single-season-team-record,.season-accomplishment,.fig-season-metric,.fig-roster-stat){border:1px solid var(--ui-line)!important;border-radius:9px!important;background:var(--ui-soft)!important;color:var(--ui-ink)!important;padding:14px!important;box-shadow:none!important}
+body.fig-platform #app :is(.mini-record b,.single-season-team-record b,.season-accomplishment b){font-size:12px!important;font-weight:600!important;color:var(--ui-ink)!important}
+body.fig-platform #app :is(.mini-record span,.fig-roster-stat strong,.fig-season-metric strong){color:var(--ui-blue)!important}
+body.fig-platform #app .mini-record{border-left-width:1px!important}
+body.fig-platform #app .two-col-record-snapshot h3{font-size:12px!important;font-weight:600!important;color:var(--ui-muted)!important;margin-bottom:10px}
+body.fig-platform #app :is(.sleeper-roster-section,.fig-roster-pick,.fig-season-opponent,.fig-season-player,.fig-season-game){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-ink)!important;box-shadow:none!important}
+body.fig-platform #app .sleeper-roster-heading{background:var(--ui-soft)!important;color:var(--ui-muted)!important;font-size:11px!important;letter-spacing:.04em!important;padding:12px 14px!important}
+body.fig-platform #app .sleeper-player-row{background:var(--ui-surface)!important;border-color:var(--ui-line)!important;min-height:64px;padding:10px 14px!important}
+body.fig-platform #app .sleeper-player-main{min-width:0}
+body.fig-platform #app .sleeper-player-main b{color:var(--ui-ink)!important;font-size:14px!important;font-weight:600!important}
+body.fig-platform #app .sleeper-player-main small{color:var(--ui-muted)!important;font-size:11px!important}
+body.fig-platform #app .sleeper-slot{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border-radius:5px!important;font-size:11px!important;border:0!important}
+body.fig-platform #app .ra-roster-val{color:var(--ui-ink)!important;font-size:14px!important}
+body.fig-platform #app .fig-season-preview{padding:20px!important}
+body.fig-platform #app .fig-season-preview-head{border-color:var(--ui-line)!important}
+body.fig-platform #app :is(.fig-season-preview-head strong,.fig-season-preview-lead strong){color:var(--ui-ink)!important;font-family:var(--ui-display)!important}
+body.fig-platform #app .fig-season-preview-metrics{gap:8px!important}
+body.fig-platform #app .fig-season-preview-metrics>span{background:var(--ui-soft)!important;border-radius:6px!important;color:var(--ui-muted)!important}
+body.fig-platform #app .fig-season-preview-metrics strong{color:var(--ui-ink)!important}
+body.fig-platform #app .fig-player-profile-hero{position:relative;padding-right:112px!important;min-height:110px!important}
+body.fig-platform #app .fig-player-profile-hero .fig-nfl-photo-large{position:absolute!important;top:0!important;right:0!important;width:88px!important;height:88px!important;border-radius:14px!important;box-shadow:none!important;border:0!important;margin:0!important;float:none!important}
+body.fig-platform #app .fig-player-profile-hero .hero-strip{margin-right:-112px!important}
+
+/* Record galleries and earned achievements. */
+body.fig-platform #app :is(.fig-podium-card,.record-index-card,.compact-record-feature,.record-card){padding:20px!important;border-radius:14px!important;overflow:hidden!important;transform:none!important}
+body.fig-platform #app .fig-podium-banner{background:transparent!important;border:0!important;color:var(--ui-muted)!important;padding:0!important;font:600 11px/1.4 var(--ui-font)!important;letter-spacing:.03em!important;margin-bottom:16px!important}
+body.fig-platform #app .fig-podium-photo{width:72px!important;height:72px!important;border:0!important;border-radius:50%!important;box-shadow:none!important;margin:0 auto 10px!important}
+body.fig-platform #app .fig-podium-name{font-size:16px!important;color:var(--ui-ink)!important;font-weight:600!important;letter-spacing:0!important}
+body.fig-platform #app .fig-podium-value{font:700 40px/1.1 var(--ui-display)!important;letter-spacing:-.02em!important;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-podium-label{font-size:12px!important;font-weight:600!important;color:var(--ui-blue)!important}
+body.fig-platform #app .fig-podium-note{color:var(--ui-muted)!important;font-size:11px!important}
+body.fig-platform #app .fig-podium-rivals{background:var(--ui-soft)!important;border:0!important;border-radius:8px!important;padding:8px 12px!important;margin-top:16px!important}
+body.fig-platform #app .fig-podium-rival{border-color:var(--ui-line)!important;padding:7px 0!important;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-podium-rival-score{color:var(--ui-ink)!important;font-weight:600!important}
+body.fig-platform #app .fig-podium-view{background:transparent!important;border-top:1px solid var(--ui-line)!important;border-radius:0!important;color:var(--ui-blue)!important;font-size:11px!important;font-weight:600!important;padding:12px 0 0!important;margin-top:14px!important}
+body.fig-platform #app :is(.fig-watch-panel,.fig-active-list,.fig-streak-games){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;overflow:hidden}
+body.fig-platform #app :is(.fig-watch-row,.fig-active-row,.fig-streak-game,.fig-rd-streak-row){background:var(--ui-surface)!important;border-color:var(--ui-line)!important;border-radius:0!important;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-watch-progress{background:#e8edf5!important}
+body.fig-platform #app .fig-watch-progress>span{background:var(--ui-blue)!important}
+body.fig-platform #app :is(.fig-watch-status,.fig-active-length){color:var(--ui-blue)!important}
+body.fig-platform #app .champions-grid{gap:20px!important}
+body.fig-platform #app .champion-season-card{border:1px solid #d9c49c!important;background:#fffdf8!important;border-radius:14px!important;padding:24px!important;color:var(--ui-ink)!important;box-shadow:none!important}
+body.fig-platform #app .champion-year{font:700 42px/1 var(--ui-display)!important;color:var(--ui-ink)!important}
+body.fig-platform #app .champion-label{color:var(--ui-gold)!important;background:#f6ecd7!important;padding:5px 14px!important;border-radius:5px!important;font-size:11px!important;letter-spacing:.08em!important}
+body.fig-platform #app .fig-champion-portrait{width:120px!important;height:120px!important;border:0!important;border-radius:50%!important;margin:20px auto!important}
+body.fig-platform #app .champion-name{font:700 28px/1.1 var(--ui-display)!important;color:var(--ui-ink)!important}
+body.fig-platform #app .champion-sub{border-color:#e2d4b7!important;color:var(--ui-ink)!important}
+body.fig-platform #app .champion-open{color:var(--ui-gold)!important;font-size:11px!important}
+body.fig-platform #app .fig-team-banner{background:#fff5dc!important;color:#805b1c!important;border-color:#d7b978!important;box-shadow:none!important}
+
+/* Archive games, lineups and rivalries. */
+body.fig-platform #app :is(.fig-archive-card,.fig-h2h-card,.fig-h2h-rivalry-card,.bracket-match,.fig-lineup-scoreboard,.fig-live-lineup-comparison,.fig-lineup-comparison,.fig-lineup-bench-team,.fig-live-bench-team,.fig-live-positive-bench){background:var(--ui-surface)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;box-shadow:none!important;overflow:hidden}
+body.fig-platform #app :is(.fig-archive-card,.fig-h2h-card,.fig-h2h-rivalry-card){padding:18px!important}
+body.fig-platform #app :is(.fig-archive-score,.fig-archive-result,.fig-lineup-final,.fig-h2h-value){color:var(--ui-ink)!important;font-family:var(--ui-display)!important;font-weight:600!important}
+body.fig-platform #app .fig-archive-score{font-size:30px!important}
+body.fig-platform #app :is(.fig-archive-meta,.fig-archive-footer,.fig-archive-caption,.fig-h2h-caption){color:var(--ui-muted)!important;border-color:var(--ui-line)!important;font-size:11px!important;font-weight:500!important}
+body.fig-platform #app :is(.fig-archive-team-name,.fig-h2h-name){color:var(--ui-ink)!important;font-weight:600!important}
+body.fig-platform #app :is(.fig-archive-open,.fig-h2h-open){color:var(--ui-blue)!important}
+body.fig-platform #app .fig-lineup-scoreboard{padding:24px!important;gap:16px}
+body.fig-platform #app .fig-lineup-owner-avatar{width:64px!important;height:64px!important;border:0!important;border-radius:50%!important}
+body.fig-platform #app .fig-lineup-final{font-size:46px!important}
+body.fig-platform #app :is(.fig-lineup-pair,.fig-live-lineup-pair){background:var(--ui-surface)!important;border-color:var(--ui-line)!important;min-height:72px}
+body.fig-platform #app :is(.fig-lineup-slot,.fig-live-lineup-slot){background:var(--ui-soft)!important;color:var(--ui-muted)!important;font-size:11px!important;border-color:var(--ui-line)!important}
+body.fig-platform #app :is(.fig-lineup-points,.fig-live-slot-points){color:var(--ui-ink)!important;font-size:17px!important;font-weight:600!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app :is(.fig-lineup-side-label,.fig-lineup-bench-team-title,.fig-live-lineup-heading){background:var(--ui-soft)!important;color:var(--ui-ink)!important;border-color:var(--ui-line)!important}
+body.fig-platform #app :is(.fig-lineup-bench-entry,.fig-season-week){border-color:var(--ui-line)!important;background:var(--ui-surface)!important}
+body.fig-platform #app .fig-h2h-person img{border:0!important;border-radius:50%!important}
+body.fig-platform #app :is(.fig-h2h-hero,.fig-h2h-summary,.fig-h2h-season,.fig-h2h-season-card){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;color:var(--ui-ink)!important}
+
+/* Trades, draft boards and the comparison tools share the same surface grammar. */
+body.fig-platform #app :is(.fig-tr-rankings,.fig-tr-partnerships,.fig-tr-manager-board,.fig-tr-pair-board,.fig-draft-rank-page,.fig-draft-rankings,.fig-draft-team-detail,.fig-draft-rank-panel,.fig-draft-explorer,.fig-draft-full-board,.fig-draft-all-years,.fig-mr-page,.jh-archive){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:14px!important;color:var(--ui-ink)!important;box-shadow:none!important;overflow:hidden}
+body.fig-platform #app :is(.fig-tr-rank-row,.fig-tr-partnership-row,.fig-draft-rank-row,.fig-mr-rank-row){background:var(--ui-surface)!important;border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;padding:15px 16px!important;color:var(--ui-ink)!important;box-shadow:none!important;transform:none!important;min-height:72px}
+body.fig-platform #app :is(.fig-tr-rank-row:first-child,.fig-draft-rank-row:first-child,.fig-mr-rank-row:first-child){background:#f3f6fe!important}
+body.fig-platform #app :is(.fig-tr-rank-name,.fig-mr-manager,.fig-draft-rank-team-name){color:var(--ui-ink)!important;font-size:14px!important;font-weight:600!important}
+body.fig-platform #app :is(.fig-tr-rank-score,.fig-mr-primary strong,.fig-draft-rank-primary strong){color:var(--ui-ink)!important;font:700 28px/1.1 var(--ui-display)!important}
+body.fig-platform #app :is(.fig-tr-rank-num,.fig-mr-place,.fig-draft-rank-num){font:600 18px/1 var(--ui-display)!important;color:var(--ui-muted)!important}
+body.fig-platform #app :is(.fig-tr-rank-avatar,.fig-mr-avatar,.fig-draft-rank-avatar){width:40px!important;height:40px!important;border:0!important;border-radius:50%!important}
+body.fig-platform #app :is(.fig-tr-stats,.fig-draft-team-stats,.fig-mr-weights,.fig-wv-stats){background:var(--ui-soft)!important;border-color:var(--ui-line)!important;color:var(--ui-ink)!important;border-radius:10px!important}
+body.fig-platform #app :is(.fig-tr-stats strong,.fig-draft-team-stats strong,.fig-mr-weights strong,.fig-wv-stat strong){color:var(--ui-ink)!important;font-family:var(--ui-display)!important;font-weight:600!important}
+body.fig-platform #app :is(.fig-tr-card,.fig-tr-opponent,.fig-draft-selection,.fig-draft-board-pick,.fig-team-draft-pick,.fig-team-draft-year,.fig-player-trade-card,.jh-trade-card){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-ink)!important;box-shadow:none!important;overflow:hidden}
+body.fig-platform #app :is(.fig-tr-summary,.fig-draft-all-year-head,.fig-team-draft-year-top,.jh-trade-meta,.fig-player-trade-summary){background:var(--ui-soft)!important;color:var(--ui-ink)!important;border-color:var(--ui-line)!important;padding:14px 16px!important}
+body.fig-platform #app :is(.fig-tr-details,.jh-receives,.fig-player-trade-details,.fig-draft-team-detail-head){background:var(--ui-surface)!important;color:var(--ui-ink)!important;border-color:var(--ui-line)!important}
+body.fig-platform #app :is(.fig-tr-items,.fig-tr-item,.fig-tr-detail-stats,.fig-draft-grade-summary,.fig-draft-grade-strip,.fig-draft-slot-cost,.fig-draft-selection-meta,.fig-team-draft-metrics){background:var(--ui-soft)!important;color:var(--ui-ink)!important;border-color:var(--ui-line)!important;border-radius:6px!important}
+body.fig-platform #app :is(.fig-tr-method,.fig-tr-pair-explainer,.fig-mr-method,.fig-draft-method,.fig-draft-rank-explainer,.fig-team-draft-note){background:var(--ui-soft)!important;border-color:var(--ui-line)!important;color:var(--ui-muted)!important;border-radius:10px!important;font-size:12px!important;line-height:1.6!important}
+body.fig-platform #app :is(.fig-tr-item-value,.fig-draft-player-link,.fig-draft-pick-no,.fig-draft-team-arrow,.fig-team-draft-pick-no,.fig-draft-rank-link){color:var(--ui-blue)!important}
+body.fig-platform #app :is(.fig-draft-year-tabs,.fig-draft-franchise-grid){gap:12px!important}
+body.fig-platform #app :is(.fig-draft-team-tile,.fig-draft-team-grade-item){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-ink)!important;padding:14px!important}
+body.fig-platform #app .draft-board{gap:12px!important}
+body.fig-platform #app .fig-draft-board-pick{padding:14px!important}
+body.fig-platform #app :is(.fig-draft-board-pick .pick,.fig-draft-selection-num){font-size:13px!important;color:var(--ui-blue)!important;font-weight:600!important}
+body.fig-platform #app :is(.fig-draft-board-owner,.fig-draft-original-note,.fig-draft-selection-meta,.fig-team-draft-gone){color:var(--ui-muted)!important;font-size:11px!important}
+body.fig-platform #app :is(.fig-draft-rank-team,.fig-draft-rank-summary,.fig-draft-team-copy){color:var(--ui-ink)!important}
+body.fig-platform #app .jh-header{background:var(--ui-navy)!important;color:#fff!important;border:0!important;padding:20px 24px!important}
+body.fig-platform #app .jh-header :is(strong,span,.jh-participant){color:#fff!important}
+body.fig-platform #app .jh-header .jh-versus{color:#a8bddf!important}
+body.fig-platform #app :is(.jh-overall,.jh-overview-team,.jh-market-total){background:var(--ui-soft)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important}
+body.fig-platform #app .jh-overall{border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;padding:20px!important}
+body.fig-platform #app .jh-overview-team{background:var(--ui-surface)!important}
+body.fig-platform #app .jh-overall :is(strong,.jh-overall-title,.jh-overview-label){color:var(--ui-ink)!important}
+body.fig-platform #app .jh-overall :is(small,.jh-overall-scoring-note){color:var(--ui-muted)!important}
+body.fig-platform #app :is(.jh-toolbar,.jh-filters){background:transparent!important;border-color:var(--ui-line)!important}
+body.fig-platform #app .jh-toolbar{padding:16px 20px!important}
+body.fig-platform #app .jh-list{padding:0 20px 20px!important}
+body.fig-platform #app .jh-trade-preview b{color:var(--ui-blue)!important}
+body.fig-platform #app .jh-market-total strong{color:var(--ui-ink)!important}
+body.fig-platform #app .jh-gap-teaser{background:var(--ui-blue-soft)!important;border:1px solid #c9d8f8!important;border-radius:10px!important;color:var(--ui-ink)!important;padding:16px 20px!important}
+body.fig-platform #app .jh-gap-teaser :is(strong,h3){color:var(--ui-blue)!important}
+body.fig-platform #app .jh-gap-teaser p{color:var(--ui-muted)!important}
+body.fig-platform #app .jh-gap-teaser a{background:var(--ui-blue)!important;color:#fff!important;border-radius:8px!important;border:0!important}
+body.fig-platform #app :is(.jh-gap-game,.mini-arcade-card){background:var(--ui-surface)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:14px!important;box-shadow:none!important}
+body.fig-platform #app .jh-gap-pitch{background:var(--ui-navy)!important;color:#fff!important;border-radius:10px!important;padding:24px!important}
+body.fig-platform #app .jh-gap-pitch :is(h3,strong){color:#fff!important}
+body.fig-platform #app .jh-gap-pitch :is(p,.jh-gap-unit){color:#c3d0e5!important}
+body.fig-platform #app .jh-gap-kicker{color:#b8cef1!important}
+body.fig-platform #app :is(.jh-game-slot,.jh-gap-slot,.jh-game-player,.jh-gap-player){background:var(--ui-soft)!important;border-color:var(--ui-line)!important;color:var(--ui-ink)!important;border-radius:8px!important}
+body.fig-platform #app .mini-arcade-card{padding:24px!important}
+body.fig-platform #app .mini-arcade-icon{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border-radius:12px!important;display:flex;align-items:center;justify-content:center}
+
+/* Projection and historical-prediction tools: layout and color only. */
+body.fig-platform #app .pcl{color:var(--ui-ink)!important;--pcl-ink:var(--ui-ink);--pcl-muted:var(--ui-muted);--pcl-line:var(--ui-line);--pcl-green:var(--ui-blue)}
+body.fig-platform #app :is(.pcl-overview,.pcl-route-hero,.pcl-detail-head,.pcl-sim-header,.fig-hist-overview){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:14px!important;color:var(--ui-ink)!important;padding:24px!important}
+body.fig-platform #app .pcl-section{padding:20px!important;margin:0 0 24px!important}
+body.fig-platform #app :is(.pcl-headline h1,.pcl-route-hero h1,.fig-hist-heading h1){font:700 40px/1.1 var(--ui-display)!important;color:var(--ui-ink)!important}
+body.fig-platform #app :is(.pcl-section-head h2,.pcl-detail-subhead){font:600 20px/1.3 var(--ui-font)!important;color:var(--ui-ink)!important}
+body.fig-platform #app :is(.pcl-kicker,.pcl-caption,.pcl-disclaimer,.pcl-schedule-source,.pcl-legend,.pcl-route-intro,.fig-hist-note){color:var(--ui-muted)!important;font-size:12px!important;font-weight:400!important;letter-spacing:0!important;line-height:1.5!important}
+body.fig-platform #app :is(.pcl-status,.pcl-quick-outlook,.pcl-whatif,.pcl-route-summary,.pcl-other-impact,.pcl-sim-byes,.pcl-sim-champion,.fig-hist-summary){background:var(--ui-blue-soft)!important;color:var(--ui-ink)!important;border:1px solid #cbd9f4!important;border-radius:10px!important}
+body.fig-platform #app .pcl-status strong{color:var(--ui-blue)!important}
+body.fig-platform #app :is(.pcl-table-wrap,.pcl-route-table-wrap){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important}
+body.fig-platform #app :is(.pcl-table,.pcl-route-table){background:var(--ui-surface)!important}
+body.fig-platform #app :is(.pcl-table,.pcl-route-table) td{background:transparent!important;border-color:var(--ui-line)!important;font-size:13px!important;padding:14px 12px!important}
+body.fig-platform #app :is(.pcl-selected,.pcl-choice-on){background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important}
+body.fig-platform #app :is(.pcl-prob,.pcl-route-chances strong,.pcl-detail-numbers strong){font-family:var(--ui-display)!important;color:var(--ui-blue)!important;font-weight:600!important}
+body.fig-platform #app .pcl-odds-track{background:#e4ebf5!important}
+body.fig-platform #app .pcl-odds-track>span{background:var(--ui-blue)!important}
+body.fig-platform #app :is(.pcl-seed-grid>div,.pcl-opponent,.pcl-match,.pcl-route-game,.pcl-implication,.pcl-bracket-pair,.pcl-sim-match){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-ink)!important}
+body.fig-platform #app :is(.pcl-side,.pcl-sim-team,.pcl-bracket-team){color:var(--ui-ink)!important;background:transparent!important;border-color:var(--ui-line)!important}
+body.fig-platform #app .pcl-side.pcl-choice-on{background:var(--ui-blue-soft)!important;border-color:var(--ui-blue)!important}
+body.fig-platform #app .pcl-sim-team.pcl-sim-winner{background:var(--ui-blue-soft)!important}
+body.fig-platform #app :is(.pcl-round-label,.pcl-sim-match-label,.pcl-route-week){color:var(--ui-muted)!important;background:var(--ui-soft)!important;font-size:11px!important;letter-spacing:.03em!important}
+body.fig-platform #app :is(.pcl-seed,.pcl-sim-seed){color:var(--ui-blue)!important;background:var(--ui-blue-soft)!important}
+body.fig-platform #app :is(.pcl-title-odds,.pcl-route-likelihood,.pcl-route-win,.pcl-implication-swing){color:var(--ui-blue)!important}
+body.fig-platform #app :is(.pcl-warning,.pcl-editor-error){background:#fff6e9!important;border-color:#ead3ab!important;color:#79521a!important}
+body.fig-platform #app .fig-hist-panel{padding:20px!important}
+body.fig-platform #app .fig-more-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+body.fig-platform #app .fig-more-item{display:flex;align-items:center;gap:14px;padding:20px!important;min-height:84px}
+body.fig-platform #app .fig-more-item :is(.avatar,.app-tile-icon){width:38px!important;height:38px!important;background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border:0!important;border-radius:8px!important;margin:0!important;display:flex;align-items:center;justify-content:center;font-size:20px!important}
+body.fig-platform #app .fig-more-item .team-name{font-size:14px!important;line-height:1.35!important;margin:0!important}
+
+/* Route loading and feedback. Static archive values never count up. */
+body.fig-platform #app :is(.empty,.snapshot-empty,.fig-wv-empty,.fig-hist-empty){padding:28px!important;background:var(--ui-soft)!important;border:1px dashed #b9c7da!important;border-radius:12px!important;color:var(--ui-muted)!important;font-size:14px!important;line-height:1.6!important}
+.fig-skeleton{padding:4px 0 24px;min-height:440px;contain:layout paint}
+.fig-skeleton-line,.fig-skeleton-block{background:#e3e9f1;border-radius:8px;animation:fig-skeleton-pulse 1.4s ease-in-out infinite}
+.fig-skeleton-line{width:42%;height:30px;margin-bottom:12px}
+.fig-skeleton-line.short{width:26%;height:12px;margin-bottom:28px}
+.fig-skeleton-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.fig-skeleton-block{height:140px}
+.fig-skeleton-rows{background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:12px;padding:20px}
+.fig-skeleton-row{display:flex;align-items:center;gap:14px;margin:16px 0}
+.fig-skeleton-row span{display:block;height:14px;background:#e5ebf3;border-radius:5px;width:35%}
+.fig-skeleton-row span:first-child{width:32px;height:32px;border-radius:50%}.fig-skeleton-row span:last-child{width:18%;margin-left:auto}
+body.fig-platform #app .loading{padding:0!important;text-align:left!important}
+body.fig-platform .fig-route-status{position:fixed;inset:auto auto 0 0;z-index:-1}
+.fig-score-changed{animation:fig-score-update 260ms var(--ui-ease)}
+@keyframes fig-skeleton-pulse{50%{opacity:.55}}
+@keyframes fig-score-update{0%{background:#d6e5ff;transform:translateY(-2px)}100%{background:transparent;transform:none}}
+@media(hover:hover){
+  body.fig-platform #app :is(.team-card,.fig-podium-card,.record-index-card,.record-card,.fig-season-preview,.fig-archive-card,.fig-h2h-card,.fig-tr-opponent,.fig-draft-team-tile):hover{border-color:#91afe6!important;background:#fbfcff!important;box-shadow:var(--ui-shadow)!important;transform:none!important}
+  body.fig-platform #app :is(.pill:not(.active),.btn-lite,.jh-year:not(.active),.fig-mr-sort:not(.active),.fig-draft-year-tabs button:not(.active),.fig-draft-page-tabs button:not(.active)):hover{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border-color:#b6c9f0!important}
+  body.fig-platform #app :is(tbody tr:hover,tbody tr.fig-row-hover) td{background:#eff4fd!important}
+  body.fig-platform #app :is(.app-tile,.fig-tr-rank-row,.fig-draft-rank-row,.fig-mr-rank-row,.sleeper-player-row,.fig-rd-streak-row):hover{background:#f0f5ff!important}
+  body.fig-platform #app .fig-owner-link:hover .fig-team-identity-name,body.fig-platform #app .fig-player-person:hover .fig-player-person-name{color:var(--ui-blue)!important}
+}
+@media(prefers-reduced-motion:no-preference){
+  body.fig-platform :is(button,.app-dock a,.fig-header-explore):active{transform:scale(.97)}
+  body.fig-platform #app :is(.team-card,.fig-season-preview,.fig-archive-card,.fig-more-item):active{transform:scale(.992)!important}
+}
+
+/* Tablet: retain the full navigation and allow data regions to scroll locally. */
+@media(min-width:1024px) and (max-width:1240px){
+  :root{--ui-rail:200px}
+  body.fig-platform #app.page-wrap{padding:24px!important}
+  body.fig-platform #app .fig-live-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  body.fig-platform #app .team-grid:not(.fig-more-grid){grid-template-columns:repeat(3,minmax(0,1fr))}
+  body.fig-platform #app[data-route=home]{grid-template-columns:minmax(0,1fr) minmax(270px,.75fr)}
+}
+@media(max-width:1023px){
+  body.fig-platform .app-shell{padding-left:0!important;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}
+  body.fig-platform .fig-sidebar{display:none}
+  body.fig-platform .site-header.app-header{padding:calc(10px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) 10px max(20px,env(safe-area-inset-left,0px))!important;min-height:68px!important;gap:10px!important}
+  body.fig-platform .site-header .brand-mark{display:block!important}
+  .fig-header-location{display:none}
+  .fig-season-badge{font-size:11px}
+  body.fig-platform #app.page-wrap{padding:24px!important}
+  body.fig-platform .app-dock{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));position:fixed;inset:auto 0 0!important;transform:none!important;width:100%!important;max-width:none!important;min-height:76px!important;gap:2px!important;padding:8px max(8px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))!important;border:0!important;border-top:1px solid var(--ui-line)!important;border-radius:0!important;background:var(--ui-surface)!important;backdrop-filter:none!important;box-shadow:0 -4px 20px rgb(22 36 59 / .04)!important;z-index:80;align-items:stretch}
+  body.fig-platform .app-dock a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:56px;padding:4px 0!important;border:0!important;border-radius:8px!important;background:transparent!important;color:var(--ui-muted)!important;font:500 11px/1.1 var(--ui-font)!important;letter-spacing:0!important;transition:background-color 180ms,color 180ms}
+  body.fig-platform .app-dock a>span{color:inherit!important;display:flex;align-items:center;justify-content:center;width:38px;height:27px;border-radius:7px;font-size:0!important;margin:0!important}
+  body.fig-platform .app-dock a[aria-current=page]{color:var(--ui-blue)!important;font-weight:700!important}
+  body.fig-platform .app-dock a[aria-current=page]>span{background:var(--ui-blue-soft)!important}
+  body.fig-platform .app-dock .fig-icon{stroke:currentColor!important;color:inherit!important;width:22px;height:22px}
+  body.fig-platform #app .fig-live-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  body.fig-platform #app[data-route=home]{grid-template-columns:minmax(0,1fr)}
+  body.fig-platform #app[data-route=home]>*{grid-column:1!important;grid-row:auto!important}
+  body.fig-platform #app .app-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  body.fig-platform #app .team-grid:not(.fig-more-grid){grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* Legacy component surfaces keep their semantics while adopting platform tokens. */
+body.fig-platform #app h1[tabindex="-1"]:focus{outline:none!important}
+body.fig-platform #app :is(.mini-record-list,.single-season-team-grid,.season-accomplishments){background:transparent!important}
+body.fig-platform #app :is(.fig-nfl-photo-fallback,.fig-nfl-photo img){background:#edf1f6!important;color:#536783!important}
+body.fig-platform #app :is(.fig-h2h-tile-stats>div,.fig-h2h-season-stats>div,.fig-lineup-totals>div,.fig-draft-rank-toolbar,.fig-draft-explorer-controls,.fig-draft-team-year,.pcl-schedule-editor,.jh-game-budget>div){background:var(--ui-soft)!important;color:var(--ui-ink)!important;border-color:var(--ui-line)!important;border-radius:8px!important}
+body.fig-platform #app :is(.fig-h2h-tile-stats strong,.fig-h2h-season-stats strong,.fig-lineup-team strong,.fig-draft-team-stat strong){font:600 30px/1.15 var(--ui-display)!important;color:var(--ui-ink)!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app :is(.fig-h2h-view,.fig-lineup-team>span,.fig-draft-rank-total strong,.fig-draft-team-hero a,.ra-ranking-value,.ra-values-link,.fig-draft-team-stat a){color:var(--ui-blue)!important}
+body.fig-platform #app :is(.fig-h2h-person,.fig-draft-rank-row strong,.fig-draft-team-pick strong,.ra-ranking-row strong){color:var(--ui-ink)!important}
+body.fig-platform #app :is(.fig-h2h-tile-stats small,.fig-h2h-tile-stats span,.fig-lineup-guide,.fig-draft-team-stat span,.fig-draft-team-year span,.ra-team-overview span){color:var(--ui-muted)!important}
+body.fig-platform #app .fig-lineup-totals>div strong{color:var(--ui-ink)!important}
+body.fig-platform #app .fig-lineup-team{gap:8px!important}
+body.fig-platform #app .fig-lineup-owner-avatar{width:64px!important;height:64px!important;border:0!important}
+body.fig-platform #app .fig-lineup-final{font-size:16px!important;letter-spacing:.05em!important;color:var(--ui-muted)!important}
+body.fig-platform #app .player-week-feature{display:block!important;background:var(--ui-navy)!important;border:1px solid var(--ui-navy)!important;border-radius:14px!important;padding:24px!important;margin:0 0 24px!important;color:#fff!important;box-shadow:none!important}
+body.fig-platform #app .player-week-feature h3{font:600 24px/1.2 var(--ui-font)!important;color:#fff!important;margin:6px 0 20px!important}
+body.fig-platform #app .player-week-feature>div>span{color:#afc4e7!important;font-size:11px!important;letter-spacing:.06em}
+body.fig-platform #app .player-week-feature-list{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px!important}
+body.fig-platform #app .player-week-feature-list b{display:grid!important;grid-template-columns:32px 1fr;gap:6px 10px!important;align-items:center!important;min-width:0;padding:0!important}
+body.fig-platform #app .player-week-feature-list .fig-nfl-photo{grid-row:1/3;width:32px!important;height:32px!important;flex-basis:32px!important}
+body.fig-platform #app .fig-feature-player-name{color:#e2ebfc!important;font-size:12px!important;font-weight:500!important;white-space:normal!important}
+body.fig-platform #app .fig-feature-player-points{color:#fff!important;font:600 24px/1 var(--ui-display)!important;font-variant-numeric:tabular-nums}
+body.fig-platform #app .fig-leader-tabs{background:var(--ui-soft)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;padding:6px!important}
+body.fig-platform #app :is(.fig-draft-rank-year,.fig-draft-team-sort-btn,.fig-draft-team-filter,.fig-draft-explorer-more,.fig-active-streak-more,.pcl-actions button,.fig-tr-controls button,.jh-game-actions button){display:inline-flex;justify-content:center;align-items:center;min-height:40px;border:1px solid var(--ui-line)!important;border-radius:8px!important;background:var(--ui-surface)!important;color:var(--ui-muted)!important;font:600 12px/1.2 var(--ui-font)!important;padding:10px 14px!important;transition:background-color 180ms,color 180ms,transform 150ms}
+body.fig-platform #app :is(.fig-draft-rank-year.active,.fig-draft-team-sort-btn.active,.fig-draft-team-filter.active,.jh-game-actions button[data-jh-game=surprise]){background:var(--ui-blue)!important;color:#fff!important;border-color:var(--ui-blue)!important}
+body.fig-platform #app :is(.fig-draft-explorer-total,.fig-draft-explorer-spot,.fig-tr-type,.jh-kind,.jh-game-badge){background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border-radius:6px!important}
+body.fig-platform #app :is(.fig-draft-explorer-pick,.fig-active-streak-row,.jh-item){background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-ink)!important}
+body.fig-platform #app .fig-active-streak-row{min-height:64px;padding:12px 16px!important;box-shadow:none!important}
+body.fig-platform #app .fig-active-streak-row :is(strong,b){color:var(--ui-ink)!important}
+body.fig-platform #app :is(.fig-tr-outcome-note,.jh-column-total){background:var(--ui-soft)!important;color:var(--ui-muted)!important;border-color:var(--ui-line)!important;border-radius:8px!important}
+body.fig-platform #app .jh-game-status{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border:1px solid #c9d8f8!important;border-radius:8px!important}
+body.fig-platform #app .jh-game-status.is-over{background:#fff0f1!important;color:var(--ui-loss)!important;border-color:#ebc5c8!important}
+body.fig-platform #app .jh-game-meter{background:#e4ebf5!important}
+body.fig-platform #app .jh-game-meter>span{background:var(--ui-blue)!important}
+body.fig-platform #app .jh-gap-rules span{background:#213453!important;color:#d5e3fc!important;border:1px solid #405474!important}
+body.fig-platform #app .pcl-week-tabs{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;max-width:100%;min-width:0;padding:4px 1px 12px!important;gap:6px!important;scrollbar-width:thin;overscroll-behavior-x:contain}
+body.fig-platform #app .pcl-week-tabs button{flex:none!important;min-width:48px}
+
+/* Phone layouts, including small iPhones: preserve every statistic and drilldown. */
+@media(max-width:699px){
+  html{scroll-padding-top:82px}
+  body.fig-platform{font-size:14px}
+  body.fig-platform .site-header.app-header{padding:calc(9px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 9px max(16px,env(safe-area-inset-left,0px))!important;min-height:62px!important}
+  body.fig-platform .site-header .brand-name{font-size:11px!important;letter-spacing:.015em!important}
+  body.fig-platform .site-header .brand-sub{font-size:11px!important;letter-spacing:.02em!important}
+  body.fig-platform .site-header .brand-mark{width:34px!important;height:34px!important;border-radius:9px!important}
+  body.fig-platform .site-header .brand{gap:8px;flex:1;min-width:0}
+  body.fig-platform .fig-has-back .brand-mark{display:none!important}
+  .fig-header-actions{gap:6px}
+  .fig-season-badge{font-size:11px;padding:4px 7px}
+  body.fig-platform .fig-header-explore{min-width:36px;min-height:36px}
+  body.fig-platform .fig-season-badge{white-space:nowrap}
+  body.fig-platform #app .player-week-feature{padding:20px!important}
+  body.fig-platform #app .player-week-feature h3{font-size:20px!important}
+  body.fig-platform #app .player-week-feature-list{grid-template-columns:1fr;gap:12px!important}
+  body.fig-platform #app .player-week-feature-list b{grid-template-columns:30px 1fr auto;gap:10px!important}
+  body.fig-platform #app .player-week-feature-list .fig-nfl-photo{grid-row:auto}
+  body.fig-platform #app.page-wrap{padding:20px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))!important;min-width:0!important}
+  body.fig-platform #app .hero{padding:0 0 20px!important;gap:7px}
+  body.fig-platform #app .hero h1{font-size:34px!important;line-height:1.08!important;letter-spacing:-.015em!important;overflow-wrap:anywhere}
+  body.fig-platform #app .hero .eyebrow{font-size:11px!important}
+  body.fig-platform #app .section{margin-bottom:24px!important}
+  body.fig-platform #app .section-head{gap:6px;margin-bottom:14px!important;align-items:flex-start}
+  body.fig-platform #app .section-title{font-size:18px!important;line-height:1.3!important}
+  body.fig-platform #app .section-head .section-note{margin:0;flex-basis:100%;font-size:11px!important}
+  body.fig-platform #app .hero-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin-top:12px!important}
+  body.fig-platform #app .hero-stat{padding:14px!important;border-bottom:1px solid var(--ui-line)!important;min-width:0}
+  body.fig-platform #app .hero-stat:nth-child(2n){border-right:0!important}
+  body.fig-platform #app .hero-stat:nth-last-child(-n+2){border-bottom:0!important}
+  body.fig-platform #app .hero-stat .k{font-size:27px!important}
+  body.fig-platform #app .hero-stat .l{font-size:11px!important}
+  body.fig-platform #app .pill-row{flex-wrap:wrap!important;gap:6px!important;margin-bottom:0}
+  body.fig-platform #app .pill{min-height:40px!important;padding:8px 11px!important;font-size:11px!important}
+  body.fig-platform #app :is(select,input:not([type=checkbox]):not([type=radio]),.search){font-size:16px!important;min-height:44px}
+  body.fig-platform #app .search{width:100%}
+  body.fig-platform #app .fig-frozen-grid{--fig-fixed-size:142px!important;border-radius:10px!important;max-width:100%!important}
+  body.fig-platform #app .fig-frozen-identity :is(th,td):nth-child(1){width:26px!important;min-width:26px!important;max-width:26px!important;padding:4px!important;font-size:11px!important}
+  body.fig-platform #app .fig-frozen-identity :is(th,td):nth-child(2){width:116px!important;min-width:116px!important;max-width:116px!important;padding:5px 7px!important}
+  body.fig-platform #app .fig-frozen-grid td{height:56px!important;max-height:56px!important;padding:5px 8px!important;font-size:12px!important}
+  body.fig-platform #app .fig-frozen-grid th{height:44px!important;padding:5px 8px!important;font-size:11px!important}
+  body.fig-platform #app .fig-frozen-identity .fig-team-avatar{width:26px!important;height:26px!important;flex-basis:26px!important}
+  body.fig-platform #app .fig-frozen-identity .fig-team-identity-name{font-size:11px!important}
+  body.fig-platform #app .fig-frozen-identity .fig-nfl-photo{width:26px!important;height:30px!important;flex-basis:26px!important}
+  body.fig-platform #app .fig-frozen-identity .fig-player-person-name{font-size:11px!important;line-height:1.2!important;white-space:normal!important}
+  body.fig-platform #app .fig-frozen-identity :is(.fig-team-identity,.fig-player-person){gap:6px!important}
+  body.fig-platform #app .fig-frozen-stats :is(th,td){width:78px!important;min-width:78px!important}
+  body.fig-platform #app .fig-frozen-stats :is([data-key=w],[data-key=l],[data-key=pos],[data-key=gold],[data-key=silver],[data-key=bronze]){width:48px!important;min-width:48px!important}
+  body.fig-platform #app .fig-list-table{background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;padding:0!important}
+  body.fig-platform #app .fig-list-table table.sortable tbody tr{background:var(--ui-surface)!important;border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;margin:0!important;padding:14px!important;box-shadow:none!important;color:var(--ui-ink)!important}
+  body.fig-platform #app .fig-list-table table.sortable td{background:transparent!important;border:0!important;color:var(--ui-ink)!important}
+  body.fig-platform #app .fig-list-table .fig-name{font-size:14px!important;font-weight:600!important}
+  body.fig-platform #app .fig-list-table .fig-primary{font:600 27px/1.1 var(--ui-display)!important;color:var(--ui-ink)!important}
+  body.fig-platform #app .fig-list-table .fig-primary:after{font:500 11px/1.3 var(--ui-font)!important;color:var(--ui-muted)!important}
+  body.fig-platform #app :is(.fig-mobile-substats,.fig-expanded-stats){color:var(--ui-muted)!important;font-size:11px!important;background:transparent!important}
+  body.fig-platform #app .fig-list-table .fig-expanded-stats>span{background:var(--ui-soft)!important;border:1px solid var(--ui-line)!important;border-radius:6px!important;color:var(--ui-ink)!important}
+  body.fig-platform #app .fig-list-table .fig-expand-button{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important;border:0!important;border-radius:6px!important;font-size:11px!important;min-height:40px!important;padding:8px 12px!important}
+  body.fig-platform #app .fig-list-controls{border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important}
+  body.fig-platform #app[data-route=home]{display:flex!important;flex-direction:column;gap:16px}
+  body.fig-platform #app[data-route=home]>*{width:100%;min-width:0}
+  body.fig-platform #app[data-route=home]>.hero{padding:0 0 2px!important}
+  body.fig-platform #app[data-route=home]>.hero h1{font-size:32px!important;flex-basis:100%}
+  body.fig-platform #app[data-route=home]>.hero .eyebrow{margin:0!important}
+  body.fig-platform #app[data-route=home]>.fig-live-panel{padding:16px!important}
+  body.fig-platform #app .fig-live-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  body.fig-platform #app .fig-live-match{padding:12px!important;border-radius:9px!important}
+  body.fig-platform #app .fig-live-match:last-child:nth-child(odd){grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+  body.fig-platform #app .fig-live-match:last-child:nth-child(odd) .fig-live-match-label{grid-column:1/-1}
+  body.fig-platform #app .fig-live-match:last-child:nth-child(odd) .fig-live-open{grid-column:1/-1}
+  body.fig-platform #app .fig-live-score{font-size:23px!important}
+  body.fig-platform #app .fig-live-side .fig-team-avatar{width:24px!important;height:24px!important;flex-basis:24px!important}
+  body.fig-platform #app .fig-live-name{font-size:11px!important}
+  body.fig-platform #app .fig-live-summary{gap:8px;flex-wrap:wrap;margin-bottom:12px!important}
+  body.fig-platform #app .fig-live-footer{font-size:11px!important;line-height:1.5}
+  body.fig-platform #app[data-route=home]>.pcl-home-link{min-height:72px;padding:14px 16px!important}
+  body.fig-platform #app[data-route=home]>.pcl-home-link small{font-size:11px!important}
+  body.fig-platform #app[data-route=home]>.home-standings{padding:16px!important}
+  body.fig-platform #app .app-menu-section{padding:16px!important}
+  body.fig-platform #app .app-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 12px!important}
+  body.fig-platform #app .app-tile{padding:14px 0!important;min-height:56px!important;gap:9px}
+  body.fig-platform #app .app-tile-label{font-size:11px!important}
+  body.fig-platform #app .team-grid:not(.fig-more-grid){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  body.fig-platform #app .team-card{padding:18px 14px 14px!important}
+  body.fig-platform #app .team-card-photo{width:68px!important;height:68px!important;margin-bottom:12px!important}
+  body.fig-platform #app .team-name{font-size:19px!important}
+  body.fig-platform #app .team-meta{gap:8px;font-size:11px!important}
+  body.fig-platform #app .team-meta strong{font-size:12px!important}
+  body.fig-platform #app .team-profile-shell{padding:16px!important}
+  body.fig-platform #app .team-profile-top{gap:14px!important;padding:0 0 16px!important}
+  body.fig-platform #app .team-profile-photo{flex:0 0 76px!important;width:76px!important;height:76px!important}
+  body.fig-platform #app .team-profile-copy h1{font-size:38px!important;margin:3px 0 6px!important}
+  body.fig-platform #app .team-profile-sub{font-size:11px!important}
+  body.fig-platform #app .team-career-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.fig-platform #app .team-stat-tile{padding:12px!important;min-height:86px!important}
+  body.fig-platform #app .team-stat-tile:nth-child(n){border-right:1px solid var(--ui-line)!important;border-bottom:1px solid var(--ui-line)!important}
+  body.fig-platform #app .team-stat-tile:nth-child(2n){border-right:0!important}
+  body.fig-platform #app .team-stat-tile:nth-last-child(-n+2){border-bottom:0!important}
+  body.fig-platform #app .team-stat-tile>strong{font-size:26px!important}
+  body.fig-platform #app .team-stat-tile>span{font-size:11px!important}
+  body.fig-platform #app .ra-team-overview{padding:12px!important}
+  body.fig-platform #app .ra-breakdown>div{padding:10px!important}
+  body.fig-platform #app :is(.team-profile-tabs,.tabs){gap:20px!important;margin-top:16px!important;scrollbar-width:none}
+  body.fig-platform #app .tabs button{font-size:11px!important;min-height:46px}
+  body.fig-platform #app :is(.team-record-dashboard,.team-single-season-section,.fig-roster-dashboard,.fig-roster-picks-panel,.player-book-section){padding:16px!important}
+  body.fig-platform #app .two-col-record-snapshot{grid-template-columns:minmax(0,1fr)!important;gap:24px!important}
+  body.fig-platform #app .fig-roster-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  body.fig-platform #app .fig-roster-stat{padding:12px!important}
+  body.fig-platform #app .fig-roster-title{gap:8px;align-items:start;flex-wrap:wrap}
+  body.fig-platform #app :is(.fig-roster-title h2,.fig-roster-picks-title h2){font-size:17px!important}
+  body.fig-platform #app .sleeper-player-row{padding:10px!important}
+  body.fig-platform #app .fig-player-profile-hero{padding-right:84px!important;min-height:90px!important}
+  body.fig-platform #app .fig-player-profile-hero .fig-nfl-photo-large{width:68px!important;height:68px!important;border-radius:12px!important}
+  body.fig-platform #app .fig-player-profile-hero .hero-strip{margin-right:-84px!important}
+  body.fig-platform #app :is(.fig-podium-grid,.record-index-grid,.compact-streak-records,.compact-record-feature-grid){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  body.fig-platform #app :is(.fig-podium-card,.record-index-card,.record-card,.compact-record-feature){padding:14px!important}
+  body.fig-platform #app .fig-podium-value{font-size:34px!important}
+  body.fig-platform #app .fig-podium-photo{width:60px!important;height:60px!important}
+  body.fig-platform #app .fig-podium-name{font-size:14px!important}
+  body.fig-platform #app .fig-podium-banner{font-size:11px!important;margin-bottom:12px!important}
+  body.fig-platform #app .fig-podium-rivals{padding:6px 8px!important}
+  body.fig-platform #app .fig-podium-rival{font-size:11px!important;gap:5px!important}
+  body.fig-platform #app .fig-podium-rival-name{font-size:11px!important}
+  body.fig-platform #app .fig-podium-rival-score{font-size:11px!important}
+  body.fig-platform #app .fig-podium-label{font-size:11px!important}
+  body.fig-platform #app .fig-lineup-scoreboard{padding:16px!important;gap:8px!important}
+  body.fig-platform #app .fig-lineup-final{font-size:12px!important}
+  body.fig-platform #app .fig-lineup-owner-avatar{width:50px!important;height:50px!important}
+  body.fig-platform #app :is(.fig-lineup-pair,.fig-live-lineup-pair){min-height:78px}
+  body.fig-platform #app .fig-lineup-player{min-width:0;padding:8px 6px!important;gap:6px!important}
+  body.fig-platform #app .fig-lineup-player .fig-nfl-photo{width:26px!important;height:30px!important;flex-basis:26px!important}
+  body.fig-platform #app .fig-lineup-player .fig-player-person-name{font-size:11px!important}
+  body.fig-platform #app .fig-lineup-points{font-size:14px!important}
+  body.fig-platform #app .fig-lineup-slot{font-size:11px!important;width:36px!important}
+  body.fig-platform #app :is(.fig-tr-rank-row,.fig-draft-rank-row,.fig-mr-rank-row){padding:12px!important;min-height:70px;gap:8px!important}
+  body.fig-platform #app :is(.fig-tr-summary,.jh-trade-meta){padding:12px!important}
+  body.fig-platform #app :is(.fig-tr-rank-score,.fig-mr-primary strong,.fig-draft-rank-primary strong){font-size:26px!important}
+  body.fig-platform #app :is(.fig-tr-rank-avatar,.fig-mr-avatar,.fig-draft-rank-avatar){width:34px!important;height:34px!important}
+  body.fig-platform #app .jh-header{padding:16px!important}
+  body.fig-platform #app .jh-overall{padding:16px!important}
+  body.fig-platform #app .jh-toolbar{padding:12px 16px!important}
+  body.fig-platform #app .jh-list{padding:0 12px 12px!important}
+  body.fig-platform #app .jh-gap-teaser{padding:16px!important}
+  body.fig-platform #app .jh-gap-pitch{padding:20px!important}
+  body.fig-platform #app :is(.pcl-overview,.pcl-route-hero,.pcl-detail-head,.pcl-sim-header,.fig-hist-overview){padding:16px!important}
+  body.fig-platform #app :is(.pcl-headline h1,.pcl-route-hero h1,.fig-hist-heading h1){font-size:32px!important}
+  body.fig-platform #app .pcl-section{padding:14px!important}
+  body.fig-platform #app .pcl-section-head h2{font-size:18px!important}
+  body.fig-platform #app :is(.pcl-table,.pcl-route-table) td{padding:10px 8px!important;font-size:12px!important}
+  body.fig-platform #app .pcl-table{min-width:0!important}
+  body.fig-platform #app .pcl-team-btn{font-size:12px!important}
+  body.fig-platform #app .pcl-avatar{width:26px!important;height:26px!important}
+  body.fig-platform #app .fig-more-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  body.fig-platform #app .fig-more-item{flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;padding:18px!important;min-height:120px}
+  body.fig-platform #app .fig-more-item .team-name{font-size:13px!important}
+  body.fig-platform .site-footer{padding:8px 16px 20px!important;font-size:11px}
+  body.fig-platform .site-footer .footer-grid>div{display:block}
+  .fig-skeleton-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .fig-skeleton-cards>div:last-child{display:none}.fig-skeleton-line{width:65%}
+}
+@media(max-width:359px){
+  body.fig-platform #app.page-wrap{padding-left:12px!important;padding-right:12px!important}
+  .fig-season-badge{display:none}
+  body.fig-platform #app .fig-live-grid{grid-template-columns:minmax(0,1fr)!important}
+  body.fig-platform #app .fig-live-match:last-child:nth-child(odd){display:block}
+  body.fig-platform #app :is(.fig-podium-grid,.compact-record-feature-grid){grid-template-columns:minmax(0,1fr)!important}
+  body.fig-platform #app .fig-frozen-grid{--fig-fixed-size:130px!important}
+  body.fig-platform #app .fig-frozen-identity :is(th,td):nth-child(2){width:104px!important;min-width:104px!important;max-width:104px!important}
+  body.fig-platform .app-dock a{font-size:11px!important}
+}
+@media(display-mode:standalone){
+  body.fig-platform .site-header.app-header{padding-top:calc(10px + env(safe-area-inset-top,0px))!important}
+  body.fig-platform .app-dock{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.fig-platform *,body.fig-platform *::before,body.fig-platform *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+@media print{
+  body.fig-platform .app-shell{padding:0!important}
+  body.fig-platform :is(.fig-sidebar,.site-header,.app-dock,.fig-skip){display:none!important}
+  body.fig-platform #app.page-wrap{padding:0!important;max-width:none!important}
+}
+
+/* Finish-review corrections: specialist modules share the platform vocabulary. */
+body.fig-platform #app .fig-tr-stats>div{background:var(--ui-soft)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important}
+body.fig-platform #app .fig-tr-stats small{color:var(--ui-muted)!important;font-size:11px!important;font-weight:600!important;letter-spacing:.02em!important}
+body.fig-platform #app :is(.fig-lineup-side-label span,.fig-lineup-bench-team-title span){color:var(--ui-ink)!important;font-size:12px!important;font-weight:600!important}
+body.fig-platform #app .fig-lineup-scoreboard{grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr)!important}
+body.fig-platform #app .fig-lineup-final{font-size:13px!important;line-height:1.3!important;white-space:nowrap}
+body.fig-platform #app :is(.fig-lineup-section-head>span,.fig-lineup-totals span){font-size:11px!important;color:var(--ui-muted)!important}
+body.fig-platform #app .team-profile-summary{margin-top:24px!important}
+body.fig-platform #app .team-profile-summary .career-stats-title:first-child{margin-top:0!important}
+body.fig-platform #app .team-profile-shell .team-profile-tabs{margin-top:0!important}
+
+body.fig-platform #app :is(.mini-record-list,.season-accomplishments,.single-season-team-grid){gap:0!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;overflow:hidden;background:var(--ui-surface)!important}
+body.fig-platform #app .single-season-team-grid{grid-template-columns:1fr!important}
+body.fig-platform #app :is(.mini-record-list>.mini-record,.season-accomplishments>.season-accomplishment,.single-season-team-grid>.single-season-team-record){border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;margin:0!important}
+body.fig-platform #app :is(.mini-record-list>.mini-record:last-child,.season-accomplishments>.season-accomplishment:last-child,.single-season-team-grid>.single-season-team-record:last-child){border-bottom:0!important}
+body.fig-platform #app .mini-record span small{font-size:11px!important;color:var(--ui-muted)!important;font-weight:500!important}
+body.fig-platform #app :is(.mini-record-list a,.season-accomplishments a,.single-season-team-grid a):hover{background:var(--ui-soft)!important}
+
+body.fig-platform #app .fig-tr-page-head{padding:0!important;margin-bottom:20px!important;background:transparent!important;border-radius:0!important}
+body.fig-platform #app :is(.fig-tr-page-head h2,.fig-wv-title h2){font:600 24px/1.2 var(--ui-font)!important;margin:0 0 8px!important}
+body.fig-platform #app .fig-tr-page-head p{font-size:13px!important;font-weight:400!important;color:var(--ui-muted)!important;max-width:75ch}
+body.fig-platform #app .fig-tr-filters button{background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:8px!important;font:600 12px/1.3 var(--ui-font)!important;color:var(--ui-muted)!important;min-height:44px}
+body.fig-platform #app .fig-tr-filters button.active{background:var(--ui-blue)!important;border-color:var(--ui-blue)!important;color:white!important}
+body.fig-platform #app .fig-tr-section-head{border-bottom:1px solid var(--ui-line)!important}
+body.fig-platform #app .fig-tr-section-head h2{font:600 20px/1.3 var(--ui-font)!important}
+body.fig-platform #app .fig-tr-section-head>span{font-size:11px!important;color:var(--ui-muted)!important}
+body.fig-platform #app .fig-team-record-book .fig-tr-card{min-height:0!important}
+body.fig-platform #app .fig-tr-card-head{border:0!important;padding:14px 16px 10px!important}
+body.fig-platform #app .fig-tr-card-head span{font-size:11px!important;font-weight:600!important;color:var(--ui-muted)!important;letter-spacing:0!important}
+body.fig-platform #app .fig-tr-card-head span:last-child{background:var(--ui-soft)!important;color:var(--ui-ink)!important;border-radius:5px!important}
+body.fig-platform #app .fig-tr-card-head span.fig-tr-leader{background:#f7f0df!important;color:#75521a!important}
+body.fig-platform #app .fig-tr-primary{padding:4px 16px 18px!important;gap:14px!important}
+body.fig-platform #app .fig-tr-primary h3{font:600 14px/1.3 var(--ui-font)!important}
+body.fig-platform #app .fig-tr-primary strong{font:700 34px/1.15 var(--ui-display)!important;color:var(--ui-ink)!important}
+body.fig-platform #app :is(.fig-tr-primary small,.fig-tr-best-info small,.fig-tr-no-history){font-size:11px!important;font-weight:500!important;color:var(--ui-muted)!important;letter-spacing:0!important}
+body.fig-platform #app .fig-tr-history-heading{background:var(--ui-soft)!important;color:var(--ui-muted)!important;font-size:11px!important;font-weight:600!important}
+body.fig-platform #app .fig-team-record-book .fig-tr-history{border:0!important;border-radius:0!important;background:var(--ui-surface)!important}
+body.fig-platform #app .fig-tr-best-rank{background:var(--ui-soft)!important;color:var(--ui-muted)!important;font-size:11px!important}
+body.fig-platform #app .fig-tr-open{background:var(--ui-soft)!important;color:var(--ui-blue)!important;border-top:1px solid var(--ui-line)!important;min-height:44px;font:600 11px/1.3 var(--ui-font)!important;letter-spacing:.02em!important}
+body.fig-platform #app .fig-tr-open:hover{background:var(--ui-blue-soft)!important}
+
+body.fig-platform #app :is(.fig-team-draft-metrics>div,.fig-draft-grade-overview,.fig-team-draft-market,.fig-team-draft-pick-no,.fig-team-draft-traded,.fig-team-draft-year-figures span){background:var(--ui-soft)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;color:var(--ui-ink)!important;box-shadow:none!important}
+body.fig-platform #app .fig-draft-grade-overview-score{background:var(--ui-surface)!important;border-color:var(--ui-line)!important;border-radius:8px!important}
+body.fig-platform #app .fig-draft-grade-overview-stats span{background:transparent!important;border:0!important;border-radius:0!important;padding:4px 14px 4px 0!important}
+body.fig-platform #app :is(.fig-team-draft-metrics strong,.fig-team-draft-market strong,.fig-draft-grade-overview-score strong){color:var(--ui-ink)!important;font-family:var(--ui-display)!important;font-weight:600!important}
+body.fig-platform #app :is(.fig-team-draft-metrics span,.fig-team-draft-market span,.fig-team-draft-market p,.fig-team-draft-intro p,.fig-team-draft-pick-player>span,.fig-team-draft-pick-values small,.fig-team-draft-pick-no small,.fig-team-draft-year-figures span,.fig-team-draft-year-top>div>span,.fig-team-draft-gone span,.fig-draft-grade-overview span,.fig-draft-grade-overview small,.fig-draft-grade-overview p,.fig-draft-grade-strip small){color:var(--ui-muted)!important;font-size:11px!important;font-weight:500!important;letter-spacing:0!important;line-height:1.45!important}
+body.fig-platform #app :is(.fig-draft-grade-overview b,.fig-team-draft-year-figures b,.fig-team-draft-pick-values b,.fig-team-draft-pick-no b){color:var(--ui-ink)!important;font-weight:600!important}
+body.fig-platform #app :is(.fig-team-draft-intro h2,.fig-draft-grade-overview-intro h3,.fig-team-draft-year-top h3){font-weight:600!important}
+body.fig-platform #app :is(.fig-team-draft-filter a,.fig-team-draft-intro>a,.fig-team-draft-year-top>a){background:var(--ui-surface)!important;color:var(--ui-blue)!important;border:1px solid var(--ui-line)!important;border-radius:8px!important;font-size:12px!important;font-weight:600!important;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+body.fig-platform #app .fig-team-draft-filter a.active{background:var(--ui-blue)!important;color:#fff!important;border-color:var(--ui-blue)!important}
+body.fig-platform #app .fig-team-draft-traded summary{color:var(--ui-blue)!important;font-weight:600!important}
+
+body.fig-platform #app .fig-wv-title>small{display:none!important}
+body.fig-platform #app .fig-wv-stat{background:var(--ui-surface)!important;border:1px solid var(--ui-line)!important;border-radius:10px!important}
+body.fig-platform #app :is(.fig-wv-stat small,.fig-wv-stat>span,.fig-wv-board>header small,.fig-wv-person small,.fig-wv-value small,.fig-wv-events,.fig-wv-filters label,.fig-wv-note){font-size:11px!important;color:var(--ui-muted)!important;font-weight:500!important;letter-spacing:0!important}
+body.fig-platform #app .fig-wv-board>header{background:var(--ui-soft)!important;border-bottom:1px solid var(--ui-line)!important}
+body.fig-platform #app .fig-wv-board>header h3{font-weight:600!important;font-size:13px!important}
+body.fig-platform #app .fig-wv-row{border-color:var(--ui-line)!important}
+body.fig-platform #app .fig-wv-row[open] summary{background:var(--ui-soft)!important}
+body.fig-platform #app .fig-wv-person b{font-size:13px!important;color:var(--ui-ink)!important;font-weight:600!important}
+body.fig-platform #app .fig-wv-events>div{border-left:0!important;padding:4px 0!important;border-top:1px solid var(--ui-line)!important}
+body.fig-platform #app .fig-wv-filters label{flex:1 1 180px!important;min-width:0}
+body.fig-platform #app .fig-wv-filters select{width:100%;min-width:0}
+@media(max-width:600px){
+ body.fig-platform #app .fig-lineup-scoreboard{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)!important}
+ body.fig-platform #app .fig-lineup-final{font-size:12px!important}
+ body.fig-platform #app :is(.fig-lineup-side-label span,.fig-lineup-bench-team-title span){font-size:11px!important}
+ body.fig-platform #app .fig-wv-filters label{flex:1 1 100%!important}
+ body.fig-platform #app .fig-draft-grade-overview{grid-template-columns:minmax(0,1fr) 100px!important}
+}
+
+/* Compact, legible lineup and draft filter labels. */
+body.fig-platform #app .fig-lineup-side-label>span:nth-child(2){white-space:nowrap;overflow-wrap:normal}
+body.fig-platform #app :is(.fig-lineup-side-label,.fig-lineup-bench-slot) abbr{text-decoration:none;font:inherit;color:inherit}
+body.fig-platform #app :is(.fig-lineup-player-info small,.fig-lineup-bench-slot,.fig-team-draft-filter-label){font-size:11px!important;font-weight:500!important;color:var(--ui-muted)!important;line-height:1.35!important;letter-spacing:0!important}
+body.fig-platform #app .fig-lineup-bench-slot{flex:0 0 24px!important;white-space:nowrap;overflow-wrap:normal}

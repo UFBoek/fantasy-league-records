@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#090e20" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,9 +13,6 @@
   <link rel="apple-touch-icon" href="assets/icons/puka-192.png?v=132" />
   <title>Fromm is Garbage — League Archive</title>
   <meta name="description" content="Fromm is Garbage dynasty fantasy football league archive, records, standings, drafts, trades and franchise history." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=69" />
   <link rel="stylesheet" href="mobile-v67.css?v=67" media="(max-width:699px)" />
   <link rel="stylesheet" href="mobile-v68.css?v=68" media="(max-width:699px)" />
@@ -59,34 +56,49 @@
   <link rel="stylesheet" href="playoff-calculator-v167.css?v=175" />
   <link rel="stylesheet" href="record-detail-compact-v181.css?v=181" />
   <link rel="stylesheet" href="historical-predictions-v189.css?v=189" />
+  <link rel="preload" href="assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="ui-platform.css?v=191" />
 </head>
-<body>
+<body class="fig-platform">
+  <a class="fig-skip" href="#app">Skip to content</a>
   <div class="app-shell">
-    <header class="site-header app-header">
-      <a class="brand" href="#/home" aria-label="League home">
-        <img class="brand-mark" src="assets/icons/puka-192.png?v=132" alt="" width="56" height="56" decoding="async" />
-        <div>
-          <div class="brand-name">FROMM IS GARBAGE</div>
-          <div class="brand-sub">DYNASTY LEAGUE ARCHIVE</div>
-        </div>
-      </a>
-      <nav class="top-nav sr-only" id="topNav" aria-hidden="true">
-        <a href="#/teams">TEAMS</a>
-        <a href="#/records">RECORDS</a>
-        <a href="#/draft">DRAFT RANKINGS</a>
-        <a href="#/trades">TRADE RATINGS</a>
-        <a href="#/manager-ratings">MANAGER RATINGS</a>
-        <a href="#/dynasty">DYNASTY VALUES</a>
-        <a href="#/h2h">HEAD-TO-HEAD</a>
-        <a href="#/champions">CHAMPIONS</a>
-        <a href="#/playoff-calculator">PLAYOFF CALCULATOR</a>
-        <a href="#/historical-predictions">HISTORICAL PREDICTIONS</a>
-        <a href="#/games">GAME ARCHIVE</a>
+    <aside class="fig-sidebar" aria-label="League navigation">
+      <a class="fig-sidebar-brand" href="#/home" aria-label="FIG League home"><img src="assets/icons/puka-192.png?v=132" alt="" width="44" height="44"><span><strong>FIG LEAGUE</strong><small>FROMM IS GARBAGE</small></span></a>
+      <nav id="topNav" aria-label="All league sections">
+        <span class="fig-nav-label">LEAGUE</span>
+        <a href="#/home"><span data-fig-icon="home"></span><span>Home</span></a>
+        <a href="#/teams"><span data-fig-icon="users"></span><span>Teams</span></a>
+        <a href="#/records"><span data-fig-icon="trophy"></span><span>Records</span></a>
+        <a href="#/players"><span data-fig-icon="user-square-rounded"></span><span>Players</span></a>
+        <a href="#/streaks"><span data-fig-icon="bolt"></span><span>Streaks</span></a>
+        <span class="fig-nav-label">FRONT OFFICE</span>
+        <a href="#/draft"><span data-fig-icon="list-numbers"></span><span>Draft rankings</span></a>
+        <a href="#/trades"><span data-fig-icon="arrows-exchange"></span><span>Trade ratings</span></a>
+        <a href="#/manager-ratings"><span data-fig-icon="chart-bar"></span><span>Manager ratings</span></a>
+        <a href="#/dynasty"><span data-fig-icon="chart-line"></span><span>Dynasty values</span></a>
+        <span class="fig-nav-label">THE ARCHIVE</span>
+        <a href="#/h2h"><span data-fig-icon="arrows-left-right"></span><span>Head-to-head</span></a>
+        <a href="#/champions"><span data-fig-icon="trophy"></span><span>Champions</span></a>
+        <a href="#/games"><span data-fig-icon="calendar-stats"></span><span>Game archive</span></a>
+        <a href="#/playoff-calculator"><span data-fig-icon="ball-american-football"></span><span>Playoff calculator</span></a>
+        <a href="#/historical-predictions"><span data-fig-icon="history"></span><span>Historical predictions</span></a>
+        <a href="#/minigames"><span data-fig-icon="device-gamepad-2"></span><span>Minigames</span></a>
+        <a href="#/more"><span data-fig-icon="dots"></span><span>More</span></a>
       </nav>
-      <button class="menu-button sr-only" id="menuButton" aria-label="Toggle menu">☰</button>
+      <div class="fig-sidebar-foot">Every season. Every story.<br>League history since 2023.</div>
+    </aside>
+    <header class="site-header app-header">
+      <button class="fig-back-button" id="figBack" type="button" aria-label="Go back" hidden><span data-fig-icon="arrow-left"></span></button>
+      <a class="brand" href="#/home" aria-label="League home">
+        <img class="brand-mark" src="assets/icons/puka-192.png?v=132" alt="" width="38" height="38" decoding="async">
+        <div><div class="brand-name">FROMM IS GARBAGE</div><div class="brand-sub">DYNASTY LEAGUE ARCHIVE</div></div>
+      </a>
+      <div class="fig-header-location"><span class="fig-header-current">League home</span></div>
+      <div class="fig-header-actions"><span class="fig-season-badge">FIG League</span><a class="fig-header-explore" href="#/more" aria-label="Explore all league sections"><span data-fig-icon="menu-2"></span></a></div>
     </header>
 
-    <main id="app" class="page-wrap">
+    <main id="app" class="page-wrap" tabindex="-1" aria-label="League page">
       <div class="loading">Loading league archive…</div>
     </main>
 
@@ -110,14 +122,16 @@
       <a href="#/more"><span>•••</span>More</a>
     </nav>
   </div>
+  <div id="figRouteAnnouncer" class="fig-sr" aria-live="polite" aria-atomic="true"></div>
+  <script src="ui-platform.js?v=191"></script>
   <script src="record-break-watch-v133.js?v=176"></script>
   <script src="single-season-watch-v136.js?v=176"></script>
-  <script src="trade-ratings-v143.js?v=153"></script>
+  <script src="trade-ratings-v143.js?v=191"></script>
   <script src="waiver-history-v156.js?v=156"></script>
   <script src="manager-ratings-v155.js?v=157"></script>
   <script src="playoff-calculator-v167.js?v=188"></script>
   <script src="historical-predictions-v189.js?v=190"></script>
-  <script src="app.js?v=189"></script>
+  <script src="app.js?v=191"></script>
   <script src="mobile-v69.js?v=175" defer></script>
   <script src="live-matchups.js?v=167" defer></script>
   <script>
