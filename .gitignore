@@ -1,0 +1,4 @@
+
+# Local verification outputs and Python bytecode
+__pycache__/
+.impeccable/review/
