@@ -112,18 +112,20 @@
    try{
      // Player history contains finalized games only; a partial score is not
      // treated as a completed result or added to official standings.
-     await load(['playerLog','currentRoster']);
+     var response=await fetch('data/playoff_player_scores.json',{cache:'no-store'});
+     if(!response.ok)throw Error('Player scores HTTP '+response.status);
+     var snapshot=await response.json();
      var adjustments=window.figPlayoffLineupModel.calculate({
-       year:year,week:firstWeek,matchups:currentWeekLineups,
-       playerLog:DATA.playerLog,currentRoster:DATA.currentRoster
+       year:year,week:firstWeek,matchups:currentWeekLineups,playerScores:snapshot
      });
      if(Object.keys(adjustments).length!==standings.length)return;
      standings.forEach(function(t){
-       var s=strength[t.id],delta=adjustments[t.id].delta;
-       s.lineupDelta=delta;
-       s.weekMean=clamp(s.mean+delta,35,300);
+       var s=strength[t.id],result=adjustments[t.id];
+       if(!result.available)return;
+       s.lineupDelta=result.delta;
+       s.weekMean=clamp(s.mean+result.delta,35,300);
+       lineupActive=true;
      });
-     lineupActive=true;
    }catch(error){
      console.warn('Starter-informed playoff projection unavailable:',error);
    }
@@ -301,7 +303,7 @@
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
    wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>1 SEED</th><th>CHAMPION</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(lineupActive?' · W'+firstWeek+' STARTERS INCLUDED':'')+'</div>';
+      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(lineupActive?' · W'+firstWeek+' STARTERS INCLUDED (70/30 PLAYER PPG)':'')+'</div>';
   }
   function renderBracket(result){
     var holder=root.querySelector('#pclBracket');
