@@ -41,9 +41,15 @@ assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);
 assert.ok(rates.length>100);
 for(const p of rates) {
-  assert.ok(p.games>0&&p.games<=Math.min(scores.through_week,8),'only current season samples included');
-  assert.ok(Math.abs(p.projection-(0.7*p.last8_avg+0.3*p.last3_avg))<0.0002,
-   'each displayed projection follows the exact 70/30 formula');
+  if(p.source==='sleeper_projection') {
+    assert.equal(p.games,0,'Sleeper fallback must not invent prior appearances');
+    assert.equal(p.last8_avg,null,'no-history fallback has no historical average');
+    assert.ok(p.projection>0,'Sleeper fallback is a usable current-week forecast');
+  } else {
+    assert.ok(p.games>0&&p.games<=Math.min(scores.through_week,8),'only current season samples included');
+    assert.ok(Math.abs(p.projection-(0.7*p.last8_avg+0.3*p.last3_avg))<0.0002,
+     'NFL-based PPG is the exact 70/30 formula');
+  }
 }
 const teamRows=[];
 for(let id=1;id<=10;id++){
