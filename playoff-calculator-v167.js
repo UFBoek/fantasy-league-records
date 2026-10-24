@@ -641,7 +641,7 @@
          '<div class="pcl-model-player-name"><small>'+safe(slot)+(player.position&&player.position!==slot?' · '+safe(player.position):'')+'</small>'+
          '<strong>'+safe(playerName)+'</strong><span>'+(actualNow?safe(actual.phase)+' NFL SCORE · '+(Number(score.games)||0)+' HISTORY GAMES':present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
          '<div class="pcl-model-player-averages"><span>LAST '+Math.min(8,Number(score.games)||0)+' <b>'+(present?fmt(score.last8_avg):'—')+'</b></span>'+
-         '<span>LAST '+Math.min(3,Number(score.games)||0)+' <b>'+(present?fmt(score.last3_avg):'—')+'</b></span></div>'+
+         '<span>LAST '+(Number(score.games)>0?Math.min(3,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last3_avg):'—')+'</b></span></div>'+
          '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'—')+'</b><small>'+(actualNow?'ACTUAL '+safe(actual.phase):'PROJECTED')+'</small>'+
          '<span class="pcl-model-player-bar"><i style="width:'+clamp(share,0,100).toFixed(2)+'%"></i></span>'+
          '<span class="pcl-model-player-share">'+(present?share.toFixed(1)+'% OF LINEUP':'')+'</span></div></div>';
