@@ -32,9 +32,10 @@ def player_scores(rows: list[dict], season: int, cutoff: int) -> dict:
             continue
         if not player_id or player_id in ("0", "None", "nan"):
             continue
-        if (not math.isfinite(points) or year > season or
-                (year == season and week > cutoff) or
-                week < 1 or week > 18):
+        # Current-season player form only. Never fill a short rolling window
+        # with last year's games: W7 appropriately uses six completed weeks.
+        if (not math.isfinite(points) or year != season or
+                week > cutoff or week < 1 or week > 18):
             continue
         key = (player_id, year, week)
         # Duplicated roster appearances should normally carry identical
@@ -95,7 +96,7 @@ def main() -> None:
     rows = json.loads((DATA / "weekly_full_rosters.json").read_text(encoding="utf-8"))
     result = player_scores(rows, season, cutoff)
     if not result["players"]:
-        raise ValueError("No historical player performances for playoff projections")
+        raise ValueError("No current-season player performances for playoff projections")
     path = DATA / "playoff_player_scores.json"
     path.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     print(f"WROTE | playoff_player_scores.json | {len(result['players'])} players; verified through W{cutoff}")
