@@ -1,7 +1,7 @@
 /* FIG League Playoff Lab v188. Read-only Sleeper schedule; official results remain in published JSON. */
 (function () {
  'use strict';
- var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores;
+ var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores, activeSleeperWeek, currentWeekLineups, lineupActive;
  var N=8000, END=14, SPOTS=5, BYES=3, lastOddsKey=null, cachedOdds=null, routeMode='main';
  var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || '&#39;';});};
  var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
@@ -21,6 +21,7 @@
    year=Number(match.season)||2026;
    leagueId=String(match.league_id||'');
    var settings={};try{settings=JSON.parse(match.settings_json||'{}');}catch(e){}
+   activeSleeperWeek=match.status==='in_season'?Number(settings.leg):null;
    if(settings.playoff_teams!==SPOTS||settings.playoff_week_start!==15||settings.num_teams!==10){throw Error('Playoff settings have changed. Calculator requires the confirmed 10-team, five-playoff-team, Week 15 format.');}
    standings=current.filter(function(t){return +t.season===year;}).map(function(t){
      return {id:+t.franchise_id,name:displayOwnerName(t.owner_name,t.franchise_id),wins:+t.wins||0,losses:+t.losses||0,ties:+t.ties||0,pf:+t.points_for||0,apW:+t.all_play_wins||0,apL:+t.all_play_losses||0,apT:+t.all_play_ties||0,apPct:(+t.all_play_win_pct||0)/100};
@@ -102,7 +103,33 @@
    var pairs=Object.keys(m).sort(function(a,b){return +a-(+b);}).map(function(k){return m[k];});
    return validPairs(pairs)?pairs:null;
  }
+ async function applyCurrentLineups(){
+   lineupActive=false;
+   Object.values(strength).forEach(function(s){delete s.weekMean;delete s.lineupDelta;});
+   lastOddsKey=null;cachedOdds=null;
+   if(!currentWeekLineups||activeSleeperWeek!==firstWeek||firstWeek>END||
+     !window.figPlayoffLineupModel)return;
+   try{
+     // Player history contains finalized games only; a partial score is not
+     // treated as a completed result or added to official standings.
+     await load(['playerLog','currentRoster']);
+     var adjustments=window.figPlayoffLineupModel.calculate({
+       year:year,week:firstWeek,matchups:currentWeekLineups,
+       playerLog:DATA.playerLog,currentRoster:DATA.currentRoster
+     });
+     if(Object.keys(adjustments).length!==standings.length)return;
+     standings.forEach(function(t){
+       var s=strength[t.id],delta=adjustments[t.id].delta;
+       s.lineupDelta=delta;
+       s.weekMean=clamp(s.mean+delta,35,300);
+     });
+     lineupActive=true;
+   }catch(error){
+     console.warn('Starter-informed playoff projection unavailable:',error);
+   }
+ }
  async function loadSchedule(){
+   currentWeekLineups=null;
    weeks={};sources={};
    for(var w=firstWeek;w<=END;w++){weeks[w]=null;sources[w]='missing';}
    if(firstWeek>END)return;
@@ -111,11 +138,17 @@
      try{
        var response=await fetch('https://api.sleeper.app/v1/league/'+encodeURIComponent(leagueId)+'/matchups/'+w,{cache:'no-store'});
        if(!response.ok)throw Error('HTTP '+response.status);
-       pairs=parseSleeper(await response.json());
+       var rows=await response.json();
+       pairs=parseSleeper(rows);
+       if(w===firstWeek&&w===activeSleeperWeek&&pairs&&
+         rows.every(function(row){return Array.isArray(row.starters)&&row.starters.length===10;})){
+         currentWeekLineups=rows;
+       }
      }catch(e){console.warn('Sleeper schedule Week '+w+': '+e.message);}
      if(pairs){weeks[w]=pairs;sources[w]='sleeper';}
      else if(validPairs(customSchedule[w])){weeks[w]=customSchedule[w];sources[w]='manual';}
    }));
+   await applyCurrentLineups();
  }
  function allGames(){
    var games=[];
@@ -148,12 +181,14 @@
   }
   function pickScores(g,locked,rng){
    var a=strength[g.a],b=strength[g.b],pa,pb;
+   var aMean=g.week===firstWeek&&Number.isFinite(a.weekMean)?a.weekMean:a.mean;
+   var bMean=g.week===firstWeek&&Number.isFinite(b.weekMean)?b.weekMean:b.mean;
    if(locked && Number.isFinite(+locked.aPts) && Number.isFinite(+locked.bPts) && locked.aPts!==null && locked.bPts!==null){
      return [Number(locked.aPts),Number(locked.bPts)];
    }
    var attempts=locked&&locked.winner?40:1;
    for(var x=0;x<attempts;x++){
-     pa=Math.max(0,a.mean+a.sd*normal(rng));pb=Math.max(0,b.mean+b.sd*normal(rng));
+     pa=Math.max(0,aMean+a.sd*normal(rng));pb=Math.max(0,bMean+b.sd*normal(rng));
      if(!locked||!locked.winner||(locked.winner===g.a&&pa>pb)||(locked.winner===g.b&&pb>pa))break;
    }
    if(locked&&locked.winner){
@@ -218,7 +253,7 @@
  }
  function oddsForCurrentScenario(){
    if(!noMissing()){oddsResults=null;return null;}
-   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek;
+   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek+'|'+(lineupActive?standings.map(function(t){return strength[t.id].weekMean;}).join(','):'season');
    if(lastOddsKey!==key||!cachedOdds){cachedOdds=runOdds();lastOddsKey=key;}
    oddsResults=cachedOdds;return cachedOdds;
  }
@@ -266,7 +301,7 @@
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
    wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>1 SEED</th><th>CHAMPION</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations</div>';
+      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(lineupActive?' · W'+firstWeek+' STARTERS INCLUDED':'')+'</div>';
   }
   function renderBracket(result){
     var holder=root.querySelector('#pclBracket');
@@ -348,8 +383,10 @@
  }
  // Matchups are simulated directly against scheduled opponents; the formula
  // below is only a concise head-to-head difficulty estimate for the team page.
- function modelMatchWinChance(a,b){
-   var diff=strength[a].mean-strength[b].mean;
+ function modelMatchWinChance(a,b,week){
+   var ax=strength[a],bx=strength[b];
+   var diff=(week===firstWeek&&Number.isFinite(ax.weekMean)?ax.weekMean:ax.mean)-
+     (week===firstWeek&&Number.isFinite(bx.weekMean)?bx.weekMean:bx.mean);
    var spread=Math.sqrt(strength[a].sd*strength[a].sd+strength[b].sd*strength[b].sd);
    return 1/(1+Math.exp(-1.7*diff/Math.max(1,spread)));
  }
@@ -429,7 +466,7 @@
    }).join('')+'</div>':'<p class="pcl-caption">Seed odds become available when the schedule is complete.</p>';
    var leagueAvg=standings.reduce(function(a,x){return a+strength[x.id].mean;},0)/standings.length;
    var games=allGames(),schedule=s.opp.map(function(o){
-     var opponent=teamById[o.id],chance=modelMatchWinChance(selectedTeam,o.id);
+     var opponent=teamById[o.id],chance=modelMatchWinChance(selectedTeam,o.id,o.week);
      var game=games.find(function(g){return g.week===o.week&&(g.a===selectedTeam||g.b===selectedTeam);});
      var lock=game&&picked[game.key]||{},selected=lock.winner===selectedTeam,against=lock.winner===o.id;
      return '<div class="pcl-route-game"><span class="pcl-route-week">W'+o.week+'</span>'+img(o.id)+
@@ -461,7 +498,8 @@
      impactSection+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>REMAINING SCHEDULE</h2><span>CHOOSE WIN · LOSS · AUTO DIRECTLY BELOW</span></div>'+
      '<div class="pcl-route-summary"><span>OPPONENT AVG <b>'+(s.opp.length?fmt(s.oppAvg):'—')+'</b></span><span>LEAGUE AVG <b>'+fmt(leagueAvg)+'</b></span>'+
-     '<span>MODEL POINTS/WK <b>'+fmt(s.model.mean)+'</b></span></div>'+
+     '<span>MODEL POINTS/WK <b>'+fmt(s.model.mean)+'</b></span>'+
+     (lineupActive&&Number.isFinite(s.model.weekMean)?'<span>W'+firstWeek+' STARTERS <b>'+fmt(s.model.weekMean)+'</b></span>':'')+'</div>'+
      '<div class="pcl-route-games">'+(schedule||'<div class="pcl-caption">No confirmed future matchups available.</div>')+'</div></section>'+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>SEED OUTLOOK</h2><span>FIRST THROUGH FIFTH SEED</span></div>'+seedHtml+
      '<div class="pcl-route-detail-stats"><span>LAST 3 AVG <b>'+fmt(s.model.recent)+'</b></span><span>SEASON AVG <b>'+fmt(s.model.season)+'</b></span>'+
@@ -489,7 +527,7 @@
        '<button type="button" class="pcl-side '+statusB+'" data-key="'+key+'" data-winner="'+b+'" aria-pressed="'+(lock.winner===b)+'">'+img(b)+'<span>'+safe(name(b))+'</span></button>'+
        '<button type="button" class="pcl-auto '+(!lock.winner?'pcl-choice-on':'')+'" data-auto="'+key+'" aria-label="Automatically simulate '+safe(name(a))+' versus '+safe(name(b))+'">AUTO</button></div>';
    }).join('');
-   holder.innerHTML='<div class="pcl-schedule-source">'+(sources[selectedWeek]==='manual'?'MANUAL SCHEDULE':'SLEEPER SCHEDULE')+'</div>'+rows;
+   holder.innerHTML='<div class="pcl-schedule-source">'+(sources[selectedWeek]==='manual'?'MANUAL SCHEDULE':'SLEEPER SCHEDULE')+(lineupActive&&selectedWeek===firstWeek?' · CURRENT STARTERS FACTORED INTO ODDS':'')+'</div>'+rows;
  }
  function scheduleEditor(){
    var options='<option value="">Choose team</option>'+standings.slice().sort(function(a,b){return a.id-b.id;}).map(function(t){return '<option value="'+t.id+'">'+safe(t.name)+'</option>';}).join('');
