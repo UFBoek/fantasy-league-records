@@ -150,6 +150,7 @@ def player_scores(rows: list[dict], season: int, cutoff: int,
     # Preserve official roster points where they exist; Sleeper game stats for
     # waiver players fill the (player,week) gaps, not an extra appearance.
     seen_starters = defaultdict(lambda: defaultdict(set))
+    roster_scored = set()
     for row in rows:
         try:
             yr, week, team = int(row["season"]), int(row["week"]), int(row["franchise_id"])
@@ -169,8 +170,9 @@ def player_scores(rows: list[dict], season: int, cutoff: int,
         # If multiple league teams held a player that week, use the first
         # roster score (normally identical). This also overrides raw-stat
         # rounding differences for established rostered NFL performers.
-        if key not in scores or not all_stats:
+        if key not in roster_scored:
             scores[key] = points
+            roster_scored.add(key)
 
     by_player = defaultdict(list)
     for (pid, week), value in scores.items():
