@@ -50,9 +50,19 @@
         return '<div class="fig-live-side' + (lead ? ' fig-live-leading' : '') + '">' + label +
           '<span class="fig-live-score">' + (value == null ? '—' : value.toFixed(2)) + '</span></div>';
       }).join('');
+      const week = Number(leagueMeta.settings.leg);
+      const detail = pair && week <= 14
+        ? '#/playoff-calculator/matchup/' + week + '_' +
+          Math.min(Number(group[0].roster_id),Number(group[1].roster_id)) + '_' +
+          Math.max(Number(group[0].roster_id),Number(group[1].roster_id))
+        : '#/livematch/' + week + '/' + encodeURIComponent(id);
+      const live = '#/livematch/' + week + '/' + encodeURIComponent(id);
       return '<article class="fig-live-match"><div class="fig-live-match-label">' +
         (pair ? 'MATCHUP ' + String(id).replace(/[^0-9]/g,'') : 'UNPAIRED ROSTER') + '</div>' +
-        sides + '<a class="fig-live-open" href="#/livematch/' + Number(leagueMeta.settings.leg) + '/' + encodeURIComponent(id) + '">VIEW LINEUPS →</a></article>';
+        sides + '<a class="fig-live-open" href="' + detail + '">' +
+        (pair && week <= 14 ? 'VIEW MODEL PROJECTIONS →' : 'VIEW LINEUPS →') + '</a>' +
+        (pair && week <= 14 ? '<a class="fig-live-secondary" href="' + live + '">LIVE LINEUPS ↗</a>' : '') +
+        '</article>';
     }).join('');
   }
   async function refresh(force = false) {
@@ -260,7 +270,7 @@
   }
   window.addEventListener('fig:live-route', () => {lastDetailPoll = 0;detailRetryAfter = 0;refreshDetail(true);});
 
-  // Tapping empty space on a matchup card opens lineups; team-name links keep
+  // Tapping empty space on a matchup card opens the starter model; team-name links keep
   // navigating to their franchise pages. The dedicated link supports keyboards.
   document.addEventListener('click', event => {
     const card = event.target.closest?.('.fig-live-match');
