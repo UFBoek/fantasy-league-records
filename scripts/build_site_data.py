@@ -20706,7 +20706,8 @@ for candidate in PLAYER_NAME_CANDIDATES:
                     [
                         "player_id",
                         candidate,
-                        "position"
+                        "position",
+                        "current_nfl_team"
                     ]
                 ]
                 .copy()
@@ -20738,7 +20739,8 @@ if player_meta_source is None:
                     [
                         "player_id",
                         candidate,
-                        "position"
+                        "position",
+                        "current_nfl_team"
                     ]
                 ]
                 .copy()

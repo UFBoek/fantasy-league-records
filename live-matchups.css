@@ -168,3 +168,7 @@
  .fig-live-slot-points {font-size:10px;}
  .fig-live-lineup-slot {font-size:7px;}
 }
+
+/* Current-week scoreboard: main tap opens the model, secondary link keeps actual lineups. */
+.fig-live-secondary{display:block;margin:7px 0 0;text-align:center;color:#aecddb;font:800 10px Inter,sans-serif;text-decoration:none;padding:5px 6px;border:1px solid #344e61;border-radius:7px}
+.fig-live-secondary:hover,.fig-live-secondary:focus-visible{color:#fff;background:#294a5f;outline:2px solid #64d4bd}

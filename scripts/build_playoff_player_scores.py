@@ -32,15 +32,17 @@ def player_scores(rows: list[dict], season: int, cutoff: int) -> dict:
             continue
         if not player_id or player_id in ("0", "None", "nan"):
             continue
-        # Current-season player form only. Never fill a short rolling window
-        # with last year's games: W7 appropriately uses six completed weeks.
+        # Current-season player form only, using completed game performances.
+        # Sleeper's roster snapshot supplies 0 for an inactive/DNP player,
+        # even if the NFL game took place. This archive has no snap count or
+        # participation bit, so zero-only entries are NOT evidence of a game.
+        # Keep genuine negative fantasy-point performances as valid samples.
         if (not math.isfinite(points) or year != season or
-                week > cutoff or week < 1 or week > 18):
+                week > cutoff or week < 1 or week > 18 or points == 0):
             continue
         key = (player_id, year, week)
-        # Duplicated roster appearances should normally carry identical
-        # Sleeper points; prefer a nonzero scoring observation if not.
-        if key not in scores or (scores[key] == 0 and points != 0):
+        # A trade may duplicate an athlete in the same NFL week.
+        if key not in scores:
             scores[key] = points
         if (year == season and week <= cutoff and
                 row.get("starter_status") == "Starter" and

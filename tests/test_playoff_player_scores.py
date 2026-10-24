@@ -49,6 +49,29 @@ class PlayoffPlayerScoresTests(unittest.TestCase):
         self.assertEqual(result["players"]["qb"]["games"], 1)
         self.assertEqual(result["players"]["qb"]["projection"], 14)
 
+    def test_dnp_zero_does_not_lower_scoring_average(self):
+        rows = [
+            {"season": 2026, "week": week, "player_id": "aj", "franchise_id": 6,
+             "fantasy_points": points, "starter_status": "Starter"}
+            for week, points in enumerate([0, 0, 15, 0, 0, 18], 1)
+        ]
+        result = player_scores(rows, 2026, 6)
+        self.assertEqual(result["players"]["aj"]["games"], 2)
+        self.assertAlmostEqual(result["players"]["aj"]["projection"], 16.5)
+        self.assertEqual(result["players"]["aj"]["last8_avg"], 16.5)
+        self.assertEqual(result["players"]["aj"]["last3_avg"], 16.5)
+
+    def test_negative_fantasy_performance_counts(self):
+        rows = [
+            {"season": 2026, "week": 1, "player_id": "qb", "franchise_id": 1,
+             "fantasy_points": -1.5, "starter_status": "Bench"},
+            {"season": 2026, "week": 2, "player_id": "qb", "franchise_id": 1,
+             "fantasy_points": 1.5, "starter_status": "Bench"},
+        ]
+        result = player_scores(rows, 2026, 2)
+        self.assertEqual(result["players"]["qb"]["games"], 2)
+        self.assertEqual(result["players"]["qb"]["projection"], 0.0)
+
     def test_only_complete_ten_player_starter_groups(self):
         rows = []
         for week in (1, 2, 3):
