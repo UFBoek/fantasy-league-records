@@ -37,17 +37,17 @@ class PlayoffPlayerScoresTests(unittest.TestCase):
         rows = []
         for week in (1, 2, 3):
             for slot in range(10):
-                rows.append({"season": 2026, "week": week, "player_id": str(slot),
+                rows.append({"season": 2026, "week": week, "player_id": str(slot + 1),
                              "franchise_id": 1, "fantasy_points": slot + week,
                              "starter_status": "Starter"})
         for slot in range(9):
-            rows.append({"season": 2026, "week": 4, "player_id": str(slot),
+            rows.append({"season": 2026, "week": 4, "player_id": str(slot + 1),
                          "franchise_id": 1, "fantasy_points": 100,
                          "starter_status": "Starter"})
         result = player_scores(rows, 2026, 3)
         self.assertEqual(len(result["previous_lineups"]["1"]), 3)
         self.assertTrue(all(len(ids) == 10 for ids in result["previous_lineups"]["1"]))
-        self.assertEqual(result["players"]["0"]["last3_avg"], 2.0)
+        self.assertEqual(result["players"]["1"]["last3_avg"], 2.0)
 
 
 if __name__ == "__main__":
