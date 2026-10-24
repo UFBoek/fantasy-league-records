@@ -1,7 +1,7 @@
 /* FIG League Playoff Lab v188. Read-only Sleeper schedule; official results remain in published JSON. */
 (function () {
  'use strict';
- var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores, activeSleeperWeek, currentWeekLineups, lineupActive, lineupSource, lineupActiveCount, lineupSnapshot, lineupAdjustments, selectedMatchupKey;
+ var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores, activeSleeperWeek, currentWeekLineups, lineupActive, lineupSource, lineupActiveCount, lineupSnapshot, lineupAdjustments, selectedMatchupKey, liveActuals, matchupPolling=false;
  var N=8000, END=14, SPOTS=5, BYES=3, lastOddsKey=null, cachedOdds=null, routeMode='main';
  var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || '&#39;';});};
  var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
@@ -104,7 +104,7 @@
    return validPairs(pairs)?pairs:null;
  }
  async function applyCurrentLineups(){
-   lineupActive=false;lineupActiveCount=0;lineupSnapshot=null;lineupAdjustments=null;
+   lineupActive=false;lineupActiveCount=0;lineupSnapshot=null;lineupAdjustments=null;liveActuals={};
    Object.values(strength).forEach(function(s){delete s.weekMean;delete s.lineupDelta;});
    lastOddsKey=null;cachedOdds=null;
    if(!currentWeekLineups||activeSleeperWeek!==firstWeek||firstWeek>END||
@@ -115,8 +115,22 @@
      var response=await fetch('data/playoff_player_scores.json',{cache:'no-store'});
      if(!response.ok)throw Error('Player scores HTTP '+response.status);
      var snapshot=await response.json();
+     if(lineupSource==='LIVE'&&window.figPlayoffLivePoints){
+       var scoreboard=null;
+       try{
+         var nfl=await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?week='+
+           firstWeek+'&seasontype=2&season='+year,{cache:'no-store'});
+         if(nfl.ok)scoreboard=await nfl.json();
+       }catch(error){console.warn('NFL kickoff status temporarily unavailable:',error);}
+       // Game status distinguishes a started zero from a pre-kickoff zero.
+       // Nonzero Sleeper points prove a player has started even if NFL data lags.
+       liveActuals=window.figPlayoffLivePoints.getLiveOverrides({
+         matchups:currentWeekLineups,roster:DATA.currentRoster,scoreboard,season:year
+       });
+     }
      var adjustments=window.figPlayoffLineupModel.calculate({
-       year:year,week:firstWeek,matchups:currentWeekLineups,playerScores:snapshot
+       year:year,week:firstWeek,matchups:currentWeekLineups,playerScores:snapshot,
+       liveOverrides:liveActuals
      });
      if(Object.keys(adjustments).length!==standings.length)return;
      lineupSnapshot=snapshot;lineupAdjustments=adjustments;
@@ -176,6 +190,28 @@
    }
    await applyCurrentLineups();
  }
+ // Refresh live scores without refetching the remaining regular-season schedule.
+ async function pollCurrentMatchup(){
+   if(matchupPolling||routeMode!=='matchup'||!root||!root.isConnected||
+      document.hidden||activeSleeperWeek!==firstWeek||firstWeek>END||
+      !location.hash.startsWith('#/playoff-calculator/matchup/'))return;
+   matchupPolling=true;
+   try{
+     var res=await fetch('https://api.sleeper.app/v1/league/'+encodeURIComponent(leagueId)+
+       '/matchups/'+firstWeek,{cache:'no-store'});
+     if(!res.ok)throw Error('Sleeper HTTP '+res.status);
+     var rows=await res.json(),pairs=parseSleeper(rows);
+     if(pairs&&rows.every(function(p){return Array.isArray(p.starters)&&p.starters.length===10;})){
+       currentWeekLineups=rows;lineupSource='LIVE';
+       await applyCurrentLineups();
+       if(routeMode==='matchup'&&root&&root.isConnected&&
+         location.hash.startsWith('#/playoff-calculator/matchup/'))reRender();
+     }
+   }catch(error){console.warn('Live matchup model refresh:',error);}
+   finally{matchupPolling=false;}
+ }
+ setInterval(pollCurrentMatchup,30000);
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)pollCurrentMatchup();});
  function allGames(){
    var games=[];
    for(var w=firstWeek;w<=END;w++){
@@ -594,24 +630,27 @@
      var sum=valid?adjustment.starterTotal:null;
      var rows=starters.map(function(pid,i){
        var player=named[pid]||{},score=points[pid]||{};
-       var rate=Number(score.projection);
-       var present=Number.isFinite(rate)&&Number(score.games)>0;
+       var actual=liveActuals&&liveActuals[pid];
+       var actualNow=!!(actual&&actual.points!==null&&Number.isFinite(Number(actual.points)));
+       var rate=actualNow?Number(actual.points):Number(score.projection);
+       var present=actualNow||(Number.isFinite(rate)&&Number(score.games)>0);
        var share=present&&sum>0?100*rate/sum:0;
        var playerName=player.player_name||player.full_name||('Player '+pid);
        var slot=positions[i]||'STARTER';
        return '<div class="pcl-model-player">'+
          '<div class="pcl-model-player-name"><small>'+safe(slot)+(player.position&&player.position!==slot?' · '+safe(player.position):'')+'</small>'+
-         '<strong>'+safe(playerName)+'</strong><span>'+(present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
+         '<strong>'+safe(playerName)+'</strong><span>'+(actualNow?safe(actual.phase)+' NFL SCORE · '+(Number(score.games)||0)+' HISTORY GAMES':present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
          '<div class="pcl-model-player-averages"><span>LAST '+Math.min(8,Number(score.games)||0)+' <b>'+(present?fmt(score.last8_avg):'—')+'</b></span>'+
          '<span>LAST '+Math.min(3,Number(score.games)||0)+' <b>'+(present?fmt(score.last3_avg):'—')+'</b></span></div>'+
-         '<div class="pcl-model-player-points"><b>'+(present?rate.toFixed(2):'—')+'</b><small>PROJECTED</small>'+
+         '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'—')+'</b><small>'+(actualNow?'ACTUAL '+safe(actual.phase):'PROJECTED')+'</small>'+
          '<span class="pcl-model-player-bar"><i style="width:'+clamp(share,0,100).toFixed(2)+'%"></i></span>'+
          '<span class="pcl-model-player-share">'+(present?share.toFixed(1)+'% OF LINEUP':'')+'</span></div></div>';
      }).join('');
      var status=valid?'<span class="pcl-model-chip">STARTERS APPLIED</span>':'<span class="pcl-model-chip pcl-model-chip-off">TEAM MODEL ONLY</span>';
+     var actuals=valid?(adjustment.liveActualCount||0):0;
      var label='<div class="pcl-model-team-head">'+img(id)+
        '<div><strong>'+safe(name(id))+'</strong>'+status+'</div></div>';
-     var stats='<div class="pcl-model-summary"><span><small>STARTER TOTAL</small><b>'+(valid?fmt(sum):'—')+'</b></span>'+
+     var stats='<div class="pcl-model-summary"><span><small>STARTER TOTAL'+(actuals?' · '+actuals+' ACTUAL':'')+'</small><b>'+(valid?fmt(sum):'—')+'</b></span>'+
        '<span><small>USUAL LINEUP</small><b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b></span>'+
        '<span><small>WEEK '+firstWeek+' ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span>'+
        '<span><small>TEAM BASELINE</small><b>'+fmt(baseline)+'</b></span>'+
@@ -631,12 +670,13 @@
      '<span>'+safe(name(game.b))+' WIN PROBABILITY</span><strong>'+pc(1-chance)+'</strong></div>'+
      '<div class="pcl-model-status">LINEUP SOURCE: '+safe(lineupSource||'UNAVAILABLE')+
      ' · '+(modelReady?'CURRENT STARTERS CHECKED':'TEAM PROJECTIONS ONLY')+
+     ' · '+Object.keys(liveActuals||{}).length+' LIVE/FINAL PLAYER SCORES'+
      ' <button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '</section>'+
      '<div class="pcl-model-teams">'+teamCard(game.a)+teamCard(game.b)+'</div>'+
      '<div class="pcl-model-explanation"><strong>HOW THE NUMBERS CONNECT</strong>'+
-     '<p>Each starter contributes 70% of their average from up to eight completed '+year+' games plus 30% of their last three completed '+year+' games, including bench weeks. The 10 projections sum to the starting-lineup total.</p>'+
-     '<p>The Week '+firstWeek+' team forecast starts with the existing team model (65% season PPG + 35% last-three team PPG), then applies 70% of the difference between this lineup and that franchise’s three most recent completed starting groups, capped at ±30 points. The individual projections do not directly add up to the team forecast.</p>'+
+     '<p>Before kickoff, each starter uses 70% of their average from up to eight played '+year+' games plus 30% of their last three played games, including fantasy bench performances. DNP zero-point weeks are excluded. Once their NFL game starts, their live Sleeper fantasy points replace that player’s projection, including a current score of zero. Updates occur every 30 seconds while this view is open.</p>'+
+     '<p>The ten values sum to the displayed starter total (live actuals plus unplayed players’ projections). The team forecast begins with the team model (65% season PPG + 35% last-three team PPG), then applies 70% of the difference between the mixed lineup and its three most recent completed starting groups, capped at ±30 points. The team forecast is a simulated estimate, not the raw starter total or guaranteed final score.</p>'+
      '<p>Only this current week uses the lineup adjustment. Future weeks use team PPG until their starters become known. Only finalized '+year+' games count.</p></div>';
  }
  function reRender(){
