@@ -362,10 +362,9 @@ assert.doesNotMatch(node('#figTrResults').innerHTML,/SENT OUTCOME|4×/);
 const app=fs.readFileSync('app.js','utf8'),index=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8');
 assert.ok(app.includes("const model=figTradeRatingModel(DATA,"));
 assert.ok(app.includes('figTradeRatingsPage(model,'));
-const tradeScript=index.match(/trade-ratings-v143\.js\?v=\d+/)?.[0];
-assert.ok(tradeScript, 'trade module is versioned in the entrypoint');
+assert.ok(index.includes('trade-ratings-v143.js?v=153'));
 assert.ok(index.includes('trade-ratings-v143.css?v=153'));
-assert.ok(sw.includes(tradeScript), 'service worker and entrypoint use the same trade module version');
+assert.ok(sw.includes('trade-ratings-v143.js?v=153'));
 // Audit each partnership and manager against the published league data every refresh.
 const liveData={
  trades:JSON.parse(fs.readFileSync('data/trades.json','utf8')),
