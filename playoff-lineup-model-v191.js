@@ -5,7 +5,7 @@
   'use strict';
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
-  function calculate({year,week,matchups,playerScores}) {
+  function calculate({year,week,matchups,playerScores,liveOverrides}) {
     const rows=Array.isArray(matchups)?matchups:[];
     const currentYear=Number(year), activeWeek=Number(week);
     if(!playerScores||Number(playerScores.season)!==currentYear||
@@ -14,10 +14,15 @@
       !Number.isInteger(activeWeek)||activeWeek<2||rows.length!==10)return {};
 
     const projections=playerScores.players,previous=playerScores.previous_lineups;
-    function projectedTotal(ids) {
+    const live=liveOverrides&&typeof liveOverrides==='object'?liveOverrides:{};
+    function projectedTotal(ids,useLive) {
       if(!Array.isArray(ids)||ids.length!==10||new Set(ids).size!==10)return null;
       let total=0;
       for(const player of ids) {
+        const override=useLive?live[String(player)]:null;
+        if(override&&Number.isFinite(Number(override.points))&&override.points!==null) {
+          total+=Number(override.points);continue;
+        }
         const score=projections[String(player)];
         // Missing NFL scoring history must not be interpreted as 0 PPG.
         if(!score||!Number.isFinite(Number(score.projection))||!(score.games>0))return null;
@@ -34,7 +39,7 @@
         starters.some(id=>!id||id==='0'||id==='null'))return {};
       seen.add(team);
       const past=Array.isArray(previous[String(team)])?previous[String(team)].slice(0,3):[];
-      const current=projectedTotal(starters);
+      const current=projectedTotal(starters,true);
       const priorTotals=past.map(ids=>projectedTotal(ids));
       const complete=past.length>=2&&current!==null&&priorTotals.every(v=>v!==null);
       if(!complete) {
@@ -42,11 +47,15 @@
         continue;
       }
       const typical=priorTotals.reduce((sum,v)=>sum+v,0)/priorTotals.length;
+      const actualStarters=starters.filter(id=>live[id]&&
+        live[id].points!==null&&Number.isFinite(Number(live[id].points)));
+      const liveActualSum=actualStarters.reduce((s,id)=>s+Number(live[id].points),0);
       // This is the existing conservative TEAM-level adjustment, separate
       // from the 70/30 player projection formula.
       const delta=clamp(0.7*(current-typical),-30,30);
       adjusted[team]={delta,starterTotal:current,typicalTotal:typical,
-        historyWeeks:past.length,available:true};
+        historyWeeks:past.length,available:true,
+        liveActualCount:actualStarters.length,liveActualSum};
     }
     return seen.size===10?adjusted:{};
   }
