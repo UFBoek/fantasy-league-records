@@ -480,3 +480,8 @@
  .page-wrap .pcl-model-player-bar{width:54px}
  .page-wrap .pcl-model-player-points>b{font-size:15px}
 }
+
+/* Actual in-progress player points replace the projection, not historical scores. */
+.page-wrap .pcl-model-player-points.pcl-player-live>b{color:#086e98}
+.page-wrap .pcl-model-player-points.pcl-player-live>small{color:#075d83;font-weight:900}
+.page-wrap .pcl-model-player-points.pcl-player-live .pcl-model-player-bar i{background:#087aa4}
