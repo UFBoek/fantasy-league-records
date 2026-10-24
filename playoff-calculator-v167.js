@@ -326,7 +326,7 @@
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
    wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>1 SEED</th><th>CHAMPION</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(firstWeek<=END?' · W'+firstWeek+' LINEUPS '+(lineupActive?lineupActiveCount+'/10 · '+lineupSource+' · 2026 PLAYER 70/30':'UNAVAILABLE · TEAM MODEL ONLY'):'')+'</div>';
+      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(firstWeek<=END?' · W'+firstWeek+' LINEUPS '+(lineupActive?lineupActiveCount+'/10 · '+lineupSource+' · '+year+' PLAYER 70/30':'UNAVAILABLE · TEAM MODEL ONLY'):'')+'</div>';
   }
   function renderBracket(result){
     var holder=root.querySelector('#pclBracket');
