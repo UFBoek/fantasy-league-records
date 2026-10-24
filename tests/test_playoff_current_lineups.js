@@ -51,6 +51,10 @@ assert.match(source,/g\.week===firstWeek&&Number\.isFinite\(a\.weekMean\)/);
 assert.match(source,/week===firstWeek&&Number\.isFinite\(ax\.weekMean\)/);
 assert.match(source,/activeSleeperWeek!==firstWeek/);
 assert.match(source,/data\/playoff_player_scores\.json/);
+assert.match(source,/lineupSource='ROSTER SNAPSHOT'/,'confirmed Sleeper roster snapshot can be used if live matchup request fails');
+assert.match(source,/LINEUPS /,'current-week lineup availability is visible');
+assert.match(source,/LINEUP-ADJUSTED/,'week-specific matchup odds should be labeled');
+assert.match(source,/NOT APPLIED/,'team page must disclose fallback for missing lineup projections');
 assert.doesNotMatch(source,/await load\(\['playerLog','currentRoster'\]\)/);
 const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
 assert.ok(html.indexOf('playoff-lineup-model-v191.js')<html.indexOf('playoff-calculator-v167.js'),
