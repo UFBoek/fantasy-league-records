@@ -22,6 +22,7 @@ on:
       - 'scripts/build_site_data.py'
       - 'scripts/build_playoff_player_scores.py'
       - 'tests/test_playoff_player_scores.py'
+      - 'tests/test_playoff_nfl_wide.py'
       - 'scripts/prepare_player_records.py'
       - 'scripts/validate_refresh.py'
       - 'tests/test_week_finalization.py'
@@ -103,7 +104,7 @@ jobs:
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/prepare_player_records.py
 
-      - name: Build 70/30 player scores including bench performances
+      - name: Build 70/30 player scores from all played NFL games and Sleeper fallback
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/build_playoff_player_scores.py
 
