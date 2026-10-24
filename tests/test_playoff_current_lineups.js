@@ -40,6 +40,17 @@ assert.equal(uncertain[1].delta,0,'unknown player should not be treated as zero 
 assert.equal(uncertain[1].available,false);
 assert.equal(uncertain[2].available,true,'other teams still get valid adjustments');
 
+const sleeperFallback=fixture();
+sleeperFallback.matchups[0].starters[0]='zero-history-waiver';
+sleeperFallback.playerScores.players['zero-history-waiver']={
+  projection:11.5,last8_avg:null,last3_avg:null,games:0,source:'sleeper_projection'
+};
+const fallbackResult=calculate(sleeperFallback);
+assert.equal(fallbackResult[1].available,true,
+ 'Sleeper projection must keep starter-informed matchup model active for unrostered acquisitions');
+assert.ok(Math.abs(fallbackResult[1].delta-(-11.55))<0.00001,
+ 'current-week Sleeper projection contributes to lineup adjustment');
+
 const invalid=fixture();
 invalid.matchups[0].starters.pop();
 assert.deepEqual(calculate(invalid),{},'incomplete Sleeper lineups fall back');

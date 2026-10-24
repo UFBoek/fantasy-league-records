@@ -612,6 +612,11 @@
    var points= modelReady?lineupSnapshot.players:{};
    var roster=(DATA.currentRoster||[]).filter(function(p){return +p.season===year;});
    var named={};
+   var historicalNames=(lineupSnapshot&&lineupSnapshot.player_names)||{};
+   Object.keys(historicalNames).forEach(function(pid){
+     var person=historicalNames[pid]||{};
+     named[pid]={player_name:person.name||person.player_name,position:person.position||''};
+   });
    roster.forEach(function(p){if(p.player_id)named[String(p.player_id)]=p;});
    var positions=['QB','RB','RB','WR','WR','WR','TE','FLEX','FLEX','SUPER_FLEX'];
    var league= (DATA.leagueSettings||[]).find(function(r){return +r.season===year;});
@@ -633,16 +638,17 @@
        var actual=liveActuals&&liveActuals[pid];
        var actualNow=!!(actual&&actual.points!==null&&Number.isFinite(Number(actual.points)));
        var rate=actualNow?Number(actual.points):Number(score.projection);
-       var present=actualNow||(Number.isFinite(rate)&&Number(score.games)>0);
+       var fallback=score.source==='sleeper_projection';
+       var present=actualNow||(Number.isFinite(rate)&&(Number(score.games)>0||fallback));
        var share=present&&sum>0?100*rate/sum:0;
        var playerName=player.player_name||player.full_name||('Player '+pid);
        var slot=positions[i]||'STARTER';
        return '<div class="pcl-model-player">'+
          '<div class="pcl-model-player-name"><small>'+safe(slot)+(player.position&&player.position!==slot?' · '+safe(player.position):'')+'</small>'+
-         '<strong>'+safe(playerName)+'</strong><span>'+(actualNow?safe(actual.phase)+' NFL SCORE · '+(Number(score.games)||0)+' HISTORY GAMES':present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
+         '<strong>'+safe(playerName)+'</strong><span>'+(actualNow?safe(actual.phase)+' NFL SCORE · '+(Number(score.games)||0)+' HISTORY GAMES':fallback?'NO '+year+' NFL GAMES · SLEEPER FORECAST':present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
          '<div class="pcl-model-player-averages"><span>LAST '+(Number(score.games)>0?Math.min(8,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last8_avg):'—')+'</b></span>'+
          '<span>LAST '+(Number(score.games)>0?Math.min(3,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last3_avg):'—')+'</b></span></div>'+
-         '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'—')+'</b><small>'+(actualNow?'ACTUAL '+safe(actual.phase):'PROJECTED')+'</small>'+
+         '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'—')+'</b><small>'+(actualNow?'ACTUAL '+safe(actual.phase):fallback?'SLEEPER PROJ.':'PROJECTED')+'</small>'+
          '<span class="pcl-model-player-bar"><i style="width:'+clamp(share,0,100).toFixed(2)+'%"></i></span>'+
          '<span class="pcl-model-player-share">'+(present?share.toFixed(1)+'% OF LINEUP':'')+'</span></div></div>';
      }).join('');
@@ -675,7 +681,7 @@
      '</section>'+
      '<div class="pcl-model-teams">'+teamCard(game.a)+teamCard(game.b)+'</div>'+
      '<div class="pcl-model-explanation"><strong>HOW THE NUMBERS CONNECT</strong>'+
-     '<p>Before kickoff, each starter uses 70% of their average from up to eight played '+year+' games plus 30% of their last three played games, including fantasy bench performances. DNP zero-point weeks are excluded. Once their NFL game starts, their live Sleeper fantasy points replace that player’s projection, including a current score of zero. Updates occur every 30 seconds while this view is open.</p>'+
+     '<p>Before kickoff, each starter uses 70% of their average from up to eight played '+year+' NFL games plus 30% of their last three played NFL games. Waiver-wire games count regardless of fantasy ownership. For players without played '+year+' games, SLEEPER PROJ. means the current-week Sleeper forecast using league scoring settings. Genuine DNP weeks are excluded. Once an NFL game starts, live Sleeper fantasy points replace the projection, including a current score of zero. Updates occur every 30 seconds while this view is open.</p>'+
      '<p>The ten values sum to the displayed starter total (live actuals plus unplayed players’ projections). The team forecast begins with the team model (65% season PPG + 35% last-three team PPG), then applies 70% of the difference between the mixed lineup and its three most recent completed starting groups, capped at ±30 points. The team forecast is a simulated estimate, not the raw starter total or guaranteed final score.</p>'+
      '<p>Only this current week uses the lineup adjustment. Future weeks use team PPG until their starters become known. Only finalized '+year+' games count.</p></div>';
  }

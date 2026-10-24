@@ -25,7 +25,12 @@
         }
         const score=projections[String(player)];
         // Missing NFL scoring history must not be interpreted as 0 PPG.
-        if(!score||!Number.isFinite(Number(score.projection))||!(score.games>0))return null;
+        // Sleeper's current-week forecast is an explicit backup only when a
+        // player has no played NFL games this season.
+        const projected=score&&score.projection!==null?Number(score.projection):NaN;
+        const played=score&&Number(score.games)>0;
+        const sleeperOnly=score&&score.source==='sleeper_projection';
+        if(!Number.isFinite(projected)||(!played&&!sleeperOnly))return null;
         total+=Number(score.projection);
       }
       return total;
