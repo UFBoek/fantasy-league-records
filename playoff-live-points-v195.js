@@ -15,11 +15,10 @@
     return Number.isFinite(n)?n:null;
   };
   function clockSeconds(status) {
-    const numeric=finite(status&&status.clock);
-    if(numeric!==null)return clamp(numeric,0,900);
     const match=String(status&&status.displayClock||'').match(/^(\d+):(\d{2})$/);
-    if(!match)return null;
-    return clamp(Number(match[1])*60+Number(match[2]),0,900);
+    if(match)return clamp(Number(match[1])*60+Number(match[2]),0,900);
+    const numeric=finite(status&&status.clock);
+    return numeric===null?null:clamp(numeric,0,900);
   }
   function teamGameStates(scoreboard) {
     const statuses={};
