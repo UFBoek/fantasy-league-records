@@ -485,3 +485,66 @@
 .page-wrap .pcl-model-player-points.pcl-player-live>b{color:#086e98}
 .page-wrap .pcl-model-player-points.pcl-player-live>small{color:#075d83;font-weight:900}
 .page-wrap .pcl-model-player-points.pcl-player-live .pcl-model-player-bar i{background:#087aa4}
+
+/* Compact live matchup scorecard: only the two decision-making numbers above the fold. */
+.page-wrap .pcl-model-summary-compact{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:7px
+}
+.page-wrap .pcl-model-summary-compact>.pcl-model-score-card{
+ grid-column:auto;display:flex;flex-direction:column;align-items:flex-start;
+ justify-content:flex-start;min-width:0;min-height:120px;gap:7px;padding:13px 14px;
+ background:#f1f5f1;border:1px solid #dce8df;border-radius:11px
+}
+.page-wrap .pcl-model-summary-compact>.pcl-model-score-primary{
+ background:#e1f3e7;border-color:#b7dfc3
+}
+.page-wrap .pcl-model-summary-compact .pcl-model-score-card small{
+ font:900 10px/1.3 Inter,sans-serif;color:#5c7564;letter-spacing:.03em
+}
+.page-wrap .pcl-model-summary-compact .pcl-model-score-card b{
+ font:900 clamp(23px,2.2vw,31px)/1.05 Inter,sans-serif;color:#2b4935;font-variant-numeric:tabular-nums
+}
+.page-wrap .pcl-model-summary-compact .pcl-model-score-primary b{color:#137548}
+.page-wrap .pcl-model-summary-compact .pcl-model-score-card em{
+ margin-top:auto;font:700 10px/1.3 Inter,sans-serif;color:#688271;font-style:normal
+}
+.page-wrap .pcl-model-method{
+ margin:0 0 14px;border:1px solid #e3ece5;background:#f8faf8;
+ border-radius:9px;color:#44604e;min-width:0
+}
+.page-wrap .pcl-model-method summary{
+ padding:10px 12px;cursor:pointer;list-style:none;
+ display:flex;align-items:center;justify-content:space-between;gap:6px;
+ font:900 10px Inter,sans-serif;letter-spacing:.04em;color:#347153
+}
+.page-wrap .pcl-model-method summary::-webkit-details-marker{display:none}
+.page-wrap .pcl-model-method summary::after{content:"⌄";font-size:16px;line-height:12px}
+.page-wrap .pcl-model-method[open] summary::after{transform:rotate(180deg)}
+.page-wrap .pcl-model-method summary:hover,.page-wrap .pcl-model-method summary:focus-visible{
+ background:#eaf3eb;border-radius:9px;outline-offset:2px
+}
+.page-wrap .pcl-model-method-stats{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 9px
+}
+.page-wrap .pcl-model-method-stats>span{
+ display:flex;flex-direction:column;gap:4px;min-width:0;padding:9px 8px;background:#edf3ee;border-radius:7px
+}
+.page-wrap .pcl-model-method-stats small{
+ font:850 9px/1.3 Inter,sans-serif;letter-spacing:.02em;color:#62816a
+}
+.page-wrap .pcl-model-method-stats b{
+ font:900 16px Inter,sans-serif;font-variant-numeric:tabular-nums;color:#284532;overflow-wrap:anywhere
+}
+.page-wrap .pcl-model-method p{
+ font:650 11px/1.55 Inter,sans-serif;color:#5d7664;margin:9px 12px 12px
+}
+@media(max-width:699px){
+ .page-wrap .pcl-model-summary-compact>.pcl-model-score-card{padding:11px 10px;min-height:111px;gap:8px}
+ .page-wrap .pcl-model-summary-compact .pcl-model-score-card small{font-size:9px}
+ .page-wrap .pcl-model-summary-compact .pcl-model-score-card b{font-size:clamp(21px,6.5vw,28px)}
+ .page-wrap .pcl-model-summary-compact .pcl-model-score-card em{font-size:9px}
+ .page-wrap .pcl-model-method-stats{gap:4px;padding:0 7px}
+ .page-wrap .pcl-model-method-stats>span{padding:7px 6px}
+ .page-wrap .pcl-model-method-stats small{font-size:8px}
+ .page-wrap .pcl-model-method-stats b{font-size:14px}
+}
