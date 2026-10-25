@@ -376,6 +376,22 @@
    return records;
  }
  function pctCell(n){return '<strong>'+pc(n)+'</strong><span class="pcl-odds-track"><span style="width:'+Math.max(0,Math.min(100,n*100))+'%"></span></span>';}
+ function livePFUnderway(){
+   return !!(window.figPlayoffPFView&&window.figPlayoffPFView.liveWeekUnderway({
+     lineupActive:lineupActive,activeWeek:activeSleeperWeek,
+     verifiedNextWeek:firstWeek,liveActuals:liveActuals
+   }));
+ }
+ function currentWeekProjectedPF(id){
+   var game=allGames().find(function(g){return g.week===firstWeek&&(g.a===id||g.b===id);});
+   var chosen=game&&picked[game.key],a=chosen&&chosen.aPts,b=chosen&&chosen.bPts;
+   // If both points are explicitly entered, reflect the identical override
+   // used by pickScores, rather than showing a conflicting PF estimate.
+   if(chosen&&a!==null&&a!==undefined&&b!==null&&b!==undefined&&
+      Number.isFinite(+a)&&Number.isFinite(+b))return id===game.a?+a:+b;
+   var estimate=strength[id].weekMean;
+   return Number.isFinite(estimate)?estimate:strength[id].mean;
+ }
  function renderOdds(){
    var wrap=root.querySelector('#pclOdds');
    var missing=missingWeeks();
@@ -385,21 +401,30 @@
    }
    oddsForCurrentScenario();
    var scenario=scenarioRecords(),pickedMatchups=allGames().filter(function(g){return picked[g.key]&&(Number(picked[g.key].winner)===g.a||Number(picked[g.key].winner)===g.b);}).length;
+   var livePF=livePFUnderway();
    var ranked=projectedTable(oddsResults).slice().sort(function(a,b){return b.playoffs-a.playoffs||b.w-a.w;});
    var body=ranked.map(function(r){
      var t=teamById[r.id],s=strength[r.id],record=scenario[r.id];
      var label=record.wins+'–'+record.losses+(record.ties?'–'+record.ties:'');
      var displayedRecord=record.picks?
        '<span class="pcl-scenario-record"><strong>'+label+'</strong><small>'+record.picks+' picked</small></span>':label;
+     var estimate=livePF?currentWeekProjectedPF(r.id):null;
+     var pfView=window.figPlayoffPFView?
+       window.figPlayoffPFView.projectedPointsFor(t.pf,estimate,livePF):null;
+     var pfHtml=pfView&&pfView.includesCurrentWeek?
+       '<span class="pcl-pf-projected" title="Official PF: '+fmt(pfView.official)+
+       ' + Week '+firstWeek+' expected: '+fmt(pfView.projected)+'">'+
+       '<strong>'+fmt(pfView.total)+'</strong><small>+'+fmt(pfView.projected)+
+       ' W'+firstWeek+' est.</small></span>':fmt(t.pf);
      return '<tr class="pcl-clickable-row" data-team-row="'+r.id+'" role="link" tabindex="0" aria-label="Open '+safe(t.name)+' playoff path">'+
        '<td><span class="pcl-team-btn">'+img(r.id)+'<span>'+safe(t.name)+'</span></span></td>'+
-       '<td>'+displayedRecord+'</td><td>'+fmt(t.pf)+'</td><td>'+pc(s.allPlay)+'</td>'+
+       '<td>'+displayedRecord+'</td><td class="pcl-pf-column">'+pfHtml+'</td><td>'+pc(s.allPlay)+'</td>'+
        '<td class="pcl-prob">'+pctCell(r.playoffs)+'</td><td class="pcl-prob">'+pctCell(r.bye)+'</td>'+ 
         '<td class="pcl-prob">'+pctCell(r.one)+'</td><td class="pcl-prob pcl-title-odds">'+pctCell(r.champ)+'</td>'+
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
-   wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>PF</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>1 SEED</th><th>CHAMPION</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div class="pcl-legend">'+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(firstWeek<=END?' · W'+firstWeek+' LINEUPS '+(lineupActive?lineupActiveCount+'/10 · '+lineupSource+' · '+year+' PLAYER 70/30':'UNAVAILABLE · TEAM MODEL ONLY'):'')+'</div>';
+   wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>'+(livePF?'PROJ PF':'PF')+'</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>1 SEED</th><th>CHAMPION</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+      '<div class="pcl-legend">'+(livePF?'<strong>PROJ PF</strong> = finalized PF + W'+firstWeek+' expected score · Current week counted once in playoff tiebreakers. Official records unchanged. ':'')+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(firstWeek<=END?' · W'+firstWeek+' LINEUPS '+(lineupActive?lineupActiveCount+'/10 · '+lineupSource+' · '+year+' PLAYER 70/30':'UNAVAILABLE · TEAM MODEL ONLY'):'')+'</div>';
   }
   function renderBracket(result){
     var holder=root.querySelector('#pclBracket');
