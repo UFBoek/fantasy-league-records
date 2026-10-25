@@ -563,3 +563,8 @@
  .page-wrap .pcl-pf-projected strong{font-size:11px}
  .page-wrap .pcl-pf-projected small{font-size:8px}
 }
+
+/* When only a team's own games or league-wide games matter, use the whole row. */
+.page-wrap .pcl-implication-columns.pcl-implication-single{
+ grid-template-columns:minmax(0,1fr)
+}
