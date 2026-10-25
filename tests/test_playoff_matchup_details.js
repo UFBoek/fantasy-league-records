@@ -13,6 +13,17 @@ const settings=JSON.parse(file('data/league_settings.json'));
 const {calculate}=require('../playoff-lineup-model-v191.js');
 
 assert.match(calc,/function renderMatchupRoute\(\)/,'dedicated drilldown renderer exists');
+assert.match(calc,/pcl-model-summary-compact/,'only two headline scorecards in matchup summaries');
+assert.match(calc,/pcl-model-score-card pcl-model-score-primary/,'simulated PPG is the emphasized card');
+assert.match(calc,/EXPECTED STARTER TOTAL/,'expected starter total remains visible');
+assert.match(calc,/data-math-id/,'supporting metrics remain available in expandable details');
+assert.match(calc,/expandedMath\[panel\.dataset\.mathId\]=panel\.open/,'expanded calculation survives live polling refresh');
+assert.match(calc,/TEAM BASELINE/,'team baseline preserved in on-demand calculation');
+assert.match(calc,/USUAL LINEUP/,'usual lineup preserved in on-demand calculation');
+assert.match(calc,/LINEUP ADJUSTMENT/,'exact adjustment preserved in on-demand calculation');
+assert.match(css,/\.pcl-model-summary-compact\{/,'responsive compact scorecard styling');
+assert.match(css,/\.pcl-model-method-stats\{/,'supporting metric styling');
+
 assert.match(calc,/routeType==='matchup'\?'matchup'/,'deep-link routes into inspection');
 assert.match(calc,/routeMode==='matchup'\)\{renderMatchupRoute\(\);return;\}/,'route renders its dedicated page');
 assert.match(calc,/allGames\(\)\.find\(function\(g\)\{return g\.week===firstWeek&&g\.key===selectedMatchupKey;/,
@@ -33,9 +44,9 @@ assert.match(calc,/lineupSnapshot=snapshot;lineupAdjustments=adjustments;/,
 assert.match(calc,/return \[round\(pa\),round\(pb\)\]/);
 assert.match(css,/\.pcl-model-teams\{/);
 assert.match(css,/@media\(max-width:699px\)/);
-assert.match(html,/playoff-calculator-v167\.js\?v=197/);
-assert.match(html,/playoff-calculator-v167\.css\?v=195/);
-assert.match(sw,/fig-league-shell-v197/);
+assert.match(html,/playoff-calculator-v167\.js\?v=198/);
+assert.match(html,/playoff-calculator-v167\.css\?v=198/);
+assert.match(sw,/fig-league-shell-v198/);
 
 assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);
