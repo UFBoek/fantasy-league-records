@@ -608,6 +608,12 @@
  }
 
  function renderMatchupRoute(){
+   // The page refreshes every 30 seconds during live games. Preserve each
+   // manager's expanded calculation details across these refreshes.
+   var expandedMath={};
+   root.querySelectorAll('.pcl-model-method[data-math-id]').forEach(function(panel){
+     expandedMath[panel.dataset.mathId]=panel.open;
+   });
    var game=allGames().find(function(g){return g.week===firstWeek&&g.key===selectedMatchupKey;});
    var back='<a class="pcl-route-back" href="#/playoff-calculator">← PLAYOFF CALCULATOR</a>';
    if(!game||activeSleeperWeek!==firstWeek){
@@ -671,11 +677,19 @@
      var actuals=valid?(adjustment.liveActualCount||0):0;
      var label='<div class="pcl-model-team-head">'+img(id)+
        '<div><strong>'+safe(name(id))+'</strong>'+status+'</div></div>';
-     var stats='<div class="pcl-model-summary"><span><small>EXPECTED STARTER TOTAL'+(actuals?' · '+actuals+' GAMES STARTED':'')+'</small><b>'+(valid?fmt(sum):'—')+'</b></span>'+
-       '<span><small>USUAL LINEUP</small><b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b></span>'+
-       '<span><small>WEEK '+firstWeek+' ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span>'+
+     var stats='<div class="pcl-model-summary pcl-model-summary-compact">'+
+       '<span class="pcl-model-score-card"><small>EXPECTED STARTER TOTAL</small>'+
+       '<b>'+(valid?fmt(sum):'—')+'</b><em>10 starters'+(actuals?' · '+actuals+' games started':'')+'</em></span>'+
+       '<span class="pcl-model-score-card pcl-model-score-primary"><small>SIMULATED WEEK '+firstWeek+' PPG</small>'+
+       '<b>'+fmt(forecast)+'</b><em>Used for matchup odds</em></span></div>'+
+       '<details class="pcl-model-method" data-math-id="'+id+'"'+(expandedMath[id]?' open':'')+'>'+
+       '<summary>HOW IT IS CALCULATED</summary>'+
+       '<div class="pcl-model-method-stats">'+
        '<span><small>TEAM BASELINE</small><b>'+fmt(baseline)+'</b></span>'+
-       '<span class="pcl-model-summary-final"><small>SIMULATED WEEK '+firstWeek+' PPG</small><b>'+fmt(forecast)+'</b></span></div>';
+       '<span><small>USUAL LINEUP</small><b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b></span>'+
+       '<span><small>LINEUP ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span></div>'+
+       '<p>The team baseline is adjusted by 70% of the difference between the current starters and usual lineup (up to 30 points in either direction). The result is the simulated PPG used for win odds.</p>'+
+       '</details>';
      var unavailable=starters.length!==10?'<div class="pcl-warning">Ten valid starters could not be verified. The standard team projection is being used.</div>':
        !valid?'<div class="pcl-warning">One or more starters have no completed '+year+' scoring history, or the lineup baseline is unavailable. No lineup adjustment was applied.</div>':'';
      return '<section class="pcl-model-team">'+label+stats+
