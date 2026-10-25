@@ -21,7 +21,7 @@ assert.equal(picked.own.length,1,'Boek still sees first-seed relevant own games'
 assert.equal(picked.others.length,0,'do not generate league-wide filler games');
 assert.equal(picked.own[0].metric,'one','100% playoff lock switches to 1 seed odds');
 assert.equal(picked.own[0].metricLabel,'1 SEED ODDS');
-assert.equal(picked.own[0].swing,.31);
+assert.ok(Math.abs(picked.own[0].swing-.31)<1e-12);
 assert.equal(picked.own[0].forA,.55);
 assert.equal(picked.own[0].forB,.24);
 assert.equal(picked.own[0].participants[1].win,.4);
