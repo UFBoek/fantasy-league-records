@@ -1,6 +1,7 @@
-/* Active week only: compare starters with each team's usual starting group.
-   Player PPG is always 70% last eight + 30% last three archived games,
-   including fantasy bench scores. No positional or prior-season pseudo-starts. */
+/* Active-week starters compared with prior complete starting groups.
+   Before a player's NFL game, use current-season 70/30 full-game PPG.
+   Live games use earned fantasy points PLUS projected remainder. Never
+   substitute a kickoff score of zero for a full-game PPG forecast. */
 (function(global) {
   'use strict';
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -20,8 +21,17 @@
       let total=0;
       for(const player of ids) {
         const override=useLive?live[String(player)]:null;
-        if(override&&Number.isFinite(Number(override.points))&&override.points!==null) {
-          total+=Number(override.points);continue;
+        if(override) {
+          // Only completed NFL games may replace full-game projections with
+          // raw Sleeper points. In-progress games contribute ACTUAL +
+          // PROJECTED REMAINDER, supplied by the shared clock-aware helper.
+          const expected=override.expected!==null&&override.expected!==undefined?
+            Number(override.expected):NaN;
+          if(Number.isFinite(expected)){total+=expected;continue;}
+          if(override.phase==='FINAL'&&override.points!==null&&
+             override.points!==undefined&&Number.isFinite(Number(override.points))){
+            total+=Number(override.points);continue;
+          }
         }
         const score=projections[String(player)];
         // Missing NFL scoring history must not be interpreted as 0 PPG.
