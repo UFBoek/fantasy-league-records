@@ -53,7 +53,7 @@ assert.doesNotMatch(source,/t\.pf\s*\+=\s*currentWeekProjectedPF/,
 const html=read('index.html'),sw=read('sw.js');
 assert.ok(html.indexOf('playoff-pf-view-v201.js')<html.indexOf('playoff-calculator-v167.js'),
   'view helper must load before the calculator');
-assert.match(html,/playoff-calculator-v167\.js\?v=201/);
-assert.match(sw,/fig-league-shell-v201/);
+assert.match(html,/playoff-calculator-v167\.js\?v=202/);
+assert.match(sw,/fig-league-shell-v202/);
 assert.match(sw,/playoff-pf-view-v201\.js\?v=201/);
 console.log('Live PF projection, no-double-count, finalized week and tiebreaker tests passed');
