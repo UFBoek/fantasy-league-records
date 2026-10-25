@@ -301,7 +301,7 @@
  function runOdds(){
    if(!noMissing())return null;
    var games=allGames(),results={},impacts={};
-    games.forEach(function(g){impacts[g.key]={key:g.key,a:g.a,b:g.b,week:g.week,count:[0,0],made:[{},{}],bye:[{},{}],locked:!!(picked[g.key]&&picked[g.key].winner)};});
+    games.forEach(function(g){impacts[g.key]={key:g.key,a:g.a,b:g.b,week:g.week,count:[0,0],made:[{},{}],bye:[{},{}],one:[{},{}],locked:!!(picked[g.key]&&picked[g.key].winner)};});
    standings.forEach(function(t){results[t.id]={id:t.id,playoffs:0,bye:0,one:0,champ:0,w:0,pf:0,path:{},seeds:[0,0,0,0,0,0,0,0,0,0]};});
    var rng=rand(0xC0FFEE+firstWeek*31),titleRng=rand(0xFACEB00C+firstWeek*17);
    for(var n=0;n<N;n++){
@@ -334,7 +334,7 @@
      roundWinners.forEach(function(w){
        var x=impacts[w.key];if(x.locked)return;
        var side=w.side;x.count[side]++;
-       standings.forEach(function(t){var id=t.id,i=seeds[id];if(i<SPOTS)x.made[side][id]=(x.made[side][id]||0)+1;if(i<BYES)x.bye[side][id]=(x.bye[side][id]||0)+1;});
+       standings.forEach(function(t){var id=t.id,i=seeds[id];if(i<SPOTS)x.made[side][id]=(x.made[side][id]||0)+1;if(i<BYES)x.bye[side][id]=(x.bye[side][id]||0)+1;if(i===0)x.one[side][id]=(x.one[side][id]||0)+1;});
      });
    }
    Object.defineProperty(results,'_impacts',{value:impacts,enumerable:false});
@@ -517,44 +517,21 @@
    return 1/(1+Math.exp(-1.7*diff/spread));
  }
 
- function playoffImpactGames(results,id){
-   if(!results||!results._impacts)return {own:[],others:[]};
-   // Exclude James matchups from the highlighted list only, never from the
-   // simulation itself or the team's remaining schedule.
-   var all=Object.values(results._impacts).filter(function(x){
-     return !x.locked&&x.a!==10&&x.b!==10&&x.count[0]>=150&&x.count[1]>=150;
-   }).map(function(x){
-     function make(team,side){return (x.made[side][team]||0)/x.count[side];}
-     var forA=make(id,0),forB=make(id,1),ownSwing=Math.abs(forA-forB);
-     var aWin=make(x.a,0),aLoss=make(x.a,1);
-     var bWin=make(x.b,1),bLoss=make(x.b,0);
-     return {game:x,forA:forA,forB:forB,ownSwing:ownSwing,
-       participants:[{id:x.a,win:aWin,loss:aLoss,swing:Math.abs(aWin-aLoss)},
-                     {id:x.b,win:bWin,loss:bLoss,swing:Math.abs(bWin-bLoss)}]};
-   });
-   var own=all.filter(function(v){return v.game.a===id||v.game.b===id;})
-     .sort(function(a,b){return b.ownSwing-a.ownSwing||a.game.week-b.game.week;}).slice(0,3);
-   // Rank outside games by how much they move this selected team's chances.
-   var others=all.filter(function(v){return v.game.a!==id&&v.game.b!==id;})
-     .sort(function(a,b){return b.ownSwing-a.ownSwing||
-       Math.max(b.participants[0].swing,b.participants[1].swing)-
-       Math.max(a.participants[0].swing,a.participants[1].swing)||
-       a.game.week-b.game.week;}).slice(0,3);
-   return {own:own,others:others};
- }
  function implicationCard(entry,own){
    var g=entry.game,lock=picked[g.key]||{};
    var labels='<span class="pcl-implication-branch">'+safe(name(g.a))+' WIN: <b>'+pc(entry.forA)+'</b></span>'+
      '<span class="pcl-implication-branch">'+safe(name(g.b))+' WIN: <b>'+pc(entry.forB)+'</b></span>';
-   var participantImpact=!own?'<div class="pcl-other-impact"><span class="pcl-other-impact-heading">HOW THIS AFFECTS THEIR PLAYOFF CHANCES</span>'+
+   var participantImpact=!own?'<div class="pcl-other-impact"><span class="pcl-other-impact-heading">HOW THIS AFFECTS THEIR '+safe(entry.metricLabel)+'</span>'+
      entry.participants.map(function(p){
        return '<div class="pcl-other-impact-team"><strong>'+safe(name(p.id))+'</strong>'+
          '<span>WIN <b>'+pc(p.win)+'</b></span><span>LOSS <b>'+pc(p.loss)+'</b></span>'+
          '<span class="pcl-other-impact-swing">'+(100*p.swing).toFixed(1)+' pp swing</span></div>';
      }).join('')+'</div>':'';
-   return '<article class="pcl-implication"><div class="pcl-implication-top"><span class="pcl-implication-week">W'+g.week+'</span>'+
+   return '<article class="pcl-implication"><div class="pcl-implication-top">'+
+     '<span class="pcl-implication-week">W'+g.week+'</span>'+
      '<span class="pcl-implication-teams">'+img(g.a)+safe(name(g.a))+'<em>vs</em>'+img(g.b)+safe(name(g.b))+'</span>'+
-     '<span class="pcl-implication-swing"><b>'+(100*entry.ownSwing).toFixed(1)+' pp</b><small>IMPACT ON '+safe(name(selectedTeam).toUpperCase())+'</small></span></div>'+
+     '<span class="pcl-implication-swing"><b>'+(100*entry.swing).toFixed(1)+' pp</b>'+
+     '<small>'+safe(entry.metricLabel)+' · '+safe(name(selectedTeam).toUpperCase())+'</small></span></div>'+
      participantImpact+
      '<div class="pcl-implication-bottom"><div class="pcl-implication-context">'+labels+'</div>'+
      '<div class="pcl-implication-picks"><button data-key="'+g.key+'" data-winner="'+g.a+'" class="'+(lock.winner===g.a?'pcl-choice-on':'')+'">'+safe(name(g.a))+'</button>'+
@@ -602,15 +579,20 @@
        '<button data-key="'+game.key+'" data-winner="'+o.id+'" class="'+(against?'pcl-choice-on':'')+'">LOSS</button>'+
        '<button data-auto="'+game.key+'" class="'+(!lock.winner?'pcl-choice-on':'')+'">AUTO</button></div></div>';
    }).join('');
-   var biggest=playoffImpactGames(all,selectedTeam);
-   var impactSection='<section class="section pcl-section"><div class="pcl-section-head"><h2>BIGGEST PLAYOFF-IMPLICATION GAMES</h2><span>BASED ON SIMULATED ODDS SWINGS</span></div>'+
-     ''+
-     '<div class="pcl-implication-columns">'+
-     '<div class="pcl-implication-column"><h3>YOUR MOST IMPORTANT MATCHUPS</h3>'+
-     (biggest.own.length?biggest.own.map(function(o){return implicationCard(o,true);}).join(''):'<p class="pcl-caption">No eligible unpicked matchups to highlight. Your full remaining schedule is shown below.</p>')+'</div>'+
-     '<div class="pcl-implication-column"><h3>OTHER GAMES TO WATCH</h3>'+
-     (biggest.others.length?biggest.others.map(function(o){return implicationCard(o,false);}).join(''):'<p class="pcl-caption">Other matchups need valid simulation samples before they can be ranked.</p>')+'</div></div>'+
-     '<p class="pcl-caption">Odds swings are changes in percentage points estimated from the simulation. Games you have already picked are excluded from the highlighted list, but still count toward standings and playoff odds.</p></section>';
+   var biggest=window.figPlayoffImplicationRanking?
+     window.figPlayoffImplicationRanking.rankGames(all&&all._impacts,selectedTeam):
+     {own:[],others:[]};
+   // Do not fill three slots with 0.0pp swings. One or both columns may be
+   // missing altogether when no game changes playoff or seeding chances.
+   var impactSection=(biggest.own.length||biggest.others.length)?
+     '<section class="section pcl-section"><div class="pcl-section-head"><h2>BIGGEST PLAYOFF & SEEDING GAMES</h2>'+
+     '<span>MEANINGFUL ODDS SWINGS</span></div>'+
+     '<div class="pcl-implication-columns'+(biggest.own.length&&biggest.others.length?'':' pcl-implication-single')+'">'+
+     (biggest.own.length?'<div class="pcl-implication-column"><h3>YOUR MOST IMPORTANT MATCHUPS</h3>'+
+       biggest.own.map(function(o){return implicationCard(o,true);}).join('')+'</div>':'')+
+     (biggest.others.length?'<div class="pcl-implication-column"><h3>OTHER GAMES TO WATCH</h3>'+
+       biggest.others.map(function(o){return implicationCard(o,false);}).join('')+'</div>':'')+
+     '</div><p class="pcl-caption">Shows only unpicked games changing your playoff, 1-seed or top-three bye odds by at least 1 percentage point. Current What-If picks still count toward the simulation.</p></section>':'';
    root.innerHTML='<a href="#/playoff-calculator" class="pcl-route-back">← ALL PLAYOFF ODDS</a>'+
      '<section class="pcl-route-hero"><div class="pcl-route-person">'+img(selectedTeam,'pcl-route-portrait')+
      '<div><div class="pcl-kicker">TEAM PLAYOFF OUTLOOK</div><h2>'+safe(t.name)+'</h2><p>'+t.wins+'–'+t.losses+' · '+fmt(t.pf)+' PF · '+pc(s.model.allPlay)+' ALL-PLAY</p></div></div>'+
