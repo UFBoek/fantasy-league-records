@@ -217,9 +217,12 @@
  }
  // Refresh live scores without refetching the remaining regular-season schedule.
  async function pollCurrentMatchup(){
-   if(matchupPolling||routeMode!=='matchup'||!root||!root.isConnected||
+   // Keep main playoff odds and team forecasts current too. Avoid rebuilding
+   // the What-If editor while someone is typing or editing their schedule.
+   if(matchupPolling||!root||!root.isConnected||
       document.hidden||activeSleeperWeek!==firstWeek||firstWeek>END||
-      !location.hash.startsWith('#/playoff-calculator/matchup/'))return;
+      !location.hash.startsWith('#/playoff-calculator')||
+      !['matchup','main','team'].includes(routeMode))return;
    matchupPolling=true;
    try{
      var res=await fetch('https://api.sleeper.app/v1/league/'+encodeURIComponent(leagueId)+
@@ -229,8 +232,12 @@
      if(pairs&&rows.every(function(p){return Array.isArray(p.starters)&&p.starters.length===10;})){
        currentWeekLineups=rows;lineupSource='LIVE';
        await applyCurrentLineups();
-       if(routeMode==='matchup'&&root&&root.isConnected&&
-         location.hash.startsWith('#/playoff-calculator/matchup/'))reRender();
+       if(root&&root.isConnected&&location.hash.startsWith('#/playoff-calculator')){
+         if(routeMode==='main'){
+           renderOdds();
+           renderBracket(oddsResults);
+         }else reRender();
+       }
      }
    }catch(error){console.warn('Live matchup model refresh:',error);}
    finally{matchupPolling=false;}
