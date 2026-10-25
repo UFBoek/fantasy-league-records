@@ -14,3 +14,4 @@ node tests/test_playoff_matchup_details.js
 node tests/test_playoff_live_scoring.js
 node tests/test_playoff_live_forecast.js
 node tests/test_playoff_projected_pf.js
+node tests/test_playoff_implication_rank.js
