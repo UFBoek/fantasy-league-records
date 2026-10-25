@@ -55,8 +55,9 @@
       seen.add(team);
       const past=Array.isArray(previous[String(team)])?previous[String(team)].slice(0,3):[];
       const current=projectedTotal(starters,true);
+      const pregame=projectedTotal(starters,false);
       const priorTotals=past.map(ids=>projectedTotal(ids));
-      const complete=past.length>=2&&current!==null&&priorTotals.every(v=>v!==null);
+      const complete=past.length>=2&&current!==null&&pregame!==null&&priorTotals.every(v=>v!==null);
       if(!complete) {
         adjusted[team]={delta:0,historyWeeks:past.length,available:false};
         continue;
@@ -68,7 +69,9 @@
       // This is the existing conservative TEAM-level adjustment, separate
       // from the 70/30 player projection formula.
       const delta=clamp(0.7*(current-typical),-30,30);
-      adjusted[team]={delta,starterTotal:current,typicalTotal:typical,
+      const pregameDelta=clamp(0.7*(pregame-typical),-30,30);
+      adjusted[team]={delta,pregameDelta,pregameStarterTotal:pregame,
+        starterTotal:current,typicalTotal:typical,
         historyWeeks:past.length,available:true,
         liveActualCount:actualStarters.length,liveActualSum};
     }

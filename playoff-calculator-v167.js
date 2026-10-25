@@ -105,7 +105,10 @@
  }
  async function applyCurrentLineups(){
    lineupActive=false;lineupActiveCount=0;lineupSnapshot=null;lineupAdjustments=null;liveActuals={};
-   Object.values(strength).forEach(function(s){delete s.weekMean;delete s.lineupDelta;});
+   Object.values(strength).forEach(function(s){
+     delete s.weekMean;delete s.weekSd;delete s.weekProgress;
+     delete s.lineupDelta;delete s.pregameWeekMean;
+   });
    lastOddsKey=null;cachedOdds=null;
    if(!currentWeekLineups||activeSleeperWeek!==firstWeek||firstWeek>END||
      !window.figPlayoffLineupModel)return;
@@ -144,8 +147,23 @@
      standings.forEach(function(t){
        var s=strength[t.id],result=adjustments[t.id];
        if(!result.available)return;
-       s.lineupDelta=result.delta;
-       s.weekMean=clamp(s.mean+result.delta,35,300);
+       // The pregame 70%-of-lineup adjustment is a historical anchor, not
+       // an ongoing cap on actual points scored during NFL games.
+       var pregameDelta=Number(result.pregameDelta);
+       if(!Number.isFinite(pregameDelta))pregameDelta=result.delta;
+       var pregameMean=clamp(s.mean+pregameDelta,35,300);
+       var starters=currentWeekLineups.find(function(r){return +r.roster_id===t.id;});
+       var forecast=window.figPlayoffLiveForecast&&starters?
+         window.figPlayoffLiveForecast.estimate({
+           pregameMean:pregameMean,baselineSD:s.sd,starterTotal:result.starterTotal,
+           starters:starters.starters,players:snapshot.players,live:liveActuals,
+           actualSum:result.liveActualSum
+         }):null;
+       s.lineupDelta=pregameDelta;
+       s.pregameWeekMean=pregameMean;
+       s.weekMean=forecast?forecast.mean:pregameMean;
+       s.weekSd=forecast?forecast.sd:s.sd;
+       s.weekProgress=forecast?forecast.progress:0;
        lineupActive=true;lineupActiveCount++;
      });
    }catch(error){
@@ -199,9 +217,12 @@
  }
  // Refresh live scores without refetching the remaining regular-season schedule.
  async function pollCurrentMatchup(){
-   if(matchupPolling||routeMode!=='matchup'||!root||!root.isConnected||
+   // Keep main playoff odds and team forecasts current too. Avoid rebuilding
+   // the What-If editor while someone is typing or editing their schedule.
+   if(matchupPolling||!root||!root.isConnected||
       document.hidden||activeSleeperWeek!==firstWeek||firstWeek>END||
-      !location.hash.startsWith('#/playoff-calculator/matchup/'))return;
+      !location.hash.startsWith('#/playoff-calculator')||
+      !['matchup','main','team'].includes(routeMode))return;
    matchupPolling=true;
    try{
      var res=await fetch('https://api.sleeper.app/v1/league/'+encodeURIComponent(leagueId)+
@@ -211,8 +232,12 @@
      if(pairs&&rows.every(function(p){return Array.isArray(p.starters)&&p.starters.length===10;})){
        currentWeekLineups=rows;lineupSource='LIVE';
        await applyCurrentLineups();
-       if(routeMode==='matchup'&&root&&root.isConnected&&
-         location.hash.startsWith('#/playoff-calculator/matchup/'))reRender();
+       if(root&&root.isConnected&&location.hash.startsWith('#/playoff-calculator')){
+         if(routeMode==='main'){
+           renderOdds();
+           renderBracket(oddsResults);
+         }else reRender();
+       }
      }
    }catch(error){console.warn('Live matchup model refresh:',error);}
    finally{matchupPolling=false;}
@@ -252,12 +277,15 @@
    var a=strength[g.a],b=strength[g.b],pa,pb;
    var aMean=g.week===firstWeek&&Number.isFinite(a.weekMean)?a.weekMean:a.mean;
    var bMean=g.week===firstWeek&&Number.isFinite(b.weekMean)?b.weekMean:b.mean;
+   var aSd=g.week===firstWeek&&Number.isFinite(a.weekSd)?a.weekSd:a.sd;
+   var bSd=g.week===firstWeek&&Number.isFinite(b.weekSd)?b.weekSd:b.sd;
    if(locked && Number.isFinite(+locked.aPts) && Number.isFinite(+locked.bPts) && locked.aPts!==null && locked.bPts!==null){
      return [Number(locked.aPts),Number(locked.bPts)];
    }
    var attempts=locked&&locked.winner?40:1;
    for(var x=0;x<attempts;x++){
-     pa=Math.max(0,aMean+a.sd*normal(rng));pb=Math.max(0,bMean+b.sd*normal(rng));
+     pa=aSd===0?aMean:Math.max(0,aMean+aSd*normal(rng));
+     pb=bSd===0?bMean:Math.max(0,bMean+bSd*normal(rng));
      if(!locked||!locked.winner||(locked.winner===g.a&&pa>pb)||(locked.winner===g.b&&pb>pa))break;
    }
    if(locked&&locked.winner){
@@ -322,7 +350,8 @@
  }
  function oddsForCurrentScenario(){
    if(!noMissing()){oddsResults=null;return null;}
-   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek+'|'+(lineupActive?standings.map(function(t){return strength[t.id].weekMean;}).join(','):'season');
+   var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek+'|'+
+     (lineupActive?standings.map(function(t){var s=strength[t.id];return s.weekMean+'/'+s.weekSd;}).join(','):'season');
    if(lastOddsKey!==key||!cachedOdds){cachedOdds=runOdds();lastOddsKey=key;}
    oddsResults=cachedOdds;return cachedOdds;
  }
@@ -456,8 +485,11 @@
    var ax=strength[a],bx=strength[b];
    var diff=(week===firstWeek&&Number.isFinite(ax.weekMean)?ax.weekMean:ax.mean)-
      (week===firstWeek&&Number.isFinite(bx.weekMean)?bx.weekMean:bx.mean);
-   var spread=Math.sqrt(strength[a].sd*strength[a].sd+strength[b].sd*strength[b].sd);
-   return 1/(1+Math.exp(-1.7*diff/Math.max(1,spread)));
+   var asd=week===firstWeek&&Number.isFinite(ax.weekSd)?ax.weekSd:ax.sd;
+   var bsd=week===firstWeek&&Number.isFinite(bx.weekSd)?bx.weekSd:bx.sd;
+   var spread=Math.sqrt(asd*asd+bsd*bsd);
+   if(spread<1e-8)return diff>0?1:diff<0?0:0.5;
+   return 1/(1+Math.exp(-1.7*diff/spread));
  }
 
  function playoffImpactGames(results,id){
@@ -675,20 +707,22 @@
      }).join('');
      var status=valid?'<span class="pcl-model-chip">STARTERS APPLIED</span>':'<span class="pcl-model-chip pcl-model-chip-off">TEAM MODEL ONLY</span>';
      var actuals=valid?(adjustment.liveActualCount||0):0;
+     var progress=valid&&Number.isFinite(strength[id].weekProgress)?
+       Math.round(strength[id].weekProgress*100):0;
      var label='<div class="pcl-model-team-head">'+img(id)+
        '<div><strong>'+safe(name(id))+'</strong>'+status+'</div></div>';
      var stats='<div class="pcl-model-summary pcl-model-summary-compact">'+
        '<span class="pcl-model-score-card"><small>EXPECTED STARTER TOTAL</small>'+
        '<b>'+(valid?fmt(sum):'—')+'</b><em>10 starters'+(actuals?' · '+actuals+' games started':'')+'</em></span>'+
        '<span class="pcl-model-score-card pcl-model-score-primary"><small>SIMULATED WEEK '+firstWeek+' PPG</small>'+
-       '<b>'+fmt(forecast)+'</b><em>Used for matchup odds</em></span></div>'+
+       '<b>'+fmt(forecast)+'</b><em>Used for matchup odds'+(progress?' · '+progress+'% resolved':'')+'</em></span></div>'+
        '<details class="pcl-model-method" data-math-id="'+id+'"'+(expandedMath[id]?' open':'')+'>'+
        '<summary>HOW IT IS CALCULATED</summary>'+
        '<div class="pcl-model-method-stats">'+
        '<span><small>TEAM BASELINE</small><b>'+fmt(baseline)+'</b></span>'+
        '<span><small>USUAL LINEUP</small><b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b></span>'+
        '<span><small>LINEUP ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span></div>'+
-       '<p>The team baseline is adjusted by 70% of the difference between the current starters and usual lineup (up to 30 points in either direction). The result is the simulated PPG used for win odds.</p>'+
+       '<p>Pregame PPG equals the team baseline plus 70% of the usual-lineup difference (capped at 30 points). During NFL games, the model blends that pregame PPG toward the expected starter total as game time is played, while reducing remaining scoring uncertainty. When every starter is final, simulated PPG equals the actual score.</p>'+
        '</details>';
      var unavailable=starters.length!==10?'<div class="pcl-warning">Ten valid starters could not be verified. The standard team projection is being used.</div>':
        !valid?'<div class="pcl-warning">One or more starters have no completed '+year+' scoring history, or the lineup baseline is unavailable. No lineup adjustment was applied.</div>':'';
@@ -711,7 +745,7 @@
      '<div class="pcl-model-teams">'+teamCard(game.a)+teamCard(game.b)+'</div>'+
      '<div class="pcl-model-explanation"><strong>HOW THE NUMBERS CONNECT</strong>'+
      '<p>Before kickoff, each starter uses 70% of their average from up to eight played '+year+' NFL games plus 30% of their last three played NFL games. Waiver-wire games count regardless of fantasy ownership. For players without played '+year+' games, SLEEPER PROJ. means the current-week Sleeper forecast using league scoring settings. Genuine DNP weeks are excluded. During NFL games, LIVE EST. FINAL is the points scored so far plus the expected share for remaining game time; zero at kickoff does not erase the full-game projection. A FINAL score uses only actual Sleeper points. Updates occur every 30 seconds while this view is open.</p>'+
-     '<p>The ten expected-final values sum to the displayed starter total, including actual points PLUS the projected remaining game time for games in progress. The team forecast begins with the team model (65% season PPG + 35% last-three team PPG), then applies 70% of the difference between the expected-final lineup and its three most recent completed starting groups, capped at ±30 points. The team forecast is a simulated estimate, not the raw starter total or guaranteed final score.</p>'+
+     '<p>The ten expected-final values sum to the displayed starter total, including actual points PLUS the projected remaining game time for games in progress. The pregame forecast combines team scoring history (65% season + 35% recent PPG) and a conservative starting-lineup adjustment. As games progress, the live simulation blends toward earned points plus remaining player projections, reducing its scoring deviation as game time resolves. After all starters finish, the final simulated score equals the actual starter total.</p>'+
      '<p>Only this current week uses the lineup adjustment. Future weeks use team PPG until their starters become known. Only finalized '+year+' games count.</p></div>';
  }
  function reRender(){

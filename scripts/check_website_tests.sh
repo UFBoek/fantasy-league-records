@@ -12,3 +12,4 @@ node tests/test_historical_predictions.js
 node tests/test_playoff_current_lineups.js
 node tests/test_playoff_matchup_details.js
 node tests/test_playoff_live_scoring.js
+node tests/test_playoff_live_forecast.js
