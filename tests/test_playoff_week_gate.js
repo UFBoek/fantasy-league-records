@@ -83,7 +83,7 @@ const html=read('index.html'),sw=read('sw.js');
 assert.ok(html.indexOf('playoff-week-gate-v205.js')<
  html.indexOf('playoff-calculator-v167.js'),'week gate must load first');
 assert.match(html,/playoff-lineup-model-v191\.js\?v=205/);
-assert.match(html,/playoff-calculator-v167\.js\?v=205/);
+assert.match(html,/playoff-calculator-v167\.js\?v=206/);
 assert.match(sw,/playoff-week-gate-v205\.js\?v=205/);
-assert.match(sw,/fig-league-shell-v205/);
+assert.match(sw,/fig-league-shell-v206/);
 console.log('Verified archive unlocks Week 8 preview, partial-roster safety and 2026 model regression passed');
