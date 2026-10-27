@@ -38,7 +38,7 @@ assert.match(source,/window\.figPlayoffPFView\.liveWeekUnderway/,'view checks a 
 assert.match(source,/window\.figPlayoffPFView\.projectedPointsFor\(t\.pf,estimate,livePF\)/,
   'display adds current week forecast to official PF');
 assert.match(source,/currentWeekProjectedPF\(r\.id\)/,'each franchise uses its current model PPG');
-assert.match(source,/return Number\.isFinite\(estimate\)\?estimate:strength\[id\]\.mean/,
+assert.match(source,/return weeklyScoringMean\(id,firstWeek\)/,
   'model baseline is used only when a current lineups forecast is unavailable');
 assert.match(source,/Number\.isFinite\(\+a\)&&Number\.isFinite\(\+b\)/,
   'manual what-if scores can override week PF same as simulations');
