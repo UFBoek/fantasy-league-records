@@ -68,14 +68,13 @@ def changes_present():
     if leg != int(current.get("current_leg") or 0) or status != str(current.get("status")):
         return "Sleeper week or league status changed"
 
-    # Check whether Monday 11:45 PM Eastern has passed and every NFL game
-    # is finished. No Sleeper current-leg transition is needed to promote
-    # the week: the full pipeline will independently validate every matchup.
+    # All NFL games final + stable Sleeper scoring triggers publication at the
+    # next five-minute probe; there is no arbitrary 11:45 PM waiting period.
     settings = league.get("settings") or {}
     official = week_cutoff(status, leg, settings.get("last_scored_leg"),
                            previous_verified().get(season, 0))
     week_to_verify = official + 1
-    if status != "complete" and week_to_verify <= leg and independent_week_final(int(season), week_to_verify):
+    if status != "complete" and week_to_verify <= leg and independent_week_final(int(season), week_to_verify, league_id=league_id):
         return f"Independent week finalization ready: {season} W{week_to_verify}"
 
     # Poll the most recent three completed weeks for Sleeper score corrections.
