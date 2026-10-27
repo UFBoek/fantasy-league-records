@@ -3,12 +3,14 @@ name: Update league data
 on:
   schedule:
     # GitHub Actions' fastest allowed cadence: every five minutes, UTC.
-    # :17 is the hourly full rebuild. The other 11 intervals are light checks.
+    # :17 is the hourly full rebuild. The other 11 intervals check whether
+    # the final NFL game and all ten Sleeper fantasy scores have completed.
     # GitHub-hosted schedules are best effort and can be delayed or skipped.
     - cron: '2,7,12,22,27,32,37,42,47,52,57 * * * *'
     - cron: '17 * * * *'
-    # Monday 11:45 PM Eastern (Tuesday UTC): dedicated full finalization build.
-    # 03:45 UTC is EDT; 04:45 UTC is EST. The refresh step gates by local time.
+    # Monday 11:45 PM Eastern backup full build (DST-aware). Normally the
+    # five-minute change probe now starts publication earlier once both ESPN
+    # and Sleeper have independently confirmed and stabilized the scores.
     - cron: '45 3,4 * * 2'
   workflow_dispatch:
   push:
@@ -68,8 +70,8 @@ jobs:
             echo "refresh=true" >> "$GITHUB_OUTPUT"
             echo "Monday 11:45 PM Eastern: immediately rebuild completed-week records."
           else
-            # Subsequent checks every five minutes catch provider delays or
-            # final scores posted after the initial Monday-night attempt.
+            # The five-minute probe detects the last game finishing and
+            # two stable complete Sleeper fantasy score snapshots.
             python scripts/quick_refresh_check.py
           fi
 
