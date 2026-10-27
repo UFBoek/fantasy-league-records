@@ -17,6 +17,9 @@ on:
       - 'scripts/build_playoff_player_scores.py'
       - 'tests/test_playoff_player_scores.py'
       - 'tests/test_playoff_nfl_wide.py'
+      - 'scripts/week_finalization.py'
+      - 'scripts/quick_refresh_check.py'
+      - 'tests/test_week_finalization.py'
       - '.github/workflows/verify-website.yml'
   pull_request:
     paths:
@@ -29,6 +32,9 @@ on:
       - 'scripts/build_playoff_player_scores.py'
       - 'tests/test_playoff_player_scores.py'
       - 'tests/test_playoff_nfl_wide.py'
+      - 'scripts/week_finalization.py'
+      - 'scripts/quick_refresh_check.py'
+      - 'tests/test_week_finalization.py'
       - '.github/workflows/verify-website.yml'
 
 jobs:
@@ -49,3 +55,4 @@ jobs:
           python -m pip install requests==2.32.3
           python -m unittest discover -s tests -p 'test_playoff_player_scores.py'
           python -m unittest discover -s tests -p 'test_playoff_nfl_wide.py'
+          python -m unittest discover -s tests -p 'test_week_finalization.py'

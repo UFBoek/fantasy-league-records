@@ -640,15 +640,15 @@ for _, season_row in history_df.iterrows():
         settings.get("playoff_week_start") or 15
     )
 
-    # Start independent verification at Monday 11:45 PM America/New_York.
-    # Finalize only when every NFL game that week is complete. A previously
-    # verified week stays completed while Sleeper updates its own status.
+    # Finalize as soon as ESPN marks every NFL game final and two complete
+    # Sleeper score snapshots agree. Preserve verification across later
+    # league status updates and stat corrections.
     last_completed_week = week_cutoff(
         status, current_leg, settings.get("last_scored_leg"),
         previous_week_cutoffs.get(season, 0))
     if status != "complete" and last_completed_week < current_leg:
         candidate = last_completed_week + 1
-        if independent_week_final(int(season), candidate):
+        if independent_week_final(int(season), candidate, league_id=league_id):
             last_completed_week = candidate
             print(f"Independently finalized {season} W{candidate}: all NFL games finished")
     if status != "complete":

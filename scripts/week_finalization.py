@@ -1,11 +1,15 @@
-"""Publish a scored fantasy week after Monday 11:45 PM Eastern and all NFL games final.
+"""Independently finalize a week after the last NFL game ends, not at a fixed hour.
 
-ESPN supplies only NFL game completion, never fantasy points. Sleeper supplies
-scores. Failed completion checks do not override the existing safe week.
+ESPN confirms that every NFL game is final. Two complete and matching Sleeper
+score snapshots, 10 seconds apart, verify that league points have propagated.
+The existing archive correction watcher can still revise later stat corrections.
+Failures never advance the committed verified-week cutoff.
 """
 import json
+import math
+import time
 import urllib.request
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -54,18 +58,40 @@ def all_games_final(payload, now=None):
             return False
     if len(ids) != len(events):
         return False
-    first = min(starts).date()
-    monday = first + timedelta(days=(0-first.weekday()) % 7)
-    gate = datetime.combine(monday, time(23, 45), tzinfo=EASTERN)
     clock = (now or datetime.now(timezone.utc)).astimezone(EASTERN)
-    return clock >= gate
+    # A broken scoreboard must never mark a future fixture as completed.
+    # With all final flags and the entire week visible, the latest kickoff is
+    # the only necessary time gate (Sunday-only weeks can finish on Sunday).
+    return clock >= max(starts) and max(starts) - min(starts) < timedelta(days=9)
 
 
-def independent_week_final(year, week, now=None, fetcher=None):
-    clock = (now or datetime.now(timezone.utc)).astimezone(EASTERN)
+def league_scores_complete(matchups):
+    """10 scored franchises with each starter's points reconciled to Sleeper PF."""
+    scored = signature(matchups)
+    if scored is None or set(scored) != {str(x) for x in range(1, 11)}:
+        return None
+    for row in matchups:
+        starters = row.get("starters")
+        points = row.get("starters_points")
+        if (not isinstance(starters, list) or len(starters) != 10 or
+                len(set(map(str, starters))) != 10 or
+                not isinstance(points, list) or len(points) != 10):
+            return None
+        try:
+            values = [float(value) for value in points]
+        except (ValueError, TypeError):
+            return None
+        if not all(math.isfinite(x) for x in values):
+            return None
+        if abs(sum(values) - float(row["points"])) > 0.06:
+            return None
+    return scored
+
+
+def independent_week_final(year, week, now=None, fetcher=None,
+                           league_id=None, score_fetcher=None, sleep_fn=time.sleep):
+    """Promote only after ESPN confirms final and Sleeper scoring stabilizes."""
     if week < 1 or week > 18:
-        return False
-    if clock.weekday() in (4, 5, 6) or (clock.weekday() == 0 and clock.time() < time(23, 45)):
         return False
     try:
         if fetcher is None:
@@ -76,7 +102,34 @@ def independent_week_final(year, week, now=None, fetcher=None):
                 result = json.load(response)
         else:
             result = fetcher(year, week)
-        return all_games_final(result, clock)
+        if not all_games_final(result, now):
+            return False
+        # Production must supply league_id; stand-alone legacy tests may probe
+        # ESPN completion without a league. The publishing callers always
+        # provide league_id and therefore also verify Sleeper fantasy scores.
+        if league_id is None:
+            return True
+
+        def scores():
+            if score_fetcher is not None:
+                return score_fetcher(league_id, week)
+            url = f"https://api.sleeper.app/v1/league/{league_id}/matchups/{week}"
+            request = urllib.request.Request(url, headers={
+                "User-Agent": "FIG-League-Archive/finalize",
+                "Accept": "application/json"})
+            with urllib.request.urlopen(request, timeout=20) as response:
+                return json.load(response)
+
+        first = league_scores_complete(scores())
+        if first is None:
+            print(f"Week {year} W{week}: Sleeper scoring incomplete; leave records unchanged")
+            return False
+        sleep_fn(10)
+        second = league_scores_complete(scores())
+        if second != first:
+            print(f"Week {year} W{week}: Sleeper scoring changed or incomplete; retry later")
+            return False
+        return True
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         print(f"Week {year} W{week} completion unavailable: {exc}")
         return False
@@ -90,7 +143,7 @@ def signature(matchups):
             value = float(row["points"])
         except (KeyError, ValueError, TypeError):
             return None
-        if roster in scores or not (-10000 < value < 10000):
+        if roster in scores or not math.isfinite(value) or not (-10000 < value < 10000):
             return None
         scores[roster] = round(value, 2)
     return scores if len(scores) == 10 else None
