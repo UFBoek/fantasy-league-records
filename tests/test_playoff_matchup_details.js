@@ -1,4 +1,4 @@
-/* Current-week starter matchup inspection must show exact forecast inputs. */
+/* Weekly expected-based matchup forecast and pre-Sunday context. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
@@ -13,8 +13,8 @@ const settings=JSON.parse(file('data/league_settings.json'));
 const {calculate}=require('../playoff-lineup-model-v191.js');
 
 assert.match(calc,/function renderMatchupRoute\(\)/,'dedicated drilldown renderer exists');
-assert.match(calc,/pcl-model-summary-compact/,'only two headline scorecards in matchup summaries');
-assert.match(calc,/pcl-model-score-card pcl-model-score-primary/,'simulated PPG is the emphasized card');
+assert.match(calc,/pcl-model-summary-compact/,'week-based expected and historical scorecards in matchup summaries');
+assert.match(calc,/pcl-model-score-card pcl-model-score-primary/,'expected starter total is the emphasized card');
 assert.match(calc,/EXPECTED STARTER TOTAL/,'expected starter total remains visible');
 assert.match(calc,/data-math-id/,'supporting metrics remain available in expandable details');
 assert.match(calc,/expandedMath\[panel\.dataset\.mathId\]=panel\.open/,'expanded calculation survives live polling refresh');
