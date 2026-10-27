@@ -611,3 +611,29 @@
 @media(max-width:380px){
  .page-wrap .pcl-sim-standing-pf{display:none}
 }
+
+/* Pregame: expected + historical and usual comparisons. From noon Sunday
+   the markup contains only the expected starter score. */
+.page-wrap .pcl-model-summary-compact.pcl-model-pregame{
+ grid-template-columns:repeat(3,minmax(0,1fr))
+}
+.page-wrap .pcl-model-summary-compact.pcl-model-live-only{
+ grid-template-columns:minmax(0,1fr)
+}
+.page-wrap .pcl-model-summary-compact.pcl-model-pregame>.pcl-model-method{
+ grid-column:1/-1;margin:0 0 9px
+}
+.page-wrap .pcl-model-summary-compact.pcl-model-pregame>.pcl-model-score-card{
+ min-height:111px;padding:11px 10px
+}
+@media(max-width:699px){
+ .page-wrap .pcl-model-summary-compact.pcl-model-pregame{
+   grid-template-columns:repeat(2,minmax(0,1fr))
+ }
+ .page-wrap .pcl-model-summary-compact.pcl-model-pregame>.pcl-model-score-primary{
+   grid-column:1/-1
+ }
+ .page-wrap .pcl-model-summary-compact.pcl-model-pregame>.pcl-model-method{
+   grid-column:1/-1
+ }
+}
