@@ -1,7 +1,7 @@
 /* FIG League Playoff Lab v188. Read-only Sleeper schedule; official results remain in published JSON. */
 (function () {
  'use strict';
- var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores, activeSleeperWeek, currentWeekLineups, lineupActive, lineupSource, lineupActiveCount, lineupSnapshot, lineupAdjustments, selectedMatchupKey, liveActuals, matchupPolling=false;
+ var root, standings, history, teamById, strength, leagueId, year, firstWeek, weeks, sources, selectedWeek, picked, customSchedule, scoreDrafts, selectedTeam, oddsResults, bracketPicks, bracketScores, bracketSeason, activeSleeperWeek, currentWeekLineups, lineupActive, lineupSource, lineupActiveCount, lineupSnapshot, lineupAdjustments, selectedMatchupKey, liveActuals, matchupPolling=false;
  var N=8000, END=14, SPOTS=5, BYES=3, lastOddsKey=null, cachedOdds=null, routeMode='main';
  var safe=function(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || '&#39;';});};
  var fmt=function(x){return Number(x||0).toLocaleString(undefined,{maximumFractionDigits:2});};
@@ -14,7 +14,7 @@
  var storeKey=function(suffix){return 'fig-playoff-lab-'+year+'-'+firstWeek+'-'+suffix;};
  var save=function(){try{localStorage.setItem(storeKey('picks'),JSON.stringify(picked));localStorage.setItem(storeKey('schedule'),JSON.stringify(customSchedule));}catch(e){}};
  var read=function(suffix){try{return JSON.parse(localStorage.getItem(storeKey(suffix))||'{}')||{};}catch(e){return {};}};
- var saveBracket=function(){try{localStorage.setItem(storeKey('bracket'),JSON.stringify({picks:bracketPicks,scores:bracketScores}));}catch(e){}};
+ var saveBracket=function(){try{localStorage.setItem(storeKey('bracket'),JSON.stringify({picks:bracketPicks,scores:bracketScores,season:bracketSeason}));}catch(e){}};
  function getStandings(){
    var current=(DATA.currentStandings||[]), league=DATA.leagueSettings||[];
    var match=league.slice().sort(function(a,b){return Number(b.season)-Number(a.season);})[0]||{};
@@ -472,15 +472,40 @@
     return '<div class="pcl-sim-match"><span class="pcl-sim-match-label">'+label+'</span>'+
       slot(a,sc&&sc.scoreA)+'<span class="pcl-sim-vs">VS</span>'+slot(b,sc&&sc.scoreB)+'</div>';
   }
+  // A drawn bracket is a snapshot of the What-If schedule used to create
+  // it; changing those picks invalidates the simulated playoff entrants.
+  function bracketScenarioKey(){
+    return JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek;
+  }
   function renderPlayoffSim(){
     var result=oddsForCurrentScenario();
     if(!result){root.innerHTML='<a class="pcl-route-back" href="#/playoff-calculator">← PLAYOFF CALCULATOR</a>'+
-      '<div class="pcl-warning">Complete remaining regular-season matchups to project the playoff bracket.</div>';return;}
-    var seeds=projectedTable(result).slice(0,SPOTS).map(function(t){return t.id;});
+      '<div class="pcl-warning">Complete remaining regular-season matchups to simulate playoff qualification.</div>';return;}
+    if(bracketSeason&&(!Array.isArray(bracketSeason.seeds)||bracketSeason.seeds.length!==SPOTS||
+       !Array.isArray(bracketSeason.standings)||bracketSeason.standings.length!==10||
+       bracketSeason.sourceKey!==bracketScenarioKey())){
+      bracketSeason=null;bracketPicks={};bracketScores={};saveBracket();
+    }
+    var simulated=!!bracketSeason;
+    var seeds=simulated?bracketSeason.seeds:
+      projectedTable(result).slice(0,SPOTS).map(function(t){return t.id;});
     var s=bracketState(seeds),champ=s.final;
+    var teamsHtml=simulated?
+      '<section class="pcl-sim-standings"><div class="pcl-sim-standings-head">'+
+        '<h3>SIMULATED REGULAR-SEASON FINISH</h3><span>WINS · POINTS FOR TIEBREAKER</span></div>'+
+        '<div class="pcl-sim-standings-list">'+bracketSeason.standings.map(function(t,i){
+          return '<div class="pcl-sim-standing'+(t.qualifies?' pcl-sim-qualified':' pcl-sim-eliminated')+'">'+
+            '<span class="pcl-sim-standing-rank">'+(i+1)+'</span>'+img(t.id)+
+            '<strong>'+safe(name(t.id))+'</strong>'+
+            '<span class="pcl-sim-standing-record">'+t.wins+'–'+t.losses+(t.ties?'–'+t.ties:'')+'</span>'+
+            '<span class="pcl-sim-standing-pf">'+fmt(t.pf)+' PF</span>'+
+            '<small>'+(t.qualifies?(i<3?'TOP-3 BYE':'PLAYOFFS'):'MISSED')+'</small></div>';
+        }).join('')+'</div></section>':
+      '<p class="pcl-caption pcl-sim-intro">The bracket below uses average projected seeds. Select SIMULATE PLAYOFFS to play out every remaining regular-season matchup, then draw a new five-team playoff field and a full postseason.</p>';
     root.innerHTML='<a class="pcl-route-back" href="#/playoff-calculator">← PLAYOFF CALCULATOR</a>'+
-      '<section class="pcl-sim-header"><div><div class="pcl-kicker">'+year+' · PROJECTED SEEDS</div><h2>PLAYOFF SIMULATOR</h2></div>'+
+      '<section class="pcl-sim-header"><div><div class="pcl-kicker">'+year+' · '+(simulated?'SIMULATED SEEDS':'PROJECTED SEEDS')+'</div><h2>PLAYOFF SIMULATOR</h2></div>'+
       '<div class="pcl-sim-actions"><button type="button" class="pcl-primary" data-bracket-run="1">SIMULATE PLAYOFFS</button><button type="button" data-bracket-reset="1">RESET BRACKET</button></div></section>'+
+      teamsHtml+
       (champ?'<div class="pcl-sim-champion">'+img(champ,'pcl-sim-champion-photo')+
         '<div><small>YOUR CHAMPION</small><strong>'+safe(name(champ))+'</strong></div><span>#'+(seeds.indexOf(champ)+1)+' SEED</span></div>':'')+
       '<div class="pcl-sim-bracket">'+
@@ -494,9 +519,17 @@
       bracketMatch('TITLE GAME','final',s.semi1,s.semi2,s.final,seeds)+'</section></div>';
   }
   function runBracketOnce(){
-    var result=oddsForCurrentScenario();if(!result)return;
-    var seeds=projectedTable(result).slice(0,SPOTS).map(function(t){return t.id;});
-    var rng=rand((Date.now()^Math.floor(Math.random()*4294967296))>>>0),sim=postSeason(seeds,rng);
+    if(!oddsForCurrentScenario()||!window.figPlayoffSeasonDraw)return;
+    var rng=rand((Date.now()^Math.floor(Math.random()*4294967296))>>>0);
+    // Use the very same week-by-week score sampling as the 8,000-run odds
+    // model: lineups, live earned-score bounds, all What-If picks and PF.
+    var finish=window.figPlayoffSeasonDraw.simulateSeason({
+      standings:baseRows(),games:allGames(),
+      scoreGame:function(g){return pickScores(g,picked[g.key],rng);}
+    });
+    var sim=postSeason(finish.seeds,rng);
+    bracketSeason={seeds:finish.seeds,standings:finish.standings,
+      sourceKey:bracketScenarioKey()};
     bracketPicks={playin:sim.playin.winner,semi1:sim.semi1.winner,semi2:sim.semi2.winner,final:sim.final.winner};
     bracketScores={playin:sim.playin,semi1:sim.semi1,semi2:sim.semi2,final:sim.final};
     saveBracket();renderPlayoffSim();
@@ -793,7 +826,7 @@
    var sb=event.target.closest('button[data-bracket-run],button[data-bracket-reset],button[data-bracket-round]');
    if(sb&&root.contains(sb)){
      if(sb.dataset.bracketRun!==undefined){runBracketOnce();return;}
-     if(sb.dataset.bracketReset!==undefined){bracketPicks={};bracketScores={};saveBracket();renderPlayoffSim();return;}
+     if(sb.dataset.bracketReset!==undefined){bracketPicks={};bracketScores={};bracketSeason=null;saveBracket();renderPlayoffSim();return;}
      var key=sb.dataset.bracketRound,id=+sb.dataset.bracketWinner;
      if(['playin','semi1','semi2','final'].indexOf(key)<0||!teamById[id])return;
      if(bracketPicks[key]===id)delete bracketPicks[key];else bracketPicks[key]=id;
@@ -866,7 +899,7 @@
      if(p.aPts!==undefined||p.bPts!==undefined){if(p.winner)picked[key]={winner:p.winner};else delete picked[key];}
    });
    customSchedule=read('schedule');scoreDrafts={};
-   var storedBracket=read('bracket');bracketPicks=storedBracket.picks||{};bracketScores=storedBracket.scores||{};
+   var storedBracket=read('bracket');bracketPicks=storedBracket.picks||{};bracketScores=storedBracket.scores||{};bracketSeason=storedBracket.season||null;
    routeMode=routeType==='team'?'team':routeType==='bracket'?'bracket':routeType==='matchup'?'matchup':'main';
    selectedTeam=routeMode==='team'&&teamById[+routeValue]?+routeValue:1;
    selectedMatchupKey=routeMode==='matchup'?String(routeValue||''):null;
