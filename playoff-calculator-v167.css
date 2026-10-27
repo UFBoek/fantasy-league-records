@@ -568,3 +568,46 @@
 .page-wrap .pcl-implication-columns.pcl-implication-single{
  grid-template-columns:minmax(0,1fr)
 }
+
+/* One sampled full-season finish; playoff teams and seeding can change every run. */
+.page-wrap .pcl-sim-intro{margin:5px 0 13px}
+.page-wrap .pcl-sim-standings{
+ margin-bottom:14px;padding:13px 15px;border:1px solid #d7e5da;
+ background:#f8faf8;border-radius:14px
+}
+.page-wrap .pcl-sim-standings-head{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.page-wrap .pcl-sim-standings-head h3{margin:0;font:900 12px Inter,sans-serif;color:#264d37}
+.page-wrap .pcl-sim-standings-head>span{font:800 9px Inter,sans-serif;color:#6c8574;letter-spacing:.03em}
+.page-wrap .pcl-sim-standings-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.page-wrap .pcl-sim-standing{
+ display:flex;gap:8px;align-items:center;min-width:0;
+ background:#f1f3f0;border:1px solid #e3e8e1;border-radius:9px;padding:8px
+}
+.page-wrap .pcl-sim-standing.pcl-sim-qualified{background:#e5f4e9;border-color:#c8e8d0}
+.page-wrap .pcl-sim-standing-rank{display:grid;place-items:center;flex:0 0 22px;color:#247754;font:900 12px Inter,sans-serif}
+.page-wrap .pcl-sim-standing>.pcl-avatar{flex:0 0 26px;width:26px;height:26px;object-fit:cover;border-radius:6px}
+.page-wrap .pcl-sim-standing strong{
+ font:900 11px Inter,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1
+}
+.page-wrap .pcl-sim-standing-record,.page-wrap .pcl-sim-standing-pf{
+ font:800 10px Inter,sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums;color:#455c4c
+}
+.page-wrap .pcl-sim-standing small{
+ font:850 9px Inter,sans-serif;color:#147c51;white-space:nowrap
+}
+.page-wrap .pcl-sim-eliminated small{color:#89958b}
+@media(max-width:900px){
+ .page-wrap .pcl-sim-standings-list{grid-template-columns:1fr}
+}
+@media(max-width:699px){
+ .page-wrap .pcl-sim-standings{padding:11px}
+ .page-wrap .pcl-sim-standing{gap:5px;padding:8px 6px}
+ .page-wrap .pcl-sim-standing-rank{flex-basis:17px;font-size:10px}
+ .page-wrap .pcl-sim-standing>.pcl-avatar{flex-basis:23px;width:23px;height:23px}
+ .page-wrap .pcl-sim-standing strong{font-size:10px}
+ .page-wrap .pcl-sim-standing-record,.page-wrap .pcl-sim-standing-pf{font-size:9px}
+ .page-wrap .pcl-sim-standing small{font-size:8px}
+}
+@media(max-width:380px){
+ .page-wrap .pcl-sim-standing-pf{display:none}
+}
