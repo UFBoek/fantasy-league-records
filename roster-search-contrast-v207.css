@@ -1,0 +1,50 @@
+/* v207 — Team Roster light-surface contrast, isolated from historical
+   dark Sleeper roster rules and inherited player-headshot text colors. */
+.page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-row{
+  background:#ffffff!important;
+  color:#1e3027!important;
+  text-decoration:none;
+  border-top:0;
+  border-bottom:1px solid #dce5de;
+  transition:background-color .14s ease;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-row:nth-child(odd){
+  background:#f2f6f3!important;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-row:hover,
+.page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-row:focus-visible{
+  background:#e3f3e9!important;
+  color:#142920!important;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-main{
+  min-width:0;align-items:center;flex-direction:row;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .fig-roster-player-copy{
+  min-width:0;display:flex;flex-direction:column;gap:2px;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .fig-roster-player-copy b{
+  color:#182b22!important;
+  font:850 13px/1.3 Inter,system-ui,sans-serif!important;
+  overflow-wrap:anywhere;
+  white-space:normal!important;
+  overflow:visible;
+  text-overflow:clip;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .fig-roster-player-copy small{
+  color:#546559!important;
+  opacity:1;
+  font:700 10px/1.3 Inter,system-ui,sans-serif;
+}
+.page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-tag,
+.page-wrap .fig-roster-dashboard .fig-roster-boards .ra-roster-val{
+  color:#295941!important;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:699px){
+ .page-wrap .fig-roster-dashboard .fig-roster-boards .fig-roster-player-copy b{
+   font-size:12px!important;
+ }
+ .page-wrap .fig-roster-dashboard .fig-roster-boards .sleeper-player-row{
+   padding:10px 8px;
+ }
+}

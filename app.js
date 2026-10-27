@@ -1318,7 +1318,7 @@ async function team(id,selectedTab,selectedDraftYear){
  };
  const renderPlayers=()=>{
    let pos='ALL',q='';
-   const draw=()=>{
+   const draw=(searchOnly=false)=>{
      const logs=(DATA.playerLog||[]).filter(x=>+x.franchise_id===id);
      const grouped={};
      logs.forEach(x=>{const pid=String(x.player_id),p=num(x.starter_points);const z=grouped[pid]??={player_id:pid,player_name:x.player_name,position:x.position,starts:0,points:0,b5:0,b20:0,b30:0,b40:0,b50:0};z.starts++;z.points+=p;if(p>=0&&p<10)z.b5++;if(p>=20&&p<30)z.b20++;if(p>=30&&p<40)z.b30++;if(p>=40&&p<50)z.b40++;if(p>=50)z.b50++});
@@ -1328,9 +1328,14 @@ async function team(id,selectedTab,selectedDraftYear){
      players.sort((a,b)=>num(b.points)-num(a.points));
      const bombCell=(x,label,key)=>`<a class="bomb-count-link" href="#/playerbomb/${x.player_id}/${encodeURIComponent(label)}/all/${encodeURIComponent('All-Time Combined')}/${id}">${num(x[key])}</a>`;
      const rows=players.map((x,i)=>({rank:i+1,player:`${playerLink(x.player_id,x.player_name)}`,pos:`<span class="pos">${x.position}</span>`,starts:x.starts,points:money(x.points),pps:money(x.pps),b5:bombCell(x,'5 BOMBS','b5'),b20:bombCell(x,'20 BOMBS','b20'),b30:bombCell(x,'30 BOMBS','b30'),b40:bombCell(x,'40 BOMBS','b40'),b50:bombCell(x,'50 BOMBS','b50'),_sort:{rank:i+1,player:x.player_name,pos:x.position,starts:x.starts,points:x.points,pps:x.pps,b5:x.b5,b20:x.b20,b30:x.b30,b40:x.b40,b50:x.b50}}));
-     $('#teamTabBody').innerHTML=`<section class="section player-book-section compact-player-book team-player-book"><div class="section-head player-book-head"><h2 class="section-title">PLAYER RECORD BOOK</h2><div class="player-book-tools">${pills('teamPos',[{value:'ALL',label:'ALL'},{value:'QB',label:'QB'},{value:'RB',label:'RB'},{value:'WR',label:'WR'},{value:'TE',label:'TE'},{value:'FLEX',label:'FLEX'}],pos)}<input id="teamPlayerSearch" class="search player-record-search" placeholder="Search player…" value="${esc(q)}"></div></div><div class="player-book-scroll-tip">Scroll horizontally to see all stats <span aria-hidden="true">→</span></div>${sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'5 BOMBS',key:'b5'},{label:'20 BOMBS',key:'b20'},{label:'30 BOMBS',key:'b30'},{label:'40 BOMBS',key:'b40'},{label:'50 BOMBS',key:'b50'}],rows)}</section>`;
+     const tableHtml=sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'5 BOMBS',key:'b5'},{label:'20 BOMBS',key:'b20'},{label:'30 BOMBS',key:'b30'},{label:'40 BOMBS',key:'b40'},{label:'50 BOMBS',key:'b50'}],rows);
+     // Search updates only the table. The search input stays mounted, keeping
+     // keyboard focus, selection and composition text on mobile and desktop.
+     const results=$('#teamPlayerResults');
+     if(searchOnly&&results){results.innerHTML=tableHtml;return;}
+     $('#teamTabBody').innerHTML=`<section class="section player-book-section compact-player-book team-player-book"><div class="section-head player-book-head"><h2 class="section-title">PLAYER RECORD BOOK</h2><div class="player-book-tools">${pills('teamPos',[{value:'ALL',label:'ALL'},{value:'QB',label:'QB'},{value:'RB',label:'RB'},{value:'WR',label:'WR'},{value:'TE',label:'TE'},{value:'FLEX',label:'FLEX'}],pos)}<input id="teamPlayerSearch" class="search player-record-search" placeholder="Search player…" value="${esc(q)}"></div></div><div class="player-book-scroll-tip">Scroll horizontally to see all stats <span aria-hidden="true">→</span></div><div id="teamPlayerResults">${tableHtml}</div></section>`;
      bindPills('teamPos',v=>{pos=v;draw()});
-     const inp=$('#teamPlayerSearch');if(inp){inp.oninput=e=>{q=e.target.value.toLowerCase();draw();setTimeout(()=>{const n=$('#teamPlayerSearch');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}},0)}}
+     const inp=$('#teamPlayerSearch');if(inp){inp.oninput=e=>{if(e.isComposing)return;q=e.target.value.toLowerCase();draw(true)}}
    };draw()
  };
 
@@ -1732,7 +1737,7 @@ async function players(){
   });
   return Object.values(g).map(x=>({...x,average_points:x.starts?x.total_points/x.starts:0}));
  };
- const render=()=>{
+ const render=(searchOnly=false)=>{
   let pc=aggregate();
   pc=pc.filter(x=>playerBookMatchesPosition(x.position,playerPos));
   if(playerQ)pc=pc.filter(x=>String(x.full_name||'').toLowerCase().includes(playerQ));
@@ -1743,9 +1748,12 @@ async function players(){
   const bombCell=(x,label,key)=>`<a class="bomb-count-link" href="#/playerbomb/${x.player_id}/${encodeURIComponent(label)}/${encodeURIComponent(season)}/${encodeURIComponent(view)}/all">${num(x[key])}</a>`;
   const rows=sorted.map((x,i)=>({rank:i+1,player:`${playerLink(x.player_id,x.full_name)}`,pos:`<span class="pos">${x.position}</span>`,starts:x.starts,points:money(x.total_points),pps:money(x.average_points),b5:bombCell(x,'5 BOMBS','b5'),b20:bombCell(x,'20 BOMBS','b20'),b30:bombCell(x,'30 BOMBS','b30'),b40:bombCell(x,'40 BOMBS','b40'),b50:bombCell(x,'50 BOMBS','b50'),_sort:{rank:i+1,player:x.full_name,pos:x.position,starts:x.starts,points:x.total_points,pps:x.average_points,b5:x.b5,b20:x.b20,b30:x.b30,b40:x.b40,b50:x.b50}}));
   const bookTitle=season==='all'?'COMPLETE PLAYER RECORD BOOK':`${season} PLAYER RECORD BOOK`;
-  $('#playerRecordBody').innerHTML=`<div class="threshold-grid">${thresholdCards}</div><section class="section player-book-section compact-player-book"><div class="section-head player-book-head"><h2 class="section-title">${bookTitle}</h2><div class="player-book-tools"><div>${pills('playerPos',posItems,playerPos)}</div><input id="playerRecordSearch" class="search player-record-search" placeholder="Search player…" value="${esc(playerQ)}"></div></div><div class="player-book-scroll-tip">Scroll horizontally to see all stats <span aria-hidden="true">→</span></div>${sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'5 BOMBS',key:'b5'},{label:'20 BOMBS',key:'b20'},{label:'30 BOMBS',key:'b30'},{label:'40 BOMBS',key:'b40'},{label:'50 BOMBS',key:'b50'}],rows)}</section>`;
+  const tableHtml=sortableTable([{label:'#',key:'rank'},{label:'PLAYER',key:'player'},{label:'POS',key:'pos'},{label:'STARTS',key:'starts'},{label:'POINTS',key:'points'},{label:'PTS/START',key:'pps'},{label:'5 BOMBS',key:'b5'},{label:'20 BOMBS',key:'b20'},{label:'30 BOMBS',key:'b30'},{label:'40 BOMBS',key:'b40'},{label:'50 BOMBS',key:'b50'}],rows);
+  const results=$('#playerRecordResults');
+  if(searchOnly&&results){results.innerHTML=tableHtml;return;}
+  $('#playerRecordBody').innerHTML=`<div class="threshold-grid">${thresholdCards}</div><section class="section player-book-section compact-player-book"><div class="section-head player-book-head"><h2 class="section-title">${bookTitle}</h2><div class="player-book-tools"><div>${pills('playerPos',posItems,playerPos)}</div><input id="playerRecordSearch" class="search player-record-search" placeholder="Search player…" value="${esc(playerQ)}"></div></div><div class="player-book-scroll-tip">Scroll horizontally to see all stats <span aria-hidden="true">→</span></div><div id="playerRecordResults">${tableHtml}</div></section>`;
   bindPills('playerPos',v=>{playerPos=v;render()});
-  const q=$('#playerRecordSearch');if(q){q.oninput=e=>{playerQ=e.target.value.toLowerCase();render();setTimeout(()=>{const n=$('#playerRecordSearch');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}},0)}};
+  const q=$('#playerRecordSearch');if(q){q.oninput=e=>{if(e.isComposing)return;playerQ=e.target.value.toLowerCase();render(true)}};
  };
  bindPills('playerSeason',v=>{season=v;render()});bindPills('playerView',v=>{view=v;render()});render();
 }
