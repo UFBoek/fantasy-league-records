@@ -78,6 +78,6 @@ const html=read('index.html'),sw=read('sw.js'),css=read('playoff-calculator-v167
 assert.ok(html.indexOf('playoff-season-draw-v204.js')<
  html.indexOf('playoff-calculator-v167.js'),'draw helper loaded ahead of calculator');
 assert.match(sw,/playoff-season-draw-v204\.js\?v=204/,'PWA precaches bracket simulator');
-assert.match(sw,/fig-league-shell-v205/);
+assert.match(sw,/fig-league-shell-v206/);
 assert.match(css,/pcl-sim-standings-list/,'new final-standings layout exists');
 console.log('Full-season qualification, dynamic seeding, bracket preservation, and home shortcut tests passed');

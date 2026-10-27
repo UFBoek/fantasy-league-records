@@ -58,8 +58,8 @@ assert.deepEqual(calculate({...fixture(),week:8}),{},'stale week snapshot must b
 assert.deepEqual(calculate({...fixture(),matchups:fixture().matchups.slice(1)}),{});
 
 const source=fs.readFileSync(path.resolve(__dirname,'../playoff-calculator-v167.js'),'utf8');
-assert.match(source,/g\.week===firstWeek&&Number\.isFinite\(a\.weekMean\)/);
-assert.match(source,/week===firstWeek&&Number\.isFinite\(ax\.weekMean\)/);
+assert.match(source,/var aMean=weeklyScoringMean\(g\.a,g\.week\)/);
+assert.match(source,/var aMean=weeklyScoringMean\(a,week\)/);
 assert.match(source,/function modelWeekIsReady\(\)/,'verified archive unlocks next week');
 assert.match(source,/allowIncomplete:lineupSource==='ROSTER SNAPSHOT'/,'partial historical lineups do not block the league');
 assert.match(source,/data\/playoff_player_scores\.json/);

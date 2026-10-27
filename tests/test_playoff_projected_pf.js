@@ -38,7 +38,7 @@ assert.match(source,/window\.figPlayoffPFView\.liveWeekUnderway/,'view checks a 
 assert.match(source,/window\.figPlayoffPFView\.projectedPointsFor\(t\.pf,estimate,livePF\)/,
   'display adds current week forecast to official PF');
 assert.match(source,/currentWeekProjectedPF\(r\.id\)/,'each franchise uses its current model PPG');
-assert.match(source,/return Number\.isFinite\(estimate\)\?estimate:strength\[id\]\.mean/,
+assert.match(source,/return weeklyScoringMean\(id,firstWeek\)/,
   'model baseline is used only when a current lineups forecast is unavailable');
 assert.match(source,/Number\.isFinite\(\+a\)&&Number\.isFinite\(\+b\)/,
   'manual what-if scores can override week PF same as simulations');
@@ -53,7 +53,7 @@ assert.doesNotMatch(source,/t\.pf\s*\+=\s*currentWeekProjectedPF/,
 const html=read('index.html'),sw=read('sw.js');
 assert.ok(html.indexOf('playoff-pf-view-v201.js')<html.indexOf('playoff-calculator-v167.js'),
   'view helper must load before the calculator');
-assert.match(html,/playoff-calculator-v167\.js\?v=205/);
-assert.match(sw,/fig-league-shell-v205/);
+assert.match(html,/playoff-calculator-v167\.js\?v=206/);
+assert.match(sw,/fig-league-shell-v206/);
 assert.match(sw,/playoff-pf-view-v201\.js\?v=201/);
 console.log('Live PF projection, no-double-count, finalized week and tiebreaker tests passed');

@@ -123,7 +123,7 @@
  async function applyCurrentLineups(){
    lineupActive=false;lineupActiveCount=0;lineupSnapshot=null;lineupAdjustments=null;liveActuals={};
    Object.values(strength).forEach(function(s){
-     delete s.weekMean;delete s.weekSd;delete s.weekProgress;
+     delete s.weekMean;delete s.weekExpected;delete s.weekSd;delete s.weekProgress;
      delete s.lineupDelta;delete s.pregameWeekMean;
      delete s.weekScoreState;
    });
@@ -183,6 +183,9 @@
        s.lineupDelta=pregameDelta;
        s.pregameWeekMean=pregameMean;
        s.weekMean=forecast?forecast.mean:pregameMean;
+       // Matchup odds use the actual ten-starter expected final score, not
+       // the historical team-blended mean (kept for pre-Sunday context).
+       s.weekExpected=result.starterTotal;
        s.weekSd=forecast?forecast.sd:s.sd;
        s.weekProgress=forecast?forecast.progress:0;
        // Preserve earned points from Sleeper, independently from a team's
@@ -297,10 +300,25 @@
     var final=playoffGame(semi1.winner,semi2.winner,rng,seeds);
     return {playin:playin,semi1:semi1,semi2:semi2,final:final,champion:final.winner};
   }
-  function pickScores(g,locked,rng){
+  function weeklyScoringMean(id,week){
+   var s=strength[id];
+   if(week!==firstWeek)return s.mean;
+   return window.figPlayoffWeeklyOdds?
+     window.figPlayoffWeeklyOdds.expectedWeeklyMean({
+       expected:s.weekExpected,simulated:s.weekMean,baseline:s.mean
+     }):(Number.isFinite(s.weekExpected)?s.weekExpected:
+       Number.isFinite(s.weekMean)?s.weekMean:s.mean);
+ }
+ function showPregameComparisons(){
+   // The switch is calendar-based: noon Sunday in New York, even if the
+   // earliest NFL game of the week was Thursday.
+   return !(window.figPlayoffWeeklyOdds&&
+     window.figPlayoffWeeklyOdds.sundayNoonEastern({year:year,week:firstWeek}));
+ }
+ function pickScores(g,locked,rng){
    var a=strength[g.a],b=strength[g.b],pa,pb;
-   var aMean=g.week===firstWeek&&Number.isFinite(a.weekMean)?a.weekMean:a.mean;
-   var bMean=g.week===firstWeek&&Number.isFinite(b.weekMean)?b.weekMean:b.mean;
+   var aMean=weeklyScoringMean(g.a,g.week);
+   var bMean=weeklyScoringMean(g.b,g.week);
    var aSd=g.week===firstWeek&&Number.isFinite(a.weekSd)?a.weekSd:a.sd;
    var bSd=g.week===firstWeek&&Number.isFinite(b.weekSd)?b.weekSd:b.sd;
    if(locked && Number.isFinite(+locked.aPts) && Number.isFinite(+locked.bPts) && locked.aPts!==null && locked.bPts!==null){
@@ -383,7 +401,7 @@
  function oddsForCurrentScenario(){
    if(!noMissing()){oddsResults=null;return null;}
    var key=JSON.stringify(picked)+'|'+JSON.stringify(weeks)+'|'+firstWeek+'|'+
-     (lineupActive?standings.map(function(t){var s=strength[t.id];return s.weekMean+'/'+s.weekSd;}).join(','):'season');
+     (lineupActive?standings.map(function(t){var s=strength[t.id];return s.weekExpected+'/'+s.weekMean+'/'+s.weekSd;}).join(','):'season');
    if(lastOddsKey!==key||!cachedOdds){cachedOdds=runOdds();lastOddsKey=key;}
    oddsResults=cachedOdds;return cachedOdds;
  }
@@ -421,8 +439,7 @@
    // used by pickScores, rather than showing a conflicting PF estimate.
    if(chosen&&a!==null&&a!==undefined&&b!==null&&b!==undefined&&
       Number.isFinite(+a)&&Number.isFinite(+b))return id===game.a?+a:+b;
-   var estimate=strength[id].weekMean;
-   return Number.isFinite(estimate)?estimate:strength[id].mean;
+   return weeklyScoringMean(id,firstWeek);
  }
  function renderOdds(){
    var wrap=root.querySelector('#pclOdds');
@@ -573,8 +590,8 @@
  // below is only a concise head-to-head difficulty estimate for the team page.
  function modelMatchWinChance(a,b,week){
    var ax=strength[a],bx=strength[b];
-   var diff=(week===firstWeek&&Number.isFinite(ax.weekMean)?ax.weekMean:ax.mean)-
-     (week===firstWeek&&Number.isFinite(bx.weekMean)?bx.weekMean:bx.mean);
+   var aMean=weeklyScoringMean(a,week),bMean=weeklyScoringMean(b,week);
+   var diff=aMean-bMean;
    var asd=week===firstWeek&&Number.isFinite(ax.weekSd)?ax.weekSd:ax.sd;
    var bsd=week===firstWeek&&Number.isFinite(bx.weekSd)?bx.weekSd:bx.sd;
    var spread=Math.sqrt(asd*asd+bsd*bsd);
@@ -582,8 +599,7 @@
       (ax.weekScoreState||bx.weekScoreState)){
      var conditional=window.figPlayoffScoreBounds.winChance({
        a:ax.weekScoreState,b:bx.weekScoreState,
-       aMean:Number.isFinite(ax.weekMean)?ax.weekMean:ax.mean,
-       bMean:Number.isFinite(bx.weekMean)?bx.weekMean:bx.mean,
+       aMean:aMean,bMean:bMean,
        aSd:asd,bSd:bsd,seed:0xD00DFEED+week*31+a*101+b
      });
      if(conditional!==null)return conditional;
@@ -735,6 +751,7 @@
      return;
    }
    var choice=picked[game.key]||{};
+   var pregame=showPregameComparisons();
    var modelReady=!!(lineupSnapshot&&lineupAdjustments&&currentWeekLineups);
    var points= modelReady?lineupSnapshot.players:{};
    var roster=(DATA.currentRoster||[]).filter(function(p){return +p.season===year;});
@@ -793,19 +810,22 @@
        Math.round(strength[id].weekProgress*100):0;
      var label='<div class="pcl-model-team-head">'+img(id)+
        '<div><strong>'+safe(name(id))+'</strong>'+status+'</div></div>';
-     var stats='<div class="pcl-model-summary pcl-model-summary-compact">'+
-       '<span class="pcl-model-score-card"><small>EXPECTED STARTER TOTAL</small>'+
-       '<b>'+(valid?fmt(sum):'—')+'</b><em>10 starters'+(actuals?' · '+actuals+' games started':'')+'</em></span>'+
-       '<span class="pcl-model-score-card pcl-model-score-primary"><small>SIMULATED WEEK '+firstWeek+' PPG</small>'+
-       '<b>'+fmt(forecast)+'</b><em>Used for matchup odds'+(progress?' · '+progress+'% resolved':'')+'</em></span></div>'+
-       '<details class="pcl-model-method" data-math-id="'+id+'"'+(expandedMath[id]?' open':'')+'>'+
-       '<summary>HOW IT IS CALCULATED</summary>'+
-       '<div class="pcl-model-method-stats">'+
-       '<span><small>TEAM BASELINE</small><b>'+fmt(baseline)+'</b></span>'+
-       '<span><small>USUAL LINEUP</small><b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b></span>'+
-       '<span><small>LINEUP ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span></div>'+
-       '<p>Pregame PPG equals the team baseline plus 70% of the usual-lineup difference (capped at 30 points). During NFL games, the model blends that pregame PPG toward the expected starter total as game time is played, while reducing remaining scoring uncertainty. When every starter is final, simulated PPG equals the actual score.</p>'+
-       '</details>';
+     var stats='<div class="pcl-model-summary pcl-model-summary-compact'+(pregame?' pcl-model-pregame':' pcl-model-live-only')+'">'+
+       '<span class="pcl-model-score-card pcl-model-score-primary"><small>EXPECTED STARTER TOTAL</small>'+
+       '<b>'+(valid?fmt(sum):'—')+'</b><em>Used for Week '+firstWeek+' win odds'+(actuals?' · '+actuals+' games started':'')+'</em></span>'+
+       (pregame?
+         '<span class="pcl-model-score-card"><small>SIMULATED WEEK '+firstWeek+' PPG</small>'+
+         '<b>'+fmt(forecast)+'</b><em>Historical team-adjusted estimate</em></span>'+
+         '<span class="pcl-model-score-card"><small>USUAL LINEUP</small>'+
+         '<b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b><em>Previous starters comparison</em></span>'+
+         '<details class="pcl-model-method" data-math-id="'+id+'"'+(expandedMath[id]?' open':'')+'>'+
+         '<summary>HOW IT IS CALCULATED</summary>'+
+         '<div class="pcl-model-method-stats">'+
+         '<span><small>TEAM BASELINE</small><b>'+fmt(baseline)+'</b></span>'+
+         '<span><small>LINEUP ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span></div>'+
+         '<p>The historical team baseline uses 65% season and 35% recent scoring. The simulated preview adds 70% of the difference between this week\'s expected starters and the usual lineup (capped at 30 points). Week '+firstWeek+' win odds use Expected Starter Total instead; simulated and usual lineup are context only.</p>'+
+         '</details>':'')+
+       '</div>';
      var unavailable=starters.length!==10?'<div class="pcl-warning">Ten valid starters could not be verified. The standard team projection is being used.</div>':
        !valid?'<div class="pcl-warning">One or more starters have no completed '+year+' scoring history, or the lineup baseline is unavailable. No lineup adjustment was applied.</div>':'';
      return '<section class="pcl-model-team">'+label+stats+
@@ -827,8 +847,9 @@
      '<div class="pcl-model-teams">'+teamCard(game.a)+teamCard(game.b)+'</div>'+
      '<div class="pcl-model-explanation"><strong>HOW THE NUMBERS CONNECT</strong>'+
      '<p>Before kickoff, each starter uses 70% of their average from up to eight played '+year+' NFL games plus 30% of their last three played NFL games. Waiver-wire games count regardless of fantasy ownership. For players without played '+year+' games, SLEEPER PROJ. means the current-week Sleeper forecast using league scoring settings. Genuine DNP weeks are excluded. During NFL games, LIVE EST. FINAL is the points scored so far plus the expected share for remaining game time; zero at kickoff does not erase the full-game projection. A FINAL score uses only actual Sleeper points. Updates occur every 30 seconds while this view is open.</p>'+
-     '<p>The ten expected-final values sum to the displayed starter total, including actual points PLUS the projected remaining game time for games in progress. The pregame forecast combines team scoring history (65% season + 35% recent PPG) and a conservative starting-lineup adjustment. As games progress, the live simulation blends toward earned points plus remaining player projections, reducing its scoring deviation as game time resolves. After all starters finish, the final simulated score equals the actual starter total.</p>'+
-     '<p>Only this current week uses the lineup adjustment. Future weeks use team PPG until their starters become known. Only finalized '+year+' games count.</p></div>';
+     '<p>The ten expected-final values sum to the displayed starter total, including actual points plus projected remaining game time for games in progress. This is the mean used to calculate Week '+firstWeek+' win probabilities; uncertainty shrinks as players finish. Historical team scoring is used for future weeks and as a fallback when a valid lineup is unavailable.</p>'+
+     (pregame?'<p>Before Sunday noon Eastern, simulated PPG and usual lineup are available as pregame comparisons. They do not determine this week\'s win odds.</p>':'')+
+     '<p>Future weeks use historical team PPG until their starters become known. Only finalized '+year+' games count toward team history.</p></div>';
  }
  function reRender(){
    if(!document.getElementById('figPlayoffCalc'))return;

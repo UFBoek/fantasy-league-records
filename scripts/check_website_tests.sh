@@ -18,3 +18,4 @@ node tests/test_playoff_implication_rank.js
 node tests/test_playoff_live_score_bounds.js
 node tests/test_playoff_season_draw.js
 node tests/test_playoff_week_gate.js
+node tests/test_playoff_weekly_expected.js
