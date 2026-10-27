@@ -108,6 +108,7 @@
    Object.values(strength).forEach(function(s){
      delete s.weekMean;delete s.weekSd;delete s.weekProgress;
      delete s.lineupDelta;delete s.pregameWeekMean;
+     delete s.weekScoreState;
    });
    lastOddsKey=null;cachedOdds=null;
    if(!currentWeekLineups||activeSleeperWeek!==firstWeek||firstWeek>END||
@@ -144,6 +145,8 @@
      });
      if(Object.keys(adjustments).length!==standings.length)return;
      lineupSnapshot=snapshot;lineupAdjustments=adjustments;
+     var scoreStates=lineupSource==='LIVE'&&window.figPlayoffScoreBounds?
+       window.figPlayoffScoreBounds.scoreStates(currentWeekLineups,liveActuals):{};
      standings.forEach(function(t){
        var s=strength[t.id],result=adjustments[t.id];
        if(!result.available)return;
@@ -164,6 +167,9 @@
        s.weekMean=forecast?forecast.mean:pregameMean;
        s.weekSd=forecast?forecast.sd:s.sd;
        s.weekProgress=forecast?forecast.progress:0;
+       // Preserve earned points from Sleeper, independently from a team's
+       // blended full-game mean and its still-uncertain scoring deviation.
+       s.weekScoreState=scoreStates[t.id]||null;
        lineupActive=true;lineupActiveCount++;
      });
    }catch(error){
@@ -286,6 +292,14 @@
    for(var x=0;x<attempts;x++){
      pa=aSd===0?aMean:Math.max(0,aMean+aSd*normal(rng));
      pb=bSd===0?bMean:Math.max(0,bMean+bSd*normal(rng));
+     if(g.week===firstWeek&&window.figPlayoffScoreBounds){
+       pa=window.figPlayoffScoreBounds.sample({
+         mean:pa,sd:0,state:a.weekScoreState,rng:rng,normal:normal
+       });
+       pb=window.figPlayoffScoreBounds.sample({
+         mean:pb,sd:0,state:b.weekScoreState,rng:rng,normal:normal
+       });
+     }
      if(!locked||!locked.winner||(locked.winner===g.a&&pa>pb)||(locked.winner===g.b&&pb>pa))break;
    }
    if(locked&&locked.winner){
@@ -513,6 +527,16 @@
    var asd=week===firstWeek&&Number.isFinite(ax.weekSd)?ax.weekSd:ax.sd;
    var bsd=week===firstWeek&&Number.isFinite(bx.weekSd)?bx.weekSd:bx.sd;
    var spread=Math.sqrt(asd*asd+bsd*bsd);
+   if(week===firstWeek&&window.figPlayoffScoreBounds&&
+      (ax.weekScoreState||bx.weekScoreState)){
+     var conditional=window.figPlayoffScoreBounds.winChance({
+       a:ax.weekScoreState,b:bx.weekScoreState,
+       aMean:Number.isFinite(ax.weekMean)?ax.weekMean:ax.mean,
+       bMean:Number.isFinite(bx.weekMean)?bx.weekMean:bx.mean,
+       aSd:asd,bSd:bsd,seed:0xD00DFEED+week*31+a*101+b
+     });
+     if(conditional!==null)return conditional;
+   }
    if(spread<1e-8)return diff>0?1:diff<0?0:0.5;
    return 1/(1+Math.exp(-1.7*diff/spread));
  }
