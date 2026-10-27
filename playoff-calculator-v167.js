@@ -15,6 +15,23 @@
  var save=function(){try{localStorage.setItem(storeKey('picks'),JSON.stringify(picked));localStorage.setItem(storeKey('schedule'),JSON.stringify(customSchedule));}catch(e){}};
  var read=function(suffix){try{return JSON.parse(localStorage.getItem(storeKey(suffix))||'{}')||{};}catch(e){return {};}};
  var saveBracket=function(){try{localStorage.setItem(storeKey('bracket'),JSON.stringify({picks:bracketPicks,scores:bracketScores,season:bracketSeason}));}catch(e){}};
+ function modelWeekStatus(){
+   return window.figPlayoffWeekGate?
+     window.figPlayoffWeekGate.weekStatus({
+       lastCompletedWeek:firstWeek-1,activeSleeperWeek:activeSleeperWeek,
+       regularSeasonEnd:END
+     }):
+     {ready:activeSleeperWeek===firstWeek,early:false,week:firstWeek};
+ }
+ function modelWeekIsReady(){return modelWeekStatus().ready;}
+ function modelWeekIsEarly(){return modelWeekStatus().early;}
+ function modelLineupLabel(){
+   return modelWeekIsEarly()?
+     (lineupSource==='LIVE'?'SLEEPER WEEK '+firstWeek+' PREVIEW':
+       lineupSource==='ROSTER SNAPSHOT'?'PREVIOUS LINEUP SNAPSHOT · PROVISIONAL':
+       'WEEK '+firstWeek+' PREVIEW'):
+     (lineupSource||'UNAVAILABLE');
+ }
  function getStandings(){
    var current=(DATA.currentStandings||[]), league=DATA.leagueSettings||[];
    var match=league.slice().sort(function(a,b){return Number(b.season)-Number(a.season);})[0]||{};
@@ -111,7 +128,7 @@
      delete s.weekScoreState;
    });
    lastOddsKey=null;cachedOdds=null;
-   if(!currentWeekLineups||activeSleeperWeek!==firstWeek||firstWeek>END||
+   if(!currentWeekLineups||!modelWeekIsReady()||firstWeek>END||
      !window.figPlayoffLineupModel)return;
    try{
      // Player history contains finalized games only; a partial score is not
@@ -191,15 +208,15 @@
        if(!response.ok)throw Error('HTTP '+response.status);
        var rows=await response.json();
        pairs=parseSleeper(rows);
-       if(w===firstWeek&&w===activeSleeperWeek&&pairs&&
-         rows.every(function(row){return Array.isArray(row.starters)&&row.starters.length===10;})){
+       if(w===firstWeek&&modelWeekIsReady()&&pairs&&
+         rows.every(function(row){return Array.isArray(row.starters)&&row.starters.length===10&&new Set(row.starters.map(String)).size===10;})){
          currentWeekLineups=rows;lineupSource='LIVE';
        }
      }catch(e){console.warn('Sleeper schedule Week '+w+': '+e.message);}
      if(pairs){weeks[w]=pairs;sources[w]='sleeper';}
      else if(validPairs(customSchedule[w])){weeks[w]=customSchedule[w];sources[w]='manual';}
    }));
-   if(!currentWeekLineups&&activeSleeperWeek===firstWeek&&firstWeek<=END){
+   if(!currentWeekLineups&&modelWeekIsReady()&&firstWeek<=END){
      var grouped={},snapshot=(DATA.currentRoster||[]).filter(function(r){
        return +r.season===year&&String(r.league_id)===leagueId&&r.is_starter===true;
      });
@@ -226,7 +243,7 @@
    // Keep main playoff odds and team forecasts current too. Avoid rebuilding
    // the What-If editor while someone is typing or editing their schedule.
    if(matchupPolling||!root||!root.isConnected||
-      document.hidden||activeSleeperWeek!==firstWeek||firstWeek>END||
+      document.hidden||!modelWeekIsReady()||firstWeek>END||
       !location.hash.startsWith('#/playoff-calculator')||
       !['matchup','main','team'].includes(routeMode))return;
    matchupPolling=true;
@@ -438,7 +455,7 @@
        '<td>'+r.w.toFixed(1)+'</td></tr>';
    }).join('');
    wrap.innerHTML='<div class="pcl-table-wrap"><table class="pcl-table"><thead><tr><th>TEAM</th><th>W–L</th><th>'+(livePF?'PROJ PF':'PF')+'</th><th>ALL-PLAY</th><th>PLAYOFFS</th><th>TOP-3 BYE</th><th>1 SEED</th><th>CHAMPION</th><th>PROJ W</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div class="pcl-legend">'+(livePF?'<strong>PROJ PF</strong> = finalized PF + W'+firstWeek+' expected score · Current week counted once in playoff tiebreakers. Official records unchanged. ':'')+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(firstWeek<=END?' · W'+firstWeek+' LINEUPS '+(lineupActive?lineupActiveCount+'/10 · '+lineupSource+' · '+year+' PLAYER 70/30':'UNAVAILABLE · TEAM MODEL ONLY'):'')+'</div>';
+      '<div class="pcl-legend">'+(livePF?'<strong>PROJ PF</strong> = finalized PF + W'+firstWeek+' expected score · Current week counted once in playoff tiebreakers. Official records unchanged. ':'')+(pickedMatchups?'WHAT-IF · '+pickedMatchups+' picked · ':'')+N.toLocaleString()+' simulations'+(firstWeek<=END?' · W'+firstWeek+' LINEUPS '+(lineupActive?lineupActiveCount+'/10 · '+modelLineupLabel()+' · '+year+' PLAYER 70/30':'UNAVAILABLE · TEAM MODEL ONLY'):'')+'</div>';
   }
   function renderBracket(result){
     var holder=root.querySelector('#pclBracket');
@@ -686,7 +703,7 @@
    var rows=pairs.map(function(pair){
      var a=+pair[0],b=+pair[1],key=matchKey(selectedWeek,a,b),lock=picked[key]||{};
      var status=lock.winner===a?'pcl-choice-on':'',statusB=lock.winner===b?'pcl-choice-on':'';
-     var inspect=selectedWeek===firstWeek&&activeSleeperWeek===firstWeek;
+     var inspect=selectedWeek===firstWeek&&modelWeekIsReady();
      var href='#/playoff-calculator/matchup/'+key;
      return '<div class="pcl-match-entry"><div class="pcl-match'+(a===selectedTeam||b===selectedTeam?' pcl-match-featured':'')+'">'+
        '<button type="button" class="pcl-side '+status+'" data-key="'+key+'" data-winner="'+a+'" aria-pressed="'+(lock.winner===a)+'">'+img(a)+'<span>'+safe(name(a))+'</span></button>'+
@@ -712,8 +729,8 @@
    });
    var game=allGames().find(function(g){return g.week===firstWeek&&g.key===selectedMatchupKey;});
    var back='<a class="pcl-route-back" href="#/playoff-calculator">← PLAYOFF CALCULATOR</a>';
-   if(!game||activeSleeperWeek!==firstWeek){
-     root.innerHTML=back+'<div class="pcl-warning">This matchup is no longer the current regular-season week.</div>';
+   if(!game||!modelWeekIsReady()){
+     root.innerHTML=back+'<div class="pcl-warning">Week '+firstWeek+' projections are not yet available.</div>';
      return;
    }
    var choice=picked[game.key]||{};
@@ -801,8 +818,8 @@
      '<div class="pcl-model-versus"><span>'+img(game.a)+safe(name(game.a))+'</span><b>VS</b><span>'+img(game.b)+safe(name(game.b))+'</span></div>'+
      '<div class="pcl-model-headline"><span>'+safe(name(game.a))+' WIN PROBABILITY</span><strong>'+pc(chance)+'</strong>'+
      '<span>'+safe(name(game.b))+' WIN PROBABILITY</span><strong>'+pc(1-chance)+'</strong></div>'+
-     '<div class="pcl-model-status">LINEUP SOURCE: '+safe(lineupSource||'UNAVAILABLE')+
-     ' · '+(modelReady?'CURRENT STARTERS CHECKED':'TEAM PROJECTIONS ONLY')+
+     '<div class="pcl-model-status">LINEUP SOURCE: '+safe(modelLineupLabel())+
+     ' · '+(modelReady?(modelWeekIsEarly()?'PRELIMINARY · SUBJECT TO LINEUP CHANGES':'CURRENT STARTERS CHECKED'):'TEAM PROJECTIONS ONLY')+
      ' · '+Object.keys(liveActuals||{}).length+' NFL GAMES STARTED/FINAL'+
      ' <button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '</section>'+
