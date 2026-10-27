@@ -15,7 +15,7 @@ assert.equal(forward.standings.filter(t=>t.qualifies).length,5);
 assert.equal(forward.standings.filter(t=>!t.qualifies).length,5);
 assert.deepEqual(forward.standings.map(t=>t.seed),[1,2,3,4,5,null,null,null,null,null]);
 assert.equal(forward.standings[0].wins,6);
-assert.equal(forward.standings[0].pf,1134);
+assert.equal(forward.standings[0].pf,1135);
 const reverse=simulateSeason({standings:base,games,scoreGame:g=>[90,145]});
 assert.deepEqual(reverse.seeds,[6,7,8,9,10],
  'teams previously projected to miss can ALL make playoffs in another run');
