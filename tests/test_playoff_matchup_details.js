@@ -29,8 +29,8 @@ assert.match(calc,/routeMode==='matchup'\)\{renderMatchupRoute\(\);return;\}/,'r
 assert.match(calc,/allGames\(\)\.find\(function\(g\)\{return g\.week===firstWeek&&g\.key===selectedMatchupKey;/,
  'old or invalid weeks are not treated as current');
 assert.match(calc,/VIEW STARTER PROJECTIONS/,'current matchup has explicit inspect link');
-assert.match(calc,/selectedWeek===firstWeek&&activeSleeperWeek===firstWeek/,
- 'only current league week offers inspection');
+assert.match(calc,/selectedWeek===firstWeek&&modelWeekIsReady\(\)/,
+ 'verified next week also offers an early projection inspection');
 assert.match(calc,/pcl-model-player-averages/,'each starter displays individual scoring history');
 assert.match(calc,/score\.last8_avg/,'last eight average shown');
 assert.match(calc,/score\.last3_avg/,'last three average shown');
@@ -44,9 +44,9 @@ assert.match(calc,/lineupSnapshot=snapshot;lineupAdjustments=adjustments;/,
 assert.match(calc,/return \[round\(pa\),round\(pb\)\]/);
 assert.match(css,/\.pcl-model-teams\{/);
 assert.match(css,/@media\(max-width:699px\)/);
-assert.match(html,/playoff-calculator-v167\.js\?v=204/);
+assert.match(html,/playoff-calculator-v167\.js\?v=205/);
 assert.match(html,/playoff-calculator-v167\.css\?v=204/);
-assert.match(sw,/fig-league-shell-v204/);
+assert.match(sw,/fig-league-shell-v205/);
 
 assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);

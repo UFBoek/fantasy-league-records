@@ -60,7 +60,8 @@ assert.deepEqual(calculate({...fixture(),matchups:fixture().matchups.slice(1)}),
 const source=fs.readFileSync(path.resolve(__dirname,'../playoff-calculator-v167.js'),'utf8');
 assert.match(source,/g\.week===firstWeek&&Number\.isFinite\(a\.weekMean\)/);
 assert.match(source,/week===firstWeek&&Number\.isFinite\(ax\.weekMean\)/);
-assert.match(source,/activeSleeperWeek!==firstWeek/);
+assert.match(source,/function modelWeekIsReady\(\)/,'verified archive unlocks next week');
+assert.match(source,/allowIncomplete:lineupSource==='ROSTER SNAPSHOT'/,'partial historical lineups do not block the league');
 assert.match(source,/data\/playoff_player_scores\.json/);
 assert.match(source,/lineupSource='ROSTER SNAPSHOT'/,'confirmed Sleeper roster snapshot can be used if live matchup request fails');
 assert.match(source,/LINEUPS /,'current-week lineup availability is visible');
