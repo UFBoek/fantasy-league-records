@@ -44,9 +44,9 @@ assert.match(calc,/lineupSnapshot=snapshot;lineupAdjustments=adjustments;/,
 assert.match(calc,/return \[round\(pa\),round\(pb\)\]/);
 assert.match(css,/\.pcl-model-teams\{/);
 assert.match(css,/@media\(max-width:699px\)/);
-assert.match(html,/playoff-calculator-v167\.js\?v=205/);
-assert.match(html,/playoff-calculator-v167\.css\?v=204/);
-assert.match(sw,/fig-league-shell-v205/);
+assert.match(html,/playoff-calculator-v167\.js\?v=206/);
+assert.match(html,/playoff-calculator-v167\.css\?v=206/);
+assert.match(sw,/fig-league-shell-v206/);
 
 assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);
