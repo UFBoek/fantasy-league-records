@@ -158,7 +158,8 @@
      }
      var adjustments=window.figPlayoffLineupModel.calculate({
        year:year,week:firstWeek,matchups:currentWeekLineups,playerScores:snapshot,
-       liveOverrides:liveActuals
+       liveOverrides:liveActuals,
+       allowIncomplete:lineupSource==='ROSTER SNAPSHOT'
      });
      if(Object.keys(adjustments).length!==standings.length)return;
      lineupSnapshot=snapshot;lineupAdjustments=adjustments;
@@ -230,7 +231,7 @@
          .map(function(r){return String(r.player_id);});
        return {roster_id:t.id,starters:starters};
      });
-     if(backup.length===10&&backup.every(function(r){
+     if(backup.length===10&&backup.some(function(r){
        return r.starters.length===10&&new Set(r.starters).size===10;
      })){
        currentWeekLineups=backup;lineupSource='ROSTER SNAPSHOT';
