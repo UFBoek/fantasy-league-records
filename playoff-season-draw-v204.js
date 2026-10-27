@@ -25,7 +25,7 @@
      if(!a||!b||a===b)throw new Error('Remaining matchup must use two valid teams');
      const points=scoreGame(game);
      if(!Array.isArray(points)||points.length!==2||
-        !points.every(value=>Number.isFinite(Number(value))))
+        !points.every(value=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))))
        throw new Error('Unusable weekly fantasy scores');
      const pa=Number(points[0]),pb=Number(points[1]);
      a.pf+=pa;b.pf+=pb;
