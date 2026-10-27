@@ -6,7 +6,7 @@
   'use strict';
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
-  function calculate({year,week,matchups,playerScores,liveOverrides}) {
+  function calculate({year,week,matchups,playerScores,liveOverrides,allowIncomplete=false}) {
     const rows=Array.isArray(matchups)?matchups:[];
     const currentYear=Number(year), activeWeek=Number(week);
     if(!playerScores||Number(playerScores.season)!==currentYear||
@@ -49,10 +49,17 @@
     const adjusted={},seen=new Set();
     for(const row of rows) {
       const team=Number(row.roster_id),starters=Array.isArray(row.starters)?row.starters.map(String):[];
-      if(!Number.isInteger(team)||team<1||team>10||seen.has(team)||
-        starters.length!==10||new Set(starters).size!==10||
-        starters.some(id=>!id||id==='0'||id==='null'))return {};
+      if(!Number.isInteger(team)||team<1||team>10||seen.has(team))return {};
       seen.add(team);
+      if(starters.length!==10||new Set(starters).size!==10||
+         starters.some(id=>!id||id==='0'||id==='null')){
+        // A carried-forward roster snapshot can contain fewer than 10
+        // starters after Week 7 finalizes. Do not invalidate the other
+        // nine teams or manufacture lineup spots. Keep strict live validation.
+        if(!allowIncomplete)return {};
+        adjusted[team]={delta:0,historyWeeks:0,available:false};
+        continue;
+      }
       const past=Array.isArray(previous[String(team)])?previous[String(team)].slice(0,3):[];
       const current=projectedTotal(starters,true);
       const pregame=projectedTotal(starters,false);
