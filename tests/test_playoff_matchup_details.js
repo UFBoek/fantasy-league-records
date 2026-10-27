@@ -29,8 +29,8 @@ assert.match(calc,/routeMode==='matchup'\)\{renderMatchupRoute\(\);return;\}/,'r
 assert.match(calc,/allGames\(\)\.find\(function\(g\)\{return g\.week===firstWeek&&g\.key===selectedMatchupKey;/,
  'old or invalid weeks are not treated as current');
 assert.match(calc,/VIEW STARTER PROJECTIONS/,'current matchup has explicit inspect link');
-assert.match(calc,/selectedWeek===firstWeek&&activeSleeperWeek===firstWeek/,
- 'only current league week offers inspection');
+assert.match(calc,/selectedWeek===firstWeek&&modelWeekIsReady\(\)/,
+ 'verified next week also offers an early projection inspection');
 assert.match(calc,/pcl-model-player-averages/,'each starter displays individual scoring history');
 assert.match(calc,/score\.last8_avg/,'last eight average shown');
 assert.match(calc,/score\.last3_avg/,'last three average shown');
