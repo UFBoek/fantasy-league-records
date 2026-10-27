@@ -46,7 +46,7 @@ assert.match(css,/\.pcl-model-teams\{/);
 assert.match(css,/@media\(max-width:699px\)/);
 assert.match(html,/playoff-calculator-v167\.js\?v=206/);
 assert.match(html,/playoff-calculator-v167\.css\?v=206/);
-assert.match(sw,/fig-league-shell-v206/);
+assert.match(sw,/fig-league-shell-v207/);
 
 assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);
