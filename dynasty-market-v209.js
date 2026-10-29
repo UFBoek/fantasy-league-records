@@ -203,7 +203,6 @@
   var forecast=window.figDynastyWindowForecast.forecast({
    teams:entries,weeklyRanks:DATA.weeklyRanks||[],year:season,
    currentModel:window.figDynastyWindowModel,
-   market:DATA.raValues,
    playerValue:function(id){return raPlayer(id);},
    pickValue:function(p){return raDynastyPickValuation(p.pick_season,p.round,p.original_franchise_id).value;}
   });
@@ -242,7 +241,7 @@
    }).join('')+'</div></div>'+
    '<div class="dm-forecast-legend"><span><i class="elite"></i>25%+</span><span><i class="strong"></i>10–24%</span>'+
    '<span><i class="mixed"></i>5–9%</span><span><i class="low"></i>Below 5%</span></div>'+
-   '<p class="dm-forecast-footnote">Projected title opportunity · '+forecast.trials+' neutral-playoff scenarios · Window = above 10% league share</p></section>';
+   '<p class="dm-forecast-footnote">'+forecast.trials+' neutral-playoff scenarios · Window ≥10% league title share · No trades modeled</p></section>';
   var cards=forecast.teams.map(function(t){
    var now=currentById.get(t.id),shortWindow=t.openYear===null?'Not projected':t.window;
    var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
@@ -260,7 +259,7 @@
   holder.innerHTML=heading+table+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE PROJECTIONS</span><h2>WINDOW ESTIMATES</h2></div></div>'+
    '<div class="dm-forecast-cards">'+cards+'</div></section>'+
-   '<p class="dm-footnote">Neutral 5-team playoff forecast based on modeled scoring strength. Not official season title odds. Future drafts, trades and player outcomes are uncertain.</p></div>';
+   '<p class="dm-footnote">Neutral 5-team playoff forecast · Current roster and owned picks only · No future trades assumed</p></div>';
  }
  function metric(n){return n===null||!Number.isFinite(n)?'—':n.toFixed(1);}
  async function launch(mode,team){
