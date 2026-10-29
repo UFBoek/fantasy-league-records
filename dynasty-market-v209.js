@@ -203,6 +203,7 @@
   var forecast=window.figDynastyWindowForecast.forecast({
    teams:entries,weeklyRanks:DATA.weeklyRanks||[],year:season,
    currentModel:window.figDynastyWindowModel,
+   market:DATA.raValues,
    playerValue:function(id){return raPlayer(id);},
    pickValue:function(p){return raDynastyPickValuation(p.pick_season,p.round,p.original_franchise_id).value;}
   });
