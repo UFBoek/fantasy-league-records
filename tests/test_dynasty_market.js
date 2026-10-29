@@ -76,7 +76,7 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  assert.match(holder.innerHTML,/MODEL PPG/);
  assert.doesNotMatch(holder.innerHTML,/FULL METHODOLOGY|HOW THE SCORES ARE BUILT/);
  assert.doesNotMatch(holder.innerHTML,/VERIFIED PLAYER AGES|55% PPG|AGE-AWARE/);
- assert.match(holder.innerHTML,/PLAYOFF CALCULATOR/i);
+ assert.match(holder.innerHTML,/href="#\/playoff-calculator"/i);
  assert.match(holder.innerHTML,/Dynasty Juggernaut|Win-Now Contender|Rising Contender|Fragile Contender/i);
  assert.match(holder.innerHTML,/AGE-ADJUSTED CORE/);
  assert.match(holder.innerHTML,/VIEW SCORE BREAKDOWN/);
