@@ -33,7 +33,7 @@
    const full=mean(scores),recent=mean(scores.slice(-3));
    const ppg=Math.max(35,Math.min(300,.65*full+.35*recent));
    const recentWindow=scores.slice(-8),need=Math.max(0,8-recentWindow.length);
-   const priorWindow=prevScores.slice(-need);
+   const priorWindow=need?prevScores.slice(-need):[];
    const varianceTotal=recentWindow.reduce((sum,v)=>sum+(v-mean(recentWindow))**2,0)+
       priorWindow.reduce((sum,v)=>sum+(v-mean(prevScores))**2,0);
    const sdVal=Math.sqrt(varianceTotal/Math.max(recentWindow.length+priorWindow.length,1));
