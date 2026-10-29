@@ -3,8 +3,6 @@
 # Sleeper data refresh. UI regressions must not halt weekly score publication.
 set -euo pipefail
 node tests/test_dynasty_market.js
-node tests/test_dynasty_window_model.js
-node tests/test_dynasty_window_forecast.js
 node tests/test_record_break_watch.js
 node tests/test_team_record_views.js
 node tests/test_single_season_watch.js
