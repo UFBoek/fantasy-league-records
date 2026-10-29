@@ -131,3 +131,9 @@
 .dm-dynasty-shortcuts b{font-size:10px}
 .dm-dynasty-shortcuts span{font-size:9px}
 }
+
+@media(max-width:699px){
+  #dmGraph,.dm-visual-scroll{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  #dmGraph .dm-stock-chart,.dm-visual-scroll .dm-window-chart{width:660px;max-width:none}
+  #dmGraph::before,.dm-visual-scroll::before{content:"SWIPE CHART →";display:block;text-align:right;color:#13896c;font:850 9px Inter,sans-serif;letter-spacing:.04em;padding:3px 2px 8px}
+}
