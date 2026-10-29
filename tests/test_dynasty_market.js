@@ -23,6 +23,7 @@ const leagueData={
  standingsCareer:rows('standings_career'),
  currentStandings:rows('current_standings_web'),
  weeklyRanks:rows('weekly_scoring_ranks'),
+ raValues:rows('rosteraudit_values'),
 };
 let activeHistory={version:1,snapshots:[snapshot]};
 const ctx={
