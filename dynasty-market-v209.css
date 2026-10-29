@@ -118,3 +118,16 @@
  .dm-tabs a{font-size:8px;padding:10px 6px}
  .dm-wealth-stat{min-width:74px}
 }
+
+/* Shortcuts use the same styles on the existing dynasty ranking and team pages. */
+.dm-dynasty-shortcuts,.dm-team-quicklinks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0 18px}
+.dm-dynasty-shortcuts a,.dm-team-quicklinks a{display:flex;flex-direction:column;justify-content:center;gap:6px;text-decoration:none;color:#194d47;background:#e4f1ed;border:1px solid #c3d9d2;border-radius:12px;padding:15px;min-width:0;font:900 11px Inter,sans-serif;letter-spacing:.035em}
+.dm-dynasty-shortcuts b{font:900 12px Inter,sans-serif;color:#24434c}
+.dm-dynasty-shortcuts span{font:650 11px/1.4 Inter,sans-serif;color:#6b8188}
+.dm-dynasty-shortcuts a:hover,.dm-team-quicklinks a:hover{background:#d3eae2}
+@media(max-width:699px){
+.dm-dynasty-shortcuts,.dm-team-quicklinks{gap:7px;margin:11px 0}
+.dm-dynasty-shortcuts a,.dm-team-quicklinks a{padding:11px 9px;font-size:10px}
+.dm-dynasty-shortcuts b{font-size:10px}
+.dm-dynasty-shortcuts span{font-size:9px}
+}
