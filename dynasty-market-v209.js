@@ -11,7 +11,6 @@
  var firstId=function(obj){return Number(obj.franchise_id);};
  var dataHistory=[];
  var entries=[];
- var currentMode='market';
  var activePeriod='ALL';
  var displayed=new Set();
  var focus=null;
@@ -20,10 +19,9 @@
  var safeNumber=function(v){var n=Number(v);return Number.isFinite(n)?n:0;};
  var avatar=function(id){return '<img src="'+escapeHTML(OWNER_AVATAR_BY_ID[id]||'')+'" alt="" loading="lazy">';};
  function name(id){return escapeHTML(displayOwnerName('',id)||names[id]||String(id));}
- function tabs(mode){
+ function tabs(){
   return '<nav class="dm-tabs" aria-label="Dynasty market sections">'+
-   '<a class="'+(mode==='market'?'active':'')+'" href="#/stock-market">STOCK MARKET</a>'+
-   '<a class="'+(mode==='window'?'active':'')+'" href="#/championship-window">CHAMPIONSHIP WINDOW</a>'+
+   '<a class="active" href="#/stock-market">STOCK MARKET</a>'+
    '<a href="#/dynasty">ROSTER VALUES</a></nav>';
  }
  function teamRow(t, extra){
@@ -137,7 +135,7 @@
   var now=dataHistory[dataHistory.length-1],prior=dataHistory.length>1?dataHistory[dataHistory.length-2]:null;
   var lastDate=now?ts(now.date):raDate();
   var top=entries[0];
-  var header='<div class="dm-page">'+tabs('market')+
+  var header='<div class="dm-page">'+tabs()+
     '<div class="dm-heading"><div><span class="dm-kicker">FRANCHISE EQUITY TRACKER</span><h1>DYNASTY STOCK MARKET</h1></div>'+
     '<span class="dm-as-of">LAST MARKET SNAPSHOT<br><b>'+escapeHTML(lastDate)+'</b></span></div>'+
     '<div class="dm-overview">'+
@@ -155,7 +153,7 @@
      '<div class="dm-focus-stats"><div><small>PLAYERS</small><strong>'+fmt(single.playerValue)+'</strong></div>'+
        '<div><small>FUTURE PICKS</small><strong>'+fmt(single.picks)+'</strong></div>'+
        '<div><small>LEAGUE WEALTH SHARE</small><strong>'+percent(wealth?single.value/wealth*100:0)+'</strong></div></div>'+
-     '<a class="dm-focus-link" href="#/championship-window">VIEW CHAMPIONSHIP WINDOW →</a></section>':'';
+     '</section>':'';
   holder.innerHTML=header+'<section class="dm-box"><div>'+selector+'</div><div id="dmGraph"></div>'+legend+'</section>'+
    (focusCard||'')+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>VALUATION CHANGE</span><h2>MARKET MOVERS</h2></div></div><div class="dm-movers" id="dmMovers"></div></section>'+
@@ -178,95 +176,10 @@
   });
   renderGraph();
  }
- function projectedPPG(){
-  var standings=DATA.currentStandings||[];
-  var season=Math.max.apply(null,standings.map(function(r){return Number(r.season);}));
-  var seasonScores=(DATA.weeklyRanks||[]).filter(function(r){return Number(r.season)===season&&Number(r.week)<=14&&Number.isFinite(Number(r.points_for));});
-  var all=seasonScores.map(function(r){return Number(r.points_for);});
-  var avg=all.reduce(function(a,b){return a+b;},0)/Math.max(1,all.length);
-  var result={};
-  entries.forEach(function(t){
-   var scores=seasonScores.filter(function(r){return Number(r.franchise_id)===t.id;})
-     .sort(function(a,b){return Number(a.week)-Number(b.week);}).map(function(r){return Number(r.points_for);});
-   if(scores.length<5){result[t.id]=null;return;}
-   var full=scores.reduce(function(a,b){return a+b;},0)/scores.length;
-   var recent=scores.slice(-3).reduce(function(a,b){return a+b;},0)/3;
-   result[t.id]=Math.max(35,Math.min(300,.65*full+.35*recent));
-  });
-  return {byId:result,season:season,completedWeeks:Math.floor(all.length/10)};
- }
- function windowScores(){
-  var season=Math.max.apply(null,(DATA.currentStandings||[]).map(function(t){return Number(t.season);}));
-  var model=window.figDynastyWindowModel.calculate({
-   teams:entries,weeklyRanks:DATA.weeklyRanks||[],season:season,playerValue:function(id){return raPlayer(id);}
-  });
-  var forecast=window.figDynastyWindowForecast.forecast({
-   teams:entries,weeklyRanks:DATA.weeklyRanks||[],year:season,
-   currentModel:window.figDynastyWindowModel,
-   market:DATA.raValues,
-   playerValue:function(id){return raPlayer(id);},
-   pickValue:function(p){return raDynastyPickValuation(p.pick_season,p.round,p.original_franchise_id).value;}
-  });
-  return {forecast:forecast,current:model};
- }
- function chanceLabel(chance){return chance>=99.95?'≥99.9%':chance<1?'<1%':chance>=95?chance.toFixed(1)+'%':Math.round(chance)+'%';}
- function yearColor(chance){
-  if(chance>=25)return 'elite';
-  if(chance>=10)return 'strong';
-  if(chance>=5)return 'mixed';
-  return 'low';
- }
- function timelineCell(row){
-  return '<span class="dm-year-cell '+yearColor(row.titleChance)+'" title="'+row.year+': '+row.titleChance.toFixed(1)+'% neutral-bracket title chance">'+
-   '<strong>'+chanceLabel(row.titleChance)+'</strong></span>';
- }
- function windowPage(){
-  var result=windowScores(),forecast=result.forecast,current=result.current;
-  var yearLabels=forecast.years.map(function(y){return '<span>'+y+'</span>';}).join('');
-  if(!forecast.ready){
-   holder.innerHTML='<div class="dm-page">'+tabs('window')+'<div class="dm-heading"><div><span class="dm-kicker">2026–2031 OUTLOOK</span><h1>CHAMPIONSHIP WINDOW</h1></div></div>'+
-    '<div class="dm-chart-empty"><strong>FORECAST DATA UNAVAILABLE</strong><span>Requires verified roster ages and five completed regular-season games.</span></div></div>';
-   return;
-  }
-  var currentById=new Map(current.rows.map(function(r){return [r.id,r];}));
-  var heading='<div class="dm-page">'+tabs('window')+
-   '<div class="dm-heading"><div><span class="dm-kicker">2026–2031 FRANCHISE OUTLOOK</span><h1>CHAMPIONSHIP WINDOW</h1></div>'+
-   '<a class="dm-calculator" href="#/playoff-calculator">TITLE ODDS →</a></div>';
-  var table='<section class="dm-box dm-forecast-box">'+
-   '<div class="dm-panel-head"><div><span>LEAGUE OUTLOOK</span><h2>CONTENTION TIMELINE</h2></div></div>'+
-   '<div class="dm-forecast-scroll"><div class="dm-forecast-grid">'+
-   '<div class="dm-forecast-head"><span>FRANCHISE</span><div class="dm-forecast-years">'+yearLabels+'</div></div>'+
-   forecast.teams.map(function(t){
-    return '<div class="dm-forecast-entry"><a href="#/team/'+t.id+'">'+avatar(t.id)+'<b>'+name(t.id)+'</b></a>'+
-     '<div class="dm-forecast-years">'+t.outlook.map(timelineCell).join('')+'</div></div>';
-   }).join('')+'</div></div>'+
-   '<div class="dm-forecast-legend"><span><i class="elite"></i>25%+</span><span><i class="strong"></i>10–24%</span>'+
-   '<span><i class="mixed"></i>5–9%</span><span><i class="low"></i>Below 5%</span></div>'+
-   '<p class="dm-forecast-footnote">'+forecast.trials+' scenarios · 2032+ estimates are uncertain · 2030+ original picks assumed retained</p></section>';
-  var cards=forecast.teams.map(function(t){
-   var now=currentById.get(t.id),shortWindow=t.window,finalYear=t.outlook[t.outlook.length-1];
-   var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
-     '<strong>'+chanceLabel(y.titleChance)+'</strong><small>'+y.strength.toFixed(0)+' PPG</small><small>'+y.futurePickCount+' picks · '+fmt(y.futurePickCapital)+' value</small></div>';}).join('');
-   return '<article class="dm-forecast-card">'+
-     '<div class="dm-forecast-card-head"><a href="#/team/'+t.id+'" class="dm-window-identity">'+avatar(t.id)+
-       '<span class="dm-window-name"><strong>'+name(t.id)+'</strong><small>'+escapeHTML(t.status)+'</small></span></a>'+
-       '<div class="dm-forecast-window"><small>EST. WINDOW</small><strong>'+escapeHTML(shortWindow)+'</strong></div></div>'+
-     '<div class="dm-forecast-metrics"><div><small>CURRENT SCORE</small><b>'+metric(now?now.current:null)+'</b></div>'+
-       '<div><small>PEAK PPG YEAR</small><b>'+t.peakYear+'</b></div>'+
-       '<div><small>2031 TITLE OUTLOOK</small><b>'+chanceLabel(t.farChance)+'</b></div></div>'+
-     '<div class="dm-pick-stock"><span>2031 DRAFT STOCK</span><strong>'+finalYear.futurePickCount+' PICKS · '+fmt(finalYear.futurePickCapital)+'</strong></div>'+     '<details class="dm-window-detail"><summary>YEAR-BY-YEAR OUTLOOK</summary><div class="dm-forecast-years-detail">'+years+'</div></details>'+
-     '</article>';
-  }).join('');
-  holder.innerHTML=heading+table+
-   '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE PROJECTIONS</span><h2>WINDOW ESTIMATES</h2></div></div>'+
-   '<div class="dm-forecast-cards">'+cards+'</div></section>'+
-   '<p class="dm-footnote">2030+ draft years add each franchise’s original rounds 1–4 as they become available · No future trades assumed · Picks count as capital until drafted, not guaranteed points</p></div>';
- }
- function metric(n){return n===null||!Number.isFinite(n)?'—':n.toFixed(1);}
  async function launch(mode,team){
-  currentMode=mode==='window'?'window':'market';focus=Number.isInteger(Number(team))&&Number(team)>=1&&Number(team)<=10?Number(team):null;
+  focus=Number.isInteger(Number(team))&&Number(team)>=1&&Number(team)<=10?Number(team):null;
   navActive('dynasty');
-  await load(['raValues','currentRoster','currentPicks','draftPicks','standingsCareer','weeklyRanks','currentStandings']);
+  await load(['raValues','currentRoster','currentPicks','draftPicks','standingsCareer']);
   holder=document.getElementById('app');
   if(!raReady()){
    holder.innerHTML='<section class="dm-page"><div class="dm-chart-empty">Dynasty values are temporarily unavailable. Awaiting a validated RosterAudit refresh.</div></section>';
@@ -280,12 +193,9 @@
     return s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)&&Array.isArray(s.teams)&&s.teams.length===10;
    }).sort(function(a,b){return a.date.localeCompare(b.date);});}}
   }catch(e){console.warn('Dynasty history unavailable, showing current values only:',e);}
-  if(currentMode==='window')windowPage();
-  else {
-   activePeriod='ALL';
-   displayed=new Set(focus?[focus]:entries.slice(0,4).map(function(t){return t.id;}));
-   marketPage();
-  }
+  activePeriod='ALL';
+  displayed=new Set(focus?[focus]:entries.slice(0,4).map(function(t){return t.id;}));
+  marketPage();
  }
  window.figDynastyMarket=launch;
 })();
