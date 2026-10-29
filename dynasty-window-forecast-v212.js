@@ -1,22 +1,21 @@
-/* FIG Championship Window forecast through 2031.
-   Scenario-based team-strength outlook, NOT a forecast of specific titles.
-   No roster/league result is written back to Sleeper or historical records. */
+/* FIG 2026–2031 contender outlook. Scenario-based relative strength; not title odds.
+   Annual market evolution, uncertain rookie outcomes, asset-conserving retooling.
+   The model has no team-name adjustments or guaranteed playoff outcomes. */
 (function(global){
  'use strict';
- const HORIZON=2031,TRIALS=700;
+ const HORIZON=2031,TRIALS=1600,ELASTICITY=.75;
  const POS=new Set(['QB','RB','WR','TE']);
  const CURVES={
-  QB:[[19,.80],[22,.92],[25,1],[28,1.06],[31,1.04],[33,.98],[35,.88],[38,.69],[41,.40],[45,.10]],
-  RB:[[19,.84],[21,1],[23,1.04],[25,.97],[27,.78],[29,.54],[31,.30],[33,.13],[36,.04]],
-  WR:[[19,.78],[22,.92],[25,1.05],[27,1.08],[29,.98],[31,.82],[33,.59],[35,.35],[38,.12]],
-  TE:[[19,.70],[23,.87],[26,1.03],[29,1.07],[31,.96],[33,.78],[35,.52],[38,.22],[42,.08]]
+  QB:[[19,.76],[22,.88],[24,.98],[26,1.06],[29,1.11],[31,1.09],[33,1.03],[35,.92],[38,.70],[41,.40],[45,.10]],
+  RB:[[19,.78],[21,.92],[23,1.02],[25,1.06],[26,1.01],[27,.90],[28,.77],[30,.46],[33,.14],[36,.04]],
+  WR:[[19,.72],[22,.86],[24,1],[26,1.10],[28,1.12],[29,1.06],[31,.89],[33,.66],[35,.39],[38,.12]],
+  TE:[[19,.64],[23,.79],[25,.95],[27,1.07],[29,1.12],[31,1.07],[33,.87],[35,.57],[38,.22],[42,.08]]
  };
- const MIN_BASE_WEEKS=5;
  function value(x){const n=Number(x);return Number.isFinite(n)?Math.max(0,n):0;}
  function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
  function average(a){return a.reduce((s,n)=>s+n,0)/Math.max(1,a.length);}
  function ageCurve(pos,age){
-  let points=CURVES[String(pos||'').toUpperCase()];
+  const points=CURVES[String(pos||'').toUpperCase()];
   if(!points)return .6;
   if(age<=points[0][0])return points[0][1];
   for(let i=1;i<points.length;i++){
@@ -29,165 +28,184 @@
  }
  function generator(seed){
   let state=seed>>>0;
-  return function(){
-   state^=state<<13;state^=state>>>17;state^=state<<5;
-   return ((state>>>0)+.5)/4294967296;
-  };
+  return function(){state^=state<<13;state^=state>>>17;state^=state<<5;return ((state>>>0)+.5)/4294967296;};
  }
  function normal(rng){return Math.sqrt(-2*Math.log(Math.max(1e-9,rng())))*Math.cos(2*Math.PI*rng());}
  function playersFor(team,playerValue){
   return [...new Map((team.roster||[]).map(p=>[String(p.player_id),p])).values()]
-    .filter(p=>POS.has(String(p.position).toUpperCase()))
-    .map(p=>({pos:String(p.position).toUpperCase(),age:Number(p.age),v:value(playerValue(p.player_id)),
-      slot:!!(p.is_starter===true||p.is_starter==='True'||p.is_starter==='true')}));
+   .filter(p=>POS.has(String(p.position).toUpperCase()))
+   .map(p=>({pos:String(p.position).toUpperCase(),age:Number(p.age),v:value(playerValue(p.player_id))}));
  }
  function capital(roster){
   const sorted=roster.map(p=>p.v).filter(v=>v>0).sort((a,b)=>b-a);
   return sorted.slice(0,10).reduce((s,n)=>s+n,0)+.28*sorted.slice(10,20).reduce((s,n)=>s+n,0);
  }
- function futurePick(pick,lookup,year){
+ function pickValuation(pick,lookup,year){
   const y=Number(pick.pick_season);
   if(y<=year||y>HORIZON)return null;
   const p=value(lookup(pick));
-  return p>0?{year:y,position:'WR',value:p,round:Number(pick.round)}:null;
+  return p>0?{year:y,value:p,round:Number(pick.round)}:null;
  }
  function validate(input){
   const {teams,weeklyRanks,year,playerValue,pickValue}=input;
-  if(!Array.isArray(teams)||teams.length!==10||new Set(teams.map(t=>Number(t.id))).size!==10)throw Error('Expected ten franchises');
-  if(typeof playerValue!=='function'||typeof pickValue!=='function')throw Error('Value lookups required');
+  if(!Array.isArray(teams)||teams.length!==10||new Set(teams.map(t=>Number(t.id))).size!==10)throw Error('Expected 10 distinct franchises');
+  if(typeof playerValue!=='function'||typeof pickValue!=='function')throw Error('Player/pick valuations required');
   if(!Array.isArray(weeklyRanks)||!Number.isInteger(year)||year<2023||year>HORIZON)throw Error('Invalid scoring year');
   const scoringModel=input.currentModel||(global&&global.figDynastyWindowModel);
   if(!scoringModel||typeof scoringModel.projected!=='function')throw Error('Existing PPG model required');
   const scoreRows=weeklyRanks.filter(r=>Number(r.season)===year&&Number(r.week)>=1&&Number(r.week)<=14&&Number.isFinite(Number(r.points_for)));
-  const teamInfo=teams.map(t=>{
+  const teamsData=teams.map(t=>{
    const id=Number(t.id);
    const scores=scoreRows.filter(s=>Number(s.franchise_id)===id).sort((a,b)=>Number(a.week)-Number(b.week)).map(x=>Number(x.points_for));
    const model=scoringModel.projected(scores,[]);
    const roster=playersFor(t,playerValue);
-   const ageCoverage=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0)/
-     Math.max(1,roster.reduce((s,p)=>s+p.v,0));
-   const picks=(t.asset&&t.asset.picks||[]).map(p=>futurePick(p,pickValue,year)).filter(Boolean);
-   return {id,ppg:model&&model.ppg,roster,picks,ageCoverage,baseCapital:capital(roster),
-     total:value(t.value),pickCapital:value(t.picks),hasScores:scores.length>=MIN_BASE_WEEKS};
+   const total=roster.reduce((s,p)=>s+p.v,0);
+   const covered=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0);
+   const picks=(t.asset&&t.asset.picks||[]).map(p=>pickValuation(p,pickValue,year)).filter(Boolean);
+   const lastKnownPickYear=Math.max(year,...(t.asset?.picks||[]).map(p=>Number(p.pick_season)||year));
+   return {id,ppg:model&&model.ppg,roster,picks,lastKnownPickYear,
+    ageCoverage:total>0?covered/total:0,baseCapital:capital(roster),
+    total:value(t.value),pickCapital:value(t.picks),hasScores:scores.length>=5};
   });
-  const ready=teamInfo.every(t=>t.hasScores&&t.roster.length>=10&&t.ageCoverage>=.9&&t.baseCapital>0);
-  return {ready,teams:teamInfo,year};
+  const ready=teamsData.every(t=>t.hasScores&&t.roster.length>=10&&t.ageCoverage>=.90&&t.baseCapital>0);
+  return {ready,teams:teamsData,year};
  }
- function modelTurnover(roster,rng,retool){
-  if(!retool)return;
-  // Rebuilding by exchanging existing veterans, never conjuring extra wealth.
-  // Only a small portion of older assets can be sold each season; haircut
-  // and development uncertainty prevent assuming perfect trades.
-  const retirement={QB:33,RB:26,WR:29,TE:30};
-  const candidates=roster.filter(p=>p.age>retirement[p.pos]&&p.v>200)
-   .sort((a,b)=>(b.age-retirement[b.pos])-(a.age-retirement[a.pos]));
+ function convertVeterans(roster,rng){
+  const threshold={QB:33,RB:26,WR:29,TE:30};
+  const list=roster.filter(p=>p.age>threshold[p.pos]&&p.v>250)
+    .sort((a,b)=>(b.age-threshold[b.pos])-(a.age-threshold[a.pos]));
   let moved=0;
-  for(const old of candidates){
+  for(const p of list){
    if(moved>=2)break;
-   if(rng()>.28)continue;
-   const proceeds=old.v*(.72+.26*rng());
-   old.v=0;
-   // A veteran can be converted into younger value, but at a market discount.
-   roster.push({pos:old.pos,age:old.pos==='QB'?24:old.pos==='TE'?24:22,
-     v:proceeds*clamp(.85+.28*normal(rng),.30,1.45)});
+   if(rng()>.23)continue;
+   // Sale proceeds are discounted; the original player leaves the asset pool.
+   const proceeds=p.v*(.70+.20*rng());
+   p.v=0;
+   roster.push({pos:p.pos,age:p.pos==='QB'?25:23,
+      v:proceeds*clamp(.89+.17*normal(rng),.40,1.18)});
    moved++;
   }
  }
- function seasonStep(state,year,rng,retool){
+ function consolidateBench(roster,rng){
+  const ordered=roster.filter(p=>p.v>100).sort((a,b)=>b.v-a.v);
+  if(ordered.length<13)return;
+  const core=ordered.slice(0,10).reduce((s,p)=>s+p.v,0);
+  const bench=ordered.slice(10).reduce((s,p)=>s+p.v,0);
+  const probability=clamp(.14+.60*bench/Math.max(1,core),.14,.65);
+  if(rng()>probability)return;
+  // Exchange two nonstarter assets for one younger starter-quality asset,
+  // accepting a 10–25% value haircut. This models OPTIONAL retooling,
+  // without creating value or assuming managers make perfect trades.
+  const candidates=ordered.slice(10).sort((a,b)=>b.v-a.v);
+  if(candidates.length<2)return;
+  const a=candidates[0],b=candidates[1];
+  const proceeds=(a.v+b.v)*(.75+.15*rng());
+  if(proceeds<300)return;
+  a.v=0;b.v=0;
+  const pos=rng()<.32?'QB':rng()<.4?'TE':'WR';
+  roster.push({pos,age:pos==='QB'?24:23,v:proceeds});
+ }
+ function seasonStep(state,year,rng,market){
   const next=[];
-  for(const asset of state.players){
-   const oldFactor=ageCurve(asset.pos,asset.age),newFactor=ageCurve(asset.pos,asset.age+1);
-   const retention=clamp(newFactor/Math.max(.05,oldFactor),.35,1.32);
-   // Idiosyncratic uncertain development, injury and value changes.
-   const random=clamp(1+.13*normal(rng),.52,1.48);
-   const v=asset.v*retention*random;
-   if(v>35)next.push({pos:asset.pos,age:asset.age+1,v});
+  for(const p of state.players){
+   const before=ageCurve(p.pos,p.age),after=ageCurve(p.pos,p.age+1);
+   const growth=clamp(after/Math.max(.05,before),.28,1.28);
+   const uncertainty=clamp(1+.115*normal(rng),.50,1.49);
+   const v=p.v*growth*uncertainty;
+   if(v>35)next.push({pos:p.pos,age:p.age+1,v});
   }
-  for(const pick of state.picks){
-   if(pick.year!==year)continue;
-   // Fixed-pick proceeds are spent into a rookie, not retained as cash too.
-   const d=clamp(.84+.61*normal(rng),.08,2.45);
+  const arrivals=state.picks.filter(p=>p.year===year);
+  if(year>state.base.lastKnownPickYear){
+   // Untraded future picks beyond the known traded-pick horizon.
+   // These arise for every franchise equally, not as guaranteed acquisitions.
+   // Low-to-mid-round prices are used at a haircut due to uncertainty.
+   for(let round=1;round<=4;round++){
+    const estimated=value(market.future_picks?.['2029:'+round+':mid']);
+    if(estimated>0)arrivals.push({year,value:estimated*.70,round});
+   }
+  }
+  for(const pick of arrivals){
+   const spread=clamp(.68+.55*normal(rng),.04,2.30);
    const pos=['RB','WR','WR','TE','QB'][Math.floor(rng()*5)];
-   next.push({pos,age:pos==='QB'?23:22,v:pick.value*d});
+   next.push({pos,age:pos==='QB'?23:22,v:pick.value*spread});
   }
-  modelTurnover(next,rng,retool);
+  convertVeterans(next,rng);
+  consolidateBench(next,rng);
   state.players=next;
  }
  function makeSeed(input){
   let seed=2166136261;
-  for(const t of input.teams){
-   const v=Math.round(t.total*10+t.baseCapital+t.pickCapital);
-   seed=Math.imul(seed^v,16777619)>>>0;
+  for(const t of input.teams.slice().sort((a,b)=>a.id-b.id)){
+   seed=Math.imul(seed^(Math.round(t.total*10+t.baseCapital+t.pickCapital)),16777619)>>>0;
    for(const p of t.roster)seed=Math.imul(seed^(Math.round(p.v)+p.age*17),16777619)>>>0;
   }
-  return (seed^input.year^0x41234011)>>>0 || 87431;
+  return (seed^input.year^0x41234011)>>>0||87431;
  }
  function forecast(input){
-  const validated=validate(input);
-  const years=Array.from({length:HORIZON-validated.year+1},(_,i)=>validated.year+i);
-  if(!validated.ready)return {ready:false,years,teams:validated.teams,reason:'Missing completed scores or verified roster values'};
-  const teamInfo=validated.teams;
-  const meanPPG=average(teamInfo.map(t=>t.ppg));
-  const initialMeanCapital=average(teamInfo.map(t=>t.baseCapital));
-  const result=Object.fromEntries(teamInfo.map(t=>[t.id,years.map(y=>({year:y,topThree:0,meanPPG:0,allScores:[]}))]));
-  const rng=generator(makeSeed(validated));
-  for(let run=0;run<TRIALS;run++){
-   const states=teamInfo.map(t=>({id:t.id,base:t,players:t.roster.map(p=>({...p})),picks:t.picks}));
+  const data=validate(input),years=Array.from({length:HORIZON-data.year+1},(_,i)=>data.year+i);
+  if(!data.ready)return {ready:false,years,teams:data.teams,reason:'Missing completed scores or verified roster values'};
+  const initialMean=average(data.teams.map(t=>t.ppg));
+  const values=Object.fromEntries(data.teams.map(t=>[t.id,years.map(y=>({year:y,topThree:0,sum:0,relativeSum:0,allScores:[]}))]));
+  const rng=generator(makeSeed(data));
+  for(let trial=0;trial<TRIALS;trial++){
+   const states=data.teams.map(t=>({id:t.id,base:t,players:t.roster.map(p=>({...p})),picks:t.picks}));
    for(let yi=0;yi<years.length;yi++){
-    const year=years[yi],offset=year-validated.year;
-    if(offset>0)states.forEach(st=>seasonStep(st,year,rng,true));
-    const caps=states.map(st=>capital(st.players)),meanCap=Math.max(1,average(caps));
-    const scores=states.map((st,i)=>{
-     const t=st.base,relative=(caps[i]+200)/(meanCap+200);
-     const baseRelative=(t.baseCapital+200)/(initialMeanCapital+200);
-     const evolution=26*Math.log(relative/baseRelative);
-     const longCapital=12*Math.log(relative)*(1-Math.exp(-.40*offset));
-     const baseline=(t.ppg-meanPPG)*Math.exp(-.12*offset);
-     // Projected scoring-strength uncertainty increases with forecast horizon.
-     const noise=(8+3.8*offset)*normal(rng);
-     return {id:t.id,ppg:clamp(meanPPG+baseline+evolution+longCapital+noise,45,300)};
+    const season=years[yi],offset=season-data.year;
+    if(offset>0)states.forEach(st=>seasonStep(st,season,rng,input.market||{}));
+    const scores=states.map(st=>{
+     const t=st.base;
+     const coreNow=capital(st.players);
+     const assetChange=Math.pow((coreNow+1200)/(t.baseCapital+1200),ELASTICITY);
+     // Proven current scoring is our starting anchor. Future changes are driven
+     // by position-specific development, realized picks and optional retooling.
+     // Apply mild uncertainty regression, not a forced return to league average.
+     const baseline=initialMean+(t.ppg-initialMean)*Math.pow(.986,offset);
+     const futureStrength=baseline*assetChange;
+     const noise=(6+3.8*offset)*normal(rng);
+     return {id:t.id,ppg:clamp(futureStrength+noise,35,300)};
     });
+    const mean=average(scores.map(s=>s.ppg));
     scores.sort((a,b)=>b.ppg-a.ppg||a.id-b.id);
-    scores.forEach((s,rank)=>{
-     const entry=result[s.id][yi];
-     entry.meanPPG+=s.ppg;
-     if(rank<3)entry.topThree++;
-     entry.allScores.push(s.ppg);
+    scores.forEach((item,rank)=>{
+     const row=values[item.id][yi];
+     row.sum+=item.ppg;
+     row.relativeSum+=item.ppg-mean;
+     if(rank<3)row.topThree++;
+     row.allScores.push(item.ppg);
     });
    }
   }
-  const teams=teamInfo.map(t=>{
-   const outlook=result[t.id].map(row=>{
-     const sorted=row.allScores.sort((a,b)=>a-b);
-     const pick=q=>sorted[Math.floor(q*(sorted.length-1))];
-     return {year:row.year,topThree:Math.round(row.topThree/TRIALS*1000)/10,
-       strength:Math.round(row.meanPPG/TRIALS*10)/10,
-       low:Math.round(pick(.15)*10)/10,high:Math.round(pick(.85)*10)/10};
+  const output=data.teams.map(t=>{
+   const outlook=values[t.id].map(v=>{
+    const points=v.allScores.sort((a,b)=>a-b);
+    return {year:v.year,topThree:Math.round(v.topThree/TRIALS*1000)/10,
+      strength:Math.round(v.sum/TRIALS*10)/10,
+      advantage:Math.round(v.relativeSum/TRIALS*10)/10,
+      low:Math.round(points[Math.floor(.15*(points.length-1))]*10)/10,
+      high:Math.round(points[Math.floor(.85*(points.length-1))]*10)/10};
    });
-   const qualified=outlook.map((p,i)=>p.topThree>=50?i:-1).filter(i=>i>=0);
-   const openIdx=qualified.length?qualified[0]:-1;
-   let closedIdx=-1;
-   if(openIdx!==-1){closedIdx=openIdx;while(closedIdx+1<outlook.length&&outlook[closedIdx+1].topThree>=50)closedIdx++;}
-   const peak=outlook.slice().sort((a,b)=>b.topThree-a.topThree||a.year-b.year)[0];
-   const futureYears=outlook.slice(1);
-   const stillContending=closedIdx===outlook.length-1;
-   const label=openIdx<0?'No projected window by '+HORIZON:
-      (openIdx===0?'Now':String(outlook[openIdx].year))+'–'+(stillContending?HORIZON+'+':outlook[closedIdx].year);
-   const status=openIdx<0?(outlook[0].topThree>=35?'On the bubble':'Building'):
-      openIdx===0?(stillContending?'Sustained contender':closedIdx<=1?'Win-now':'Contending'):
-      openIdx<=2?'Rising contender':'Long-term rebuild';
-   return {id:t.id,outlook,openYear:openIdx<0?null:outlook[openIdx].year,
-     endYear:openIdx<0?null:outlook[closedIdx].year,
-     throughHorizon:stillContending,window:label,status,
-     seasonsInWindow:openIdx<0?0:closedIdx-openIdx+1,
-     peakYear:peak.year,peakChance:peak.topThree,
-     farChance:outlook[outlook.length-1].topThree,
-     ageCoverage:t.ageCoverage,baselinePPG:t.ppg,
-     // Uses all modeled years, not an invented closing year after 2031.
-     expectedContendingSeasons:Math.round(outlook.reduce((s,y)=>s+y.topThree/100,0)*10)/10,
-     capital:t.total,picks:t.pickCapital};
+   const qualified=outlook.map((o,i)=>o.topThree>=50?i:-1).filter(i=>i>=0);
+   const open=qualified.length?qualified[0]:-1;
+   let close=-1;
+   if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].topThree>=50)close++;}
+   // Top-three probabilities saturate at 100 for dominant franchises.
+   // Use expected strength relative to league peers to find a meaningful peak.
+   const peak=outlook.slice().sort((a,b)=>b.advantage-a.advantage||a.year-b.year)[0];
+   const beyond=close===outlook.length-1;
+   const window=open<0?'No projected window by '+HORIZON:
+     (open===0?'Now':String(outlook[open].year))+'–'+(beyond?HORIZON+'+':outlook[close].year);
+   const status=open<0?(outlook[0].topThree>=35?'On the bubble':'Building'):
+     open===0?(beyond?'Sustained contender':close<=1?'Win-now':'Contending'):
+     open<=2?'Rising contender':'Long-term rebuild';
+   return {id:t.id,outlook,openYear:open<0?null:outlook[open].year,
+    endYear:open<0?null:outlook[close].year,throughHorizon:beyond,window,status,
+    seasonsInWindow:open<0?0:close-open+1,
+    peakYear:peak.year,peakChance:peak.topThree,peakAdvantage:peak.advantage,
+    farChance:outlook.at(-1).topThree,ageCoverage:t.ageCoverage,
+    baselinePPG:t.ppg,expectedContendingSeasons:Math.round(outlook.reduce((s,y)=>s+y.topThree/100,0)*10)/10,
+    capital:t.total,picks:t.pickCapital};
   }).sort((a,b)=>b.outlook[0].topThree-a.outlook[0].topThree||a.id-b.id);
-  return {ready:true,years,teams,trials:TRIALS,topThreeDefinition:'Top 3 in simulated underlying scoring strength'};
+  return {ready:true,years,teams:output,trials:TRIALS,topThreeDefinition:'Top 3 in simulated underlying scoring strength'};
  }
  const api={forecast,ageCurve,validate,TRIALS,HORIZON};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
