@@ -1,5 +1,5 @@
-/* FIG 2026–2031 contender outlook. Scenario-based relative strength; not title odds.
-   Annual market evolution, uncertain rookie outcomes, asset-conserving retooling.
+/* FIG 2026–2031 contender outlook. Scenario-based relative strength; not official title odds.
+   Annual player aging, verified future picks, uncertain rookie outcomes.
    The model has no team-name adjustments or guaranteed playoff outcomes. */
 (function(global){
  'use strict';
@@ -110,7 +110,6 @@
   const scoringModel=input.currentModel||(global&&global.figDynastyWindowModel);
   if(!scoringModel||typeof scoringModel.projected!=='function')throw Error('Existing PPG model required');
   const scoreRows=weeklyRanks.filter(r=>Number(r.season)===year&&Number(r.week)>=1&&Number(r.week)<=14&&Number.isFinite(Number(r.points_for)));
-  const globalKnownPickYear=Math.max(year,...teams.flatMap(t=>(t.asset?.picks||[]).map(p=>Number(p.pick_season)||year)));
   const teamsData=teams.map(t=>{
    const id=Number(t.id);
    const scores=scoreRows.filter(s=>Number(s.franchise_id)===id).sort((a,b)=>Number(a.week)-Number(b.week)).map(x=>Number(x.points_for));
@@ -122,50 +121,14 @@
    const total=roster.reduce((s,p)=>s+p.v,0);
    const covered=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0);
    const picks=(t.asset&&t.asset.picks||[]).map(p=>pickValuation(p,pickValue,year)).filter(Boolean);
-   const lastKnownPickYear=globalKnownPickYear;
-   return {id,ppg:model&&model.ppg,roster,picks,lastKnownPickYear,
+   return {id,ppg:model&&model.ppg,roster,picks,
     ageCoverage:total>0?covered/total:0,baseCapital:capital(roster),
     total:value(t.value),pickCapital:value(t.picks),weeklySd,hasScores:scores.length>=5};
   });
   const ready=teamsData.every(t=>t.hasScores&&t.roster.length>=10&&t.ageCoverage>=.90&&t.baseCapital>0);
   return {ready,teams:teamsData,year};
  }
- function convertVeterans(roster,rng){
-  const threshold={QB:33,RB:26,WR:29,TE:30};
-  const list=roster.filter(p=>p.age>threshold[p.pos]&&p.v>250)
-    .sort((a,b)=>(b.age-threshold[b.pos])-(a.age-threshold[a.pos]));
-  let moved=0;
-  for(const p of list){
-   if(moved>=2)break;
-   if(rng()>.23)continue;
-   // Sale proceeds are discounted; the original player leaves the asset pool.
-   const proceeds=p.v*(.70+.20*rng());
-   p.v=0;
-   roster.push({pos:p.pos,age:p.pos==='QB'?25:23,
-      v:proceeds*clamp(.89+.17*normal(rng),.40,1.18)});
-   moved++;
-  }
- }
- function consolidateBench(roster,rng){
-  const ordered=roster.filter(p=>p.v>100).sort((a,b)=>b.v-a.v);
-  if(ordered.length<13)return;
-  const core=ordered.slice(0,10).reduce((s,p)=>s+p.v,0);
-  const bench=ordered.slice(10).reduce((s,p)=>s+p.v,0);
-  const probability=clamp(.14+.60*bench/Math.max(1,core),.14,.65);
-  if(rng()>probability)return;
-  // Exchange two nonstarter assets for one younger starter-quality asset,
-  // accepting a 10–25% value haircut. This models OPTIONAL retooling,
-  // without creating value or assuming managers make perfect trades.
-  const candidates=ordered.slice(10).sort((a,b)=>b.v-a.v);
-  if(candidates.length<2)return;
-  const a=candidates[0],b=candidates[1];
-  const proceeds=(a.v+b.v)*(.75+.15*rng());
-  if(proceeds<300)return;
-  a.v=0;b.v=0;
-  const pos=rng()<.32?'QB':rng()<.4?'TE':'WR';
-  roster.push({pos,age:pos==='QB'?24:23,v:proceeds});
- }
- function seasonStep(state,year,rng,market){
+ function seasonStep(state,year,rng){
   const next=[];
   for(const p of state.players){
    const before=ageCurve(p.pos,p.age),after=ageCurve(p.pos,p.age+1);
@@ -177,16 +140,9 @@
    const v=p.v*growth*uncertainty*maturity;
    if(v>35)next.push({pos:p.pos,age:p.age+1,v,rookieYear:p.rookieYear});
   }
+  // Conservative baseline: only tradeable future picks that the Sleeper
+  // snapshot actually credits to this franchise. No assumed acquisitions.
   const arrivals=state.picks.filter(p=>p.year===year);
-  if(year>state.base.lastKnownPickYear){
-   // Untraded future picks beyond the known traded-pick horizon.
-   // These arise for every franchise equally, not as guaranteed acquisitions.
-   // Low-to-mid-round prices are used at a haircut due to uncertainty.
-   for(let round=1;round<=4;round++){
-    const estimated=value(market.future_picks?.['2029:'+round+':mid']);
-    if(estimated>0)arrivals.push({year,value:estimated*.70,round});
-   }
-  }
   for(const pick of arrivals){
    // Dynasty pick price is an optimistic TRADE value, not guaranteed rookie
    // fantasy production. Outcomes include busts, contributors, and rare stars.
@@ -196,8 +152,8 @@
    const pos=['RB','WR','WR','TE','QB'][Math.floor(rng()*5)];
    next.push({pos,age:pos==='QB'?23:22,v:pick.value*realized*.38,rookieYear:year});
   }
-  convertVeterans(next,rng);
-  consolidateBench(next,rng);
+  // Do not assume any successful future trades. Any young replacements
+  // enter only through the franchise's actual current draft-pick holdings.
   state.players=next;
  }
  function makeSeed(input){
@@ -219,7 +175,7 @@
    const states=data.teams.map(t=>({id:t.id,base:t,players:t.roster.map(p=>({...p})),picks:t.picks}));
    for(let yi=0;yi<years.length;yi++){
     const season=years[yi],offset=season-data.year;
-    if(offset>0)states.forEach(st=>seasonStep(st,season,rng,input.market||{}));
+    if(offset>0)states.forEach(st=>seasonStep(st,season,rng));
     const capitals=states.map(st=>capital(st.players));
     const currentMean=average(capitals);
     // Express the pool in today's market units. Common changes in league
