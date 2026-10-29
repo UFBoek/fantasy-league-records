@@ -7,6 +7,8 @@ const vm=require('node:vm');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const rows=p=>JSON.parse(read('data/'+p+'.json'));
 const source=read('dynasty-market-v209.js');
+const windowModel=require('../dynasty-window-model-v210.js');
+const currentRoster=rows('current_roster');
 const history=rows('dynasty_market_history');
 const snapshot=history.snapshots[history.snapshots.length-1];
 assert.equal(snapshot.teams.length,10);
@@ -22,20 +24,22 @@ const leagueData={
 };
 let activeHistory={version:1,snapshots:[snapshot]};
 const ctx={
- window:{},
+ window:{figDynastyWindowModel:windowModel},
  document:{getElementById:node},
  DATA:leagueData,
  OWNER_AVATAR_BY_ID:Object.fromEntries(Array.from({length:10},(_,i)=>[i+1,'avatar.svg'])),
  raTeamData:id=>{
   const t=snapshot.teams.find(t=>t.franchise_id===+id);
   return {knownTotal:t.total,playerValue:t.players_value,pickValue:t.picks_value,
-    allValued:t.all_valued,roster:t.players,picks:t.picks};
+    allValued:t.all_valued,roster:currentRoster.filter(x=>+x.franchise_id===+id)
+      .map(x=>({...x,age:x.age??({QB:27,RB:24,WR:26,TE:27}[x.position]||null)})),picks:t.picks};
  },
  raReady:()=>true,
  load:async()=>{},
  navActive:()=>{},
  displayOwnerName:(_raw,id)=>['','Boek','Fru','Fromm','Sack','Leyton','Hayden','Line','Winston','CamNol','James'][id],
  raDate:()=>snapshot.date,
+ raPlayer:id=>snapshot.teams.flatMap(t=>t.players).find(p=>String(p[0])===String(id))?.[1]??0,
  fetch:async()=>({ok:true,json:async()=>activeHistory}),
  console,
  Set, Map, Date, Number, String, Math, Object, Array,
@@ -46,7 +50,7 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
 (async()=>{
  await ctx.window.figDynastyMarket('market');
  assert.match(holder.innerHTML,/DYNASTY STOCK MARKET/);
- assert.match(holder.innerHTML,/FRANCHISE MARKET CAP/);
+ assert.doesNotMatch(holder.innerHTML,/FRANCHISE MARKET CAP/);
  assert.match(holder.innerHTML,/HISTORY/);
  assert.match(graph.innerHTML,/second daily snapshot/i);
  const second=JSON.parse(JSON.stringify(snapshot));
@@ -64,12 +68,16 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  await ctx.window.figDynastyMarket('market');
  assert.match(graph.innerHTML,/<svg/);
  assert.match(graph.innerHTML,/stroke-dasharray="6 7"/,'missing calendar dates are marked as dotted');
+ assert.match(graph.innerHTML,/dm-end-label/,'team endpoint labels are drawn');
+ assert.match(graph.innerHTML,/>\d+(?:\.\d)?k<\/text>/,'rounded thousands on value axis');
  assert.match(holder.innerHTML,/Archived prices and date-specific rosters are recovered/);
  await ctx.window.figDynastyMarket('window');
  assert.match(holder.innerHTML,/CHAMPIONSHIP WINDOW INDEX/);
  assert.match(holder.innerHTML,/CURRENT MODEL PPG/);
- assert.match(holder.innerHTML,/65% full-season/);
+ assert.match(holder.innerHTML,/65% season \/ 35% last-three-games/);
  assert.match(holder.innerHTML,/PLAYOFF CALCULATOR/i);
- assert.match(holder.innerHTML,/Dynasty Juggernaut|Win-Now Contender|Rising Contender/i);
+ assert.match(holder.innerHTML,/Dynasty Juggernaut|Win-Now Contender|Rising Contender|Fragile Contender/i);
+ assert.match(holder.innerHTML,/AGE-ADJUSTED CORE/);
+ assert.match(holder.innerHTML,/55% PPG/);
  console.log('Market history chart, franchise focus and championship window rendered');
 })().catch(error=>{console.error(error);process.exitCode=1;});
