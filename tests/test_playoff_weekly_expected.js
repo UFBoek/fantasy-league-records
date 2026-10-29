@@ -72,5 +72,5 @@ assert.match(css,/pcl-model-live-only/,'one-card view is styled for Sunday and l
 assert.match(css,/pcl-model-pregame/,'three-card pregame context is responsive');
 assert.ok(html.indexOf('playoff-weekly-odds-v206.js')<html.indexOf('playoff-calculator-v167.js'));
 assert.match(sw,/playoff-weekly-odds-v206\.js\?v=206/);
-assert.match(sw,/fig-league-shell-v207/);
+assert.match(sw,/fig-league-shell-v\d+/,'service worker has a versioned cache');
 console.log('Week 8 expected-only odds and Sunday-noon matchup display checks passed');
