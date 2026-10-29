@@ -100,7 +100,7 @@
       ['streaks','streak'].includes(route) ? 'streaks' :
       ['minigames','game'].includes(route) ? 'more' :
       route === 'livematch' ? 'home' :
-      ['standings','playoffs','champions','h2h','dynasty','stock-market','championship-window','draft','trades','manager-ratings','manager'].includes(route) ? 'more' : route;
+      ['standings','playoffs','champions','h2h','dynasty','stock-market','draft','trades','manager-ratings','manager'].includes(route) ? 'more' : route;
     document.querySelectorAll('.app-dock a').forEach(a => {
       const active = a.getAttribute('href') === '#/' + dockSection;
       if (active) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
