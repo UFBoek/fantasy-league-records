@@ -241,11 +241,11 @@
    }).join('')+'</div></div>'+
    '<div class="dm-forecast-legend"><span><i class="elite"></i>25%+</span><span><i class="strong"></i>10–24%</span>'+
    '<span><i class="mixed"></i>5–9%</span><span><i class="low"></i>Below 5%</span></div>'+
-   '<p class="dm-forecast-footnote">'+forecast.trials+' neutral-playoff scenarios · Window ≥10% league title share · No trades modeled</p></section>';
+   '<p class="dm-forecast-footnote">'+forecast.trials+' scenarios · 2032+ estimates are uncertain · 2030+ original picks assumed retained</p></section>';
   var cards=forecast.teams.map(function(t){
-   var now=currentById.get(t.id),shortWindow=t.openYear===null?'Not projected':t.window;
+   var now=currentById.get(t.id),shortWindow=t.window,finalYear=t.outlook[t.outlook.length-1];
    var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
-     '<strong>'+chanceLabel(y.titleChance)+'</strong><small>'+y.strength.toFixed(0)+' PPG · '+y.low.toFixed(0)+'–'+y.high.toFixed(0)+'</small></div>';}).join('');
+     '<strong>'+chanceLabel(y.titleChance)+'</strong><small>'+y.strength.toFixed(0)+' PPG</small><small>'+y.futurePickCount+' picks · '+fmt(y.futurePickCapital)+' value</small></div>';}).join('');
    return '<article class="dm-forecast-card">'+
      '<div class="dm-forecast-card-head"><a href="#/team/'+t.id+'" class="dm-window-identity">'+avatar(t.id)+
        '<span class="dm-window-name"><strong>'+name(t.id)+'</strong><small>'+escapeHTML(t.status)+'</small></span></a>'+
@@ -253,13 +253,13 @@
      '<div class="dm-forecast-metrics"><div><small>CURRENT SCORE</small><b>'+metric(now?now.current:null)+'</b></div>'+
        '<div><small>PEAK PPG YEAR</small><b>'+t.peakYear+'</b></div>'+
        '<div><small>2031 TITLE OUTLOOK</small><b>'+chanceLabel(t.farChance)+'</b></div></div>'+
-     '<details class="dm-window-detail"><summary>YEAR-BY-YEAR OUTLOOK</summary><div class="dm-forecast-years-detail">'+years+'</div></details>'+
+     '<div class="dm-pick-stock"><span>2031 DRAFT STOCK</span><strong>'+finalYear.futurePickCount+' PICKS · '+fmt(finalYear.futurePickCapital)+'</strong></div>'+     '<details class="dm-window-detail"><summary>YEAR-BY-YEAR OUTLOOK</summary><div class="dm-forecast-years-detail">'+years+'</div></details>'+
      '</article>';
   }).join('');
   holder.innerHTML=heading+table+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE PROJECTIONS</span><h2>WINDOW ESTIMATES</h2></div></div>'+
    '<div class="dm-forecast-cards">'+cards+'</div></section>'+
-   '<p class="dm-footnote">Neutral 5-team playoff forecast · Current roster and owned picks only · No future trades assumed</p></div>';
+   '<p class="dm-footnote">2030+ draft years add each franchise’s original rounds 1–4 as they become available · No future trades assumed · Picks count as capital until drafted, not guaranteed points</p></div>';
  }
  function metric(n){return n===null||!Number.isFinite(n)?'—':n.toFixed(1);}
  async function launch(mode,team){
