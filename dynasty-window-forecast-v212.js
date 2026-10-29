@@ -173,6 +173,7 @@
   const data=validate(input),years=Array.from({length:HORIZON-data.year+1},(_,i)=>data.year+i);
   if(!data.ready)return {ready:false,years,teams:data.teams,reason:'Missing completed scores or verified roster values'};
   const initialMean=average(data.teams.map(t=>t.ppg));
+  const initialMeanCapital=average(data.teams.map(t=>t.baseCapital));
   const values=Object.fromEntries(data.teams.map(t=>[t.id,years.map(y=>({year:y,topThree:0,sum:0,relativeSum:0,allScores:[]}))]));
   const rng=generator(makeSeed(data));
   for(let trial=0;trial<TRIALS;trial++){
@@ -189,7 +190,10 @@
      // Apply mild uncertainty regression, not a forced return to league average.
      const baseline=initialMean+(t.ppg-initialMean)*Math.pow(.986,offset);
      // Capital is valued using 1 QB, 2 RB, 3 WR, 1 TE, 2 FLEX and 1 SF.
-   const futureStrength=baseline*assetChange;
+   // Long-range scoring also reflects today's verified core quality, not
+   // merely growth from a tiny starting roster. No owner-specific adjustment.
+   const qualityAnchor=19*Math.log((t.baseCapital+2000)/(initialMeanCapital+2000))*(1-Math.exp(-.46*offset));
+   const futureStrength=baseline*assetChange+qualityAnchor;
      const noise=(6+3.8*offset)*normal(rng);
      return {id:t.id,ppg:clamp(futureStrength+noise,35,300)};
     });
