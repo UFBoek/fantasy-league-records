@@ -237,7 +237,7 @@
    '<div><small>SCORING SAMPLE</small><strong>'+info.model.completedWeeks+' WEEKS</strong><span>Completed regular-season weeks</span></div>'+
    '<div><small>FUTURE STRENGTH PROXY</small><strong>ASSET VALUE</strong><span>RosterAudit + priced picks</span></div></div>'+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>LEAGUE POSITIONING</span><h2>WHO CAN WIN NOW AND LATER?</h2></div></div>'+
-   (info.ready?scatter(info):'<div class="dm-chart-empty"><strong>INSUFFICIENT COMPLETED GAMES</strong><span>Current-strength classifications begin after five completed regular-season weeks.</span></div>')+
+   (info.ready?'<div class="dm-visual-scroll">'+scatter(info)+'</div>':'<div class="dm-chart-empty"><strong>INSUFFICIENT COMPLETED GAMES</strong><span>Current-strength classifications begin after five completed regular-season weeks.</span></div>')+
    '<p class="dm-panel-caption">Horizontal axis: model points per game. Vertical axis: total dynasty asset valuation. Dashed lines mark the league medians; they are not championship probabilities.</p></section>'+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE OUTLOOK</span><h2>CHAMPIONSHIP WINDOW INDEX</h2></div></div>'+
     '<div class="dm-window-list">'+cards+'</div></section>'+
