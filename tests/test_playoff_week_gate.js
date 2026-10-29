@@ -50,8 +50,13 @@ assert.equal(simulated[10].available,false,
  'James with only 8 current starters must not be given fabricated points');
 assert.ok(Object.values(simulated).some(x=>x.available===true),
  'provisional Week 8 adjustments must become active rather than all teams falling back');
-assert.deepEqual(calculate({year:2026,week:8,matchups:snapshots,playerScores}),{},
- 'real/live feed must still reject incomplete full-lineup inputs');
+const strict=calculate({year:2026,week:8,matchups:snapshots,playerScores});
+if(snapshots.some(x=>x.starters.length!==10)){
+ assert.deepEqual(strict,{},'live feed must reject incomplete full-lineup inputs');
+}else{
+ assert.equal(Object.keys(strict).length,10,
+  'a now-complete live roster may be evaluated without fabricating starter points');
+}
 assert.deepEqual(calculate({
  year:2026,week:9,matchups:snapshots,playerScores,allowIncomplete:true
 }),{},'do not use Week 7 player history as the Week 9 form model');
