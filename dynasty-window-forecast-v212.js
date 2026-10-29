@@ -3,7 +3,7 @@
    The model has no team-name adjustments or guaranteed playoff outcomes. */
 (function(global){
  'use strict';
- const HORIZON=2031,TRIALS=1600,ELASTICITY=.75;
+ const HORIZON=2031,TRIALS=1600,ELASTICITY=.75,CONTENDER_THRESHOLD=60;
  const POS=new Set(['QB','RB','WR','TE']);
  const CURVES={
   QB:[[19,.76],[22,.88],[24,.98],[26,1.06],[29,1.11],[31,1.09],[33,1.03],[35,.92],[38,.70],[41,.40],[45,.10]],
@@ -217,10 +217,10 @@
       low:Math.round(points[Math.floor(.15*(points.length-1))]*10)/10,
       high:Math.round(points[Math.floor(.85*(points.length-1))]*10)/10};
    });
-   const qualified=outlook.map((o,i)=>o.topThree>=50?i:-1).filter(i=>i>=0);
+   const qualified=outlook.map((o,i)=>o.topThree>=CONTENDER_THRESHOLD?i:-1).filter(i=>i>=0);
    const open=qualified.length?qualified[0]:-1;
    let close=-1;
-   if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].topThree>=50)close++;}
+   if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].topThree>=CONTENDER_THRESHOLD)close++;}
    // Top-three probabilities saturate at 100 for dominant franchises.
    // Peak is the season with the highest expected underlying PPG, not a
    // tie-break between repeated 100% contention probabilities.
@@ -241,7 +241,7 @@
   }).sort((a,b)=>b.outlook[0].topThree-a.outlook[0].topThree||a.id-b.id);
   return {ready:true,years,teams:output,trials:TRIALS,topThreeDefinition:'Top 3 in simulated underlying scoring strength'};
  }
- const api={forecast,ageCurve,validate,TRIALS,HORIZON};
+ const api={forecast,ageCurve,validate,TRIALS,HORIZON,CONTENDER_THRESHOLD};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(global)global.figDynastyWindowForecast=api;
 })(typeof window!=='undefined'?window:null);
