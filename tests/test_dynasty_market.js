@@ -91,5 +91,10 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  assert.match(holder.innerHTML,/href="#\/playoff-calculator"/i);
  assert.doesNotMatch(holder.innerHTML,/FUTURE \/ 100|FUTURE WINDOW SCORE|FULL METHODOLOGY|HOW THE SCORES ARE BUILT/);
  assert.match(holder.innerHTML,/2031 TITLE OUTLOOK/);
+ assert.match(holder.innerHTML,/2031 DRAFT STOCK/,'team cards show future draft capital separately from projected scoring');
+ assert.match(holder.innerHTML,/2032\+/,'windows beyond chart limit are not labeled Not projected');
+ assert.doesNotMatch(holder.innerHTML,/Not projected/,'never invent a permanent failure to contend');
+ assert.match(holder.innerHTML,/PICKS/,'expected future original rounds are exposed');
+
  console.log('Market history chart, franchise focus and championship window rendered');
 })().catch(error=>{console.error(error);process.exitCode=1;});
