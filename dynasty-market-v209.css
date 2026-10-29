@@ -100,9 +100,3 @@
 #dmGraph .dm-stock-chart{width:720px;max-width:none}
 .dm-end-label{font-size:17px}
 }
-.dm-year-cell{padding:9px 3px;font-size:11px;border-radius:7px;font-variant-numeric:tabular-nums;background:#f0f3f4;color:#667a84}
-.dm-year-cell strong{font-weight:900}
-.dm-year-cell.elite{background:#128866;color:white}
-.dm-year-cell.strong{background:#bde6d7;color:#135942}
-.dm-year-cell.mixed{background:#ffedc5;color:#8c6220}
-.dm-year-cell.low{background:#e9eef1;color:#71838e}
