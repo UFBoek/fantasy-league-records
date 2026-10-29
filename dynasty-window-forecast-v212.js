@@ -56,11 +56,13 @@
   if(!Array.isArray(teams)||teams.length!==10||new Set(teams.map(t=>Number(t.id))).size!==10)throw Error('Expected ten franchises');
   if(typeof playerValue!=='function'||typeof pickValue!=='function')throw Error('Value lookups required');
   if(!Array.isArray(weeklyRanks)||!Number.isInteger(year)||year<2023||year>HORIZON)throw Error('Invalid scoring year');
+  const scoringModel=input.currentModel||(global&&global.figDynastyWindowModel);
+  if(!scoringModel||typeof scoringModel.projected!=='function')throw Error('Existing PPG model required');
   const scoreRows=weeklyRanks.filter(r=>Number(r.season)===year&&Number(r.week)>=1&&Number(r.week)<=14&&Number.isFinite(Number(r.points_for)));
   const teamInfo=teams.map(t=>{
    const id=Number(t.id);
    const scores=scoreRows.filter(s=>Number(s.franchise_id)===id).sort((a,b)=>Number(a.week)-Number(b.week)).map(x=>Number(x.points_for));
-   const model=global&&global.figDynastyWindowModel?global.figDynastyWindowModel.projected(scores,[]):null;
+   const model=scoringModel.projected(scores,[]);
    const roster=playersFor(t,playerValue);
    const ageCoverage=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0)/
      Math.max(1,roster.reduce((s,p)=>s+p.v,0));
