@@ -54,44 +54,67 @@
   return a&&b?safeNumber(b.total)-safeNumber(a.total):null;
  }
  function chart(points,selected){
-  var w=960,h=360,padLeft=86,padRight=28,padTop=22,padBottom=58;
-  if(points.length<2){
-   return '<div class="dm-chart-empty"><strong>MARKET TRACKING HAS BEGUN</strong>'+
-     '<span>Historical movement will appear after the second daily snapshot. No earlier prices are estimated.</span></div>';
-  }
-  var all=points.flatMap(function(p){return [...selected].map(function(id){return historicTeam(p,id);}).filter(Boolean).map(function(t){return safeNumber(t.total);});});
-  if(!all.length)return '<div class="dm-chart-empty">Select a franchise to compare its market value.</div>';
-  var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all),margin=Math.max(500,(hi-lo)*.13);lo=Math.max(0,lo-margin);hi+=margin;
-  var xmin=new Date(points[0].date+'T12:00:00Z').getTime(),xmax=new Date(points[points.length-1].date+'T12:00:00Z').getTime();
-  var x=function(date){return padLeft+(w-padLeft-padRight)*(new Date(date+'T12:00:00Z').getTime()-xmin)/Math.max(1,xmax-xmin);};
-  var y=function(val){return padTop+(h-padTop-padBottom)*(hi-val)/Math.max(1,hi-lo);};
-  var s='<svg class="dm-stock-chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="Daily franchise dynasty valuation history">';
-  for(var i=0;i<5;i++){
-   var yy=padTop+(h-padTop-padBottom)*i/4;
-   s+='<line x1="'+padLeft+'" x2="'+(w-padRight)+'" y1="'+yy+'" y2="'+yy+'" class="dm-gridline"/>'+
-      '<text x="'+(padLeft-12)+'" y="'+(yy+4)+'" text-anchor="end" class="dm-axis-label">'+fmt(hi-(hi-lo)*i/4)+'</text>';
-  }
-  [0,Math.floor((points.length-1)/2),points.length-1].filter(function(v,i,a){return a.indexOf(v)===i;}).forEach(function(i){
-   s+='<text x="'+x(points[i].date)+'" y="'+(h-18)+'" text-anchor="middle" class="dm-axis-label">'+ts(points[i].date)+'</text>';
-  });
-  [...selected].forEach(function(id){
-   var line=points.map(function(p){var t=historicTeam(p,id);return t?{date:p.date,v:safeNumber(t.total)}:null;}).filter(Boolean);
-   if(!line.length)return;
-   // Show unobserved days as dotted connections, not invented daily prices.
-   for(var j=1;j<line.length;j++){
-    var left=line[j-1],right=line[j];
-    var elapsed=(new Date(right.date+'T12:00:00Z')-new Date(left.date+'T12:00:00Z'))/86400000;
-    var gap=elapsed>1.5;
-    var path='M'+x(left.date).toFixed(2)+','+y(left.v).toFixed(2)+' L'+x(right.date).toFixed(2)+','+y(right.v).toFixed(2);
-    s+='<path d="'+path+'" fill="none" stroke="'+palette[(id-1)%palette.length]+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"'+(gap?' stroke-dasharray="6 7"':'')+'/>';
+  var w=1060,h=430,left=77,right=145,top=41,bottom=65;
+  if(points.length<2)return '<div class="dm-chart-empty"><strong>MARKET TRACKING HAS BEGUN</strong><span>Historical movement will appear after the second observed date.</span></div>';
+  var series=[...selected].map(function(id){
+   return {id:id,values:points.map(function(p){var t=historicTeam(p,id);return t?{date:p.date,value:safeNumber(t.total)}:null;}).filter(Boolean)};
+  }).filter(function(s){return s.values.length;});
+  if(!series.length)return '<div class="dm-chart-empty">Select a franchise to compare market value.</div>';
+  var all=series.flatMap(function(s){return s.values.map(function(p){return p.value;});});
+  var min=Math.min.apply(null,all),max=Math.max.apply(null,all);
+  var rawSpread=Math.max(800,(max-min)*1.15);
+  var target=Math.max(1,rawSpread/5),power=Math.pow(10,Math.floor(Math.log10(target)));
+  var step=[1,2,2.5,5,10].map(function(n){return n*power;}).find(function(n){return n>=target;})||power*10;
+  var ymin=Math.max(0,Math.floor((min-rawSpread*.075)/step)*step);
+  var ymax=Math.ceil((max+rawSpread*.075)/step)*step;
+  if(ymax-ymin<step*3){ymin=Math.max(0,ymin-step);ymax+=step;}
+  var xMin=new Date(points[0].date+'T12:00:00Z').getTime();
+  var xMax=new Date(points[points.length-1].date+'T12:00:00Z').getTime();
+  var px=function(date){return left+(w-left-right)*(new Date(date+'T12:00:00Z').getTime()-xMin)/Math.max(1,xMax-xMin);};
+  var py=function(value){return top+(h-top-bottom)*(ymax-value)/Math.max(1,ymax-ymin);};
+  var short=function(value){
+   if(Math.abs(value)>=1000){
+    var k=value/1000;
+    return (Math.abs(k-Math.round(k))<.001?k.toFixed(0):k.toFixed(1))+'k';
    }
-   if(line.length===1){
-    s+='<circle cx="'+x(line[0].date)+'" cy="'+y(line[0].v)+'" r="5" fill="'+palette[(id-1)%palette.length]+'"/>';
+   return fmt(value);
+  };
+  var out='<svg class="dm-stock-chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="Actual dated dynasty team valuations, in market points">';
+  out+='<text x="'+left+'" y="18" class="dm-axis-title">DYNASTY VALUE · POINTS</text>';
+  for(var tick=Math.ceil(ymin/step)*step;tick<=ymax+step*.01;tick+=step){
+   var yy=py(tick);
+   out+='<line class="dm-gridline" x1="'+left+'" y1="'+yy+'" x2="'+(w-right)+'" y2="'+yy+'"/>'+
+      '<text class="dm-axis-label" text-anchor="end" x="'+(left-13)+'" y="'+(yy+5)+'">'+short(tick)+'</text>';
+  }
+  var dates=[0,Math.floor((points.length-1)/2),points.length-1].filter(function(v,i,a){return a.indexOf(v)===i;});
+  dates.forEach(function(i){out+='<text class="dm-axis-label" text-anchor="middle" x="'+px(points[i].date)+'" y="'+(h-20)+'">'+ts(points[i].date)+'</text>';});
+  var endpoints=[];
+  series.forEach(function(line){
+   var color=palette[(line.id-1)%palette.length];
+   for(var j=1;j<line.values.length;j++){
+    var from=line.values[j-1],to=line.values[j];
+    var days=(new Date(to.date+'T12:00:00Z')-new Date(from.date+'T12:00:00Z'))/86400000;
+    out+='<path d="M'+px(from.date).toFixed(2)+','+py(from.value).toFixed(2)+' L'+px(to.date).toFixed(2)+','+py(to.value).toFixed(2)+
+      '" fill="none" stroke="'+color+'" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"'+(days>1.5?' stroke-dasharray="6 7"':'')+'/>';
    }
-   var last=line[line.length-1];
-   s+='<circle cx="'+x(last.date)+'" cy="'+y(last.v)+'" r="5" fill="'+palette[(id-1)%palette.length]+'" stroke="#fff" stroke-width="2"/>';
+   var last=line.values[line.values.length-1],xx=px(last.date),yy=py(last.value);
+   out+='<circle cx="'+xx+'" cy="'+yy+'" r="4.5" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>';
+   endpoints.push({id:line.id,y:yy,x:xx,color:color});
   });
-  return s+'</svg>';
+  // Spread the on-chart direct labels so close-valued franchises stay legible.
+  endpoints.sort(function(a,b){return a.y-b.y;});
+  var gap=20,startY=top+9,endY=h-bottom-7;
+  endpoints.forEach(function(e,i){e.labelY=Math.max(e.y,i?endpoints[i-1].labelY+gap:startY);});
+  if(endpoints.length&&endpoints[endpoints.length-1].labelY>endY){
+   var shift=endpoints[endpoints.length-1].labelY-endY;
+   endpoints.forEach(function(e){e.labelY-=shift;});
+  }
+  endpoints.forEach(function(e){
+   var labelX=w-right+14;
+   out+='<path d="M'+e.x+','+e.y+' L'+(labelX-6)+','+e.labelY+'" fill="none" stroke="'+e.color+'" stroke-width="1.2" stroke-opacity=".55"/>'+
+      '<text class="dm-end-label" x="'+labelX+'" y="'+(e.labelY+4)+'" fill="'+e.color+'">'+name(e.id)+'</text>';
+  });
+  return out+'</svg>';
  }
  function renderGraph(){
   var area=document.getElementById('dmGraph');
@@ -128,24 +151,15 @@
   var legend='<div class="dm-legend">'+entries.map(function(t){
    return '<button type="button" data-dm-team="'+t.id+'" class="'+(displayed.has(t.id)?'selected':'')+'"><i style="background:'+palette[(t.id-1)%palette.length]+'"></i>'+name(t.id)+'</button>';
   }).join('')+'</div>';
-  var table='<div class="dm-panel-head"><div><span>LIVE ASSET RANKINGS</span><h2>FRANCHISE MARKET CAP</h2></div></div>'+
-   '<div class="dm-wealth-list">'+entries.map(function(t,i){
-    var old=prior&&historicTeam(prior,t.id),delta=old?t.value-safeNumber(old.total):null;
-    return '<a href="#/stock-market/'+t.id+'" class="dm-wealth-row">'+
-     '<span class="dm-place">#'+(i+1)+'</span>'+avatar(t.id)+
-     '<span class="dm-wealth-team"><strong>'+name(t.id)+'</strong><small>'+fmt(t.playerValue)+' players · '+fmt(t.picks)+' picks</small></span>'+
-     '<span class="dm-wealth-stat"><strong>'+fmt(t.value)+'</strong><small class="'+(delta===null?'':delta>=0?'up':'down')+'">'+
-       (delta===null?'Awaiting change':signed(delta)+' since prior day')+'</small></span></a>';
-   }).join('')+'</div>';
   var focusCard=single?'<section class="dm-box dm-focus"><div class="dm-panel-head"><div><span>FRANCHISE PROFILE</span><h2>'+name(single.id)+' MARKET OVERVIEW</h2></div><a href="#/team/'+single.id+'">TEAM PROFILE →</a></div>'+
      '<div class="dm-focus-stats"><div><small>PLAYERS</small><strong>'+fmt(single.playerValue)+'</strong></div>'+
        '<div><small>FUTURE PICKS</small><strong>'+fmt(single.picks)+'</strong></div>'+
        '<div><small>LEAGUE WEALTH SHARE</small><strong>'+percent(wealth?single.value/wealth*100:0)+'</strong></div></div>'+
      '<a class="dm-focus-link" href="#/championship-window">VIEW CHAMPIONSHIP WINDOW →</a></section>':'';
   holder.innerHTML=header+'<section class="dm-box"><div>'+selector+'</div><div id="dmGraph"></div>'+legend+'</section>'+
-   (focusCard||'')+'<section class="dm-box">'+table+'</section>'+
+   (focusCard||'')+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>VALUATION CHANGE</span><h2>MARKET MOVERS</h2></div></div><div class="dm-movers" id="dmMovers"></div></section>'+
-   '<p class="dm-footnote">Values by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Archived prices and date-specific rosters are recovered from original GitHub commits starting October 9, 2026; unavailable dates appear as dotted chart connections. October 8 used an unverified CSV preset and is excluded from comparisons. Future picks use FIG valuation rules. Missing pick tiers are excluded from the known total. No prices are estimated for missing dates.</p></div>';
+   '<p class="dm-footnote">Values by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Archived prices and date-specific rosters are recovered from original GitHub commits starting October 9, 2026; unavailable dates appear as dotted chart connections. October 8 used an unverified CSV preset and is excluded from comparisons. Future picks use FIG valuation rules. Missing pick tiers are excluded from the known total. Dashed segments connect two genuine archived observations separated by missing days; no prices are estimated for those dates.</p></div>';
   holder.querySelectorAll('[data-dm-period]').forEach(function(button){
    button.addEventListener('click',function(){
     activePeriod=button.dataset.dmPeriod;
