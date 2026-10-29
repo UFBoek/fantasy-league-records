@@ -264,7 +264,7 @@
      fullOutlook[open].year>HORIZON?'Long-range possibility':
      open===0?(beyond?'Sustained contender':close<=1?'Win-now':'Contending'):
      open<=2?'Rising contender':'Long-term rebuild';
-   return {id:t.id,outlook,openYear:open<0?null:outlook[open].year,
+   return {id:t.id,outlook,openYear:open<0?null:fullOutlook[open].year,
     endYear:open<0?null:fullOutlook[close].year,throughHorizon:beyond,window,status,
     seasonsInWindow:open<0?0:close-open+1,
     peakYear,peakChance:peak.topThree,peakTitleChance:peak.titleChance,
