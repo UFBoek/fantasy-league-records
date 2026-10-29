@@ -30,13 +30,18 @@ assert.deepEqual(first.years,[2026,2027,2028,2029,2030,2031]);
 assert.equal(engine.EQUITABLE_TITLE_SHARE,10,'window benchmark uses equal share of the actual league championship');
 for(const t of first.teams){
  const qualified=t.outlook.filter(o=>o.titleChance>=engine.EQUITABLE_TITLE_SHARE);
- if(t.openYear!==null){
+ if(t.openYear!==null&&t.openYear<=2031){
   assert.ok(qualified.length>0);
   const idx=t.outlook.findIndex(o=>o.year===t.endYear);
-  assert.ok(t.outlook[idx].titleChance>=engine.EQUITABLE_TITLE_SHARE);
-  if(idx<t.outlook.length-1)assert.ok(t.outlook[idx+1].titleChance<engine.EQUITABLE_TITLE_SHARE);
+  if(idx>=0){
+   assert.ok(t.outlook[idx].titleChance>=engine.EQUITABLE_TITLE_SHARE);
+   if(idx<t.outlook.length-1)assert.ok(t.outlook[idx+1].titleChance<engine.EQUITABLE_TITLE_SHARE);
+  }else assert.ok(t.window.includes('2031+'));
+ }else if(t.openYear!==null){
+  assert.ok(t.window.startsWith('2032+'));
  }else{
   assert.equal(qualified.length,0);
+  assert.match(t.window,/2032\+.*TBD/);
  }
 }
 
