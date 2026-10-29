@@ -37,8 +37,28 @@
    .map(p=>({pos:String(p.position).toUpperCase(),age:Number(p.age),v:value(playerValue(p.player_id))}));
  }
  function capital(roster){
-  const sorted=roster.map(p=>p.v).filter(v=>v>0).sort((a,b)=>b-a);
-  return sorted.slice(0,10).reduce((s,n)=>s+n,0)+.28*sorted.slice(10,20).reduce((s,n)=>s+n,0);
+  // Optimize a LEGAL 10-player superflex lineup, rather than pretending ten
+  // valuable wide receivers can fill QB/RB/TE requirements. This matters most
+  // when a franchise has weak starting-QB depth or concentrated rookie picks.
+  const candidates=roster.map(p=>({pos:p.pos,v:value(p.v)}));
+  const used=new Set();
+  function fill(allowed){
+   let best=-1;
+   for(let i=0;i<candidates.length;i++){
+    if(used.has(i)||!allowed.includes(candidates[i].pos))continue;
+    if(best<0||candidates[i].v>candidates[best].v)best=i;
+   }
+   if(best<0)return 0;
+   used.add(best);
+   return candidates[best].v;
+  }
+  let starters=0;
+  for(const [allowed,count] of [[['QB'],1],[['RB'],2],[['WR'],3],[['TE'],1],
+    [['RB','WR','TE'],2],[['QB','RB','WR','TE'],1]]){
+   for(let j=0;j<count;j++)starters+=fill(allowed);
+  }
+  const bench=candidates.filter((p,i)=>!used.has(i)).map(p=>p.v).sort((a,b)=>b-a);
+  return starters+.24*bench.slice(0,10).reduce((s,n)=>s+n,0);
  }
  function pickValuation(pick,lookup,year){
   const y=Number(pick.pick_season);
@@ -168,7 +188,8 @@
      // by position-specific development, realized picks and optional retooling.
      // Apply mild uncertainty regression, not a forced return to league average.
      const baseline=initialMean+(t.ppg-initialMean)*Math.pow(.986,offset);
-     const futureStrength=baseline*assetChange;
+     // Capital is valued using 1 QB, 2 RB, 3 WR, 1 TE, 2 FLEX and 1 SF.
+   const futureStrength=baseline*assetChange;
      const noise=(6+3.8*offset)*normal(rng);
      return {id:t.id,ppg:clamp(futureStrength+noise,35,300)};
     });
