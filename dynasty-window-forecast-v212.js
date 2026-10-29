@@ -126,7 +126,7 @@
  }
  function pickValuation(pick,lookup,year){
   const y=Number(pick.pick_season);
-  if(y<=year||y>HORIZON)return null;
+  if(y<=year||y>TAIL_HORIZON+3)return null;
   const p=value(lookup(pick));
   return p>0?{year:y,value:p,round:Number(pick.round),original:Number(pick.original_franchise_id),initialDistance:y-year,inferred:false}:null;
  }
