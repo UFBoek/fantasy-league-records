@@ -8,7 +8,9 @@ const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const rows=p=>JSON.parse(read('data/'+p+'.json'));
 const source=read('dynasty-market-v209.js');
 const windowModel=require('../dynasty-window-model-v210.js');
+const forecastModel=require('../dynasty-window-forecast-v212.js');
 const currentRoster=rows('current_roster');
+const currentPicks=rows('current_future_picks');
 const history=rows('dynasty_market_history');
 const snapshot=history.snapshots[history.snapshots.length-1];
 assert.equal(snapshot.teams.length,10);
@@ -24,7 +26,7 @@ const leagueData={
 };
 let activeHistory={version:1,snapshots:[snapshot]};
 const ctx={
- window:{figDynastyWindowModel:windowModel},
+ window:{figDynastyWindowModel:windowModel,figDynastyWindowForecast:forecastModel},
  document:{getElementById:node},
  DATA:leagueData,
  OWNER_AVATAR_BY_ID:Object.fromEntries(Array.from({length:10},(_,i)=>[i+1,'avatar.svg'])),
@@ -32,7 +34,7 @@ const ctx={
   const t=snapshot.teams.find(t=>t.franchise_id===+id);
   return {knownTotal:t.total,playerValue:t.players_value,pickValue:t.picks_value,
     allValued:t.all_valued,roster:currentRoster.filter(x=>+x.franchise_id===+id)
-      .map(x=>({...x,age:x.age??({QB:27,RB:24,WR:26,TE:27}[x.position]||null)})),picks:t.picks};
+      .map(x=>({...x,age:x.age??({QB:27,RB:24,WR:26,TE:27}[x.position]||null)})),picks:currentPicks.filter(p=>+p.current_franchise_id===+id&&+p.pick_season>2026)};
  },
  raReady:()=>true,
  load:async()=>{},
@@ -40,6 +42,7 @@ const ctx={
  displayOwnerName:(_raw,id)=>['','Boek','Fru','Fromm','Sack','Leyton','Hayden','Line','Winston','CamNol','James'][id],
  raDate:()=>snapshot.date,
  raPlayer:id=>snapshot.teams.flatMap(t=>t.players).find(p=>String(p[0])===String(id))?.[1]??0,
+ raDynastyPickValuation:(year,round,originalFranchiseId)=>({value:snapshot.teams.flatMap(t=>t.picks).find(p=>+p[0]===+year&&+p[1]===+round&&+p[2]===+originalFranchiseId)?.[3]??1200}),
  fetch:async()=>({ok:true,json:async()=>activeHistory}),
  console,
  Set, Map, Date, Number, String, Math, Object, Array,
@@ -72,15 +75,16 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  assert.match(graph.innerHTML,/>\d+(?:\.\d)?k<\/text>/,'rounded thousands on value axis');
  assert.match(holder.innerHTML,/Archive since Oct 9, 2026/);
  await ctx.window.figDynastyMarket('window');
- assert.match(holder.innerHTML,/CHAMPIONSHIP WINDOW INDEX/);
- assert.match(holder.innerHTML,/MODEL PPG/);
- assert.doesNotMatch(holder.innerHTML,/FULL METHODOLOGY|HOW THE SCORES ARE BUILT/);
- assert.doesNotMatch(holder.innerHTML,/VERIFIED PLAYER AGES|55% PPG|AGE-AWARE/);
+ assert.match(holder.innerHTML,/CHAMPIONSHIP WINDOW/);
+ assert.match(holder.innerHTML,/CONTENTION TIMELINE/);
+ assert.match(holder.innerHTML,/EST. WINDOW/);
+ assert.match(holder.innerHTML,/2026/);
+ assert.match(holder.innerHTML,/2031/);
+ assert.match(holder.innerHTML,/TOP-THREE|top-three/i);
+ assert.match(holder.innerHTML,/YEAR-BY-YEAR OUTLOOK/);
+ assert.match(holder.innerHTML,/CURRENT SCORE/);
  assert.match(holder.innerHTML,/href="#\/playoff-calculator"/i);
- assert.match(holder.innerHTML,/Dynasty Juggernaut|Win-Now Contender|Rising Contender|Fragile Contender/i);
- assert.match(holder.innerHTML,/AGE-ADJUSTED CORE/);
- assert.match(holder.innerHTML,/VIEW SCORE BREAKDOWN/);
- assert.match(holder.innerHTML,/CURRENT TITLE ODDS/);
- assert.doesNotMatch(holder.innerHTML,/dm-overview|dm-method/);
+ assert.doesNotMatch(holder.innerHTML,/FUTURE \/ 100|FUTURE WINDOW SCORE|FULL METHODOLOGY|HOW THE SCORES ARE BUILT/);
+ assert.match(holder.innerHTML,/2031 OUTLOOK/);
  console.log('Market history chart, franchise focus and championship window rendered');
 })().catch(error=>{console.error(error);process.exitCode=1;});
