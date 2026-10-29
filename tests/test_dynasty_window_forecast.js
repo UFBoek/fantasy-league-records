@@ -46,3 +46,4 @@ assert.ok(engine.ageCurve('QB',35)>engine.ageCurve('RB',35));
 const book=first.teams.find(t=>t.id===1);
 console.log('2026–2031 dynasty forecasts pass deterministic scenario and data-quality checks');
 console.log('Boek forecast: '+JSON.stringify({window:book.window,opening:book.openYear,peak:book.peakYear,top3:book.outlook.map(x=>[x.year,x.topThree])}));
+console.log('ALL FRANCHISES: '+JSON.stringify(first.teams.map(t=>({id:t.id,peak:t.peakYear,window:t.window,pps:t.outlook.map(x=>x.topThree),strength:t.outlook.map(x=>x.strength)}))));
