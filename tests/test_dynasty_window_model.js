@@ -46,7 +46,7 @@ assert.ok(out.rows.every(r=>r.current>=0&&r.current<=100&&r.future>=0&&r.future<
 assert.ok(out.rows.every(r=>r.ageCoverage===1&&r.readyAge));
 assert.ok(out.rows.every(r=>r.model.sd>=0&&r.model.sample===7));
 assert.ok(out.rows.some(r=>r.raw.ageCore>0&&r.raw.youngCore>0));
-const noAge=structuredClone(input);noAge.teams[0].roster.forEach(p=>{p.age=null;});
+const noAge={...input,teams:structuredClone(input.teams)};noAge.teams[0].roster.forEach(p=>{p.age=null;});
 const partial=model.calculate(noAge);
 const first=partial.rows.find(r=>r.id===1);
 assert.equal(first.future,null);
