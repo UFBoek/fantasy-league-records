@@ -536,7 +536,7 @@
             '<span class="pcl-sim-standing-pf">'+fmt(t.pf)+' PF</span>'+
             '<small>'+(t.qualifies?(i<3?'TOP-3 BYE':'PLAYOFFS'):'MISSED')+'</small></div>';
         }).join('')+'</div></section>':
-      '<p class="pcl-caption pcl-sim-intro">The bracket below uses average projected seeds. Select SIMULATE PLAYOFFS to play out every remaining regular-season matchup, then draw a new five-team playoff field and a full postseason.</p>';
+      '';
     root.innerHTML='<a class="pcl-route-back" href="#/playoff-calculator">← PLAYOFF CALCULATOR</a>'+
       '<section class="pcl-sim-header"><div><div class="pcl-kicker">'+year+' · '+(simulated?'SIMULATED SEEDS':'PROJECTED SEEDS')+'</div><h2>PLAYOFF SIMULATOR</h2></div>'+
       '<div class="pcl-sim-actions"><button type="button" class="pcl-primary" data-bracket-run="1">SIMULATE PLAYOFFS</button><button type="button" data-bracket-reset="1">RESET BRACKET</button></div></section>'+
@@ -823,7 +823,6 @@
          '<div class="pcl-model-method-stats">'+
          '<span><small>TEAM BASELINE</small><b>'+fmt(baseline)+'</b></span>'+
          '<span><small>LINEUP ADJUSTMENT</small><b>'+(valid?signed(delta):'NOT APPLIED')+'</b></span></div>'+
-         '<p>The historical team baseline uses 65% season and 35% recent scoring. The simulated preview adds 70% of the difference between this week\'s expected starters and the usual lineup (capped at 30 points). Week '+firstWeek+' win odds use Expected Starter Total instead; simulated and usual lineup are context only.</p>'+
          '</details>':'')+
        '</div>';
      var unavailable=starters.length!==10?'<div class="pcl-warning">Ten valid starters could not be verified. The standard team projection is being used.</div>':
@@ -845,11 +844,7 @@
      ' <button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '</section>'+
      '<div class="pcl-model-teams">'+teamCard(game.a)+teamCard(game.b)+'</div>'+
-     '<div class="pcl-model-explanation"><strong>HOW THE NUMBERS CONNECT</strong>'+
-     '<p>Before kickoff, each starter uses 70% of their average from up to eight played '+year+' NFL games plus 30% of their last three played NFL games. Waiver-wire games count regardless of fantasy ownership. For players without played '+year+' games, SLEEPER PROJ. means the current-week Sleeper forecast using league scoring settings. Genuine DNP weeks are excluded. During NFL games, LIVE EST. FINAL is the points scored so far plus the expected share for remaining game time; zero at kickoff does not erase the full-game projection. A FINAL score uses only actual Sleeper points. Updates occur every 30 seconds while this view is open.</p>'+
-     '<p>The ten expected-final values sum to the displayed starter total, including actual points plus projected remaining game time for games in progress. This is the mean used to calculate Week '+firstWeek+' win probabilities; uncertainty shrinks as players finish. Historical team scoring is used for future weeks and as a fallback when a valid lineup is unavailable.</p>'+
-     (pregame?'<p>Before Sunday noon Eastern, simulated PPG and usual lineup are available as pregame comparisons. They do not determine this week\'s win odds.</p>':'')+
-     '<p>Future weeks use historical team PPG until their starters become known. Only finalized '+year+' games count toward team history.</p></div>';
+     '';
  }
  function reRender(){
    if(!document.getElementById('figPlayoffCalc'))return;
