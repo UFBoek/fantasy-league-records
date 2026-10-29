@@ -20931,6 +20931,19 @@ current_roster_snapshot_df = (
     )
 )
 
+# Current Sleeper NFL metadata includes the player's actual age. Publish it
+# alongside the current roster so the Championship Window can use verified
+# position-specific age curves without guessing ages or fetching from visitors.
+age_lookup = (
+    players_df[["player_id", "age"]]
+    .drop_duplicates("player_id")
+    .copy()
+)
+age_lookup["age"] = pd.to_numeric(age_lookup["age"], errors="coerce")
+age_lookup.loc[~age_lookup["age"].between(18, 50), "age"] = float("nan")
+current_roster_snapshot_df = current_roster_snapshot_df.merge(
+    age_lookup, on="player_id", how="left", validate="many_to_one"
+)
 
 normalize_int_column(
     current_roster_snapshot_df,
