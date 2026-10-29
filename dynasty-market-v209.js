@@ -196,80 +196,85 @@
   return {byId:result,season:season,completedWeeks:Math.floor(all.length/10)};
  }
  function windowScores(){
-  var model=projectedPPG();
-  var byStrength=entries.slice().sort(function(a,b){return (model.byId[b.id]||0)-(model.byId[a.id]||0);});
-  var byMarket=entries.slice().sort(function(a,b){return b.value-a.value;});
-  var ranks={},marketRanks={};
-  byStrength.forEach(function(t,i){ranks[t.id]=i+1;});
-  byMarket.forEach(function(t,i){marketRanks[t.id]=i+1;});
-  var isReady=entries.every(function(t){return model.byId[t.id]!==null;});
-  var rows=entries.map(function(t){
-   var sr=ranks[t.id],mr=marketRanks[t.id],label,klass;
-   if(!isReady){label='Awaiting week 5';klass='neutral';}
-   else if(sr<=4&&mr<=4){label='Dynasty Juggernaut';klass='elite';}
-   else if(sr<=4){label='Win-Now Contender';klass='now';}
-   else if(mr<=4){label='Rising Contender';klass='rise';}
-   else if(sr>=8&&mr>=8){label='Rebuild Needed';klass='rebuild';}
-   else{label='Middle of the Pack';klass='neutral';}
-   return {t:t,ppg:model.byId[t.id],strengthRank:sr,marketRank:mr,label:label,klass:klass};
-  }).sort(function(a,b){return a.strengthRank-b.strengthRank;});
-  return {rows:rows,model:model,ready:isReady};
+  var season=Math.max.apply(null,(DATA.currentStandings||[]).map(function(t){return +t.season;}));
+  return window.figDynastyWindowModel.calculate({
+   teams:entries,weeklyRanks:DATA.weeklyRanks||[],season:season,
+   playerValue:function(id){return raPlayer(id);}
+  });
  }
  function scatter(scores){
-  var rows=scores.rows,w=960,h=460,p={l:94,r:46,t:40,b:92};
-  var vals=rows.map(function(r){return r.ppg;}),assets=rows.map(function(r){return r.t.value;});
-  var minx=Math.floor((Math.min.apply(null,vals)-10)/10)*10,maxx=Math.ceil((Math.max.apply(null,vals)+10)/10)*10;
-  var miny=Math.max(0,Math.min.apply(null,assets)*.80),maxy=Math.max.apply(null,assets)*1.12;
-  var x=function(v){return p.l+(v-minx)/Math.max(1,maxx-minx)*(w-p.l-p.r);};
-  var y=function(v){return h-p.b-(v-miny)/Math.max(1,maxy-miny)*(h-p.t-p.b);};
-  var midx=(vals.slice().sort(function(a,b){return a-b;})[4]+vals.slice().sort(function(a,b){return a-b;})[5])/2;
-  var midy=(assets.slice().sort(function(a,b){return a-b;})[4]+assets.slice().sort(function(a,b){return a-b;})[5])/2;
-  var out='<svg viewBox="0 0 '+w+' '+h+'" class="dm-window-chart" role="img" aria-label="Franchise current scoring strength versus dynasty asset value">';
-  for(var i=0;i<5;i++){var yy=p.t+(h-p.t-p.b)*i/4;
+  var w=920,h=480,p={l:80,r:48,t:54,b:78};
+  var sx=function(v){return p.l+v/100*(w-p.l-p.r);};
+  var sy=function(v){return h-p.b-v/100*(h-p.t-p.b);};
+  var out='<svg viewBox="0 0 '+w+' '+h+'" class="dm-window-chart" role="img" aria-label="Current contender score versus future outlook score, both zero to 100">';
+  [0,25,50,75,100].forEach(function(tick){
+   var xx=sx(tick),yy=sy(tick);
    out+='<line x1="'+p.l+'" x2="'+(w-p.r)+'" y1="'+yy+'" y2="'+yy+'" class="dm-gridline"/>'+
-   '<text x="'+(p.l-13)+'" y="'+(yy+4)+'" text-anchor="end" class="dm-axis-label">'+fmt(maxy-(maxy-miny)*i/4)+'</text>';
-  }
-  for(var j=0;j<5;j++){var xx=p.l+(w-p.l-p.r)*j/4;
-   out+='<text x="'+xx+'" y="'+(h-55)+'" text-anchor="middle" class="dm-axis-label">'+fmt(minx+(maxx-minx)*j/4)+'</text>';
-  }
-  out+='<line x1="'+x(midx)+'" x2="'+x(midx)+'" y1="'+p.t+'" y2="'+(h-p.b)+'" stroke="#aebbc7" stroke-dasharray="7 6" />'+
-   '<line x1="'+p.l+'" x2="'+(w-p.r)+'" y1="'+y(midy)+'" y2="'+y(midy)+'" stroke="#aebbc7" stroke-dasharray="7 6" />'+
-   '<text x="'+(w/2)+'" y="'+(h-20)+'" text-anchor="middle" class="dm-axis-title">CURRENT MODEL PPG →</text>'+
-   '<text x="25" y="'+(h/2)+'" transform="rotate(-90 25 '+(h/2)+')" text-anchor="middle" class="dm-axis-title">DYNASTY MARKET VALUE →</text>';
-  rows.forEach(function(r){
-   var cx=x(r.ppg),cy=y(r.t.value),color=palette[(r.t.id-1)%palette.length];
-   out+='<a href="#/team/'+r.t.id+'" aria-label="'+name(r.t.id)+' team profile">'+
-    '<circle cx="'+cx+'" cy="'+cy+'" r="12" fill="'+color+'" stroke="#fff" stroke-width="3"/>'+
-    '<text x="'+cx+'" y="'+(cy-19)+'" text-anchor="middle" class="dm-point-name">'+name(r.t.id)+'</text></a>';
+     '<line x1="'+xx+'" x2="'+xx+'" y1="'+p.t+'" y2="'+(h-p.b)+'" class="dm-gridline"/>'+
+     '<text x="'+(p.l-13)+'" y="'+(yy+4)+'" text-anchor="end" class="dm-axis-label">'+tick+'</text>'+
+     '<text x="'+xx+'" y="'+(h-48)+'" text-anchor="middle" class="dm-axis-label">'+tick+'</text>';
+  });
+  out+='<line x1="'+sx(50)+'" x2="'+sx(50)+'" y1="'+p.t+'" y2="'+(h-p.b)+'" stroke="#6e919b" stroke-dasharray="7 7" stroke-width="2"/>'+
+    '<line x1="'+p.l+'" x2="'+(w-p.r)+'" y1="'+sy(50)+'" y2="'+sy(50)+'" stroke="#6e919b" stroke-dasharray="7 7" stroke-width="2"/>'+
+    '<text x="'+(w/2)+'" y="'+(h-13)+'" text-anchor="middle" class="dm-axis-title">CURRENT CONTENDER SCORE →</text>'+
+    '<text x="20" y="'+(h/2)+'" transform="rotate(-90 20 '+(h/2)+')" text-anchor="middle" class="dm-axis-title">FUTURE WINDOW SCORE →</text>';
+  scores.rows.filter(function(r){return r.current!==null&&r.future!==null;}).forEach(function(r){
+   var xx=sx(r.current),yy=sy(r.future),color=palette[(r.id-1)%palette.length];
+   // Labels sit above their points; text carries a white stroke for contrast.
+   var labelY=Math.max(22,yy-19);
+   out+='<a href="#/team/'+r.id+'" aria-label="'+name(r.id)+' team profile">'+
+     '<circle cx="'+xx+'" cy="'+yy+'" r="12" fill="'+color+'" stroke="#fff" stroke-width="3"/>'+
+     '<text x="'+xx+'" y="'+labelY+'" text-anchor="middle" class="dm-point-name">'+name(r.id)+'</text></a>';
   });
   return out+'</svg>';
  }
+ function metric(n){return n===null||!Number.isFinite(n)?'—':n.toFixed(1);}
  function windowPage(){
   var info=windowScores();
+  var scored=info.rows.filter(function(r){return r.current!==null&&r.future!==null;});
+  var agesReady=info.rows.filter(function(r){return r.readyAge;}).length;
   var cards=info.rows.map(function(r){
-   return '<a class="dm-window-row" href="#/team/'+r.t.id+'"><span class="dm-window-avatar">'+avatar(r.t.id)+'</span>'+
-   '<span class="dm-window-name"><strong>'+name(r.t.id)+'</strong><small>Model PPG rank #'+(info.ready?r.strengthRank:'—')+' · Market rank #'+r.marketRank+'</small></span>'+
-   '<span class="dm-window-scores"><strong>'+(r.ppg===null?'—':r.ppg.toFixed(1))+'</strong><small>'+fmt(r.t.value)+' VALUE</small></span>'+
-   '<span class="dm-status '+r.klass+'">'+r.label+'</span></a>';
+   var note=r.readyAge?'AGE COVERAGE '+percent(100*r.ageCoverage):'AWAITING VERIFIED PLAYER AGES';
+   var breakdown=[
+    ['MODEL PPG','ppg',r.model?metric(r.model.ppg)+' PPG':'—'],
+    ['STARTER VALUE','starter',fmt(r.raw.starter)],
+    ['CONSISTENCY','consistency',r.model?percent(100*r.model.cv)+' CV':'—'],
+    ['TOP-5 DEPTH','depth',fmt(r.raw.depth)],
+    ['TOTAL VALUE','total',fmt(r.raw.total)],
+    ['PICK CAPITAL','picks',fmt(r.raw.picks)],
+    ['AGE-ADJUSTED CORE','ageCore',r.raw.ageCore===null?'—':fmt(r.raw.ageCore)],
+    ['YOUNG CORE','youngCore',r.raw.youngCore===null?'—':fmt(r.raw.youngCore)]
+   ];
+   return '<div class="dm-window-item">'+
+     '<div class="dm-window-row"><a class="dm-window-identity" href="#/team/'+r.id+'">'+avatar(r.id)+
+       '<span class="dm-window-name"><strong>'+name(r.id)+'</strong><small>'+note+'</small></span></a>'+
+       '<span class="dm-window-scores"><strong>'+metric(r.current)+'</strong><small>NOW / 100</small></span>'+
+       '<span class="dm-window-scores dm-future-score"><strong>'+metric(r.future)+'</strong><small>FUTURE / 100</small></span>'+
+       '<span class="dm-status '+r.klass+'">'+r.label+'</span></div>'+
+     '<details class="dm-window-detail"><summary>VIEW SCORE BREAKDOWN</summary><div class="dm-components">'+
+       breakdown.map(function(part){return '<div><span>'+part[0]+'</span><b>'+part[2]+'</b><small>LEAGUE SCORE '+(r.components[part[1]]===null?'—':metric(r.components[part[1]]))+'</small></div>';}).join('')+
+     '</div><p class="dm-method-note">'+(r.starterFallback?'Starter-value proxy uses the ten highest-valued active-roster players because Sleeper does not currently show ten confirmed starters. ':'Starter value uses ten indicated starters. ')+
+       'Age coverage is measured by priced player value; unavailable ages are never assumed.</p></details></div>';
   }).join('');
   holder.innerHTML='<div class="dm-page">'+tabs('window')+
-   '<div class="dm-heading"><div><span class="dm-kicker">CURRENT PERFORMANCE × FUTURE CAPITAL</span><h1>CHAMPIONSHIP WINDOW</h1>'+
-   '<p>Two distinct rankings: model scoring strength and current dynasty wealth</p></div>'+
-   '<a class="dm-calculator" href="#/playoff-calculator">2026 TITLE ODDS →</a></div>'+
-   '<div class="dm-overview"><div><small>SCORING MODEL</small><strong>65 / 35</strong><span>Full season / last three</span></div>'+
-   '<div><small>SCORING SAMPLE</small><strong>'+info.model.completedWeeks+' WEEKS</strong><span>Completed regular-season weeks</span></div>'+
-   '<div><small>FUTURE STRENGTH PROXY</small><strong>ASSET VALUE</strong><span>RosterAudit + priced picks</span></div></div>'+
-   '<section class="dm-box"><div class="dm-panel-head"><div><span>LEAGUE POSITIONING</span><h2>WHO CAN WIN NOW AND LATER?</h2></div></div>'+
-   (info.ready?'<div class="dm-visual-scroll">'+scatter(info)+'</div>':'<div class="dm-chart-empty"><strong>INSUFFICIENT COMPLETED GAMES</strong><span>Current-strength classifications begin after five completed regular-season weeks.</span></div>')+
-   '<p class="dm-panel-caption">Horizontal axis: model points per game. Vertical axis: total dynasty asset valuation. Dashed lines mark the league medians; they are not championship probabilities.</p></section>'+
+   '<div class="dm-heading"><div><span class="dm-kicker">CONTENDER STRENGTH × LONG-TERM ASSETS</span><h1>CHAMPIONSHIP WINDOW</h1>'+
+   '<p>Transparent, league-relative composite scores · not championship probabilities</p></div>'+
+   '<a class="dm-calculator" href="#/playoff-calculator">CURRENT TITLE ODDS →</a></div>'+
+   '<div class="dm-overview"><div><small>CURRENT SCORE</small><strong>55% PPG</strong><span>Plus starter value, consistency &amp; depth</span></div>'+
+   '<div><small>FUTURE SCORE</small><strong>AGE-AWARE</strong><span>Market value, picks &amp; young talent</span></div>'+
+   '<div><small>VERIFIED PLAYER AGES</small><strong>'+agesReady+' / 10</strong><span>Franchises with sufficient coverage</span></div></div>'+
+   '<section class="dm-box"><div class="dm-panel-head"><div><span>LEAGUE POSITIONING</span><h2>BUILT TO WIN NOW OR LATER?</h2></div></div>'+
+   (scored.length===10?'<div class="dm-visual-scroll">'+scatter(info)+'</div>':'<div class="dm-chart-empty"><strong>AWAITING COMPLETE MODEL INPUTS</strong><span>Both scores require five completed weeks and verified Sleeper ages covering at least 90% of valued roster capital. '+scored.length+'/10 franchises currently ready.</span></div>')+
+   '<p class="dm-panel-caption">Both axes run from 0 to 100 and compare teams within this league. Higher is stronger. Dashed midlines mark score 50; scores are not win percentages.</p></section>'+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE OUTLOOK</span><h2>CHAMPIONSHIP WINDOW INDEX</h2></div></div>'+
     '<div class="dm-window-list">'+cards+'</div></section>'+
-   '<section class="dm-box dm-method"><div class="dm-panel-head"><div><span>HOW THE INDEX WORKS</span><h2>METHODOLOGY</h2></div></div>'+
-    '<p><b>Current strength</b> is the same 65% full-season / 35% last-three-game projected PPG formula used by the Playoff Calculator, calculated from official completed weeks. It never uses fantasy schedule strength or roster market value.</p>'+
-    '<p><b>Long-term capital</b> is today’s dynasty asset value, including future picks under the existing league-specific pick rules. It measures assets, not guaranteed future wins.</p>'+
-    '<p><b>Labels</b> are rank-based: top four in both rankings are Dynasty Juggernauts; top four in scoring alone are Win-Now Contenders; top four in market alone are Rising Contenders; bottom three in both need a rebuild; other franchises are Middle of the Pack.</p>'+
-    '<p>No invented 2027–2029 championship probabilities are shown. For actual current-season playoff and title odds, use the <a href="#/playoff-calculator">Playoff Calculator</a>.</p></section>'+
-   '<p class="dm-footnote">Roster values by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a> · Market prices are current estimates, not guaranteed outcomes.</p></div>';
+   '<section class="dm-box dm-method"><div class="dm-panel-head"><div><span>FULL METHODOLOGY</span><h2>HOW THE SCORES ARE BUILT</h2></div></div>'+
+    '<p><b>Current Contender (0–100):</b> 55% model PPG, 20% current starter-value proxy, 15% scoring consistency, 10% top-five active bench depth. PPG retains the Playoff Calculator’s 65% season / 35% last-three-games blend; consistency uses team-only eight-game scoring volatility (with a prior-season fill where needed), measured relative to expected PPG.</p>'+
+    '<p><b>Future Window (0–100):</b> 30% total RosterAudit/FIG dynasty value, 25% future draft-pick value, 25% top-eight age-adjusted player value, 20% top-five young-core value. Youth means QB ≤27, RB ≤24, WR ≤25 and TE ≤26. Age curves vary by position and apply only to this outlook score, not to official roster valuations.</p>'+
+    '<p><b>Position-specific aging:</b> Quarterbacks peak in this index at 25–29, running backs at 23 and younger, receivers at 25–27, and tight ends at 26–29. Use the breakdown under each franchise to inspect the actual component values and league-normalized scores.</p>'+
+    '<p><b>Scoring and classifications:</b> Every metric is normalized from 0–100 based on the actual range of all ten franchises (50 if everyone is tied), then combined at the shown weights. Top-four current/future teams are Dynasty Juggernauts; strong current teams with bottom-four futures are Fragile Contenders; other labels describe the corresponding two-score ranking positions.</p>'+
+    '<p><b>Important:</b> Dynasty market prices already reflect some age information; the additional age curve intentionally measures roster longevity rather than market trade value. Missing ages do not become guesses. This index is not a forecast of specific future championships. For schedule-aware playoff and championship probabilities use the <a href="#/playoff-calculator">Playoff Calculator</a>.</p></section>'+
+   '<p class="dm-footnote">Player market prices by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Ages via verified Sleeper NFL player metadata. Scores are descriptive league-relative indices.</p></div>';
  }
  async function launch(mode,team){
   currentMode=mode==='window'?'window':'market';focus=Number.isInteger(Number(team))&&Number(team)>=1&&Number(team)<=10?Number(team):null;
