@@ -77,8 +77,17 @@
   [...selected].forEach(function(id){
    var line=points.map(function(p){var t=historicTeam(p,id);return t?{date:p.date,v:safeNumber(t.total)}:null;}).filter(Boolean);
    if(!line.length)return;
-   var path=line.map(function(p,i){return(i?'L':'M')+x(p.date).toFixed(2)+','+y(p.v).toFixed(2);}).join(' ');
-   s+='<path d="'+path+'" fill="none" stroke="'+palette[(id-1)%palette.length]+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+   // Show unobserved days as dotted connections, not invented daily prices.
+   for(var j=1;j<line.length;j++){
+    var left=line[j-1],right=line[j];
+    var elapsed=(new Date(right.date+'T12:00:00Z')-new Date(left.date+'T12:00:00Z'))/86400000;
+    var gap=elapsed>1.5;
+    var path='M'+x(left.date).toFixed(2)+','+y(left.v).toFixed(2)+' L'+x(right.date).toFixed(2)+','+y(right.v).toFixed(2);
+    s+='<path d="'+path+'" fill="none" stroke="'+palette[(id-1)%palette.length]+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"'+(gap?' stroke-dasharray="6 7"':'')+'/>';
+   }
+   if(line.length===1){
+    s+='<circle cx="'+x(line[0].date)+'" cy="'+y(line[0].v)+'" r="5" fill="'+palette[(id-1)%palette.length]+'"/>';
+   }
    var last=line[line.length-1];
    s+='<circle cx="'+x(last.date)+'" cy="'+y(last.v)+'" r="5" fill="'+palette[(id-1)%palette.length]+'" stroke="#fff" stroke-width="2"/>';
   });
@@ -136,7 +145,7 @@
   holder.innerHTML=header+'<section class="dm-box"><div>'+selector+'</div><div id="dmGraph"></div>'+legend+'</section>'+
    (focusCard||'')+'<section class="dm-box">'+table+'</section>'+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>VALUATION CHANGE</span><h2>MARKET MOVERS</h2></div></div><div class="dm-movers" id="dmMovers"></div></section>'+
-   '<p class="dm-footnote">Values by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Future picks use the league’s existing valuation rules. Trends start with actual dated snapshots; no historical market prices are reconstructed. Missing pick tiers are excluded from the known total.</p></div>';
+   '<p class="dm-footnote">Values by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Archived prices and date-specific rosters are recovered from original GitHub commits starting October 9, 2026; unavailable dates appear as dotted chart connections. October 8 used an unverified CSV preset and is excluded from comparisons. Future picks use FIG valuation rules. Missing pick tiers are excluded from the known total. No prices are estimated for missing dates.</p></div>';
   holder.querySelectorAll('[data-dm-period]').forEach(function(button){
    button.addEventListener('click',function(){
     activePeriod=button.dataset.dmPeriod;
