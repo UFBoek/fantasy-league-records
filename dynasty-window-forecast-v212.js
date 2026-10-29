@@ -3,7 +3,10 @@
    The model has no team-name adjustments or guaranteed playoff outcomes. */
 (function(global){
  'use strict';
- const HORIZON=2031,TRIALS=1600,ELASTICITY=.75,CONTENDER_THRESHOLD=60;
+ const HORIZON=2031,TRIALS=3500;
+ // Ten franchises and one champion: 10% is the equal-share championship
+ // benchmark, not a threshold tuned against any specific team.
+ const EQUITABLE_TITLE_SHARE=100/10;
  const POS=new Set(['QB','RB','WR','TE']);
  const CURVES={
   QB:[[19,.76],[22,.88],[24,.98],[26,1.06],[29,1.11],[31,1.09],[33,1.03],[35,.92],[38,.70],[41,.40],[45,.10]],
@@ -14,6 +17,39 @@
  function value(x){const n=Number(x);return Number.isFinite(n)?Math.max(0,n):0;}
  function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
  function average(a){return a.reduce((s,n)=>s+n,0)/Math.max(1,a.length);}
+ function deviation(a){
+  const m=average(a);
+  return Math.sqrt(average(a.map(v=>(v-m)**2)));
+ }
+ function marketCalibration(teams){
+  // Empirically calibrate a monotonic cap -> PPG curve on all ten current
+  // franchises, not on selected owners. Weekly PPG differences have only
+  // a small residual after accounting for active lineup market value.
+  const xs=teams.map(t=>Math.log(t.baseCapital+2000));
+  const ys=teams.map(t=>t.ppg);
+  const mx=average(xs),my=average(ys);
+  const xx=xs.reduce((sum,x)=>sum+(x-mx)**2,0);
+  const xy=xs.reduce((sum,x,i)=>sum+(x-mx)*(ys[i]-my),0);
+  const slope=clamp(xx>0?xy/xx:0,0,110);
+  const intercept=my-slope*mx;
+  return {slope,intercept,score:cap=>clamp(intercept+slope*Math.log(Math.max(0,cap)+2000),35,300)};
+ }
+ function playoffChampion(rankings,teamInfo,rng){
+  // Exactly the actual 5-team structure: 4v5 play-in, 1vplay-in,
+  // 2v3 semifinal, then title game. The seeds below use projected
+  // underlying strength, not future schedules or official standing odds.
+  const byId=new Map(teamInfo.map(t=>[t.id,t]));
+  function game(a,b){
+   const sdA=byId.get(a.id).weeklySd,sdB=byId.get(b.id).weeklySd;
+   const scoreA=a.ppg+sdA*normal(rng),scoreB=b.ppg+sdB*normal(rng);
+   return scoreA>=scoreB?a:b;
+  }
+  const seeds=rankings.slice(0,5);
+  const playIn=game(seeds[3],seeds[4]);
+  const semi1=game(seeds[0],playIn);
+  const semi2=game(seeds[1],seeds[2]);
+  return game(semi1,semi2).id;
+ }
  function ageCurve(pos,age){
   const points=CURVES[String(pos||'').toUpperCase()];
   if(!points)return .6;
@@ -79,6 +115,9 @@
    const id=Number(t.id);
    const scores=scoreRows.filter(s=>Number(s.franchise_id)===id).sort((a,b)=>Number(a.week)-Number(b.week)).map(x=>Number(x.points_for));
    const model=scoringModel.projected(scores,[]);
+   // Use observed PPG dispersion and cap implausible tiny/huge samples;
+   // no schedule adjustment enters the annual strength forecast.
+   const weeklySd=clamp(deviation(scores),18,39);
    const roster=playersFor(t,playerValue);
    const total=roster.reduce((s,p)=>s+p.v,0);
    const covered=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0);
@@ -86,7 +125,7 @@
    const lastKnownPickYear=globalKnownPickYear;
    return {id,ppg:model&&model.ppg,roster,picks,lastKnownPickYear,
     ageCoverage:total>0?covered/total:0,baseCapital:capital(roster),
-    total:value(t.value),pickCapital:value(t.picks),hasScores:scores.length>=5};
+    total:value(t.value),pickCapital:value(t.picks),weeklySd,hasScores:scores.length>=5};
   });
   const ready=teamsData.every(t=>t.hasScores&&t.roster.length>=10&&t.ageCoverage>=.90&&t.baseCapital>0);
   return {ready,teams:teamsData,year};
@@ -172,38 +211,36 @@
  function forecast(input){
   const data=validate(input),years=Array.from({length:HORIZON-data.year+1},(_,i)=>data.year+i);
   if(!data.ready)return {ready:false,years,teams:data.teams,reason:'Missing completed scores or verified roster values'};
-  const initialMean=average(data.teams.map(t=>t.ppg));
+  const calibration=marketCalibration(data.teams);
   const initialMeanCapital=average(data.teams.map(t=>t.baseCapital));
-  const values=Object.fromEntries(data.teams.map(t=>[t.id,years.map(y=>({year:y,topThree:0,sum:0,relativeSum:0,allScores:[]}))]));
+  const values=Object.fromEntries(data.teams.map(t=>[t.id,years.map(y=>({year:y,topThree:0,championships:0,sum:0,allScores:[]}))]));
   const rng=generator(makeSeed(data));
   for(let trial=0;trial<TRIALS;trial++){
    const states=data.teams.map(t=>({id:t.id,base:t,players:t.roster.map(p=>({...p})),picks:t.picks}));
    for(let yi=0;yi<years.length;yi++){
     const season=years[yi],offset=season-data.year;
     if(offset>0)states.forEach(st=>seasonStep(st,season,rng,input.market||{}));
-    const scores=states.map(st=>{
-     const t=st.base;
-     const coreNow=capital(st.players);
-     const assetChange=Math.pow((coreNow+1200)/(t.baseCapital+1200),ELASTICITY);
-     // Proven current scoring is our starting anchor. Future changes are driven
-     // by position-specific development, realized picks and optional retooling.
-     // Apply mild uncertainty regression, not a forced return to league average.
-     const baseline=initialMean+(t.ppg-initialMean)*Math.pow(.986,offset);
-     // Capital is valued using 1 QB, 2 RB, 3 WR, 1 TE, 2 FLEX and 1 SF.
-   // Long-range scoring also reflects today's verified core quality, not
-   // merely growth from a tiny starting roster. No owner-specific adjustment.
-   const qualityAnchor=19*Math.log((t.baseCapital+2000)/(initialMeanCapital+2000))*(1-Math.exp(-.46*offset));
-   const futureStrength=baseline*assetChange+qualityAnchor;
-     const noise=(6+3.8*offset)*normal(rng);
-     return {id:t.id,ppg:clamp(futureStrength+noise,35,300)};
+    const capitals=states.map(st=>capital(st.players));
+    const currentMean=average(capitals);
+    // Express the pool in today's market units. Common changes in league
+    // asset prices should not manufacture fantasy scoring inflation/deflation.
+    const marketRebase=clamp(initialMeanCapital/Math.max(1,currentMean),.67,1.5);
+    const scores=states.map((st,i)=>{
+     const team=st.base,assetPPG=calibration.score(capitals[i]*marketRebase);
+     const initialAssetPPG=calibration.score(team.baseCapital);
+     // The unexplained portion of a seven-week scoring sample fades quickly.
+     // Do NOT carry virtually all of a 2026 scoring edge forward to 2031.
+     const residual=(team.ppg-initialAssetPPG)*Math.pow(.48,offset);
+     const uncertainty=(5+3.1*offset)*normal(rng);
+     return {id:team.id,ppg:clamp(assetPPG+residual+uncertainty,35,300)};
     });
-    const mean=average(scores.map(s=>s.ppg));
-    scores.sort((a,b)=>b.ppg-a.ppg||a.id-b.id);
-    scores.forEach((item,rank)=>{
+    const ranks=scores.slice().sort((a,b)=>b.ppg-a.ppg||a.id-b.id);
+    const champion=playoffChampion(ranks,data.teams,rng);
+    ranks.forEach((item,rank)=>{
      const row=values[item.id][yi];
      row.sum+=item.ppg;
-     row.relativeSum+=item.ppg-mean;
      if(rank<3)row.topThree++;
+     if(item.id===champion)row.championships++;
      row.allScores.push(item.ppg);
     });
    }
@@ -212,15 +249,15 @@
    const outlook=values[t.id].map(v=>{
     const points=v.allScores.sort((a,b)=>a-b);
     return {year:v.year,topThree:Math.round(v.topThree/TRIALS*1000)/10,
+      titleChance:Math.round(v.championships/TRIALS*1000)/10,
       strength:Math.round(v.sum/TRIALS*10)/10,
-      advantage:Math.round(v.relativeSum/TRIALS*10)/10,
       low:Math.round(points[Math.floor(.15*(points.length-1))]*10)/10,
       high:Math.round(points[Math.floor(.85*(points.length-1))]*10)/10};
    });
-   const qualified=outlook.map((o,i)=>o.topThree>=CONTENDER_THRESHOLD?i:-1).filter(i=>i>=0);
+   const qualified=outlook.map((o,i)=>o.titleChance>=EQUITABLE_TITLE_SHARE?i:-1).filter(i=>i>=0);
    const open=qualified.length?qualified[0]:-1;
    let close=-1;
-   if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].topThree>=CONTENDER_THRESHOLD)close++;}
+   if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].titleChance>=EQUITABLE_TITLE_SHARE)close++;}
    // Top-three probabilities saturate at 100 for dominant franchises.
    // Peak is the season with the highest expected underlying PPG, not a
    // tie-break between repeated 100% contention probabilities.
@@ -228,20 +265,20 @@
    const beyond=close===outlook.length-1;
    const window=open<0?'No projected window by '+HORIZON:
      (open===0?'Now':String(outlook[open].year))+'–'+(beyond?HORIZON+'+':outlook[close].year);
-   const status=open<0?(outlook[0].topThree>=35?'On the bubble':'Building'):
+   const status=open<0?(outlook[0].titleChance>=5?'On the bubble':'Building'):
      open===0?(beyond?'Sustained contender':close<=1?'Win-now':'Contending'):
      open<=2?'Rising contender':'Long-term rebuild';
    return {id:t.id,outlook,openYear:open<0?null:outlook[open].year,
     endYear:open<0?null:outlook[close].year,throughHorizon:beyond,window,status,
     seasonsInWindow:open<0?0:close-open+1,
-    peakYear:peak.year,peakChance:peak.topThree,peakAdvantage:peak.advantage,
-    farChance:outlook.at(-1).topThree,ageCoverage:t.ageCoverage,
-    baselinePPG:t.ppg,expectedContendingSeasons:Math.round(outlook.reduce((s,y)=>s+y.topThree/100,0)*10)/10,
+    peakYear:peak.year,peakChance:peak.topThree,peakTitleChance:peak.titleChance,
+    farChance:outlook.at(-1).titleChance,ageCoverage:t.ageCoverage,
+    baselinePPG:t.ppg,expectedContendingSeasons:Math.round(outlook.reduce((sum,y)=>sum+y.titleChance/EQUITABLE_TITLE_SHARE,0)*10)/10,
     capital:t.total,picks:t.pickCapital};
-  }).sort((a,b)=>b.outlook[0].topThree-a.outlook[0].topThree||a.id-b.id);
-  return {ready:true,years,teams:output,trials:TRIALS,topThreeDefinition:'Top 3 in simulated underlying scoring strength'};
+  }).sort((a,b)=>b.outlook[0].titleChance-a.outlook[0].titleChance||a.id-b.id);
+  return {ready:true,years,teams:output,trials:TRIALS,metric:'Hypothetical neutral-playoff championship rate',benchmark:EQUITABLE_TITLE_SHARE,calibration:{slope:calibration.slope}};
  }
- const api={forecast,ageCurve,validate,TRIALS,HORIZON,CONTENDER_THRESHOLD};
+ const api={forecast,ageCurve,validate,TRIALS,HORIZON,EQUITABLE_TITLE_SHARE,marketCalibration};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(global)global.figDynastyWindowForecast=api;
 })(typeof window!=='undefined'?window:null);
