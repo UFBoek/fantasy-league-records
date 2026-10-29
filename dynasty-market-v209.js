@@ -196,78 +196,71 @@
   return {byId:result,season:season,completedWeeks:Math.floor(all.length/10)};
  }
  function windowScores(){
-  var season=Math.max.apply(null,(DATA.currentStandings||[]).map(function(t){return +t.season;}));
-  return window.figDynastyWindowModel.calculate({
-   teams:entries,weeklyRanks:DATA.weeklyRanks||[],season:season,
-   playerValue:function(id){return raPlayer(id);}
+  var season=Math.max.apply(null,(DATA.currentStandings||[]).map(function(t){return Number(t.season);}));
+  var model=window.figDynastyWindowModel.calculate({
+   teams:entries,weeklyRanks:DATA.weeklyRanks||[],season:season,playerValue:function(id){return raPlayer(id);}
   });
+  var forecast=window.figDynastyWindowForecast.forecast({
+   teams:entries,weeklyRanks:DATA.weeklyRanks||[],year:season,
+   currentModel:window.figDynastyWindowModel,
+   playerValue:function(id){return raPlayer(id);},
+   pickValue:function(p){return raDynastyPickValuation(p.pick_season,p.round,p.original_franchise_id).value;}
+  });
+  return {forecast:forecast,current:model};
  }
- function scatter(scores){
-  var w=920,h=480,p={l:80,r:48,t:54,b:78};
-  var sx=function(v){return p.l+v/100*(w-p.l-p.r);};
-  var sy=function(v){return h-p.b-v/100*(h-p.t-p.b);};
-  var out='<svg viewBox="0 0 '+w+' '+h+'" class="dm-window-chart" role="img" aria-label="Current contender score versus future outlook score, both zero to 100">';
-  [0,25,50,75,100].forEach(function(tick){
-   var xx=sx(tick),yy=sy(tick);
-   out+='<line x1="'+p.l+'" x2="'+(w-p.r)+'" y1="'+yy+'" y2="'+yy+'" class="dm-gridline"/>'+
-     '<line x1="'+xx+'" x2="'+xx+'" y1="'+p.t+'" y2="'+(h-p.b)+'" class="dm-gridline"/>'+
-     '<text x="'+(p.l-13)+'" y="'+(yy+4)+'" text-anchor="end" class="dm-axis-label">'+tick+'</text>'+
-     '<text x="'+xx+'" y="'+(h-48)+'" text-anchor="middle" class="dm-axis-label">'+tick+'</text>';
-  });
-  out+='<line x1="'+sx(50)+'" x2="'+sx(50)+'" y1="'+p.t+'" y2="'+(h-p.b)+'" stroke="#6e919b" stroke-dasharray="7 7" stroke-width="2"/>'+
-    '<line x1="'+p.l+'" x2="'+(w-p.r)+'" y1="'+sy(50)+'" y2="'+sy(50)+'" stroke="#6e919b" stroke-dasharray="7 7" stroke-width="2"/>'+
-    '<text x="'+(w/2)+'" y="'+(h-13)+'" text-anchor="middle" class="dm-axis-title">CURRENT CONTENDER SCORE →</text>'+
-    '<text x="20" y="'+(h/2)+'" transform="rotate(-90 20 '+(h/2)+')" text-anchor="middle" class="dm-axis-title">FUTURE WINDOW SCORE →</text>';
-  scores.rows.filter(function(r){return r.current!==null&&r.future!==null;}).forEach(function(r){
-   var xx=sx(r.current),yy=sy(r.future),color=palette[(r.id-1)%palette.length];
-   // Labels sit above their points; text carries a white stroke for contrast.
-   var labelY=Math.max(22,yy-19);
-   out+='<a href="#/team/'+r.id+'" aria-label="'+name(r.id)+' team profile">'+
-     '<circle cx="'+xx+'" cy="'+yy+'" r="12" fill="'+color+'" stroke="#fff" stroke-width="3"/>'+
-     '<text x="'+xx+'" y="'+labelY+'" text-anchor="middle" class="dm-point-name">'+name(r.id)+'</text></a>';
-  });
-  return out+'</svg>';
+ function yearColor(chance){
+  if(chance>=75)return 'elite';
+  if(chance>=50)return 'strong';
+  if(chance>=30)return 'mixed';
+  return 'low';
+ }
+ function timelineCell(row){
+  return '<span class="dm-year-cell '+yearColor(row.topThree)+'" title="'+row.year+': '+row.topThree.toFixed(1)+'% chance of top-three scoring strength">'+
+   '<strong>'+Math.round(row.topThree)+'%</strong></span>';
+ }
+ function windowPage(){
+  var result=windowScores(),forecast=result.forecast,current=result.current;
+  var yearLabels=forecast.years.map(function(y){return '<span>'+y+'</span>';}).join('');
+  if(!forecast.ready){
+   holder.innerHTML='<div class="dm-page">'+tabs('window')+'<div class="dm-heading"><div><span class="dm-kicker">2026–2031 OUTLOOK</span><h1>CHAMPIONSHIP WINDOW</h1></div></div>'+
+    '<div class="dm-chart-empty"><strong>FORECAST DATA UNAVAILABLE</strong><span>Requires verified roster ages and five completed regular-season games.</span></div></div>';
+   return;
+  }
+  var currentById=new Map(current.rows.map(function(r){return [r.id,r];}));
+  var heading='<div class="dm-page">'+tabs('window')+
+   '<div class="dm-heading"><div><span class="dm-kicker">2026–2031 FRANCHISE OUTLOOK</span><h1>CHAMPIONSHIP WINDOW</h1></div>'+
+   '<a class="dm-calculator" href="#/playoff-calculator">TITLE ODDS →</a></div>';
+  var table='<section class="dm-box dm-forecast-box">'+
+   '<div class="dm-panel-head"><div><span>LEAGUE OUTLOOK</span><h2>CONTENTION TIMELINE</h2></div></div>'+
+   '<div class="dm-forecast-scroll"><div class="dm-forecast-grid">'+
+   '<div class="dm-forecast-head"><span>FRANCHISE</span><div class="dm-forecast-years">'+yearLabels+'</div></div>'+
+   forecast.teams.map(function(t){
+    return '<div class="dm-forecast-entry"><a href="#/team/'+t.id+'">'+avatar(t.id)+'<b>'+name(t.id)+'</b></a>'+
+     '<div class="dm-forecast-years">'+t.outlook.map(timelineCell).join('')+'</div></div>';
+   }).join('')+'</div></div>'+
+   '<div class="dm-forecast-legend"><span><i class="elite"></i>75%+</span><span><i class="strong"></i>50–74%</span>'+
+   '<span><i class="mixed"></i>30–49%</span><span><i class="low"></i>Below 30%</span></div>'+
+   '<p class="dm-forecast-footnote">Chance of top-three underlying scoring strength · '+forecast.trials+' scenarios · 2031+ = still open at forecast limit</p></section>';
+  var cards=forecast.teams.map(function(t){
+   var now=currentById.get(t.id),shortWindow=t.openYear===null?'Not projected':t.window;
+   var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
+     '<strong>'+y.topThree.toFixed(1)+'%</strong><small>'+y.low.toFixed(0)+'–'+y.high.toFixed(0)+' PPG</small></div>';}).join('');
+   return '<article class="dm-forecast-card">'+
+     '<div class="dm-forecast-card-head"><a href="#/team/'+t.id+'" class="dm-window-identity">'+avatar(t.id)+
+       '<span class="dm-window-name"><strong>'+name(t.id)+'</strong><small>'+escapeHTML(t.status)+'</small></span></a>'+
+       '<div class="dm-forecast-window"><small>EST. WINDOW</small><strong>'+escapeHTML(shortWindow)+'</strong></div></div>'+
+     '<div class="dm-forecast-metrics"><div><small>CURRENT SCORE</small><b>'+metric(now?now.current:null)+'</b></div>'+
+       '<div><small>PEAK YEAR</small><b>'+t.peakYear+'</b></div>'+
+       '<div><small>2031 OUTLOOK</small><b>'+t.farChance.toFixed(0)+'%</b></div></div>'+
+     '<details class="dm-window-detail"><summary>YEAR-BY-YEAR OUTLOOK</summary><div class="dm-forecast-years-detail">'+years+'</div></details>'+
+     '</article>';
+  }).join('');
+  holder.innerHTML=heading+table+
+   '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE PROJECTIONS</span><h2>WINDOW ESTIMATES</h2></div></div>'+
+   '<div class="dm-forecast-cards">'+cards+'</div></section>'+
+   '<p class="dm-footnote">A forecast, not guaranteed results. Ages, market value, picks and possible roster retooling are modeled; future trades and draft outcomes remain uncertain.</p></div>';
  }
  function metric(n){return n===null||!Number.isFinite(n)?'—':n.toFixed(1);}
- function windowPage(){
-  var info=windowScores();
-  var scored=info.rows.filter(function(r){return r.current!==null&&r.future!==null;});
-  var cards=info.rows.map(function(r){
-   var note=r.readyAge?'': 'AGES UNAVAILABLE';
-   var breakdown=[
-    ['MODEL PPG','ppg',r.model?metric(r.model.ppg)+' PPG':'—'],
-    ['STARTER VALUE','starter',fmt(r.raw.starter)],
-    ['CONSISTENCY','consistency',r.model?percent(100*r.model.cv)+' CV':'—'],
-    ['TOP-5 DEPTH','depth',fmt(r.raw.depth)],
-    ['TOTAL VALUE','total',fmt(r.raw.total)],
-    ['PICK CAPITAL','picks',fmt(r.raw.picks)],
-    ['AGE-ADJUSTED CORE','ageCore',r.raw.ageCore===null?'—':fmt(r.raw.ageCore)],
-    ['YOUNG CORE','youngCore',r.raw.youngCore===null?'—':fmt(r.raw.youngCore)]
-   ];
-   return '<div class="dm-window-item">'+
-     '<div class="dm-window-row"><a class="dm-window-identity" href="#/team/'+r.id+'">'+avatar(r.id)+
-       '<span class="dm-window-name"><strong>'+name(r.id)+'</strong>'+(note?'<small>'+note+'</small>':'')+'</span></a>'+
-       '<span class="dm-window-scores"><strong>'+metric(r.current)+'</strong><small>NOW / 100</small></span>'+
-       '<span class="dm-window-scores dm-future-score"><strong>'+metric(r.future)+'</strong><small>FUTURE / 100</small></span>'+
-       '<span class="dm-status '+r.klass+'">'+r.label+'</span></div>'+
-     '<details class="dm-window-detail"><summary>VIEW SCORE BREAKDOWN</summary><div class="dm-components">'+
-       breakdown.map(function(part){return '<div><span>'+part[0]+'</span><b>'+part[2]+'</b><small>LEAGUE SCORE '+(r.components[part[1]]===null?'—':metric(r.components[part[1]]))+'</small></div>';}).join('')+
-     '</div>'+(r.starterFallback?'<small class="dm-method-note">Starter value: top 10 active players</small>':'')+'</details></div>';
-  }).join('');
-  holder.innerHTML='<div class="dm-page">'+tabs('window')+
-   '<div class="dm-heading"><div><span class="dm-kicker">CONTENDER STRENGTH × LONG-TERM ASSETS</span><h1>CHAMPIONSHIP WINDOW</h1>'+
-   '</div>'+
-   '<a class="dm-calculator" href="#/playoff-calculator">CURRENT TITLE ODDS →</a></div>'+
-
-
-
-   '<section class="dm-box"><div class="dm-panel-head"><div><span>LEAGUE POSITIONING</span><h2>BUILT TO WIN NOW OR LATER?</h2></div></div>'+
-   (scored.length===10?'<div class="dm-visual-scroll">'+scatter(info)+'</div>':'<div class="dm-chart-empty"><strong>MODEL DATA UNAVAILABLE</strong><span>'+scored.length+'/10 teams ready</span></div>')+
-   '</section>'+
-   '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE OUTLOOK</span><h2>CHAMPIONSHIP WINDOW INDEX</h2></div></div>'+
-    '<div class="dm-window-list">'+cards+'</div></section>'+
-   '<p class="dm-footnote">Values: <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit</a> · Ages: Sleeper · Index scores, not title odds</p></div>';
- }
  async function launch(mode,team){
   currentMode=mode==='window'?'window':'market';focus=Number.isInteger(Number(team))&&Number(team)>=1&&Number(team)<=10?Number(team):null;
   navActive('dynasty');
