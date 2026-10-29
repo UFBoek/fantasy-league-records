@@ -60,8 +60,8 @@ assert.match(calc,/\(pregame\?\s*'<span class="pcl-model-score-card"><small>SIMU
  'simulated preview card only appears before noon');
 assert.match(calc,/'<span class="pcl-model-score-card"><small>USUAL LINEUP</,
  'usual lineup preview card also appears only before noon');
-assert.match(calc,/\(pregame\?'<p>Before Sunday noon Eastern/,
- 'the live explanation drops references to hidden historical values');
+assert.doesNotMatch(calc,/HOW THE NUMBERS CONNECT/,
+ 'verbose model explanation has been removed without changing pregame controls');
 assert.match(calc,/pcl-model-score-card pcl-model-score-primary"><small>EXPECTED STARTER TOTAL/,
  'the expected total remains visible and primary all week');
 assert.match(calc,/s\.weekSd=forecast\?forecast\.sd:s\.sd/,
