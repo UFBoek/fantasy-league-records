@@ -3,7 +3,7 @@
    The model has no team-name adjustments or guaranteed playoff outcomes. */
 (function(global){
  'use strict';
- const HORIZON=2031,TRIALS=3500;
+ const HORIZON=2031,TAIL_HORIZON=2033,TRIALS=3500;
  // Ten franchises and one champion: 10% is the equal-share championship
  // benchmark, not a threshold tuned against any specific team.
  const EQUITABLE_TITLE_SHARE=100/10;
@@ -96,11 +96,39 @@
   const bench=candidates.filter((p,i)=>!used.has(i)).map(p=>p.v).sort((a,b)=>b-a);
   return starters+.24*bench.slice(0,10).reduce((s,n)=>s+n,0);
  }
+ // Original rounds 1–4 appear three draft years ahead. Existing 2027–29
+ // trades are authoritative; newly issued 2030+ picks are assumed untraded.
+ // These remain draft assets and do not directly increase projected PPG.
+ function marketPickValue(market,round,yearsAway){
+  const tierYear=yearsAway<=1?2027:yearsAway===2?2028:2029;
+  return value(market&&market.future_picks&&market.future_picks[tierYear+':'+round+':mid']);
+ }
+ function addNewOriginalPicks(state,season,market){
+  const draftYear=season+3;
+  if(draftYear<=state.base.latestKnownDraftYear)return;
+  for(let round=1;round<=4;round++){
+   const exists=state.picks.some(p=>p.year===draftYear&&p.round===round&&p.original===state.id);
+   if(!exists){
+    const price=marketPickValue(market,round,3);
+    if(price>0)state.picks.push({year:draftYear,round,original:state.id,value:price,initialDistance:3,inferred:true});
+   }
+  }
+ }
+ function currentPickValue(pick,season,market){
+  const initial=marketPickValue(market,pick.round,Math.max(1,pick.initialDistance));
+  const now=marketPickValue(market,pick.round,Math.max(1,pick.year-season));
+  return initial>0&&now>0?pick.value*now/initial:pick.value;
+ }
+ function futureDraftCapital(state,season,market){
+  const future=state.picks.filter(p=>p.year>season);
+  return {value:future.reduce((sum,p)=>sum+currentPickValue(p,season,market),0),count:future.length,
+   years:future.map(p=>p.year)};
+ }
  function pickValuation(pick,lookup,year){
   const y=Number(pick.pick_season);
   if(y<=year||y>HORIZON)return null;
   const p=value(lookup(pick));
-  return p>0?{year:y,value:p,round:Number(pick.round)}:null;
+  return p>0?{year:y,value:p,round:Number(pick.round),original:Number(pick.original_franchise_id),initialDistance:y-year,inferred:false}:null;
  }
  function validate(input){
   const {teams,weeklyRanks,year,playerValue,pickValue}=input;
@@ -110,6 +138,7 @@
   const scoringModel=input.currentModel||(global&&global.figDynastyWindowModel);
   if(!scoringModel||typeof scoringModel.projected!=='function')throw Error('Existing PPG model required');
   const scoreRows=weeklyRanks.filter(r=>Number(r.season)===year&&Number(r.week)>=1&&Number(r.week)<=14&&Number.isFinite(Number(r.points_for)));
+  const latestKnownDraftYear=Math.max(year,...teams.flatMap(t=>(t.asset&&t.asset.picks||[]).map(p=>Number(p.pick_season)||year)));
   const teamsData=teams.map(t=>{
    const id=Number(t.id);
    const scores=scoreRows.filter(s=>Number(s.franchise_id)===id).sort((a,b)=>Number(a.week)-Number(b.week)).map(x=>Number(x.points_for));
@@ -121,14 +150,15 @@
    const total=roster.reduce((s,p)=>s+p.v,0);
    const covered=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0);
    const picks=(t.asset&&t.asset.picks||[]).map(p=>pickValuation(p,pickValue,year)).filter(Boolean);
-   return {id,ppg:model&&model.ppg,roster,picks,
+   return {id,ppg:model&&model.ppg,roster,picks,latestKnownDraftYear,
     ageCoverage:total>0?covered/total:0,baseCapital:capital(roster),
     total:value(t.value),pickCapital:value(t.picks),weeklySd,hasScores:scores.length>=5};
   });
   const ready=teamsData.every(t=>t.hasScores&&t.roster.length>=10&&t.ageCoverage>=.90&&t.baseCapital>0);
   return {ready,teams:teamsData,year};
  }
- function seasonStep(state,year,rng){
+ function seasonStep(state,year,rng,market){
+  addNewOriginalPicks(state,year,market);
   const next=[];
   for(const p of state.players){
    const before=ageCurve(p.pos,p.age),after=ageCurve(p.pos,p.age+1);
@@ -150,7 +180,7 @@
    const draw=rng();
    const realized=draw<.35?.07+.25*rng():draw<.80?.35+.42*rng():1+.50*rng();
    const pos=['RB','WR','WR','TE','QB'][Math.floor(rng()*5)];
-   next.push({pos,age:pos==='QB'?23:22,v:pick.value*realized*.38,rookieYear:year});
+   next.push({pos,age:pos==='QB'?23:22,v:currentPickValue(pick,year-1,market)*realized*.38,rookieYear:year});
   }
   // Do not assume any successful future trades. Any young replacements
   // enter only through the franchise's actual current draft-pick holdings.
@@ -166,16 +196,17 @@
  }
  function forecast(input){
   const data=validate(input),years=Array.from({length:HORIZON-data.year+1},(_,i)=>data.year+i);
+  const simulatedYears=Array.from({length:TAIL_HORIZON-data.year+1},(_,i)=>data.year+i);
   if(!data.ready)return {ready:false,years,teams:data.teams,reason:'Missing completed scores or verified roster values'};
   const calibration=marketCalibration(data.teams);
   const initialMeanCapital=average(data.teams.map(t=>t.baseCapital));
-  const values=Object.fromEntries(data.teams.map(t=>[t.id,years.map(y=>({year:y,topThree:0,championships:0,sum:0,allScores:[]}))]));
+  const values=Object.fromEntries(data.teams.map(t=>[t.id,simulatedYears.map(y=>({year:y,topThree:0,championships:0,sum:0,pickCapital:0,pickCount:0,allScores:[]}))]));
   const rng=generator(makeSeed(data));
   for(let trial=0;trial<TRIALS;trial++){
-   const states=data.teams.map(t=>({id:t.id,base:t,players:t.roster.map(p=>({...p})),picks:t.picks}));
-   for(let yi=0;yi<years.length;yi++){
-    const season=years[yi],offset=season-data.year;
-    if(offset>0)states.forEach(st=>seasonStep(st,season,rng));
+   const states=data.teams.map(t=>({id:t.id,base:t,players:t.roster.map(p=>({...p})),picks:t.picks.map(p=>({...p}))}));
+   for(let yi=0;yi<simulatedYears.length;yi++){
+    const season=simulatedYears[yi],offset=season-data.year;
+    if(offset>0)states.forEach(st=>seasonStep(st,season,rng,input.market));
     const capitals=states.map(st=>capital(st.players));
     const currentMean=average(capitals);
     // Express the pool in today's market units. Common changes in league
@@ -195,6 +226,9 @@
     ranks.forEach((item,rank)=>{
      const row=values[item.id][yi];
      row.sum+=item.ppg;
+     const stock=futureDraftCapital(states.find(st=>st.id===item.id),season,input.market);
+     row.pickCapital+=stock.value;
+     row.pickCount+=stock.count;
      if(rank<3)row.topThree++;
      if(item.id===champion)row.championships++;
      row.allScores.push(item.ppg);
@@ -202,39 +236,45 @@
    }
   }
   const output=data.teams.map(t=>{
-   const outlook=values[t.id].map(v=>{
+   const fullOutlook=values[t.id].map(v=>{
     const points=v.allScores.sort((a,b)=>a-b);
     return {year:v.year,topThree:Math.round(v.topThree/TRIALS*1000)/10,
       titleChance:Math.round(v.championships/TRIALS*1000)/10,
       strength:Math.round(v.sum/TRIALS*10)/10,
+      futurePickCapital:Math.round(v.pickCapital/TRIALS),
+      futurePickCount:Math.round(v.pickCount/TRIALS),
       low:Math.round(points[Math.floor(.15*(points.length-1))]*10)/10,
       high:Math.round(points[Math.floor(.85*(points.length-1))]*10)/10};
    });
-   const qualified=outlook.map((o,i)=>o.titleChance>=EQUITABLE_TITLE_SHARE?i:-1).filter(i=>i>=0);
+   const outlook=fullOutlook.filter(y=>y.year<=HORIZON);
+   const qualified=fullOutlook.map((o,i)=>o.titleChance>=EQUITABLE_TITLE_SHARE?i:-1).filter(i=>i>=0);
    const open=qualified.length?qualified[0]:-1;
    let close=-1;
-   if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].titleChance>=EQUITABLE_TITLE_SHARE)close++;}
-   // Top-three probabilities saturate at 100 for dominant franchises.
-   // Peak is the season with the highest expected underlying PPG, not a
-   // tie-break between repeated 100% contention probabilities.
-   const peak=outlook.slice().sort((a,b)=>b.strength-a.strength||a.year-b.year)[0];
-   const beyond=close===outlook.length-1;
-   const window=open<0?'No projected window by '+HORIZON:
-     (open===0?'Now':String(outlook[open].year))+'–'+(beyond?HORIZON+'+':outlook[close].year);
+   if(open>=0){close=open;while(close+1<fullOutlook.length&&fullOutlook[close+1].titleChance>=EQUITABLE_TITLE_SHARE)close++;}
+   const peak=fullOutlook.slice().sort((a,b)=>b.strength-a.strength||a.year-b.year)[0];
+   const peakYear=peak.year>HORIZON?String(HORIZON+1)+'+':peak.year;
+   const beyond=open>=0&&fullOutlook[close].year>=HORIZON;
+   // The open-ended label NEVER promises a later championship. There is no
+   // supported exact closing or opening year beyond the visible horizon.
+   const window=open<0?'2032+ · TBD':fullOutlook[open].year>HORIZON?
+     '2032+ · Possible':
+     (open===0?'Now':String(fullOutlook[open].year))+'–'+
+     (beyond?HORIZON+'+':fullOutlook[close].year);
    const status=open<0?(outlook[0].titleChance>=5?'On the bubble':'Building'):
+     fullOutlook[open].year>HORIZON?'Long-range possibility':
      open===0?(beyond?'Sustained contender':close<=1?'Win-now':'Contending'):
      open<=2?'Rising contender':'Long-term rebuild';
    return {id:t.id,outlook,openYear:open<0?null:outlook[open].year,
-    endYear:open<0?null:outlook[close].year,throughHorizon:beyond,window,status,
+    endYear:open<0?null:fullOutlook[close].year,throughHorizon:beyond,window,status,
     seasonsInWindow:open<0?0:close-open+1,
-    peakYear:peak.year,peakChance:peak.topThree,peakTitleChance:peak.titleChance,
+    peakYear,peakChance:peak.topThree,peakTitleChance:peak.titleChance,
     farChance:outlook.at(-1).titleChance,ageCoverage:t.ageCoverage,
     baselinePPG:t.ppg,expectedContendingSeasons:Math.round(outlook.reduce((sum,y)=>sum+y.titleChance/EQUITABLE_TITLE_SHARE,0)*10)/10,
     capital:t.total,picks:t.pickCapital};
   }).sort((a,b)=>b.outlook[0].titleChance-a.outlook[0].titleChance||a.id-b.id);
-  return {ready:true,years,teams:output,trials:TRIALS,metric:'Hypothetical neutral-playoff championship rate',benchmark:EQUITABLE_TITLE_SHARE,calibration:{slope:calibration.slope}};
+  return {ready:true,years,teams:output,trials:TRIALS,tailHorizon:TAIL_HORIZON,metric:'Hypothetical neutral-playoff championship rate',benchmark:EQUITABLE_TITLE_SHARE,calibration:{slope:calibration.slope}};
  }
- const api={forecast,ageCurve,validate,TRIALS,HORIZON,EQUITABLE_TITLE_SHARE,marketCalibration};
+ const api={forecast,ageCurve,validate,TRIALS,HORIZON,TAIL_HORIZON,EQUITABLE_TITLE_SHARE,marketCalibration,marketPickValue,addNewOriginalPicks,currentPickValue,futureDraftCapital};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(global)global.figDynastyWindowForecast=api;
 })(typeof window!=='undefined'?window:null);
