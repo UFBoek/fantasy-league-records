@@ -209,6 +209,7 @@
   });
   return {forecast:forecast,current:model};
  }
+ function chanceLabel(chance){return chance>0&&chance<1?'<1%':Math.round(chance)+'%';}
  function yearColor(chance){
   if(chance>=75)return 'elite';
   if(chance>=50)return 'strong';
@@ -217,7 +218,7 @@
  }
  function timelineCell(row){
   return '<span class="dm-year-cell '+yearColor(row.topThree)+'" title="'+row.year+': '+row.topThree.toFixed(1)+'% chance of top-three scoring strength">'+
-   '<strong>'+Math.round(row.topThree)+'%</strong></span>';
+   '<strong>'+chanceLabel(row.topThree)+'</strong></span>';
  }
  function windowPage(){
   var result=windowScores(),forecast=result.forecast,current=result.current;
@@ -241,7 +242,7 @@
    }).join('')+'</div></div>'+
    '<div class="dm-forecast-legend"><span><i class="elite"></i>75%+</span><span><i class="strong"></i>50–74%</span>'+
    '<span><i class="mixed"></i>30–49%</span><span><i class="low"></i>Below 30%</span></div>'+
-   '<p class="dm-forecast-footnote">Chance of top-three underlying scoring strength · '+forecast.trials+' scenarios · 2031+ = still open at forecast limit</p></section>';
+   '<p class="dm-forecast-footnote">Top-three scoring strength · '+forecast.trials+' simulated futures · 2031+ = still open</p></section>';
   var cards=forecast.teams.map(function(t){
    var now=currentById.get(t.id),shortWindow=t.openYear===null?'Not projected':t.window;
    var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
@@ -251,8 +252,8 @@
        '<span class="dm-window-name"><strong>'+name(t.id)+'</strong><small>'+escapeHTML(t.status)+'</small></span></a>'+
        '<div class="dm-forecast-window"><small>EST. WINDOW</small><strong>'+escapeHTML(shortWindow)+'</strong></div></div>'+
      '<div class="dm-forecast-metrics"><div><small>CURRENT SCORE</small><b>'+metric(now?now.current:null)+'</b></div>'+
-       '<div><small>PEAK YEAR</small><b>'+t.peakYear+'</b></div>'+
-       '<div><small>2031 OUTLOOK</small><b>'+t.farChance.toFixed(0)+'%</b></div></div>'+
+       '<div><small>PEAK PPG YEAR</small><b>'+t.peakYear+'</b></div>'+
+       '<div><small>2031 OUTLOOK</small><b>'+chanceLabel(t.farChance)+'</b></div></div>'+
      '<details class="dm-window-detail"><summary>YEAR-BY-YEAR OUTLOOK</summary><div class="dm-forecast-years-detail">'+years+'</div></details>'+
      '</article>';
   }).join('');
