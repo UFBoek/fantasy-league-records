@@ -77,7 +77,8 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  await ctx.window.figDynastyMarket('window');
  assert.match(holder.innerHTML,/CHAMPIONSHIP WINDOW/);
  assert.match(holder.innerHTML,/CONTENTION TIMELINE/);
- assert.match(holder.innerHTML,/Window = above 10% league share/,'window benchmark uses league-equal title share');
+ assert.match(holder.innerHTML,/Window ≥10% league title share/,'window benchmark uses league-equal title share');
+ assert.match(holder.innerHTML,/No future trades assumed/,'honest no-trade assumptions are shown');
  assert.match(source,/chance>=99\.95\?'≥99\.9%'/,'near-certain display is never rounded to 100%');
  assert.match(holder.innerHTML,/10–24%/,'title opportunity legend is independent of top-three chance');
 
