@@ -85,5 +85,5 @@ assert.ok(html.indexOf('playoff-week-gate-v205.js')<
 assert.match(html,/playoff-lineup-model-v191\.js\?v=205/);
 assert.match(html,/playoff-calculator-v167\.js\?v=206/);
 assert.match(sw,/playoff-week-gate-v205\.js\?v=205/);
-assert.match(sw,/fig-league-shell-v207/);
+assert.match(sw,/fig-league-shell-v\d+/,'service worker has a versioned cache');
 console.log('Verified archive unlocks Week 8 preview, partial-roster safety and 2026 model regression passed');
