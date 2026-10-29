@@ -44,7 +44,7 @@ assert.match(calc,/lineupSnapshot=snapshot;lineupAdjustments=adjustments;/,
 assert.match(calc,/return \[round\(pa\),round\(pb\)\]/);
 assert.match(css,/\.pcl-model-teams\{/);
 assert.match(css,/@media\(max-width:699px\)/);
-assert.match(html,/playoff-calculator-v167\.js\?v=206/);
+assert.match(html,/playoff-calculator-v167\.js\?v=211/);
 assert.match(html,/playoff-calculator-v167\.css\?v=206/);
 const appRevision=html.match(/app\.js\?v=(\d+)/);
 assert.ok(appRevision,'app script revision exists');
