@@ -27,6 +27,19 @@ const input={teams,weeklyRanks:weekly,year,currentModel:model,playerValue,pickVa
 const first=engine.forecast(input),second=engine.forecast(input);
 assert.equal(first.ready,true);
 assert.deepEqual(first.years,[2026,2027,2028,2029,2030,2031]);
+assert.equal(engine.CONTENDER_THRESHOLD,60,'a close-to-even top-three outlook is not a sustained contention window');
+for(const t of first.teams){
+ const qualified=t.outlook.filter(o=>o.topThree>=engine.CONTENDER_THRESHOLD);
+ if(t.openYear!==null){
+  assert.ok(qualified.length>0);
+  const idx=t.outlook.findIndex(o=>o.year===t.endYear);
+  assert.ok(t.outlook[idx].topThree>=engine.CONTENDER_THRESHOLD);
+  if(idx<t.outlook.length-1)assert.ok(t.outlook[idx+1].topThree<engine.CONTENDER_THRESHOLD);
+ }else{
+  assert.equal(qualified.length,0);
+ }
+}
+
 assert.equal(first.teams.length,10);
 assert.deepEqual(first,second,'same verified inputs generate repeatable odds');
 assert.ok(first.teams.every(t=>t.outlook.length===6&&t.farChance>=0&&t.farChance<=100));
