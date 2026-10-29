@@ -209,10 +209,10 @@
   });
   return {forecast:forecast,current:model};
  }
- function chanceLabel(chance){return chance>=99.95?'99%+':chance<1?'<1%':Math.round(chance)+'%';}
+ function chanceLabel(chance){return chance>=99.95?'≥99.9%':chance<1?'<1%':chance>=95?chance.toFixed(1)+'%':Math.round(chance)+'%';}
  function yearColor(chance){
   if(chance>=75)return 'elite';
-  if(chance>=50)return 'strong';
+  if(chance>=60)return 'strong';
   if(chance>=30)return 'mixed';
   return 'low';
  }
@@ -240,9 +240,9 @@
     return '<div class="dm-forecast-entry"><a href="#/team/'+t.id+'">'+avatar(t.id)+'<b>'+name(t.id)+'</b></a>'+
      '<div class="dm-forecast-years">'+t.outlook.map(timelineCell).join('')+'</div></div>';
    }).join('')+'</div></div>'+
-   '<div class="dm-forecast-legend"><span><i class="elite"></i>75%+</span><span><i class="strong"></i>50–74%</span>'+
-   '<span><i class="mixed"></i>30–49%</span><span><i class="low"></i>Below 30%</span></div>'+
-   '<p class="dm-forecast-footnote">Top-three scoring strength in '+forecast.trials+' simulated futures · Not title odds · 2031+ = window still open</p></section>';
+   '<div class="dm-forecast-legend"><span><i class="elite"></i>75%+</span><span><i class="strong"></i>60–74%</span>'+
+   '<span><i class="mixed"></i>30–59%</span><span><i class="low"></i>Below 30%</span></div>'+
+   '<p class="dm-forecast-footnote">Window threshold: 60% top-three strength · '+forecast.trials+' simulations · Not title odds</p></section>';
   var cards=forecast.teams.map(function(t){
    var now=currentById.get(t.id),shortWindow=t.openYear===null?'Not projected':t.window;
    var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
