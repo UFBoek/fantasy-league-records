@@ -54,6 +54,7 @@
   const scoringModel=input.currentModel||(global&&global.figDynastyWindowModel);
   if(!scoringModel||typeof scoringModel.projected!=='function')throw Error('Existing PPG model required');
   const scoreRows=weeklyRanks.filter(r=>Number(r.season)===year&&Number(r.week)>=1&&Number(r.week)<=14&&Number.isFinite(Number(r.points_for)));
+  const globalKnownPickYear=Math.max(year,...teams.flatMap(t=>(t.asset?.picks||[]).map(p=>Number(p.pick_season)||year)));
   const teamsData=teams.map(t=>{
    const id=Number(t.id);
    const scores=scoreRows.filter(s=>Number(s.franchise_id)===id).sort((a,b)=>Number(a.week)-Number(b.week)).map(x=>Number(x.points_for));
@@ -62,7 +63,7 @@
    const total=roster.reduce((s,p)=>s+p.v,0);
    const covered=roster.filter(p=>Number.isFinite(p.age)&&p.age>=18&&p.age<=50).reduce((s,p)=>s+p.v,0);
    const picks=(t.asset&&t.asset.picks||[]).map(p=>pickValuation(p,pickValue,year)).filter(Boolean);
-   const lastKnownPickYear=Math.max(year,...(t.asset?.picks||[]).map(p=>Number(p.pick_season)||year));
+   const lastKnownPickYear=globalKnownPickYear;
    return {id,ppg:model&&model.ppg,roster,picks,lastKnownPickYear,
     ageCoverage:total>0?covered/total:0,baseCapital:capital(roster),
     total:value(t.value),pickCapital:value(t.picks),hasScores:scores.length>=5};
