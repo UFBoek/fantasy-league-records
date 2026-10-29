@@ -23,7 +23,7 @@ const teams=standings.map(s=>{
  const totalPicks=draft.reduce((sum,p)=>sum+pickValue(p),0);
  return {id,value:pv+totalPicks,picks:totalPicks,roster,asset:{picks:draft}};
 });
-const input={teams,weeklyRanks:weekly,year,currentModel:model,playerValue,pickValue};
+const input={teams,weeklyRanks:weekly,year,currentModel:model,playerValue,pickValue,market};
 const first=engine.forecast(input),second=engine.forecast(input);
 assert.equal(first.ready,true);
 assert.deepEqual(first.years,[2026,2027,2028,2029,2030,2031]);
