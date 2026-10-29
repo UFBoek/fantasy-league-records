@@ -232,3 +232,14 @@
  .dm-forecast-window strong{font-size:14px}
  .dm-forecast-metrics b{font-size:14px}
 }
+
+/* Future original-draft capital stays separate from projected scoring. */
+.dm-pick-stock{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin:0 0 11px;border:1px solid #dae6e8;border-radius:8px;background:#f3f8f8}
+.dm-pick-stock span{font-size:9px;font-weight:900;color:#708793;letter-spacing:.035em}
+.dm-pick-stock strong{font-size:11px;font-weight:900;color:#1a7867;font-variant-numeric:tabular-nums;text-align:right}
+.dm-window-year small{display:block;line-height:1.4;margin-top:3px}
+@media(max-width:699px){
+ .dm-pick-stock{padding:9px 10px}
+ .dm-pick-stock span{font-size:9px}
+ .dm-pick-stock strong{font-size:11px}
+}
