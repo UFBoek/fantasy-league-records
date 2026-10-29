@@ -20,7 +20,7 @@ const leagueData={
  currentStandings:rows('current_standings_web'),
  weeklyRanks:rows('weekly_scoring_ranks'),
 };
-let activeHistory=history;
+let activeHistory={version:1,snapshots:[snapshot]};
 const ctx={
  window:{},
  document:{getElementById:node},
@@ -56,6 +56,15 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  await ctx.window.figDynastyMarket('market','1');
  assert.match(graph.innerHTML,/<svg/);
  assert.match(holder.innerHTML,/MARKET OVERVIEW/);
+ // Recover genuine historical prices; unobserved dates must not look continuous.
+ assert.ok(history.snapshots.length>=14,'real archived franchise valuations are present');
+ assert.equal(history.snapshots[0].date,'2026-10-09');
+ assert.ok(history.snapshots.slice(0,-1).every(s=>s.archive_recovered&&s.archive_commit));
+ activeHistory=history;
+ await ctx.window.figDynastyMarket('market');
+ assert.match(graph.innerHTML,/<svg/);
+ assert.match(graph.innerHTML,/stroke-dasharray="6 7"/,'missing calendar dates are marked as dotted');
+ assert.match(holder.innerHTML,/Archived prices and date-specific rosters are recovered/);
  await ctx.window.figDynastyMarket('window');
  assert.match(holder.innerHTML,/CHAMPIONSHIP WINDOW INDEX/);
  assert.match(holder.innerHTML,/CURRENT MODEL PPG/);
