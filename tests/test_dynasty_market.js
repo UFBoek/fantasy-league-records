@@ -77,6 +77,10 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  await ctx.window.figDynastyMarket('window');
  assert.match(holder.innerHTML,/CHAMPIONSHIP WINDOW/);
  assert.match(holder.innerHTML,/CONTENTION TIMELINE/);
+ assert.match(holder.innerHTML,/Window threshold: 60%/,'clear window definition');
+ assert.match(holder.innerHTML,/≥99\.9%/,'saturated model odds are not displayed as misleading 100%');
+ assert.match(holder.innerHTML,/60–74%/,'timeline tiers match window definition');
+
  assert.match(holder.innerHTML,/EST. WINDOW/);
  assert.match(holder.innerHTML,/2026/);
  assert.match(holder.innerHTML,/2031/);
