@@ -61,6 +61,6 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  assert.match(holder.innerHTML,/CURRENT MODEL PPG/);
  assert.match(holder.innerHTML,/65% full-season/);
  assert.match(holder.innerHTML,/PLAYOFF CALCULATOR/i);
- assert.match(holder.innerHTML,/DYNASTY JUGGERNAUT|WIN-NOW CONTENDER|RISING CONTENDER/i);
+ assert.match(holder.innerHTML,/Dynasty Juggernaut|Win-Now Contender|Rising Contender/i);
  console.log('Market history chart, franchise focus and championship window rendered');
 })().catch(error=>{console.error(error);process.exitCode=1;});
