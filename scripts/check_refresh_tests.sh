@@ -6,6 +6,7 @@
 # intentionally not used to gate a recurring live data refresh.
 set -euo pipefail
 python -m unittest discover -s tests -p 'test_rosteraudit_values.py'
+python -m unittest discover -s tests -p 'test_dynasty_market_history.py'
 python -m unittest discover -s tests -p 'test_validate_refresh.py'
 python -m unittest discover -s tests -p 'test_rookie_pick_attribution.py'
 python -m unittest discover -s tests -p 'test_all_play_records.py'
