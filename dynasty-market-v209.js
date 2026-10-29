@@ -211,14 +211,14 @@
  }
  function chanceLabel(chance){return chance>=99.95?'≥99.9%':chance<1?'<1%':chance>=95?chance.toFixed(1)+'%':Math.round(chance)+'%';}
  function yearColor(chance){
-  if(chance>=75)return 'elite';
-  if(chance>=60)return 'strong';
-  if(chance>=30)return 'mixed';
+  if(chance>=25)return 'elite';
+  if(chance>=10)return 'strong';
+  if(chance>=5)return 'mixed';
   return 'low';
  }
  function timelineCell(row){
-  return '<span class="dm-year-cell '+yearColor(row.topThree)+'" title="'+row.year+': '+row.topThree.toFixed(1)+'% chance of top-three scoring strength">'+
-   '<strong>'+chanceLabel(row.topThree)+'</strong></span>';
+  return '<span class="dm-year-cell '+yearColor(row.titleChance)+'" title="'+row.year+': '+row.titleChance.toFixed(1)+'% neutral-bracket title chance">'+
+   '<strong>'+chanceLabel(row.titleChance)+'</strong></span>';
  }
  function windowPage(){
   var result=windowScores(),forecast=result.forecast,current=result.current;
@@ -240,27 +240,27 @@
     return '<div class="dm-forecast-entry"><a href="#/team/'+t.id+'">'+avatar(t.id)+'<b>'+name(t.id)+'</b></a>'+
      '<div class="dm-forecast-years">'+t.outlook.map(timelineCell).join('')+'</div></div>';
    }).join('')+'</div></div>'+
-   '<div class="dm-forecast-legend"><span><i class="elite"></i>75%+</span><span><i class="strong"></i>60–74%</span>'+
-   '<span><i class="mixed"></i>30–59%</span><span><i class="low"></i>Below 30%</span></div>'+
-   '<p class="dm-forecast-footnote">Window threshold: 60% top-three strength · '+forecast.trials+' simulations · Not title odds</p></section>';
+   '<div class="dm-forecast-legend"><span><i class="elite"></i>25%+</span><span><i class="strong"></i>10–24%</span>'+
+   '<span><i class="mixed"></i>5–9%</span><span><i class="low"></i>Below 5%</span></div>'+
+   '<p class="dm-forecast-footnote">Projected title opportunity · '+forecast.trials+' neutral-playoff scenarios · Window = above 10% league share</p></section>';
   var cards=forecast.teams.map(function(t){
    var now=currentById.get(t.id),shortWindow=t.openYear===null?'Not projected':t.window;
    var years=t.outlook.map(function(y){return '<div class="dm-window-year"><span>'+y.year+'</span>'+
-     '<strong>'+chanceLabel(y.topThree)+'</strong><small>'+y.strength.toFixed(0)+' PPG · '+y.low.toFixed(0)+'–'+y.high.toFixed(0)+'</small></div>';}).join('');
+     '<strong>'+chanceLabel(y.titleChance)+'</strong><small>'+y.strength.toFixed(0)+' PPG · '+y.low.toFixed(0)+'–'+y.high.toFixed(0)+'</small></div>';}).join('');
    return '<article class="dm-forecast-card">'+
      '<div class="dm-forecast-card-head"><a href="#/team/'+t.id+'" class="dm-window-identity">'+avatar(t.id)+
        '<span class="dm-window-name"><strong>'+name(t.id)+'</strong><small>'+escapeHTML(t.status)+'</small></span></a>'+
        '<div class="dm-forecast-window"><small>EST. WINDOW</small><strong>'+escapeHTML(shortWindow)+'</strong></div></div>'+
      '<div class="dm-forecast-metrics"><div><small>CURRENT SCORE</small><b>'+metric(now?now.current:null)+'</b></div>'+
        '<div><small>PEAK PPG YEAR</small><b>'+t.peakYear+'</b></div>'+
-       '<div><small>2031 OUTLOOK</small><b>'+chanceLabel(t.farChance)+'</b></div></div>'+
+       '<div><small>2031 TITLE OUTLOOK</small><b>'+chanceLabel(t.farChance)+'</b></div></div>'+
      '<details class="dm-window-detail"><summary>YEAR-BY-YEAR OUTLOOK</summary><div class="dm-forecast-years-detail">'+years+'</div></details>'+
      '</article>';
   }).join('');
   holder.innerHTML=heading+table+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE PROJECTIONS</span><h2>WINDOW ESTIMATES</h2></div></div>'+
    '<div class="dm-forecast-cards">'+cards+'</div></section>'+
-   '<p class="dm-footnote">A forecast, not guaranteed results. Ages, market value, picks and possible roster retooling are modeled; future trades and draft outcomes remain uncertain.</p></div>';
+   '<p class="dm-footnote">Neutral 5-team playoff forecast based on modeled scoring strength. Not official season title odds. Future drafts, trades and player outcomes are uncertain.</p></div>';
  }
  function metric(n){return n===null||!Number.isFinite(n)?'—':n.toFixed(1);}
  async function launch(mode,team){
