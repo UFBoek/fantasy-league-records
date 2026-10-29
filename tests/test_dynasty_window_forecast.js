@@ -44,6 +44,12 @@ assert.equal(first.teams.length,10);
 assert.deepEqual(first,second,'same verified inputs generate repeatable odds');
 assert.ok(first.teams.every(t=>t.outlook.length===6&&t.farChance>=0&&t.farChance<=100));
 assert.ok(first.calibration.slope>0,'actual league player values and scoring are positively associated');
+const forecastSource=fs.readFileSync(path.join(__dirname,'..','dynasty-window-forecast-v212.js'),'utf8');
+assert.doesNotMatch(forecastSource,/convertVeterans|consolidateBench|lastKnownPickYear/,
+ 'baseline must not credit fictitious future trade conversions or draft-pick grants');
+assert.match(forecastSource,/state\.picks\.filter\(p=>p\.year===year\)/,
+ 'new rookies come exclusively from currently owned draft picks');
+
 assert.match(first.metric,/championship rate/i);
 for(let y=0;y<6;y++){
  const sum=first.teams.reduce((total,t)=>total+t.outlook[y].titleChance,0);
