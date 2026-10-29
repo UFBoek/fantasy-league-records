@@ -46,7 +46,11 @@ assert.match(css,/\.pcl-model-teams\{/);
 assert.match(css,/@media\(max-width:699px\)/);
 assert.match(html,/playoff-calculator-v167\.js\?v=206/);
 assert.match(html,/playoff-calculator-v167\.css\?v=206/);
-assert.match(sw,/fig-league-shell-v207/);
+const appRevision=html.match(/app\.js\?v=(\d+)/);
+assert.ok(appRevision,'app script revision exists');
+assert.match(sw,new RegExp('fig-league-shell-v'+appRevision[1]),'service worker matches deployed app revision');
+assert.match(html,/dynasty-market-v209\.js\?v=209/,'new market module is registered');
+assert.match(html,/dynasty-market-v209\.css\?v=209/,'new market stylesheet is registered');
 
 assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);
