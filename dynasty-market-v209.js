@@ -138,7 +138,7 @@
   var lastDate=now?ts(now.date):raDate();
   var top=entries[0];
   var header='<div class="dm-page">'+tabs('market')+
-    '<div class="dm-heading"><div><span class="dm-kicker">FRANCHISE EQUITY TRACKER</span><h1>DYNASTY STOCK MARKET</h1><p>Current RosterAudit player prices + FIG future-pick rules</p></div>'+
+    '<div class="dm-heading"><div><span class="dm-kicker">FRANCHISE EQUITY TRACKER</span><h1>DYNASTY STOCK MARKET</h1></div>'+
     '<span class="dm-as-of">LAST MARKET SNAPSHOT<br><b>'+escapeHTML(lastDate)+'</b></span></div>'+
     '<div class="dm-overview">'+
      '<div><small>LEAGUE MARKET VALUE</small><strong>'+fmt(wealth)+'</strong><span>All 10 franchises</span></div>'+
@@ -159,7 +159,7 @@
   holder.innerHTML=header+'<section class="dm-box"><div>'+selector+'</div><div id="dmGraph"></div>'+legend+'</section>'+
    (focusCard||'')+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>VALUATION CHANGE</span><h2>MARKET MOVERS</h2></div></div><div class="dm-movers" id="dmMovers"></div></section>'+
-   '<p class="dm-footnote">Values by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Archived prices and date-specific rosters are recovered from original GitHub commits starting October 9, 2026; unavailable dates appear as dotted chart connections. October 8 used an unverified CSV preset and is excluded from comparisons. Future picks use FIG valuation rules. Missing pick tiers are excluded from the known total. Dashed segments connect two genuine archived observations separated by missing days; no prices are estimated for those dates.</p></div>';
+   '<p class="dm-footnote">Values: <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit</a> · Archive since Oct 9, 2026 · Dashed = missing dates · Future picks: FIG rules</p></div>';
   holder.querySelectorAll('[data-dm-period]').forEach(function(button){
    button.addEventListener('click',function(){
     activePeriod=button.dataset.dmPeriod;
@@ -232,9 +232,8 @@
  function windowPage(){
   var info=windowScores();
   var scored=info.rows.filter(function(r){return r.current!==null&&r.future!==null;});
-  var agesReady=info.rows.filter(function(r){return r.readyAge;}).length;
   var cards=info.rows.map(function(r){
-   var note=r.readyAge?'AGE COVERAGE '+percent(100*r.ageCoverage):'AWAITING VERIFIED PLAYER AGES';
+   var note=r.readyAge?'': 'AGES UNAVAILABLE';
    var breakdown=[
     ['MODEL PPG','ppg',r.model?metric(r.model.ppg)+' PPG':'—'],
     ['STARTER VALUE','starter',fmt(r.raw.starter)],
@@ -247,34 +246,27 @@
    ];
    return '<div class="dm-window-item">'+
      '<div class="dm-window-row"><a class="dm-window-identity" href="#/team/'+r.id+'">'+avatar(r.id)+
-       '<span class="dm-window-name"><strong>'+name(r.id)+'</strong><small>'+note+'</small></span></a>'+
+       '<span class="dm-window-name"><strong>'+name(r.id)+'</strong>'+(note?'<small>'+note+'</small>':'')+'</span></a>'+
        '<span class="dm-window-scores"><strong>'+metric(r.current)+'</strong><small>NOW / 100</small></span>'+
        '<span class="dm-window-scores dm-future-score"><strong>'+metric(r.future)+'</strong><small>FUTURE / 100</small></span>'+
        '<span class="dm-status '+r.klass+'">'+r.label+'</span></div>'+
      '<details class="dm-window-detail"><summary>VIEW SCORE BREAKDOWN</summary><div class="dm-components">'+
        breakdown.map(function(part){return '<div><span>'+part[0]+'</span><b>'+part[2]+'</b><small>LEAGUE SCORE '+(r.components[part[1]]===null?'—':metric(r.components[part[1]]))+'</small></div>';}).join('')+
-     '</div><p class="dm-method-note">'+(r.starterFallback?'Starter-value proxy uses the ten highest-valued active-roster players because Sleeper does not currently show ten confirmed starters. ':'Starter value uses ten indicated starters. ')+
-       'Age coverage is measured by priced player value; unavailable ages are never assumed.</p></details></div>';
+     '</div>'+(r.starterFallback?'<small class="dm-method-note">Starter value: top 10 active players</small>':'')+'</details></div>';
   }).join('');
   holder.innerHTML='<div class="dm-page">'+tabs('window')+
    '<div class="dm-heading"><div><span class="dm-kicker">CONTENDER STRENGTH × LONG-TERM ASSETS</span><h1>CHAMPIONSHIP WINDOW</h1>'+
-   '<p>Transparent, league-relative composite scores · not championship probabilities</p></div>'+
+   '</div>'+
    '<a class="dm-calculator" href="#/playoff-calculator">CURRENT TITLE ODDS →</a></div>'+
-   '<div class="dm-overview"><div><small>CURRENT SCORE</small><strong>55% PPG</strong><span>Plus starter value, consistency &amp; depth</span></div>'+
-   '<div><small>FUTURE SCORE</small><strong>AGE-AWARE</strong><span>Market value, picks &amp; young talent</span></div>'+
-   '<div><small>VERIFIED PLAYER AGES</small><strong>'+agesReady+' / 10</strong><span>Franchises with sufficient coverage</span></div></div>'+
+
+
+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>LEAGUE POSITIONING</span><h2>BUILT TO WIN NOW OR LATER?</h2></div></div>'+
-   (scored.length===10?'<div class="dm-visual-scroll">'+scatter(info)+'</div>':'<div class="dm-chart-empty"><strong>AWAITING COMPLETE MODEL INPUTS</strong><span>Both scores require five completed weeks and verified Sleeper ages covering at least 90% of valued roster capital. '+scored.length+'/10 franchises currently ready.</span></div>')+
-   '<p class="dm-panel-caption">Both axes run from 0 to 100 and compare teams within this league. Higher is stronger. Dashed midlines mark score 50; scores are not win percentages.</p></section>'+
+   (scored.length===10?'<div class="dm-visual-scroll">'+scatter(info)+'</div>':'<div class="dm-chart-empty"><strong>MODEL DATA UNAVAILABLE</strong><span>'+scored.length+'/10 teams ready</span></div>')+
+   '</section>'+
    '<section class="dm-box"><div class="dm-panel-head"><div><span>FRANCHISE OUTLOOK</span><h2>CHAMPIONSHIP WINDOW INDEX</h2></div></div>'+
     '<div class="dm-window-list">'+cards+'</div></section>'+
-   '<section class="dm-box dm-method"><div class="dm-panel-head"><div><span>FULL METHODOLOGY</span><h2>HOW THE SCORES ARE BUILT</h2></div></div>'+
-    '<p><b>Current Contender (0–100):</b> 55% model PPG, 20% current starter-value proxy, 15% scoring consistency, 10% top-five active bench depth. PPG retains the Playoff Calculator’s 65% season / 35% last-three-games blend; consistency uses team-only eight-game scoring volatility (with a prior-season fill where needed), measured relative to expected PPG.</p>'+
-    '<p><b>Future Window (0–100):</b> 30% total RosterAudit/FIG dynasty value, 25% future draft-pick value, 25% top-eight age-adjusted player value, 20% top-five young-core value. Youth means QB ≤27, RB ≤24, WR ≤25 and TE ≤26. Age curves vary by position and apply only to this outlook score, not to official roster valuations.</p>'+
-    '<p><b>Position-specific aging:</b> Quarterbacks peak in this index at 25–29, running backs at 23 and younger, receivers at 25–27, and tight ends at 26–29. Use the breakdown under each franchise to inspect the actual component values and league-normalized scores.</p>'+
-    '<p><b>Scoring and classifications:</b> Every metric is normalized from 0–100 based on the actual range of all ten franchises (50 if everyone is tied), then combined at the shown weights. Top-four current/future teams are Dynasty Juggernauts; strong current teams with bottom-four futures are Fragile Contenders; other labels describe the corresponding two-score ranking positions.</p>'+
-    '<p><b>Important:</b> Dynasty market prices already reflect some age information; the additional age curve intentionally measures roster longevity rather than market trade value. Missing ages do not become guesses. This index is not a forecast of specific future championships. For schedule-aware playoff and championship probabilities use the <a href="#/playoff-calculator">Playoff Calculator</a>.</p></section>'+
-   '<p class="dm-footnote">Player market prices by <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit.com</a>. Ages via verified Sleeper NFL player metadata. Scores are descriptive league-relative indices.</p></div>';
+   '<p class="dm-footnote">Values: <a href="https://rosteraudit.com" target="_blank" rel="noopener noreferrer">RosterAudit</a> · Ages: Sleeper · Index scores, not title odds</p></div>';
  }
  async function launch(mode,team){
   currentMode=mode==='window'?'window':'market';focus=Number.isInteger(Number(team))&&Number(team)>=1&&Number(team)<=10?Number(team):null;
