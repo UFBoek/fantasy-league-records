@@ -205,9 +205,12 @@ let tableCounter=0;
 function sortableTable(headers,rows,opts={}){
   const id=`st_${++tableCounter}`;
   const heads=headers.map(h=>typeof h==='string'?{label:h,key:h}:h);
-  // Leaderboards retain their HTML tables on phones; Rank + identity stay pinned.
-  // Other dense tables still use the existing compact-card presentation.
-  const freeze=heads.length>=4&&['#','RANK'].includes(String(heads[0].label).trim().toUpperCase())&&
+  // All record-history leaderboards use the same pinned rank/name layout,
+  // even when COUNT is their only stat (e.g. Weekly High Scores and Top-3 Weeks).
+  // Leave unrelated three-column tables on their existing responsive layout.
+  const route=(location.hash.startsWith('#/')?location.hash.slice(2):'home').split('/')[0];
+  const history=['record','streak','singleseasons','special','playerweeks','playerbombrank','playerbomb'].includes(route);
+  const freeze=heads.length>=(history?3:4)&&['#','RANK'].includes(String(heads[0].label).trim().toUpperCase())&&
     ['TEAM','PLAYER','HOLDER','OWNER','OPPONENT'].includes(String(heads[1].label).trim().toUpperCase());
   const body=rows.map((r,i)=>{const cls=[r._class||'',r._href?'clickable-row':''].filter(Boolean).join(' ');const href=r._href?` data-href="${esc(r._href)}"`:'';return `<tr class="${cls}"${href} data-row='${esc(JSON.stringify(r._sort||{}))}'>${heads.map(h=>`<td>${r[h.key]??''}</td>`).join('')}</tr>`}).join('');
   if(!freeze) setTimeout(()=>{bindSortable(id,heads);const t=document.getElementById(id);if(t){$$('tbody tr[data-href]',t).forEach(tr=>{tr.tabIndex=0;tr.setAttribute('role','link');tr.onclick=e=>{if(e.target.closest('a,button,input,select'))return;location.hash=tr.dataset.href};tr.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('a,button,input,select')){e.preventDefault();location.hash=tr.dataset.href}}})}},0);
