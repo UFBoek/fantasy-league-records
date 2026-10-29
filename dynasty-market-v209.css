@@ -1,4 +1,4 @@
-/* FIG Dynasty Stock Market + Championship Window v209 */
+/* FIG Dynasty Stock Market — styling for market history, league and team shortcuts. */
 .dm-page{max-width:1180px;margin:0 auto;padding:5px 0 32px;color:#243544;font-family:Inter,system-ui,sans-serif}
 .dm-page *{box-sizing:border-box}
 .dm-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 22px}
@@ -10,7 +10,6 @@
 .dm-heading p{font-size:12px;font-weight:650;color:#6a7882;margin:0}
 .dm-as-of{border:1px solid #ccd8de;background:#eaf0f0;border-radius:11px;padding:10px 14px;flex:0 0 auto;text-align:right;color:#63717a;font-size:9px;font-weight:850;line-height:1.7}
 .dm-as-of b{color:#203947;font-size:12px}
-.dm-calculator{display:inline-flex;align-items:center;padding:10px 12px;background:#e0eee8;color:#138166;border-radius:9px;text-decoration:none;font-weight:900;font-size:11px;white-space:nowrap}
 .dm-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 21px}
 .dm-overview>div{border:1px solid #d6dfe2;border-radius:14px;background:#fff;padding:17px 18px;min-width:0}
 .dm-overview small,.dm-focus-stats small{display:block;font-size:10px;color:#6f7e88;font-weight:850;letter-spacing:.065em;margin-bottom:8px}
@@ -24,12 +23,10 @@
 .dm-periods{display:flex;gap:3px;padding:3px;background:#eef3f4;border:1px solid #dce5e7;border-radius:10px}
 .dm-periods button{border:none;border-radius:7px;background:transparent;font:850 11px Inter,sans-serif;padding:8px 11px;color:#586b78;cursor:pointer}
 .dm-periods button.active{background:#214555;color:#fff}
-.dm-stock-chart,.dm-window-chart{width:100%;height:auto;display:block;overflow:visible}
+.dm-stock-chart{width:100%;height:auto;display:block;overflow:visible}
 .dm-gridline{stroke:#dfe7ea;stroke-width:1}
 .dm-axis-label{font:700 12px Inter,system-ui,sans-serif;fill:#76838c}
 .dm-axis-title{font:900 13px Inter,system-ui,sans-serif;fill:#4d6571;letter-spacing:.06em}
-.dm-point-name{font:900 15px Inter,system-ui,sans-serif;fill:#253c4b;paint-order:stroke;stroke:#fff;stroke-width:4}
-.dm-window-chart a:hover circle{stroke:#193c4b;stroke-width:5}
 .dm-chart-empty{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:230px;gap:10px;text-align:center;background:linear-gradient(125deg,#edf6f3,#eff2f7);border:1px dashed #bad5d0;border-radius:13px;padding:22px;color:#52717b}
 .dm-chart-empty strong{font:850 15px "Archivo Black",Inter,sans-serif;color:#275e56}
 .dm-chart-empty span{font-size:12px;font-weight:650;max-width:420px;line-height:1.5}
@@ -37,19 +34,9 @@
 .dm-legend button{display:inline-flex;align-items:center;gap:7px;border:1px solid #d8e1e5;border-radius:20px;padding:8px 10px;background:#f2f4f6;font:800 11px Inter,sans-serif;color:#687885;opacity:.56;cursor:pointer}
 .dm-legend button.selected{background:#fff;border-color:#9db7bb;color:#2c4352;opacity:1}
 .dm-legend i{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
-.dm-wealth-list,.dm-window-list{border:1px solid #dbe3e6;border-radius:12px;overflow:hidden}
-.dm-wealth-row{display:grid;grid-template-columns:36px 36px minmax(0,1fr) auto;align-items:center;gap:12px;padding:11px 15px;background:#fff;border-bottom:1px solid #e3e9eb;color:#243845;text-decoration:none}
-.dm-wealth-row:nth-child(even),.dm-window-row:nth-child(even){background:#f7f9fa}
-.dm-wealth-row:last-child,.dm-window-row:last-child{border-bottom:none}
-.dm-wealth-row:hover,.dm-window-row:hover{background:#eaf5f1}
-.dm-wealth-row>img{width:36px;height:36px;object-fit:cover;border-radius:50%;border:1px solid #d9e3e6}
 .dm-place{font-weight:900;color:#425765;font-size:12px}
-.dm-wealth-team strong,.dm-wealth-stat strong,.dm-window-name strong{font-size:13px;display:block;font-weight:900}
-.dm-wealth-team small,.dm-wealth-stat small,.dm-window-name small,.dm-window-scores small{display:block;font-size:10px;color:#798791;font-weight:650;margin-top:4px}
-.dm-wealth-stat{text-align:right;font-variant-numeric:tabular-nums;min-width:100px}
-.dm-wealth-stat strong{font-size:14px}
-.dm-wealth-stat small.up,.dm-movers .up{color:#128366!important}
-.dm-wealth-stat small.down,.dm-movers .down{color:#c35f5b!important}
+.dm-movers .up{color:#128366!important}
+.dm-movers .down{color:#c35f5b!important}
 .dm-movers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .dm-movers a{display:flex;align-items:center;gap:8px;text-decoration:none;padding:10px;border-radius:10px;background:#f2f6f7;min-width:0;color:#2d424e}
 .dm-movers img{width:27px;height:27px;border-radius:50%;object-fit:cover;flex:0 0 27px}
@@ -58,69 +45,40 @@
 .dm-pending-note{font-size:12px;color:#6e7b83;margin:6px}
 .dm-focus-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .dm-focus-stats>div{padding:14px;border:1px solid #e4eaed;border-radius:10px;background:#f6f9fa}
-.dm-focus-link{display:inline-block;color:#17866e;text-decoration:none;font-size:11px;font-weight:900;margin-top:13px}
-.dm-panel-caption{color:#75858c;font-size:11px;font-weight:600;margin:12px 0 0;line-height:1.6}
-.dm-window-row{display:grid;grid-template-columns:38px minmax(0,1fr) 110px minmax(120px,160px);align-items:center;gap:13px;min-height:68px;padding:12px 13px;border-bottom:1px solid #e4eaec;text-decoration:none;color:#263a48}
-.dm-window-avatar img{width:35px;height:35px;object-fit:cover;border-radius:50%;border:1px solid #d1dddf}
-.dm-window-scores{text-align:right;font-variant-numeric:tabular-nums}
-.dm-window-scores strong{display:block;font-size:15px;font-weight:900}
-.dm-status{display:block;text-align:center;border-radius:8px;padding:8px 6px;font-size:10px;font-weight:900;line-height:1.3;background:#edf1f3;color:#657582}
-.dm-status.elite{background:#d7f1e4;color:#17694c}
-.dm-status.now{background:#e6ebfa;color:#4061aa}
-.dm-status.rise{background:#e9ddf6;color:#7a4baa}
-.dm-status.rebuild{background:#f8e4dd;color:#a35142}
-.dm-method p{font-size:12px;line-height:1.7;color:#546673}
-.dm-method a,.dm-footnote a{color:#15896f;font-weight:800}
+.dm-footnote a{color:#15896f;font-weight:800}
 .dm-footnote{font-size:11px;color:#75828b;line-height:1.7;padding:0 3px}
 @media(max-width:699px){
- .dm-page{padding:1px 0 85px}
- .dm-tabs{gap:5px;margin:8px 0 16px}
- .dm-tabs a{font-size:9px;padding:11px 10px;flex:1;text-align:center;white-space:nowrap}
- .dm-heading{display:block;margin:4px 0 18px}
- .dm-heading h1{font-size:clamp(22px,6vw,29px);line-height:1.12}
- .dm-heading p{line-height:1.5}
- .dm-as-of,.dm-calculator{display:inline-block;text-align:left;margin-top:11px;font-size:9px}
- .dm-overview{gap:7px;margin-bottom:13px}
- .dm-overview>div{padding:11px 9px;border-radius:10px}
- .dm-overview small{font-size:8px;line-height:1.3;margin-bottom:7px}
- .dm-overview strong{font-size:clamp(12px,3.6vw,17px);letter-spacing:-.04em}
- .dm-overview span{font-size:9px;line-height:1.3}
- .dm-box{padding:12px;border-radius:13px;margin-bottom:13px}
- .dm-panel-head{gap:8px}
- .dm-panel-head h2{font-size:15px}
- .dm-panel-head>div>span{font-size:9px}
- .dm-periods{width:100%;justify-content:space-around}
- .dm-periods button{flex:1;font-size:10px}
- .dm-axis-label{font-size:15px}
- .dm-axis-title{font-size:15px}
- .dm-point-name{font-size:17px}
- .dm-legend{gap:5px}
- .dm-legend button{font-size:10px;padding:7px 9px}
- .dm-wealth-row{grid-template-columns:22px 30px minmax(0,1fr) auto;gap:7px;padding:10px 7px}
- .dm-wealth-row>img{width:29px;height:29px}
- .dm-wealth-team strong,.dm-wealth-stat strong{font-size:11px}
- .dm-wealth-team small,.dm-wealth-stat small{font-size:9px}
- .dm-wealth-stat{min-width:85px}
- .dm-movers{grid-template-columns:1fr}
- .dm-focus-stats>div{padding:10px 6px}
- .dm-focus-stats small{font-size:8px}
- .dm-focus-stats strong{font-size:13px}
- .dm-window-row{grid-template-columns:28px minmax(0,1fr) 68px;gap:7px;padding:12px 7px}
- .dm-window-avatar img{width:28px;height:28px}
- .dm-window-name strong{font-size:11px}
- .dm-window-name small{font-size:8px}
- .dm-window-scores strong{font-size:12px}
- .dm-window-scores small{font-size:8px}
- .dm-window-row .dm-status{grid-column:2/-1;justify-self:start;font-size:9px;padding:5px 9px}
- .dm-method p{font-size:11px}
+.dm-page{padding:1px 0 85px}
+.dm-tabs{gap:5px;margin:8px 0 16px}
+.dm-tabs a{font-size:9px;padding:11px 10px;flex:1;text-align:center;white-space:nowrap}
+.dm-heading{display:block;margin:4px 0 18px}
+.dm-heading h1{font-size:clamp(22px,6vw,29px);line-height:1.12}
+.dm-heading p{line-height:1.5}
+.dm-as-of{display:inline-block;text-align:left;margin-top:11px;font-size:9px}
+.dm-overview{gap:7px;margin-bottom:13px}
+.dm-overview>div{padding:11px 9px;border-radius:10px}
+.dm-overview small{font-size:8px;line-height:1.3;margin-bottom:7px}
+.dm-overview strong{font-size:clamp(12px,3.6vw,17px);letter-spacing:-.04em}
+.dm-overview span{font-size:9px;line-height:1.3}
+.dm-box{padding:12px;border-radius:13px;margin-bottom:13px}
+.dm-panel-head{gap:8px}
+.dm-panel-head h2{font-size:15px}
+.dm-panel-head>div>span{font-size:9px}
+.dm-periods{width:100%;justify-content:space-around}
+.dm-periods button{flex:1;font-size:10px}
+.dm-axis-label{font-size:15px}
+.dm-axis-title{font-size:15px}
+.dm-legend{gap:5px}
+.dm-legend button{font-size:10px;padding:7px 9px}
+.dm-movers{grid-template-columns:1fr}
+.dm-focus-stats>div{padding:10px 6px}
+.dm-focus-stats small{font-size:8px}
+.dm-focus-stats strong{font-size:13px}
 }
 @media(max-width:360px){
- .dm-tabs a{font-size:8px;padding:10px 6px}
- .dm-wealth-stat{min-width:74px}
+.dm-tabs a{font-size:8px;padding:10px 6px}
 }
-
-/* Shortcuts use the same styles on the existing dynasty ranking and team pages. */
-.dm-dynasty-shortcuts,.dm-team-quicklinks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0 18px}
+.dm-dynasty-shortcuts,.dm-team-quicklinks{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin:14px 0 18px}
 .dm-dynasty-shortcuts a,.dm-team-quicklinks a{display:flex;flex-direction:column;justify-content:center;gap:6px;text-decoration:none;color:#194d47;background:#e4f1ed;border:1px solid #c3d9d2;border-radius:12px;padding:15px;min-width:0;font:900 11px Inter,sans-serif;letter-spacing:.035em}
 .dm-dynasty-shortcuts b{font:900 12px Inter,sans-serif;color:#24434c}
 .dm-dynasty-shortcuts span{font:650 11px/1.4 Inter,sans-serif;color:#6b8188}
@@ -131,115 +89,20 @@
 .dm-dynasty-shortcuts b{font-size:10px}
 .dm-dynasty-shortcuts span{font-size:9px}
 }
-
 @media(max-width:699px){
-  #dmGraph,.dm-visual-scroll{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-  #dmGraph .dm-stock-chart,.dm-visual-scroll .dm-window-chart{width:660px;max-width:none}
-  #dmGraph::before,.dm-visual-scroll::before{content:"SWIPE CHART →";display:block;text-align:right;color:#13896c;font:850 9px Inter,sans-serif;letter-spacing:.04em;padding:3px 2px 8px}
+#dmGraph{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#dmGraph .dm-stock-chart{width:660px;max-width:none}
+#dmGraph::before{content:"SWIPE CHART →";display:block;text-align:right;color:#13896c;font:850 9px Inter,sans-serif;letter-spacing:.04em;padding:3px 2px 8px}
 }
-
-/* v210 refinement: direct stock line labels, age-aware window scorecards. */
 .dm-end-label{font:900 14px Inter,system-ui,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px}
 .dm-stock-chart{display:block;min-width:0}
-.dm-window-list{border-color:#d5e1e3}
-.dm-window-item{border-bottom:1px solid #e1e9ec}
-.dm-window-item:last-child{border-bottom:0}
-.dm-window-item:nth-child(even){background:#f7f9fa}
-.dm-window-row{display:grid;grid-template-columns:minmax(180px,1fr) 100px 100px minmax(130px,155px);gap:12px;align-items:center;padding:13px 14px;min-height:72px;border-bottom:0;background:transparent!important}
-.dm-window-identity{display:flex;align-items:center;gap:10px;min-width:0;color:#263a48;text-decoration:none}
-.dm-window-identity img{width:38px;height:38px;object-fit:cover;border-radius:50%;border:1px solid #d2dddf;flex:0 0 38px}
-.dm-window-name{min-width:0}
-.dm-window-name small{font-size:9px;line-height:1.35}
-.dm-window-scores{min-width:0;text-align:right}
-.dm-window-scores strong{font-size:20px;color:#223e4d}
-.dm-window-scores.dm-future-score strong{color:#138768}
-.dm-status.fragile{background:#f8e5d6;color:#9d5b25}
-.dm-status.balanced{background:#e3eff3;color:#2d6c7f}
-.dm-window-detail{margin:0 13px 12px;border:1px solid #dce8e8;border-radius:9px;background:#fff}
-.dm-window-detail summary{list-style:none;cursor:pointer;padding:12px 13px;font-size:10px;font-weight:900;color:#238570;letter-spacing:.04em}
-.dm-window-detail summary::-webkit-details-marker{display:none}
-.dm-window-detail summary::after{content:"  +";font-size:15px;float:right;line-height:.7}
-.dm-window-detail[open] summary::after{content:"  −"}
-.dm-components{padding:0 12px 12px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.dm-components>div{border-radius:9px;background:#f0f5f5;padding:10px;min-width:0}
-.dm-components span{font-size:9px;letter-spacing:.04em;font-weight:850;color:#5c7480;display:block}
-.dm-components b{font-size:14px;display:block;margin:8px 0 4px;color:#1e4050;font-variant-numeric:tabular-nums}
-.dm-components small{font-size:9px;color:#75838b;font-weight:700}
-.dm-method-note{padding:0 12px 12px;font-size:10px;line-height:1.6;color:#6f818a;margin:0}
 @media(max-width:699px){
- #dmGraph .dm-stock-chart{width:720px;max-width:none}
- .dm-end-label{font-size:17px}
- .dm-window-row{grid-template-columns:minmax(0,1fr) 65px 65px;gap:7px;padding:12px 9px}
- .dm-window-identity{gap:6px}
- .dm-window-identity img{width:29px;height:29px;flex-basis:29px}
- .dm-window-name strong{font-size:12px}
- .dm-window-name small{font-size:8px}
- .dm-window-scores strong{font-size:15px}
- .dm-window-scores small{font-size:8px;line-height:1.2}
- .dm-window-row .dm-status{grid-column:1/-1;justify-self:start}
- .dm-components{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 8px 8px;gap:5px}
- .dm-components>div{padding:9px}
- .dm-components b{font-size:12px}
+#dmGraph .dm-stock-chart{width:720px;max-width:none}
+.dm-end-label{font-size:17px}
 }
-
-/* 2026–2031 projected contention timeline */
-.dm-forecast-box{overflow:hidden}
-.dm-forecast-scroll{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
-.dm-forecast-grid{min-width:575px;border:1px solid #d9e4e6;border-radius:12px;overflow:hidden}
-.dm-forecast-head,.dm-forecast-entry{display:grid;grid-template-columns:165px minmax(0,1fr);align-items:center;gap:10px;padding:9px 10px}
-.dm-forecast-head{background:#dce8eb;color:#435e6b;font-size:10px;font-weight:900;letter-spacing:.05em}
-.dm-forecast-entry{background:#fff;border-top:1px solid #e2e8ea}
-.dm-forecast-entry:nth-child(odd){background:#f7fafb}
-.dm-forecast-entry>a{display:flex;align-items:center;gap:9px;color:#253d49;text-decoration:none;font-size:12px;min-width:0}
-.dm-forecast-entry>a img{height:28px;width:28px;object-fit:cover;border:1px solid #d9e4e7;border-radius:50%;flex:0 0 28px}
-.dm-forecast-entry>a b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dm-forecast-years{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:center;gap:5px;text-align:center}
 .dm-year-cell{padding:9px 3px;font-size:11px;border-radius:7px;font-variant-numeric:tabular-nums;background:#f0f3f4;color:#667a84}
 .dm-year-cell strong{font-weight:900}
 .dm-year-cell.elite{background:#128866;color:white}
 .dm-year-cell.strong{background:#bde6d7;color:#135942}
 .dm-year-cell.mixed{background:#ffedc5;color:#8c6220}
 .dm-year-cell.low{background:#e9eef1;color:#71838e}
-.dm-forecast-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
-.dm-forecast-legend>span{display:flex;align-items:center;gap:6px;color:#687b85;font-size:10px;font-weight:750}
-.dm-forecast-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;background:#e9eef1}
-.dm-forecast-legend i.elite{background:#128866}
-.dm-forecast-legend i.strong{background:#bde6d7}
-.dm-forecast-legend i.mixed{background:#ffedc5}
-.dm-forecast-footnote{font-size:10px;color:#768892;margin:13px 2px 1px;line-height:1.5}
-.dm-forecast-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.dm-forecast-card{border:1px solid #dce5e8;border-radius:12px;background:#fafdfe;padding:12px;min-width:0}
-.dm-forecast-card-head{display:flex;justify-content:space-between;align-items:center;gap:9px}
-.dm-forecast-window{text-align:right;min-width:120px;flex:0 0 auto}
-.dm-forecast-window small,.dm-forecast-metrics small{display:block;color:#788a92;font-weight:900;font-size:9px;margin-bottom:4px}
-.dm-forecast-window strong{color:#177c67;font-weight:900;font-size:16px;letter-spacing:-.035em}
-.dm-forecast-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
-.dm-forecast-metrics>div{padding:10px;background:#eef5f6;border-radius:8px;text-align:center;min-width:0}
-.dm-forecast-metrics b{font-weight:900;color:#243f4b;font-size:16px}
-.dm-forecast-card .dm-window-detail{margin:0}
-.dm-forecast-years-detail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 10px 10px}
-.dm-window-year{background:#f2f7f8;border-radius:7px;padding:9px 5px;text-align:center}
-.dm-window-year span{font-size:10px;color:#6b818d;display:block;font-weight:850}
-.dm-window-year strong{display:block;margin-top:3px;font-size:14px;color:#213e4b}
-.dm-window-year small{font-size:9px;color:#81939b}
-@media(max-width:699px){
- .dm-forecast-grid{min-width:570px}
- .dm-forecast-scroll:before{content:"SWIPE TIMELINE →";display:block;text-align:right;color:#128866;font:900 9px Inter,sans-serif;padding:0 2px 7px}
- .dm-forecast-cards{grid-template-columns:1fr}
- .dm-forecast-card{padding:12px 10px}
- .dm-forecast-legend{gap:8px}
- .dm-forecast-legend>span{font-size:9px}
- .dm-forecast-window strong{font-size:14px}
- .dm-forecast-metrics b{font-size:14px}
-}
-
-/* Future original-draft capital stays separate from projected scoring. */
-.dm-pick-stock{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin:0 0 11px;border:1px solid #dae6e8;border-radius:8px;background:#f3f8f8}
-.dm-pick-stock span{font-size:9px;font-weight:900;color:#708793;letter-spacing:.035em}
-.dm-pick-stock strong{font-size:11px;font-weight:900;color:#1a7867;font-variant-numeric:tabular-nums;text-align:right}
-.dm-window-year small{display:block;line-height:1.4;margin-top:3px}
-@media(max-width:699px){
- .dm-pick-stock{padding:9px 10px}
- .dm-pick-stock span{font-size:9px}
- .dm-pick-stock strong{font-size:11px}
-}
