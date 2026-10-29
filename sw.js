@@ -1,5 +1,5 @@
-/* FIG League v209 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v209';
+/* FIG League v210 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v210';
 const APP_SHELL = [
   './',
   './index.html',
@@ -65,8 +65,9 @@ const APP_SHELL = [
   './historical-predictions-v189.js?v=190',
   './record-detail-compact-v181.css?v=181',
   './roster-search-contrast-v207.css?v=207',
-  './dynasty-market-v209.js?v=209',
-  './dynasty-market-v209.css?v=209',
+  './dynasty-window-model-v210.js?v=210',
+  './dynasty-market-v209.js?v=210',
+  './dynasty-market-v209.css?v=210',
   './app.js?v=209',
   './manifest.webmanifest?v=132',
   './assets/icons/puka-192.png?v=132',
