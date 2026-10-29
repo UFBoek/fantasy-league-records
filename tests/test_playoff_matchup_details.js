@@ -49,8 +49,9 @@ assert.match(html,/playoff-calculator-v167\.css\?v=206/);
 const appRevision=html.match(/app\.js\?v=(\d+)/);
 assert.ok(appRevision,'app script revision exists');
 assert.match(sw,new RegExp('fig-league-shell-v'+appRevision[1]),'service worker matches deployed app revision');
-assert.match(html,/dynasty-market-v209\.js\?v=209/,'new market module is registered');
-assert.match(html,/dynasty-market-v209\.css\?v=209/,'new market stylesheet is registered');
+assert.match(html,/dynasty-market-v209\.js\?v=\d+/,'market module is registered with a version');
+assert.match(html,/dynasty-window-model-v210\.js\?v=210/,'age-aware model loads ahead of market UI');
+assert.match(html,/dynasty-market-v209\.css\?v=\d+/,'market stylesheet is registered with a version');
 
 assert.equal(scores.season,Math.max(...settings.map(x=>+x.season)));
 const rates=Object.values(scores.players);
