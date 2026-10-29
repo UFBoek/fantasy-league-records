@@ -37,6 +37,14 @@ for(let y=0;y<6;y++){
 assert.ok(first.teams.every(t=>t.window.indexOf('2032')<0),'do not invent beyond-horizon closure');
 assert.ok(first.teams.every(t=>t.openYear===null||t.openYear<=2031));
 assert.ok(first.teams.every(t=>t.outlook.every(x=>x.low<=x.high)));
+assert.ok(first.teams.every(t=>t.peakYear===
+  t.outlook.reduce((best,row)=>row.strength>best.strength?row:best,t.outlook[0]).year),
+ 'peak year must use highest expected PPG, not a saturated top-three chance');
+const james=first.teams.find(t=>t.id===10),fromm=first.teams.find(t=>t.id===3);
+assert.ok(fromm.outlook.at(-1).strength>james.outlook.at(-1).strength,
+ 'asset-rich rebuild should project more scoring power than a depleted roster');
+assert.ok(teams.find(t=>t.id===3).value>teams.find(t=>t.id===10).value,
+ 'franchise valuation source distinguishes the rebuilds');
 const missingAges=structuredClone(teams);
 missingAges[0].roster.forEach(p=>{p.age=null;});
 assert.equal(engine.forecast({...input,teams:missingAges}).ready,false,
