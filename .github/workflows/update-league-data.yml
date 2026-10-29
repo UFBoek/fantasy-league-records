@@ -27,6 +27,8 @@ on:
       - 'tests/test_playoff_nfl_wide.py'
       - 'scripts/prepare_player_records.py'
       - 'scripts/validate_refresh.py'
+      - 'scripts/build_dynasty_market_history.py'
+      - 'tests/test_dynasty_market_history.py'
       - 'tests/test_week_finalization.py'
       - 'tests/test_record_break_watch.js'
       - 'tests/test_team_record_views.js'
@@ -132,6 +134,13 @@ jobs:
       - name: Validate the complete snapshot before publishing
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/validate_refresh.py
+
+      - name: Record a daily RosterAudit market snapshot
+        if: steps.quick.outputs.refresh == 'true'
+        shell: bash
+        run: |
+          # Runs only after the provider coverage check. Never invent earlier prices.
+          python scripts/build_dynasty_market_history.py
 
       - name: Run regression tests against the refreshed data
         if: steps.quick.outputs.refresh == 'true'
