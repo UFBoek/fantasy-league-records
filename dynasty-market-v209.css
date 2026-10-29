@@ -181,3 +181,54 @@
  .dm-components>div{padding:9px}
  .dm-components b{font-size:12px}
 }
+
+/* 2026–2031 projected contention timeline */
+.dm-forecast-box{overflow:hidden}
+.dm-forecast-scroll{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.dm-forecast-grid{min-width:575px;border:1px solid #d9e4e6;border-radius:12px;overflow:hidden}
+.dm-forecast-head,.dm-forecast-entry{display:grid;grid-template-columns:165px minmax(0,1fr);align-items:center;gap:10px;padding:9px 10px}
+.dm-forecast-head{background:#dce8eb;color:#435e6b;font-size:10px;font-weight:900;letter-spacing:.05em}
+.dm-forecast-entry{background:#fff;border-top:1px solid #e2e8ea}
+.dm-forecast-entry:nth-child(odd){background:#f7fafb}
+.dm-forecast-entry>a{display:flex;align-items:center;gap:9px;color:#253d49;text-decoration:none;font-size:12px;min-width:0}
+.dm-forecast-entry>a img{height:28px;width:28px;object-fit:cover;border:1px solid #d9e4e7;border-radius:50%;flex:0 0 28px}
+.dm-forecast-entry>a b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-forecast-years{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:center;gap:5px;text-align:center}
+.dm-year-cell{padding:9px 3px;font-size:11px;border-radius:7px;font-variant-numeric:tabular-nums;background:#f0f3f4;color:#667a84}
+.dm-year-cell strong{font-weight:900}
+.dm-year-cell.elite{background:#128866;color:white}
+.dm-year-cell.strong{background:#bde6d7;color:#135942}
+.dm-year-cell.mixed{background:#ffedc5;color:#8c6220}
+.dm-year-cell.low{background:#e9eef1;color:#71838e}
+.dm-forecast-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.dm-forecast-legend>span{display:flex;align-items:center;gap:6px;color:#687b85;font-size:10px;font-weight:750}
+.dm-forecast-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;background:#e9eef1}
+.dm-forecast-legend i.elite{background:#128866}
+.dm-forecast-legend i.strong{background:#bde6d7}
+.dm-forecast-legend i.mixed{background:#ffedc5}
+.dm-forecast-footnote{font-size:10px;color:#768892;margin:13px 2px 1px;line-height:1.5}
+.dm-forecast-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dm-forecast-card{border:1px solid #dce5e8;border-radius:12px;background:#fafdfe;padding:12px;min-width:0}
+.dm-forecast-card-head{display:flex;justify-content:space-between;align-items:center;gap:9px}
+.dm-forecast-window{text-align:right;min-width:120px;flex:0 0 auto}
+.dm-forecast-window small,.dm-forecast-metrics small{display:block;color:#788a92;font-weight:900;font-size:9px;margin-bottom:4px}
+.dm-forecast-window strong{color:#177c67;font-weight:900;font-size:16px;letter-spacing:-.035em}
+.dm-forecast-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.dm-forecast-metrics>div{padding:10px;background:#eef5f6;border-radius:8px;text-align:center;min-width:0}
+.dm-forecast-metrics b{font-weight:900;color:#243f4b;font-size:16px}
+.dm-forecast-card .dm-window-detail{margin:0}
+.dm-forecast-years-detail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 10px 10px}
+.dm-window-year{background:#f2f7f8;border-radius:7px;padding:9px 5px;text-align:center}
+.dm-window-year span{font-size:10px;color:#6b818d;display:block;font-weight:850}
+.dm-window-year strong{display:block;margin-top:3px;font-size:14px;color:#213e4b}
+.dm-window-year small{font-size:9px;color:#81939b}
+@media(max-width:699px){
+ .dm-forecast-grid{min-width:570px}
+ .dm-forecast-scroll:before{content:"SWIPE TIMELINE →";display:block;text-align:right;color:#128866;font:900 9px Inter,sans-serif;padding:0 2px 7px}
+ .dm-forecast-cards{grid-template-columns:1fr}
+ .dm-forecast-card{padding:12px 10px}
+ .dm-forecast-legend{gap:8px}
+ .dm-forecast-legend>span{font-size:9px}
+ .dm-forecast-window strong{font-size:14px}
+ .dm-forecast-metrics b{font-size:14px}
+}
