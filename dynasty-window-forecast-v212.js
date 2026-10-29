@@ -112,8 +112,11 @@
    const before=ageCurve(p.pos,p.age),after=ageCurve(p.pos,p.age+1);
    const growth=clamp(after/Math.max(.05,before),.28,1.28);
    const uncertainty=clamp(1+.115*normal(rng),.50,1.49);
-   const v=p.v*growth*uncertainty;
-   if(v>35)next.push({pos:p.pos,age:p.age+1,v});
+   const maturity=p.rookieYear===undefined?1:
+     ((year-p.rookieYear<=0?.38:year-p.rookieYear===1?.70:year-p.rookieYear===2?.90:1)/
+      (year-1-p.rookieYear<=0?.38:year-1-p.rookieYear===1?.70:year-1-p.rookieYear===2?.90:1));
+   const v=p.v*growth*uncertainty*maturity;
+   if(v>35)next.push({pos:p.pos,age:p.age+1,v,rookieYear:p.rookieYear});
   }
   const arrivals=state.picks.filter(p=>p.year===year);
   if(year>state.base.lastKnownPickYear){
@@ -126,9 +129,13 @@
    }
   }
   for(const pick of arrivals){
-   const spread=clamp(.68+.55*normal(rng),.04,2.30);
+   // Dynasty pick price is an optimistic TRADE value, not guaranteed rookie
+   // fantasy production. Outcomes include busts, contributors, and rare stars.
+   // Even successful rookies usually take several seasons to reach full impact.
+   const draw=rng();
+   const realized=draw<.35?.07+.25*rng():draw<.80?.35+.42*rng():1+.50*rng();
    const pos=['RB','WR','WR','TE','QB'][Math.floor(rng()*5)];
-   next.push({pos,age:pos==='QB'?23:22,v:pick.value*spread});
+   next.push({pos,age:pos==='QB'?23:22,v:pick.value*realized*.38,rookieYear:year});
   }
   convertVeterans(next,rng);
   consolidateBench(next,rng);
@@ -190,8 +197,9 @@
    let close=-1;
    if(open>=0){close=open;while(close+1<outlook.length&&outlook[close+1].topThree>=50)close++;}
    // Top-three probabilities saturate at 100 for dominant franchises.
-   // Use expected strength relative to league peers to find a meaningful peak.
-   const peak=outlook.slice().sort((a,b)=>b.advantage-a.advantage||a.year-b.year)[0];
+   // Peak is the season with the highest expected underlying PPG, not a
+   // tie-break between repeated 100% contention probabilities.
+   const peak=outlook.slice().sort((a,b)=>b.strength-a.strength||a.year-b.year)[0];
    const beyond=close===outlook.length-1;
    const window=open<0?'No projected window by '+HORIZON:
      (open===0?'Now':String(outlook[open].year))+'–'+(beyond?HORIZON+'+':outlook[close].year);
