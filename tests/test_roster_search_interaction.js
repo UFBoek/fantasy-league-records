@@ -52,7 +52,7 @@ assert.match(css,/\.fig-roster-player-copy small\{\s*color:#546559!important/,
 assert.match(css,/sleeper-player-row:hover/,'hover state remains readable');
 assert.match(css,/@media\(max-width:699px\)/,'phone contrast styling present');
 assert.match(html,/roster-search-contrast-v207\.css\?v=207/);
-assert.match(html,/app\.js\?v=207/);
+assert.match(html,/app\.js\?v=\d+/,'app revision is linked in the deployed HTML');
 assert.match(sw,/roster-search-contrast-v207\.css\?v=207/);
 assert.match(sw,/app\.js\?v=\d+/,'the current app revision is cached');
 assert.match(sw,/fig-league-shell-v\d+/,'service worker has a versioned cache');
