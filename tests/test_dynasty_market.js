@@ -85,7 +85,7 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  assert.match(holder.innerHTML,/EST. WINDOW/);
  assert.match(holder.innerHTML,/2026/);
  assert.match(holder.innerHTML,/2031/);
- assert.match(holder.innerHTML,/Projected title opportunity|title opportunity/i);
+ assert.match(holder.innerHTML,/neutral-playoff scenarios/i);
  assert.match(holder.innerHTML,/YEAR-BY-YEAR OUTLOOK/);
  assert.match(holder.innerHTML,/CURRENT SCORE/);
  assert.match(holder.innerHTML,/href="#\/playoff-calculator"/i);
