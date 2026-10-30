@@ -122,6 +122,17 @@ function main(argv){
   'unknown position',s.unknown_positions.length,
   'mae current',s.mae_same_season,'mae blend',s.mae_prior_blend,
   'leader predicted',s.predicted_leader,'actual',s.actual_later_leader);
+ for(const p of result.snapshots) {
+  console.log('ASOF_TEAM_REPORT',p.year,JSON.stringify(p.teams.map(t=>({
+   team:t.id,roster:t.roster_count,picks:t.picks.length,baseline:t.baseline_ppg,
+   actual:t.future_actual_team_ppg}))));
+  console.log('ASOF_PICK_WARNINGS',p.year,JSON.stringify(p.pick_ledger_warnings.slice(0,10)));
+  console.log('ASOF_MISSING_POSITIONS',p.year,JSON.stringify(p.unknown_positions.slice(0,10)));
+ }
+ console.log('ASOF_PICK_2026_RECONCILIATION',JSON.stringify({
+  checked:result.reconciliation_2026.checked,matched:result.reconciliation_2026.matched,
+  chain_warnings:result.reconciliation_2026.chain_warnings,
+  mismatches:result.reconciliation_2026.mismatches.slice(0,12)}));
 }
 if(require.main===module)main(process.argv.slice(2));
 module.exports={replayPicks,pointsToDate,legalLineup,build};
