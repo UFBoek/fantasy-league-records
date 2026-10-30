@@ -1,0 +1,21 @@
+name: Verify BoekMuse dynamic SQL preview
+on:
+  push:
+    branches: [feature/boekmuse-dynamic-sql]
+    paths:
+      - 'workers/boekmuse-v2/**'
+      - 'tests/test_boekmuse_dynamic_live.js'
+      - '.github/workflows/verify-boekmuse-preview.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    name: Verify D1 sync and unexpected questions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test deployed free Cloudflare AI and verified SQL
+        run: node tests/test_boekmuse_dynamic_live.js
