@@ -30,6 +30,8 @@ on:
       - 'scripts/prepare_player_records.py'
       - 'scripts/validate_refresh.py'
       - 'scripts/build_dynasty_market_history.py'
+      - 'scripts/build_dynasty_site_report.js'
+      - 'scripts/dynasty_dominance_model.js'
       - 'tests/test_dynasty_market_history.py'
       - 'tests/test_week_finalization.py'
       - 'tests/test_record_break_watch.js'
@@ -143,6 +145,23 @@ jobs:
           else
             echo '::warning::RosterAudit API was unavailable; retaining the last good snapshot.'
             git restore -- data/rosteraudit_values.json
+          fi
+
+      - name: Set up Node for research-only dynasty report
+        if: steps.quick.outputs.refresh == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Refresh Dynasty Dominance beta without risking official records
+        if: steps.quick.outputs.refresh == 'true'
+        shell: bash
+        run: |
+          if node scripts/build_dynasty_site_report.js --runs 1500; then
+            echo 'Experimental Dynasty Dominance snapshot checked.'
+          else
+            echo '::warning::Dynasty Dominance calculation unavailable; retaining the last working beta report.'
+            git restore -- data/dynasty_dominance_projection.json 2>/dev/null || rm -f data/dynasty_dominance_projection.json
           fi
 
       - name: Validate the complete snapshot before publishing

@@ -1,0 +1,48 @@
+name: Build experimental NFL-wide dynasty history
+on:
+  pull_request:
+    paths:
+      - scripts/build_dynasty_nfl_history.py
+      - .github/workflows/build-dynasty-nfl-history.yml
+  workflow_dispatch:
+jobs:
+  build-nfl-history:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'model/dynasty-dominance-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing Sleeper research dependency
+        run: python -m pip install requests==2.32.3
+      - name: Fetch 2023-2025 NFL-wide played-game scoring
+        run: python scripts/build_dynasty_nfl_history.py
+      - name: Verify archived NFL coverage before committing
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('data/dynasty_nfl_history.json').read_text())
+          assert d['scoring_season']==2026
+          for season in ['2023','2024','2025']:
+              item=d['seasons'][season]
+              assert item['through_week']==17 and len(item['players'])>=300
+              assert all(x['games']>0 and len(x['weekly'])==x['games'] for x in item['players'].values())
+              print(season,len(item['players']),'NFL players')
+          PY
+      - name: Commit archived research dataset ONLY to draft branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- data/dynasty_nfl_history.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Archive NFL-wide dynasty scoring research 2023-2025'
+            git push origin HEAD:model/dynasty-dominance-v1
+          fi

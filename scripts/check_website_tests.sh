@@ -27,3 +27,4 @@ node tests/test_playoff_week_gate.js
 node tests/test_playoff_weekly_expected.js
 node tests/test_roster_search_interaction.js
 node tests/test_dynasty_market.js
+node tests/test_dynasty_dominance_ui.js

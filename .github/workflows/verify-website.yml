@@ -16,6 +16,9 @@ on:
       - 'scripts/build_dynasty_market_history.py'
       - 'tests/*.js'
       - 'scripts/check_website_tests.sh'
+      - 'scripts/build_dynasty_site_report.js'
+      - 'scripts/dynasty_dominance_model.js'
+      - 'model_tests/test_dynasty_site_report.js'
       - 'scripts/build_playoff_player_scores.py'
       - 'tests/test_playoff_player_scores.py'
       - 'tests/test_playoff_nfl_wide.py'
@@ -53,6 +56,13 @@ jobs:
           bash scripts/check_website_tests.sh
           python -m unittest discover -s tests -p 'test_css_bundle.py'
           python -m unittest discover -s tests -p 'test_dynasty_market_history.py'
+      - name: Check experimental dynasty publishing and stage the static site
+        run: |
+          node model_tests/test_dynasty_site_report.js
+          node scripts/build_dynasty_site_report.js --runs 1500
+          bash scripts/stage_pages.sh "$RUNNER_TEMP/league-site"
+          test -f "$RUNNER_TEMP/league-site/data/dynasty_dominance_projection.json"
+          grep -q 'dynasty-dominance-v230.js' "$RUNNER_TEMP/league-site/index.html"
       - name: Verify NFL-wide model scoring and Sleeper fallback
         run: |
           python -m pip install requests==2.32.3

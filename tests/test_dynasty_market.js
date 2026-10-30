@@ -65,7 +65,13 @@ assert.equal(typeof ctx.window.figDynastyMarket,'function');
  // Recover genuine historical prices; unobserved dates must not look continuous.
  assert.ok(history.snapshots.length>=14,'real archived franchise valuations are present');
  assert.equal(history.snapshots[0].date,'2026-10-09');
- assert.ok(history.snapshots.slice(0,-1).every(s=>s.archive_recovered&&s.archive_commit));
+ const recovered=history.snapshots.filter(s=>s.archive_recovered);
+ assert.ok(recovered.length>=10,'Recovered historical values retain provenance');
+ assert.ok(recovered.every(s=>typeof s.archive_commit==='string'&&/^[0-9a-f]{40}$/.test(s.archive_commit)));
+ assert.ok(history.snapshots.every(s=>!s.archive_commit||s.archive_recovered),
+  'A genuine current-day snapshot need not pretend to be an archive recovery');
+ assert.equal(new Set(history.snapshots.map(s=>s.date)).size,history.snapshots.length,
+  'Each observation date appears at most once');
  activeHistory=history;
  await ctx.window.figDynastyMarket('market');
  assert.match(graph.innerHTML,/<svg/);

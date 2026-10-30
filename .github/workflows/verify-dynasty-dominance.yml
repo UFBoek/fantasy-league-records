@@ -1,0 +1,85 @@
+name: Verify experimental dynasty model
+on:
+  pull_request:
+    paths:
+      - scripts/dynasty_dominance_model.js
+      - scripts/build_dynasty_site_report.js
+      - model_tests/test_dynasty_site_report.js
+      - tests/test_dynasty_dominance_ui.js
+      - tests/test_dynasty_dominance.js
+      - scripts/backtest_dynasty_form.js
+      - scripts/stress_dynasty_dominance.js
+      - scripts/backtest_dynasty_players.js
+      - scripts/backtest_dynasty_franchise.js
+      - scripts/assess_dynasty_validation.js
+      - scripts/build_dynasty_asof_snapshots.js
+      - scripts/audit_dynasty_turnover.js
+      - scripts/stress_dynasty_roster_evolution.js
+      - model_tests/test_dynasty_roster_evolution.js
+      - scripts/backtest_dynasty_next_season.js
+      - model_tests/test_dynasty_next_season.js
+      - model_tests/test_dynasty_asof.js
+      - model_tests/test_dynasty_retrospective.js
+      - data/dynasty_nfl_history.json
+      - .github/workflows/verify-dynasty-dominance.yml
+  workflow_dispatch:
+jobs:
+  validate-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify contracts and deterministic runs
+        run: node tests/test_dynasty_dominance.js
+      - name: Verify no-leakage player and rookie holdout tests
+        run: node model_tests/test_dynasty_retrospective.js
+      - name: Generate historical player and rookie holdout report
+        run: node scripts/backtest_dynasty_players.js --out "$RUNNER_TEMP/dynasty-player-backtest.json"
+      - name: Generate historical franchise scoring benchmark
+        run: node scripts/backtest_dynasty_franchise.js --out "$RUNNER_TEMP/dynasty-franchise-backtest.json"
+      - name: Check historical roster and pick cutoff integrity
+        run: node model_tests/test_dynasty_asof.js
+      - name: Reconstruct 2024/2025 point-in-time rosters and picks
+        run: node scripts/build_dynasty_asof_snapshots.js --out "$RUNNER_TEMP/dynasty-historical-asof.json"
+      - name: Audit historical starter and bench retention
+        run: node scripts/audit_dynasty_turnover.js --out "$RUNNER_TEMP/dynasty-turnover-audit.json"
+      - name: Verify neutral roster evolution preserves player talent and historical cutoffs
+        run: node model_tests/test_dynasty_roster_evolution.js
+      - name: Test neutral exchange using historical starter and bench retention
+        run: node scripts/stress_dynasty_roster_evolution.js --runs 800 --out "$RUNNER_TEMP/dynasty-neutral-turnover.json"
+      - name: Verify next-season frozen-roster holdout inputs
+        run: node model_tests/test_dynasty_next_season.js
+      - name: Report true historical next-season frozen-asset forecasts
+        run: node scripts/backtest_dynasty_next_season.js --runs 750 --out "$RUNNER_TEMP/dynasty-next-season-holdout.json"
+      - name: Sensitivity - double-discounted 0.80 persistence for comparison
+        run: node scripts/backtest_dynasty_next_season.js --runs 250 --persistence 0.80 --out "$RUNNER_TEMP/dynasty-persistence-080.json"
+      - name: Assess historical validation and publication readiness
+        run: node scripts/assess_dynasty_validation.js --asof "$RUNNER_TEMP/dynasty-historical-asof.json" --next-season "$RUNNER_TEMP/dynasty-next-season-holdout.json" --turnover "$RUNNER_TEMP/dynasty-neutral-turnover.json" --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
+      - name: Verify beta report and known draft capital
+        run: node model_tests/test_dynasty_site_report.js
+      - name: Generate review-only research report
+        run: node scripts/dynasty_dominance_model.js --runs 1000 --out "$RUNNER_TEMP/dynasty-dominance-research.json"
+      - name: Backtest past single-season scoring form (2023–2025)
+        run: node scripts/backtest_dynasty_form.js --out "$RUNNER_TEMP/dynasty-form-backtest.json"
+      - name: Stress-test injuries, aging and draft outcomes
+        run: node scripts/stress_dynasty_dominance.js --runs 300 --out "$RUNNER_TEMP/dynasty-stress.json"
+      - name: Upload preview without publishing the model to the website
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynasty-dominance-research
+          path: |
+            ${{ runner.temp }}/dynasty-dominance-research.json
+            ${{ runner.temp }}/dynasty-form-backtest.json
+            ${{ runner.temp }}/dynasty-stress.json
+            ${{ runner.temp }}/dynasty-player-backtest.json
+            ${{ runner.temp }}/dynasty-franchise-backtest.json
+            ${{ runner.temp }}/dynasty-publication-readiness.json
+            ${{ runner.temp }}/dynasty-historical-asof.json
+            ${{ runner.temp }}/dynasty-turnover-audit.json
+            ${{ runner.temp }}/dynasty-neutral-turnover.json
+            ${{ runner.temp }}/dynasty-next-season-holdout.json
+            ${{ runner.temp }}/dynasty-persistence-080.json
+          retention-days: 14
