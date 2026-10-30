@@ -13,13 +13,27 @@
  * initial ability is sampled from RosterAudit rookie PICK value tiers
  * (an asset-level prior) and an uncertain positional distribution.
  */
-const {ageCurve,marketPpg,makePicks,legalLineup,random}=require('./dynasty_dominance_model');
+const {marketPpg,makePicks,legalLineup,random}=require('./dynasty_dominance_model');
 const TEAMS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 const IDS=Object.keys(TEAMS).map(Number);
 const YEARS=[2027,2028,2029,2030,2031,2032];
 const POS=new Set(['QB','RB','WR','TE']);
 const PEAK={QB:29,RB:25,WR:27,TE:28};
 const STAR={QB:37,RB:28,WR:30,TE:25};
+const MATURITY={
+ QB:[[20,.64],[22,.74],[24,.85],[26,.94],[29,1],[31,.99],[33,.94],[35,.82],[37,.58],[39,.35],[42,.08]],
+ RB:[[20,.67],[22,.80],[24,.94],[25,1],[26,.98],[27,.92],[28,.84],[29,.70],[30,.53],[31,.37],[33,.12],[35,.02]],
+ WR:[[20,.59],[22,.71],[24,.84],[26,.96],[27,1],[29,.97],[30,.92],[31,.84],[32,.71],[34,.42],[36,.14],[38,.03]],
+ TE:[[20,.56],[22,.66],[24,.78],[26,.92],[28,1],[30,.98],[32,.86],[34,.60],[36,.30],[38,.11],[40,.03]]
+};
+function maturity(pos,age){
+ const c=MATURITY[pos];if(!c)return 0;
+ if(age<=c[0][0])return c[0][1];
+ for(let i=1;i<c.length;i++)if(age<=c[i][0]){
+  const [a,v]=c[i-1],[b,w]=c[i];return v+(w-v)*(age-a)/(b-a);
+ }
+ return .02;
+}
 const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const rnd=(v,n=1)=>Number(v.toFixed(n));
@@ -38,8 +52,8 @@ function projectedPotential(pos,currentAge,value,year,firstYear=2026){
  // only *future* physical decline is applied, without double-discounting
  // the player's current age.
  const readiness=+currentAge<peak?
-  ageCurve(pos,age)/ageCurve(pos,peak):
-  ageCurve(pos,age)/ageCurve(pos,+currentAge);
+  maturity(pos,age)/maturity(pos,peak):
+  maturity(pos,age)/maturity(pos,+currentAge);
  return clamp(anchor*readiness,.02,pos==='QB'?44:36);
 }
 function breakoutProbability(pos,age,value){
@@ -92,7 +106,7 @@ function project(p,year,r){
  // Breakouts emerge gradually. An unproven 22-year-old can reach elite
  // PPG in their mid-20s, but not every 22-year-old becomes a star.
  const progress=age>=prime?1:clamp((age-p.age)/Math.max(1,prime-p.age),0,1);
- const upside=p.breakout*progress;
+ const upside=p.breakout*progress*Math.min(1,maturity(p.pos,age)/maturity(p.pos,prime));
  const devYears=Math.max(0,prime-p.age);
  const sigma=.12+Math.min(.14,Math.max(0,devYears)*.015)+
    Math.min(.08,Math.max(0,year-p.baseYear)*.012);
@@ -197,4 +211,4 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
    'Nominal simulation ranges and ranking frequencies are not statistically calibrated.'
   ]};
 }
-module.exports={runModel,projectedPotential,breakoutProbability,makeIncumbent,makeFuturePick,project,draftAssetValue};
+module.exports={runModel,projectedPotential,maturity,breakoutProbability,makeIncumbent,makeFuturePick,project,draftAssetValue};
