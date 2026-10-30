@@ -416,3 +416,48 @@ The no-leakage tests check that altering unseen 2025->2026 retention
 cannot change either earlier training prior, and that balanced transfers
 conserve every modeled player's fantasy scoring. None of these experiments
 is active on the public website.
+
+
+### Neutral turnover historical benchmark results (800 simulations each)
+
+The first separately coded model tests **identical league-wide**
+starter/bench retention odds for every manager, then redistributes
+exiting players within the league without creating any additional talent.
+Each forecast's turnover probabilities are trained only from transitions
+that were complete by that historical cutoff.
+
+| Week-7 cutoff → following season | Historical cohorts available to train | Neutral movement MAE | Frozen-roster simulation MAE, same 800 runs | Simple roster baseline MAE | Top-team call |
+| --- | --- | ---: | ---: | ---: | --- |
+| 2024 → 2025 | 2023→2024 | **19.10 PPG** | 24.32 PPG | 22.55 PPG | Hayden, correct |
+| 2025 → 2026 Weeks 1–7 | 2023→2024 + 2024→2025 | 28.09 PPG | **25.27 PPG** | **23.96 PPG** | Hayden, incorrect; Boek was highest |
+
+For the 2024 Week-7 forecast, training retention was **53.0% of
+starters** and **36.75% of bench**. For the 2025 Week-7 forecast,
+the earlier two cohorts together implied **61.5% of starters** and
+**41.19% of bench** retained.
+
+The neutral exchange uncertainty intervals covered **70%** of observed
+franchise-season scores in both tests, below the nominal 80% interval
+coverage requirement.
+
+**Decision: reject / do not integrate this turnover process into the
+main multi-year model.** Although 2025 scoring error improved, the
+model got worse in the 2026 holdout *and* assigned the top projected
+mean score to Hayden when the true 2026 leader was Boek.
+Actual roster moves are directed, not randomly assigned; the
+conservation-only shuffle omits incoming waiver talent, complex
+trades, and franchise-specific roster decisions.
+
+The `assess_dynasty_validation.js` publication gate now explicitly
+rejects this neutral-shuffle model unless it beats the frozen
+simulation in **both** historical MAE comparisons and identifies the
+highest-scoring team correctly in both. This is diagnostic modeling,
+not a reason to assign Hayden or any other manager a special skill
+score or artificial value increase.
+
+Current development priority should be a **roster-role transition**
+model trained at the player level with cutoff-safe features: retention
+probability, starter-versus-bench status, observed NFL role
+persistence, known picks and rookie outcomes, with uncertain future
+acquisitions carried as distributions rather than assumed
+discretionary trades.
