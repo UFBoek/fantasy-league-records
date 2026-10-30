@@ -22,7 +22,7 @@ const YEARS=[2027,2028,2029,2030,2031,2032];
 // No historical player or individual franchise PPG enters the talent model.
 const LEAGUE_BASELINE_PPG=1600;
 const LEAGUE_RANGE_PPG=[1570,1630];
-const LEAGUE_RAW_TREND_SHARE=.20;
+const LEAGUE_RAW_TREND_SHARE=.10;
 const POS=new Set(['QB','RB','WR','TE']);
 const PEAK={QB:30,RB:25,WR:27,TE:28};
 const STAR={QB:37,RB:28,WR:30,TE:25};
@@ -103,7 +103,7 @@ function calibrateLeagueScoring(teamSamples,playerSamples){
  for(const year of YEARS){
   const raw=IDS.reduce((sum,id)=>sum+mean(teamSamples[year][id]),0);
   if(!Number.isFinite(raw)||raw<=0)throw Error('Invalid league-wide simulated PPG');
-  // Keep 20% of the simulated year-to-year league scoring movement rather
+  // Keep 10% of the simulated year-to-year league scoring movement rather
   // than flattening every season to exactly 1,600 points.
   const target=clamp(LEAGUE_BASELINE_PPG+(raw-LEAGUE_BASELINE_PPG)*LEAGUE_RAW_TREND_SHARE,
    LEAGUE_RANGE_PPG[0],LEAGUE_RANGE_PPG[1]);
@@ -292,7 +292,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3.3-qb-longevity-league-baseline',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.4-qb-longevity-historical-scale',status:'research_only',years:YEARS,runs,seed,
   league_scoring_calibration:{baseline_ppg:LEAGUE_BASELINE_PPG,target_range_ppg:LEAGUE_RANGE_PPG,
    retained_raw_trend_fraction:LEAGUE_RAW_TREND_SHARE,by_year:leagueScaleByYear},
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),

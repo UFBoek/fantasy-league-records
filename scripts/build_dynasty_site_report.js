@@ -14,7 +14,7 @@ const files=['current_roster','rosteraudit_values','weekly_scoring_ranks','curre
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.6-qb-longevity';
+const reportVersion='fig-beta-1.7-qb-longevity-historical-scale';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,weekly,picks]=files.map(n=>inputs[n]);
  // Actual league history is used only as a benchmark shown beside the

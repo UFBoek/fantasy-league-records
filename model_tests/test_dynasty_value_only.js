@@ -47,7 +47,7 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3.3-qb-longevity-league-baseline');
+assert.equal(initial.version,'experimental-v3.4-qb-longevity-historical-scale');
 assert.equal(initial.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);
