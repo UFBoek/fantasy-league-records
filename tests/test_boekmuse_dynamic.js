@@ -58,4 +58,11 @@ assert.equal(page.ok,true);
 assert.equal(page.rows[0].values[0],'Boek');
 assert.equal(page.rows[0].href,'#/teamseason/1/2026');
 assert.ok(page.sql.startsWith('SELECT'));
+const touchdownPage=client.resultToPage({title:'Boek TDs',understood:'Each 2026 week',
+ columns:['week','rush_touchdowns','rec_touchdowns'],
+ rows:[{week:1,rush_touchdowns:2,rec_touchdowns:3}],
+ sql:'SELECT week,SUM(rush_td) rush_touchdowns,SUM(rec_td) rec_touchdowns FROM starts GROUP BY week'});
+assert.equal(touchdownPage.columns.at(-1),'Touchdowns');
+assert.equal(touchdownPage.rows[0].values.at(-1),'5');
+assert.match(touchdownPage.note,/Total touchdowns = verified rushing/);
 console.log('BoekMuse v2: general SQL, destructive SQL bans, verified TDs, joins, data normalization, and frontend result tests passed');
