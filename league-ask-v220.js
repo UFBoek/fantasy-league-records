@@ -249,7 +249,7 @@ async function ask(q){
  if(s.length<3)return {ok:false,message:'Ask a complete question about league history.'};
  if(/\b(trade|trades|traded)\b/.test(s))return statsForTrades(q,await load('trades'));
  if(/\b(draft|drafted|drafts|drafting)\b/.test(s))return statsForDrafts(q,await load('drafts'));
- if(/\b(superflex|bench|roster value|win probability|projected|future odds|streak|strength of schedule|all.play|rushing yards|receiving yards|touchdowns|passing yards)\b/.test(s))
+ if(/\b(superflex|bench|roster value|win probability|projected|future odds|streak|strength of schedule|all.play|rushing yards|receiving yards|touchdowns|passing yards|season total|season record|single.season|per season|each season)\b/.test(s))
   return {ok:false,message:'That question needs a data source this search does not support yet.'};
  const games=await load('games');
  const playerIntent=/\b(player|players|starter|starters|started|starts|qb|rb|wr|te|quarterback|wide receiver|running back|tight end)\b/.test(s);
@@ -306,7 +306,7 @@ function mountHome(){
  const app=document.getElementById('app'),hero=app?.querySelector('.hero');
  if(!hero||app.querySelector('.fig-ask-home'))return;
  const section=document.createElement('section');section.className='fig-ask-home';
- section.innerHTML='<div class="fig-ask-home-heading"><span>ASK FIG</span><strong>Your league. Every stat.</strong></div>'+
+ section.innerHTML='<div class="fig-ask-home-heading"><span>ASK FIG</span><strong>League history, by the numbers.</strong></div>'+
  form('','fig-ask-home-input')+'<a href="'+url(EXAMPLES[0])+'">Try: '+esc(EXAMPLES[0])+'</a>';
  hero.after(section);bind(section);
 }
