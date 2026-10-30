@@ -76,7 +76,8 @@
   const highest=yr.ranking[0],bookTop=yr.ranking.filter(x=>x.id!==1)[0];
   const future=report.years.map(year=>({year,p:ppg(report.seasons[year],selected).ppg}));
   const peakYear=[...future].sort((a,b)=>b.p-a.p)[0];
-  const known2027to30=Object.entries(t.draft_by_year).filter(([year])=>+year<=2030)
+  const knownThrough=Number(report.assumptions?.known_pick_ownership_through)||2029;
+  const known2027to30=Object.entries(t.draft_by_year).filter(([year])=>+year<=knownThrough)
     .reduce((sum,[,r])=>sum+r.known,0);
   const generated=report.generated_at?
    new Date(report.generated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
@@ -117,9 +118,11 @@
       '<div><span>KNOWN FIRST-ROUND PICKS</span><b>'+fmt(t.known_first_rounders,0)+'</b></div>'+
       '<div><span>'+selectedYear+' SCORING RANK</span><b>#'+(yr.ranking.findIndex(x=>x.id===selected)+1)+'</b></div>'+
      '</div>'+
-     '<div class="dd-draft-title">KNOWN PICK CAPITAL <small>2027–2030</small></div>'+
+     '<div class="dd-draft-title">PICK CAPITAL <small>KNOWN THROUGH '+knownThrough+'</small></div>'+
      '<div class="dd-draft-grid">'+[2027,2028,2029,2030].map(y=>{
-      const d=t.draft_by_year[y];return '<div><span>'+y+'</span><strong>'+d.known+'</strong><small>'+d.round1+' firsts</small></div>';
+      const d=t.draft_by_year[y];
+      return '<div><span>'+y+'</span><strong>'+(d.known||d.projected_assumed)+'</strong><small>'+
+        (d.projected_assumed ? (d.known?d.known+' known · '+d.projected_assumed+' assumed':'assumed') : d.round1+' firsts')+'</small></div>';
      }).join('')+'</div>'+
      '<a class="dd-related" href="#/dynasty">VIEW ROSTER MARKET VALUES <span>↗</span></a>'+
      '<a class="dd-related" href="#/stock-market">VIEW DYNASTY STOCK MARKET <span>↗</span></a>'+
@@ -128,7 +131,7 @@
    '<section class="dd-panel dd-compare"><div class="dd-panel-heading"><div><span class="dd-overline">SIX-SEASON COMPARISON</span><h3>Boek vs '+esc(TEAMS[selected])+'</h3></div>'+
     '<span class="dd-mini">PPG / MODEL</span></div>'+gapRows(selected)+'</section>'+
    '<details class="dd-details"><summary>Model notes and limitations <span>+</span></summary>'+
-    '<div class="dd-details-body"><p>Current data: FIG weekly team scoring, roster ownership and player scoring; RosterAudit values; actual 2027–2030 original-franchise draft holdings. 2031–2032 original picks are assumed until real ownership becomes available.</p>'+
+    '<div class="dd-details-body"><p>Current data: FIG weekly team scoring, roster ownership and player scoring; RosterAudit values; actual 2027–'+knownThrough+' original-franchise draft holdings. Later original picks are assumed until real ownership is available.</p>'+
     '<p>Future player production depends on provisional aging, rookie-development, injury and roster assumptions. The model does not invent future trades or award any manager a trading-skill bonus. The historical one-year backtests have not consistently outperformed a simple roster baseline.</p>'+
     '<p>Projected PPG is a stylized lineup-strength estimate. It is not the number of points a franchise is guaranteed to score. The service refreshes its report from new FIG data; no live sports provider is queried when opening this page.</p>'+
     '<a href="#/historical-predictions">HISTORICAL PROJECTIONS ↗</a></div></details>'+
