@@ -104,8 +104,18 @@ function build({weeklyRosters,transactions,nflHistory,weeklyScores},seasons=[202
 function main(argv){
  let out='';
  for(let i=0;i<argv.length;i++)if(argv[i]==='--out')out=argv[++i];else throw Error('Unknown '+argv[i]);
- const result=build({weeklyRosters:data('weekly_full_rosters'),transactions:data('transactions'),
-  nflHistory:data('dynasty_nfl_history'),weeklyScores:data('weekly_scoring_ranks')});
+ const input={weeklyRosters:data('weekly_full_rosters'),transactions:data('transactions'),
+  nflHistory:data('dynasty_nfl_history'),weeklyScores:data('weekly_scoring_ranks')};
+ const result=build(input);
+ const current=data('current_future_picks');
+ const comparison=replayPicks(input.transactions,2026,7);
+ const expected=new Map(current.filter(x=>+x.pick_season>=2027&&+x.pick_season<=2029)
+  .map(x=>[K(+x.pick_season,+x.round,+x.original_franchise_id),+x.current_franchise_id]));
+ const mismatches=comparison.picks.filter(p=>expected.get(K(p.year,p.round,p.origin))!==p.owner);
+ result.reconciliation_2026={checked:comparison.picks.length,expected:expected.size,
+  matched:comparison.picks.length-mismatches.length,
+  chain_warnings:comparison.warnings.length,
+  mismatches:mismatches.map(x=>({...x,expected:expected.get(K(x.year,x.round,x.origin))}))};
  if(out)fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n');
  for(const s of result.snapshots)console.log('ASOF',s.year,'Week',s.cutoff,
   'rostered',s.total_rostered_players,'picks',s.total_picks,'pick chain warnings',s.pick_ledger_warnings.length,
