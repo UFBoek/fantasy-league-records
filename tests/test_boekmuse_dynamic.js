@@ -23,6 +23,13 @@ assert.throws(()=>api.questionGuard('How many touchdowns did Boek starters score
  'SELECT team_id,COUNT(*) FROM games GROUP BY team_id'),/Touchdown questions require/);
 assert.doesNotThrow(()=>api.questionGuard('How many touchdowns did Boek starters score?',
  'SELECT week,SUM(td) FROM starts JOIN td_coverage USING (season,week,game_type,team_id) GROUP BY week'));
+const novel='Which manager lost the most regular season games while scoring at least 200 points?';
+assert.throws(()=>api.questionGuard(novel,
+ 'SELECT team_id,losses,points_for FROM team_seasons WHERE points_for>=200 AND season=(SELECT MAX(season) FROM team_seasons)'),/individual GAME scores/);
+assert.throws(()=>api.questionGuard(novel,
+ "SELECT team_id,COUNT(*) AS losses FROM games WHERE points>=200 AND loss=1 GROUP BY team_id ORDER BY losses DESC LIMIT 1"),/tied leaders/);
+assert.doesNotThrow(()=>api.questionGuard(novel,
+ "SELECT team_id,COUNT(*) AS losses FROM games WHERE points>=200 AND loss=1 AND game_type='Regular Season' GROUP BY team_id ORDER BY losses DESC LIMIT 50"));
 const sample={
  games:[{season:'2026',week:7,game_type:'Regular Season',franchise_1:1,franchise_2:6,
   score_1:225.94,score_2:209.98,matchup_id:9}],
