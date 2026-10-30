@@ -291,8 +291,8 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
   seasons,whole_horizon,
   limitations:[
    'Research only; future probabilities not historically validated or betting odds.',
-   'League player logs include starts only; bench players are regressed toward market valuation priors, never assumed to score zero.',
-   'Player aging, injury and rookie outcome priors are transparent hypothetical assumptions, not trained on NFL-wide samples.',
+   'Prefer standardized NFL-wide 2023-2026 observed games; fall back to league started-player logs, then market-position priors for unobserved bench players.',
+   'Empirical rookie year-one samples use 80 FIG rookies in 2024-25; sophomore development uses 40 FIG rookies selected in 2024. Later aging and injuries remain hypothetical.',
    'Real 2027-29 pick ownership; 2030-32 own picks assumed one per round and may later change with trades.',
    'Draft tier is inferred from previous simulated scoring, not guaranteed draft order.',
    'Season scoring is a stylized best legal lineup with availability penalties, not week-by-week injury-aware lineup optimization.',
@@ -308,9 +308,11 @@ function main(args){
   else throw Error('Unknown option '+args[i]);
  }
  const read=f=>JSON.parse(fs.readFileSync(path.resolve(__dirname,'../data',f),'utf8'));
+ const opt=f=>fs.existsSync(path.resolve(__dirname,'../data',f))?read(f):null;
  const m=runModel({roster:read('current_roster.json'),values:read('rosteraudit_values.json'),
   logs:read('player_game_log.json'),weekly:read('weekly_scoring_ranks.json'),
-  picks:read('current_future_picks.json'),runs,seed});
+  picks:read('current_future_picks.json'),nflCurrent:opt('playoff_nfl_weekly_scores.json'),
+  nflHistory:opt('dynasty_nfl_history.json'),drafts:opt('draft_picks.json'),runs,seed});
  if(out)fs.writeFileSync(out,JSON.stringify(m,null,2)+'\n');
  console.log('FIG Dynasty Dominance '+runs+' experimental simulations');
  for(const year of YEARS){
