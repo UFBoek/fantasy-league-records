@@ -12,7 +12,7 @@ const clean=v=>Number(String(v).replace(/[^0-9.-]/g,''));
 function result(plan,data){const r=engine.execute(plan,data);assert.equal(r.ok,true,r.message);return r;}
 {
  const r=result({dataset:'games',metric:'win_pct',group_by:'none',team_id:6,max_points:174.999},games);
- const matching=games.flatMap(g=>[1,2].map(i=>({id:+g['franchise_'+i],points:+g['score_'+i],
+ const matching=games.filter(g=>g.game_type==='Regular Season').flatMap(g=>[1,2].map(i=>({id:+g['franchise_'+i],points:+g['score_'+i],
   win:+g['score_'+i]>+g['score_'+(3-i)]}))).filter(x=>x.id===6&&x.points<175);
  eq(clean(r.value),Number((100*matching.filter(x=>x.win).length/matching.length).toFixed(2)));
  assert.match(r.note,/wins in \d+ games/);
