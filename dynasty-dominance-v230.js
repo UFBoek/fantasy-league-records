@@ -171,7 +171,7 @@
       '<span class="dd-feature-name">'+esc(TEAMS[selected]).toUpperCase()+'</span>'+
       '<strong>'+fmt(selectedScore.ppg)+'</strong><small>PROJECTED PPG</small></div></div>'+
     '<div class="dd-feature-foot"><span><a class="dd-profile-quicklink" href="#/dynasty-dominance/'+selected+'/'+selectedYear+'/players">VIEW '+selectedYear+' PLAYERS ↗</a></span>'+
-     '</span><label>COMPARE TEAM <select id="ddTeamSelect" aria-label="Compare a challenger">'+
+     '<label>COMPARE TEAM <select id="ddTeamSelect" aria-label="Compare a challenger">'+
        current.opponents.map(t=>'<option value="'+t.id+'"'+(t.id===selected?' selected':'')+'>'+esc(TEAMS[t.id])+'</option>').join('')+
      '</select></label></div></section>'+
    '<div class="dd-overview"><section class="dd-panel dd-ladder-panel"><div class="dd-panel-heading">'+
