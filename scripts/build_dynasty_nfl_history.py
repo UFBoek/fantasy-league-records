@@ -52,9 +52,10 @@ def build_archive(data_dir=DATA, seasons=SEASONS, cutoff=CUTOFF, fetcher=None):
     if not scoring or not isinstance(scoring, dict):
         raise ValueError("Scoring settings invalid")
 
+    target = data_dir / 'dynasty_nfl_history.json'
     previous = {}
-    if (data_dir / "dynasty_nfl_history.json").exists():
-        previous = json.loads((data_dir / "dynasty_nfl_history.json").read_text(encoding="utf-8"))
+    if target.exists():
+        previous = json.loads(target.read_text(encoding="utf-8"))
     # Cache is a player-level summary, not a raw weekly cache.
     old_seasons = previous.get("seasons", {}) if previous.get("version") == 1 else {}
     out = {}
@@ -82,8 +83,8 @@ def build_archive(data_dir=DATA, seasons=SEASONS, cutoff=CUTOFF, fetcher=None):
         "scoring_type": "FIG 2026 scoring rules for all seasons",
         "seasons": out,
     }
-    OUTPUT.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"WROTE {OUTPUT} ({sum(len(y['players']) for y in out.values())} season-player observations)")
+    target.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    print(f"WROTE {target} ({sum(len(y['players']) for y in out.values())} season-player observations)")
     return result
 
 
