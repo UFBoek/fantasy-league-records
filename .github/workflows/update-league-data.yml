@@ -39,9 +39,10 @@ on:
       - 'tests/test_trade_ratings.js'
       - 'tests/test_record_drilldowns.js'
 
-# Use the same deployment queue as the website publisher.
+# Do not let concurrent Pages publishes cancel a pending data refresh.
+# Serialize refreshes independently, then share the Pages queue only for deploy.
 concurrency:
-  group: league-pages
+  group: league-data-refresh
   cancel-in-progress: false
 
 jobs:
@@ -232,6 +233,9 @@ jobs:
     name: Publish refreshed league website
     needs: refresh
     if: needs.refresh.outputs.changed == 'true'
+    concurrency:
+      group: league-pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
