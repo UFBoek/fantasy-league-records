@@ -31,7 +31,9 @@ for(const year of output.years){
   const current=inputs.current_roster.filter(p=>+p.franchise_id===id&&['QB','RB','WR','TE'].includes(p.position));
   assert.equal(real.length,current.length,'Every actual roster player appears exactly once in each future season');
   assert.equal(new Set(players.map(p=>p.id)).size,players.length,'Future draft slots must have stable unique identifiers');
-  assert.ok(players.every(p=>Number.isFinite(p.ppg)&&p.ppg>=0&&Number.isFinite(p.p10)&&Number.isFinite(p.p90)));
+  assert.ok(players.every(p=>p.ppg===null||(Number.isFinite(p.ppg)&&p.ppg>=0&&Number.isFinite(p.p10)&&Number.isFinite(p.p90))));
+  assert.ok(real.filter(p=>p.current_market_value===null).every(p=>p.ppg===null),
+   'No RosterAudit quote means PPG remains unknown, never borrowed from historical scoring');
   assert.ok(real.every(p=>['QB','RB','WR','TE'].includes(p.pos)&&
    (p.current_market_value===null||Number.isFinite(+p.current_market_value))),
    'Missing RosterAudit player prices must remain unknown, never fabricated');
