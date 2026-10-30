@@ -1,0 +1,1224 @@
+{
+  "version": "fig-beta-1.0",
+  "status": "experimental_beta_not_calibrated",
+  "generated_at": "2026-10-30T09:56:30.732Z",
+  "source_week": 7,
+  "source_season": 2026,
+  "model_version": "experimental-v2.1",
+  "runs": 1500,
+  "seed": 20261030,
+  "assumptions": {
+    "no_future_trades": true,
+    "known_pick_ownership_through": 2029,
+    "later_picks_assumed_by_original_franchise": true,
+    "scenario_range": "Model sensitivity only; percentile bands are not calibrated confidence intervals",
+    "future_score_interpretation": "Stylized scoring strength, not a guaranteed weekly or season average"
+  },
+  "validation": {
+    "full_six_year_backtest_passed": false,
+    "one_year_holdout_better_than_baseline": false,
+    "one_year_intervals_calibrated": false,
+    "description": "Historical one-year tests did not consistently beat the simpler roster scoring baseline. The model is research only."
+  },
+  "inputs": {
+    "observed_through_week": 7,
+    "current_rostered_players": 318,
+    "market_coverage_pct": 98.4,
+    "historical_player_start_logs": 5238,
+    "current_nfl_wide_rostered_players": 299,
+    "observed_nfl_wide_rostered_games": 6797,
+    "empirical_rookie_samples": {
+      "1": 20,
+      "2": 20,
+      "3": 20,
+      "4": 20
+    },
+    "second_year_2024_class_samples": 40,
+    "known_2027_2029_picks": 120,
+    "known_2030_2032_picks": 0,
+    "assumed_2030_2032_picks": 120
+  },
+  "teams": [
+    {
+      "id": 1,
+      "name": "Boek",
+      "roster_count": 28,
+      "top10_value_weighted_age": 24.9,
+      "known_future_picks": 10,
+      "known_first_rounders": 1,
+      "draft_by_year": {
+        "2027": {
+          "known": 3,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 2,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 5,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 234.9,
+      "market_value_known_players": 103704
+    },
+    {
+      "id": 2,
+      "name": "Fru",
+      "roster_count": 32,
+      "top10_value_weighted_age": 24,
+      "known_future_picks": 11,
+      "known_first_rounders": 5,
+      "draft_by_year": {
+        "2027": {
+          "known": 3,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 4,
+          "round1": 2,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 4,
+          "round1": 2,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 150.5,
+      "market_value_known_players": 32460
+    },
+    {
+      "id": 3,
+      "name": "Fromm",
+      "roster_count": 31,
+      "top10_value_weighted_age": 22.6,
+      "known_future_picks": 14,
+      "known_first_rounders": 6,
+      "draft_by_year": {
+        "2027": {
+          "known": 1,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 6,
+          "round1": 3,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 7,
+          "round1": 2,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 97.8,
+      "market_value_known_players": 15178
+    },
+    {
+      "id": 4,
+      "name": "Sack",
+      "roster_count": 32,
+      "top10_value_weighted_age": 24.6,
+      "known_future_picks": 10,
+      "known_first_rounders": 3,
+      "draft_by_year": {
+        "2027": {
+          "known": 6,
+          "round1": 2,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 2,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 2,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 172,
+      "market_value_known_players": 41305
+    },
+    {
+      "id": 5,
+      "name": "Leyton",
+      "roster_count": 33,
+      "top10_value_weighted_age": 27.2,
+      "known_future_picks": 13,
+      "known_first_rounders": 2,
+      "draft_by_year": {
+        "2027": {
+          "known": 2,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 8,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 3,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 162.8,
+      "market_value_known_players": 48664
+    },
+    {
+      "id": 6,
+      "name": "Hayden",
+      "roster_count": 32,
+      "top10_value_weighted_age": 27.2,
+      "known_future_picks": 10,
+      "known_first_rounders": 1,
+      "draft_by_year": {
+        "2027": {
+          "known": 1,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 3,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 6,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 213.9,
+      "market_value_known_players": 77788
+    },
+    {
+      "id": 7,
+      "name": "Line",
+      "roster_count": 32,
+      "top10_value_weighted_age": 25.7,
+      "known_future_picks": 3,
+      "known_first_rounders": 1,
+      "draft_by_year": {
+        "2027": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 3,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 165.6,
+      "market_value_known_players": 41622
+    },
+    {
+      "id": 8,
+      "name": "Winston",
+      "roster_count": 33,
+      "top10_value_weighted_age": 24.7,
+      "known_future_picks": 16,
+      "known_first_rounders": 5,
+      "draft_by_year": {
+        "2027": {
+          "known": 9,
+          "round1": 3,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 3,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 4,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 156,
+      "market_value_known_players": 38923
+    },
+    {
+      "id": 9,
+      "name": "CamNol",
+      "roster_count": 32,
+      "top10_value_weighted_age": 26.3,
+      "known_future_picks": 25,
+      "known_first_rounders": 4,
+      "draft_by_year": {
+        "2027": {
+          "known": 9,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 11,
+          "round1": 2,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 5,
+          "round1": 1,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 163.3,
+      "market_value_known_players": 34477
+    },
+    {
+      "id": 10,
+      "name": "James",
+      "roster_count": 33,
+      "top10_value_weighted_age": 24.2,
+      "known_future_picks": 8,
+      "known_first_rounders": 2,
+      "draft_by_year": {
+        "2027": {
+          "known": 6,
+          "round1": 2,
+          "projected_assumed": 0
+        },
+        "2028": {
+          "known": 1,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2029": {
+          "known": 1,
+          "round1": 0,
+          "projected_assumed": 0
+        },
+        "2030": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2031": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        },
+        "2032": {
+          "known": 0,
+          "round1": 0,
+          "projected_assumed": 4
+        }
+      },
+      "current_ppg": 60.3,
+      "market_value_known_players": 6580
+    }
+  ],
+  "seasons": {
+    "2027": {
+      "ranking": [
+        {
+          "id": 1,
+          "ppg": 227.5,
+          "p10": 209.9,
+          "p90": 245.9
+        },
+        {
+          "id": 6,
+          "ppg": 192.6,
+          "p10": 175.1,
+          "p90": 209.7
+        },
+        {
+          "id": 4,
+          "ppg": 173.9,
+          "p10": 155.8,
+          "p90": 193.5
+        },
+        {
+          "id": 5,
+          "ppg": 164.6,
+          "p10": 149.3,
+          "p90": 179.6
+        },
+        {
+          "id": 8,
+          "ppg": 162.1,
+          "p10": 145.7,
+          "p90": 179.5
+        },
+        {
+          "id": 7,
+          "ppg": 158.7,
+          "p10": 143.5,
+          "p90": 173.8
+        },
+        {
+          "id": 9,
+          "ppg": 156.1,
+          "p10": 140.1,
+          "p90": 172.9
+        },
+        {
+          "id": 2,
+          "ppg": 146,
+          "p10": 131.4,
+          "p90": 161.3
+        },
+        {
+          "id": 3,
+          "ppg": 102.8,
+          "p10": 90.3,
+          "p90": 116.6
+        },
+        {
+          "id": 10,
+          "ppg": 90.7,
+          "p10": 74.2,
+          "p90": 108.5
+        }
+      ],
+      "boek_vs_leagues_best_opponent": {
+        "gap_ppg": 32.4,
+        "p10": 8.5,
+        "p90": 56.9
+      },
+      "boek_vs_teams": [
+        {
+          "id": 6,
+          "gap_ppg": 34.9,
+          "p10": 9.3,
+          "p90": 59.9
+        },
+        {
+          "id": 4,
+          "gap_ppg": 53.6,
+          "p10": 26.5,
+          "p90": 81.2
+        },
+        {
+          "id": 5,
+          "gap_ppg": 62.9,
+          "p10": 39.6,
+          "p90": 86.5
+        },
+        {
+          "id": 8,
+          "gap_ppg": 65.4,
+          "p10": 39.6,
+          "p90": 90.5
+        },
+        {
+          "id": 7,
+          "gap_ppg": 68.8,
+          "p10": 46.1,
+          "p90": 91.6
+        },
+        {
+          "id": 9,
+          "gap_ppg": 71.4,
+          "p10": 46.8,
+          "p90": 95.8
+        },
+        {
+          "id": 2,
+          "gap_ppg": 81.6,
+          "p10": 58.7,
+          "p90": 105.2
+        },
+        {
+          "id": 3,
+          "gap_ppg": 124.7,
+          "p10": 102.2,
+          "p90": 147
+        },
+        {
+          "id": 10,
+          "gap_ppg": 136.8,
+          "p10": 111.3,
+          "p90": 162
+        }
+      ]
+    },
+    "2028": {
+      "ranking": [
+        {
+          "id": 1,
+          "ppg": 226.1,
+          "p10": 208.6,
+          "p90": 244.8
+        },
+        {
+          "id": 6,
+          "ppg": 184.9,
+          "p10": 167,
+          "p90": 203.5
+        },
+        {
+          "id": 4,
+          "ppg": 172.3,
+          "p10": 152.2,
+          "p90": 193.2
+        },
+        {
+          "id": 9,
+          "ppg": 167.6,
+          "p10": 147.9,
+          "p90": 188.9
+        },
+        {
+          "id": 5,
+          "ppg": 162.8,
+          "p10": 145.9,
+          "p90": 179.7
+        },
+        {
+          "id": 8,
+          "ppg": 159.5,
+          "p10": 141.5,
+          "p90": 179.3
+        },
+        {
+          "id": 7,
+          "ppg": 155.8,
+          "p10": 140.7,
+          "p90": 171.5
+        },
+        {
+          "id": 2,
+          "ppg": 152.1,
+          "p10": 135,
+          "p90": 170.3
+        },
+        {
+          "id": 3,
+          "ppg": 123.4,
+          "p10": 104.1,
+          "p90": 144
+        },
+        {
+          "id": 10,
+          "ppg": 90.8,
+          "p10": 72,
+          "p90": 112.7
+        }
+      ],
+      "boek_vs_leagues_best_opponent": {
+        "gap_ppg": 34.6,
+        "p10": 10.7,
+        "p90": 56.6
+      },
+      "boek_vs_teams": [
+        {
+          "id": 6,
+          "gap_ppg": 41.2,
+          "p10": 14.9,
+          "p90": 66.7
+        },
+        {
+          "id": 4,
+          "gap_ppg": 53.8,
+          "p10": 26.1,
+          "p90": 82.6
+        },
+        {
+          "id": 9,
+          "gap_ppg": 58.5,
+          "p10": 30.8,
+          "p90": 85.5
+        },
+        {
+          "id": 5,
+          "gap_ppg": 63.4,
+          "p10": 38.2,
+          "p90": 88.2
+        },
+        {
+          "id": 8,
+          "gap_ppg": 66.6,
+          "p10": 40.9,
+          "p90": 91.7
+        },
+        {
+          "id": 7,
+          "gap_ppg": 70.3,
+          "p10": 46.8,
+          "p90": 95
+        },
+        {
+          "id": 2,
+          "gap_ppg": 74,
+          "p10": 48.7,
+          "p90": 99.5
+        },
+        {
+          "id": 3,
+          "gap_ppg": 102.7,
+          "p10": 74.6,
+          "p90": 129.8
+        },
+        {
+          "id": 10,
+          "gap_ppg": 135.4,
+          "p10": 108.4,
+          "p90": 161.1
+        }
+      ]
+    },
+    "2029": {
+      "ranking": [
+        {
+          "id": 1,
+          "ppg": 224.2,
+          "p10": 204.7,
+          "p90": 245.1
+        },
+        {
+          "id": 6,
+          "ppg": 183.9,
+          "p10": 162.8,
+          "p90": 205.2
+        },
+        {
+          "id": 4,
+          "ppg": 172.4,
+          "p10": 151.4,
+          "p90": 194.7
+        },
+        {
+          "id": 9,
+          "ppg": 171,
+          "p10": 148.3,
+          "p90": 194.7
+        },
+        {
+          "id": 8,
+          "ppg": 163.3,
+          "p10": 142.6,
+          "p90": 186.1
+        },
+        {
+          "id": 5,
+          "ppg": 158.2,
+          "p10": 140.7,
+          "p90": 176.8
+        },
+        {
+          "id": 2,
+          "ppg": 157.7,
+          "p10": 139.1,
+          "p90": 177.3
+        },
+        {
+          "id": 7,
+          "ppg": 155.8,
+          "p10": 139.6,
+          "p90": 172.4
+        },
+        {
+          "id": 3,
+          "ppg": 134.5,
+          "p10": 111.5,
+          "p90": 159.7
+        },
+        {
+          "id": 10,
+          "ppg": 91.5,
+          "p10": 71.8,
+          "p90": 114.6
+        }
+      ],
+      "boek_vs_leagues_best_opponent": {
+        "gap_ppg": 30.3,
+        "p10": 4.5,
+        "p90": 56.2
+      },
+      "boek_vs_teams": [
+        {
+          "id": 6,
+          "gap_ppg": 40.2,
+          "p10": 12,
+          "p90": 68.6
+        },
+        {
+          "id": 4,
+          "gap_ppg": 51.8,
+          "p10": 21.8,
+          "p90": 81
+        },
+        {
+          "id": 9,
+          "gap_ppg": 53.2,
+          "p10": 21.6,
+          "p90": 84
+        },
+        {
+          "id": 8,
+          "gap_ppg": 60.9,
+          "p10": 29.6,
+          "p90": 89.9
+        },
+        {
+          "id": 5,
+          "gap_ppg": 66,
+          "p10": 38.9,
+          "p90": 92.3
+        },
+        {
+          "id": 2,
+          "gap_ppg": 66.4,
+          "p10": 37.4,
+          "p90": 93.6
+        },
+        {
+          "id": 7,
+          "gap_ppg": 68.3,
+          "p10": 42.2,
+          "p90": 93.6
+        },
+        {
+          "id": 3,
+          "gap_ppg": 89.7,
+          "p10": 59.4,
+          "p90": 119.6
+        },
+        {
+          "id": 10,
+          "gap_ppg": 132.7,
+          "p10": 102,
+          "p90": 162.7
+        }
+      ]
+    },
+    "2030": {
+      "ranking": [
+        {
+          "id": 1,
+          "ppg": 220.8,
+          "p10": 199.9,
+          "p90": 242
+        },
+        {
+          "id": 6,
+          "ppg": 179.2,
+          "p10": 158.8,
+          "p90": 201.9
+        },
+        {
+          "id": 9,
+          "ppg": 177,
+          "p10": 151.2,
+          "p90": 204.6
+        },
+        {
+          "id": 4,
+          "ppg": 176,
+          "p10": 152.9,
+          "p90": 200.8
+        },
+        {
+          "id": 8,
+          "ppg": 170.6,
+          "p10": 147.9,
+          "p90": 196
+        },
+        {
+          "id": 2,
+          "ppg": 162.2,
+          "p10": 141.5,
+          "p90": 183.3
+        },
+        {
+          "id": 7,
+          "ppg": 153.1,
+          "p10": 135.5,
+          "p90": 172.5
+        },
+        {
+          "id": 5,
+          "ppg": 152.9,
+          "p10": 134.2,
+          "p90": 173.6
+        },
+        {
+          "id": 3,
+          "ppg": 140.5,
+          "p10": 115,
+          "p90": 167.4
+        },
+        {
+          "id": 10,
+          "ppg": 101.6,
+          "p10": 79,
+          "p90": 126.7
+        }
+      ],
+      "boek_vs_leagues_best_opponent": {
+        "gap_ppg": 23.2,
+        "p10": -4.3,
+        "p90": 50.3
+      },
+      "boek_vs_teams": [
+        {
+          "id": 6,
+          "gap_ppg": 41.5,
+          "p10": 12.1,
+          "p90": 71.4
+        },
+        {
+          "id": 9,
+          "gap_ppg": 43.8,
+          "p10": 9,
+          "p90": 76.9
+        },
+        {
+          "id": 4,
+          "gap_ppg": 44.8,
+          "p10": 11.1,
+          "p90": 74.9
+        },
+        {
+          "id": 8,
+          "gap_ppg": 50.2,
+          "p10": 17.6,
+          "p90": 80.5
+        },
+        {
+          "id": 2,
+          "gap_ppg": 58.6,
+          "p10": 27.7,
+          "p90": 88.4
+        },
+        {
+          "id": 7,
+          "gap_ppg": 67.6,
+          "p10": 39.8,
+          "p90": 94.7
+        },
+        {
+          "id": 5,
+          "gap_ppg": 67.9,
+          "p10": 38.1,
+          "p90": 96.8
+        },
+        {
+          "id": 3,
+          "gap_ppg": 80.3,
+          "p10": 45.3,
+          "p90": 114.4
+        },
+        {
+          "id": 10,
+          "gap_ppg": 119.2,
+          "p10": 86.2,
+          "p90": 151.6
+        }
+      ]
+    },
+    "2031": {
+      "ranking": [
+        {
+          "id": 1,
+          "ppg": 213.8,
+          "p10": 190.9,
+          "p90": 238.1
+        },
+        {
+          "id": 9,
+          "ppg": 180.7,
+          "p10": 152.9,
+          "p90": 209.4
+        },
+        {
+          "id": 4,
+          "ppg": 179.7,
+          "p10": 154,
+          "p90": 207.2
+        },
+        {
+          "id": 6,
+          "ppg": 175.6,
+          "p10": 152.9,
+          "p90": 198.9
+        },
+        {
+          "id": 8,
+          "ppg": 173.5,
+          "p10": 148.3,
+          "p90": 200.9
+        },
+        {
+          "id": 2,
+          "ppg": 166.9,
+          "p10": 143.8,
+          "p90": 192.6
+        },
+        {
+          "id": 7,
+          "ppg": 149.7,
+          "p10": 130.3,
+          "p90": 170.2
+        },
+        {
+          "id": 5,
+          "ppg": 148.8,
+          "p10": 127.1,
+          "p90": 173.1
+        },
+        {
+          "id": 3,
+          "ppg": 148.4,
+          "p10": 120.4,
+          "p90": 177.8
+        },
+        {
+          "id": 10,
+          "ppg": 108.1,
+          "p10": 83.3,
+          "p90": 134.6
+        }
+      ],
+      "boek_vs_leagues_best_opponent": {
+        "gap_ppg": 12.6,
+        "p10": -17.6,
+        "p90": 43.3
+      },
+      "boek_vs_teams": [
+        {
+          "id": 9,
+          "gap_ppg": 33.2,
+          "p10": -2.3,
+          "p90": 68.2
+        },
+        {
+          "id": 4,
+          "gap_ppg": 34.1,
+          "p10": -1.1,
+          "p90": 69.2
+        },
+        {
+          "id": 6,
+          "gap_ppg": 38.3,
+          "p10": 5.2,
+          "p90": 72.1
+        },
+        {
+          "id": 8,
+          "gap_ppg": 40.3,
+          "p10": 3.2,
+          "p90": 77.4
+        },
+        {
+          "id": 2,
+          "gap_ppg": 46.9,
+          "p10": 11,
+          "p90": 79.6
+        },
+        {
+          "id": 7,
+          "gap_ppg": 64.1,
+          "p10": 32.8,
+          "p90": 96.2
+        },
+        {
+          "id": 5,
+          "gap_ppg": 65.1,
+          "p10": 32.2,
+          "p90": 98.3
+        },
+        {
+          "id": 3,
+          "gap_ppg": 65.4,
+          "p10": 28.4,
+          "p90": 101.4
+        },
+        {
+          "id": 10,
+          "gap_ppg": 105.7,
+          "p10": 70.8,
+          "p90": 140.3
+        }
+      ]
+    },
+    "2032": {
+      "ranking": [
+        {
+          "id": 1,
+          "ppg": 205.7,
+          "p10": 181.5,
+          "p90": 230.8
+        },
+        {
+          "id": 9,
+          "ppg": 183.9,
+          "p10": 152.5,
+          "p90": 215.4
+        },
+        {
+          "id": 4,
+          "ppg": 181.9,
+          "p10": 153.3,
+          "p90": 211.7
+        },
+        {
+          "id": 8,
+          "ppg": 177.6,
+          "p10": 150.2,
+          "p90": 207
+        },
+        {
+          "id": 2,
+          "ppg": 171.3,
+          "p10": 145.9,
+          "p90": 197
+        },
+        {
+          "id": 6,
+          "ppg": 169.5,
+          "p10": 144.7,
+          "p90": 196.5
+        },
+        {
+          "id": 3,
+          "ppg": 153.8,
+          "p10": 124.1,
+          "p90": 185.6
+        },
+        {
+          "id": 7,
+          "ppg": 148.2,
+          "p10": 125.2,
+          "p90": 173.1
+        },
+        {
+          "id": 5,
+          "ppg": 145.1,
+          "p10": 121.7,
+          "p90": 171.6
+        },
+        {
+          "id": 10,
+          "ppg": 114.8,
+          "p10": 89,
+          "p90": 143
+        }
+      ],
+      "boek_vs_leagues_best_opponent": {
+        "gap_ppg": -0.1,
+        "p10": -34,
+        "p90": 31.9
+      },
+      "boek_vs_teams": [
+        {
+          "id": 9,
+          "gap_ppg": 21.7,
+          "p10": -19.4,
+          "p90": 61.2
+        },
+        {
+          "id": 4,
+          "gap_ppg": 23.8,
+          "p10": -14,
+          "p90": 61.4
+        },
+        {
+          "id": 8,
+          "gap_ppg": 28,
+          "p10": -10.8,
+          "p90": 63.6
+        },
+        {
+          "id": 2,
+          "gap_ppg": 34.4,
+          "p10": -2,
+          "p90": 70.6
+        },
+        {
+          "id": 6,
+          "gap_ppg": 36.2,
+          "p10": -0.1,
+          "p90": 71
+        },
+        {
+          "id": 3,
+          "gap_ppg": 51.9,
+          "p10": 11.3,
+          "p90": 91.4
+        },
+        {
+          "id": 7,
+          "gap_ppg": 57.4,
+          "p10": 23.9,
+          "p90": 91.2
+        },
+        {
+          "id": 5,
+          "gap_ppg": 60.5,
+          "p10": 24,
+          "p90": 95.2
+        },
+        {
+          "id": 10,
+          "gap_ppg": 90.9,
+          "p10": 53.5,
+          "p90": 126.8
+        }
+      ]
+    }
+  },
+  "years": [
+    2027,
+    2028,
+    2029,
+    2030,
+    2031,
+    2032
+  ],
+  "input_fingerprint": "b4451c584dade646270e80eb"
+}
