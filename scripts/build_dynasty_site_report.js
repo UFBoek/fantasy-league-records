@@ -14,9 +14,22 @@ const files=['current_roster','rosteraudit_values','weekly_scoring_ranks','curre
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.3-position-age-value-only';
+const reportVersion='fig-beta-1.4-league-scale';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,weekly,picks]=files.map(n=>inputs[n]);
+ // Actual league history is used only as a benchmark shown beside the
+ // projection. It is NOT an argument to runModel or a team-specific prior.
+ const observedWeekly=new Map();
+ for(const row of weekly){
+  if(+row.season<2023||+row.season>2026||+row.week<1||+row.week>14)continue;
+  const key=row.season+':'+row.week;
+  if(!observedWeekly.has(key))observedWeekly.set(key,[]);
+  observedWeekly.get(key).push(row);
+ }
+ const leagueWeeks=[...observedWeekly.values()].filter(rows=>rows.length===10&&
+  new Set(rows.map(r=>+r.franchise_id)).size===10);
+ const leagueAvg=leagueWeeks.length?
+  Number((leagueWeeks.reduce((sum,rows)=>sum+rows.reduce((a,r)=>a+(+r.points_for),0),0)/leagueWeeks.length).toFixed(1)):null;
  const completed=weekly.filter(x=>+x.season===2026),
   throughWeek=Math.max(0,...completed.map(x=>+x.week||0));
  const actualPpg=id=>{
@@ -54,7 +67,8 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
  });
  const seasons=Object.fromEntries(model.years.map(year=>{
    const s=model.seasons[year];
-   return [year,{ranking:s.ranking.map(t=>({id:t.id,ppg:t.ppg,p10:t.p10,p90:t.p90})),
+   return [year,{league_total_ppg:Number(s.ranking.reduce((sum,t)=>sum+t.ppg,0).toFixed(1)),
+     ranking:s.ranking.map(t=>({id:t.id,ppg:t.ppg,p10:t.p10,p90:t.p90})),
      // From the same simulation used for the franchise scores; the market
      // value shown is TODAY's RosterAudit figure, never a future estimate.
      players_by_team:Object.fromEntries(IDS.map(id=>[id,(s.player_projections?.[id]||[]).map(p=>({
@@ -82,6 +96,8 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
     one_year_holdout_better_than_baseline:false,
     one_year_intervals_calibrated:false,
     description:'Historical one-year tests did not consistently beat the simpler roster scoring baseline. The model is research only.'},
+   league_scoring_reference:{historical_weekly_avg:leagueAvg,completed_ten_team_weeks:leagueWeeks.length,
+    description:'Measured total team scoring across completed 10-team regular-season FIG weeks; display-only context, never an input to a player forecast'},
    inputs:model.inputs,teams,seasons,years:model.years};
 }
 function main(){
