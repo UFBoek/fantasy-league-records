@@ -14,7 +14,7 @@ async function json(path,method='GET',body){
  console.log('BOOTSTRAP RESPONSE',start.status,JSON.stringify(start.data).slice(0,1800));
  assert.ok([200,202].includes(start.status),'Bootstrap: '+JSON.stringify(start));
  let ready=false;
- for(let i=0;i<15;i(){
+ for(let i=0;i<15;i++){
   const h=await json('/health');
   if(h.data.ready){ready=true;console.log('READY',JSON.stringify(h.data));break;}
   if(i%3===0)console.log('Waiting for published league archive sync...',i);
