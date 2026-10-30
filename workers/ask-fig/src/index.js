@@ -30,8 +30,7 @@ const SCHEMA = {
     rookie_only:{type:'boolean'},
     order:{type:'string',enum:['desc','asc']},
     limit:{type:'integer'},
-    minimum_games:{type:'integer'},
-    interpretation:{type:'string'}
+    minimum_games:{type:'integer'}
   },
   required:['dataset','metric','group_by'],
   additionalProperties:false
@@ -63,6 +62,35 @@ const SYSTEM = [
 'Do not fill in guessed years, teams, players or thresholds. Make interpretation a concise neutral description of the calculation.',
 'No commentary; JSON object only.'
 ].join('\n');
+// Do not let a small model turn an across-league weekly comparison into a direct matchup.
+// This correction only runs for explicit questions naming two managers and comparing scores.
+function reconcileQuestion(question, plan){
+ const q=question.toLowerCase().replace(/[’']/g,"'");
+ const known=[
+  [1,/\bboek\b/],[2,/\bfru\b/],[3,/\bfromm\b/],[4,/\b(?:sack|sak)\b/],
+  [5,/\bleyton\b/],[6,/\bhayden\b/],[7,/\b(?:line|lionel)\b/],[8,/\bwinston\b/],
+  [9,/\b(?:camnol|cam nol)\b/],[10,/\bjames\b/]
+ ];
+ const matches=known.flatMap(([id,re])=>{const m=re.exec(q);return m?[{id,index:m.index}]:[]}).sort((a,b)=>a.index-b.index);
+ if(plan.dataset==='games'&&matches.length===2&&
+  /\b(outscor(?:e|es|ed|ing)|more points than|fewer points than|higher score than|lower score than)\b/.test(q)&&
+  !/\b(versus|vs\\.?|head.to.head)\b/.test(q)){
+  plan.team_id=matches[0].id;
+  plan.compare_team_id=matches[1].id;
+  plan.compare_direction=/\b(fewer points|lower score|outscored by|less than)\b/.test(q)?'lower':'higher';
+  plan.opponent_id=null;
+  if(plan.metric==='count')plan.group_by='none';
+ }
+ if(!/\b(?:minimum|at least|at minimum|with|over)\s*\d+\s*(?:games|starts|appearances)\b/.test(q))delete plan.minimum_games;
+ // A requested score BELOW a threshold is an upper bound, never a lower bound.
+ const under=q.match(/\b(?:under|below|less than)\s*(\d{2,3})(?:\s*(?:points|pts))?\b/);
+ if(under&&['games','player_starts'].includes(plan.dataset)){
+  plan.max_points=Number(under[1])-0.001;
+  plan.min_points=null;
+ }
+ return plan;
+}
+
 function json(body,status,origin){
  const headers={'content-type':'application/json; charset=utf-8','cache-control':'no-store','vary':'Origin','x-content-type-options':'nosniff'};
  if(origin)headers['access-control-allow-origin']=origin;
@@ -109,10 +137,10 @@ export default {
    const output=await env.AI.run(MODEL,{
     messages:[{role:'system',content:SYSTEM},{role:'user',content:question.trim()}],
     response_format:{type:'json_schema',json_schema:SCHEMA},
-    max_tokens:550,
+    max_tokens:240,
     temperature:0
    });
-   const plan=parseModel(output);
+   const plan=reconcileQuestion(question,parseModel(output));
    return json({ok:true,plan},200,allowed);
   }catch(error){
    console.warn('Ask FIG inference failed',String(error?.message||error).slice(0,200));
