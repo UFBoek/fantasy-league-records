@@ -6,7 +6,7 @@
  * node scripts/build_dynasty_site_report.js
  */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {runModel}=require('./dynasty_dominance_model');
+const {runModel,makePicks}=require('./dynasty_dominance_model');
 const root=path.resolve(__dirname,'../data');
 const files=['current_roster','rosteraudit_values','player_game_log','weekly_scoring_ranks',
  'current_future_picks','playoff_nfl_weekly_scores','dynasty_nfl_history','draft_picks'];
@@ -24,6 +24,7 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
  if(model.inputs.known_2027_2029_picks!==120)
   throw Error('Incomplete real 2027–2029 draft pick assignments');
  const count=(arr,fn)=>arr.filter(fn).length;
+ const allPicks=makePicks(picks);
  const teams=IDS.map(id=>{
    const players=roster.filter(p=>+p.franchise_id===id&&['QB','RB','WR','TE'].includes(p.position));
    const known=picks.filter(p=>+p.current_franchise_id===id&&+p.pick_season>=2027&&+p.pick_season<=2032);
@@ -37,9 +38,9 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      known_future_picks:known.length,
      known_first_rounders:count(known,p=>+p.round===1),
      draft_by_year:Object.fromEntries(model.years.map(year=>{
-       const rows=known.filter(p=>+p.pick_season===year);
-       return [year,{known:rows.length,round1:count(rows,p=>+p.round===1),
-         projected_assumed:Math.max(0,4-rows.length)}];
+       const rows=allPicks[year].filter(p=>p.owner===id);
+       return [year,{known:count(rows,p=>!p.assumed),round1:count(rows,p=>p.round===1&&!p.assumed),
+         projected_assumed:count(rows,p=>p.assumed)}];
      })),
      current_ppg:model.current_form.find(x=>x.id===id)?.form_ppg||0,
      market_value_known_players:Math.round(valued.reduce((s,p)=>s+p.value,0))};
@@ -55,7 +56,8 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
  return {version:reportVersion,status:'experimental_beta_not_calibrated',
    generated_at:generatedAt,source_week:model.inputs.observed_through_week,
    source_season:2026,model_version:model.version,runs,seed,
-   assumptions:{no_future_trades:true,known_pick_ownership_through:2030,
+   assumptions:{no_future_trades:true,
+     known_pick_ownership_through:Math.max(...picks.map(p=>+p.pick_season||2029)),
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
      future_score_interpretation:'Stylized scoring strength, not a guaranteed weekly or season average'},
