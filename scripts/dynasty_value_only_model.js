@@ -24,10 +24,13 @@ const LEAGUE_BASELINE_PPG=1600;
 const LEAGUE_RANGE_PPG=[1570,1630];
 const LEAGUE_RAW_TREND_SHARE=.20;
 const POS=new Set(['QB','RB','WR','TE']);
-const PEAK={QB:29,RB:25,WR:27,TE:28};
+const PEAK={QB:30,RB:25,WR:27,TE:28};
 const STAR={QB:37,RB:28,WR:30,TE:25};
 const MATURITY={
- QB:[[20,.64],[22,.74],[24,.85],[26,.94],[29,1],[31,.99],[33,.94],[35,.82],[37,.58],[39,.35],[42,.08]],
+ // Unlike RBs, established quarterbacks can maintain strong production
+ // through their mid-30s. Decline and retirement risk build later.
+ QB:[[20,.61],[22,.72],[24,.82],[26,.92],[28,.98],[30,1],[32,1],[34,.99],
+     [35,.97],[36,.94],[37,.88],[38,.78],[39,.64],[40,.49],[41,.35],[42,.23],[44,.07]],
  RB:[[20,.67],[22,.80],[24,.94],[25,1],[26,.98],[27,.92],[28,.84],[29,.70],[30,.53],[31,.37],[33,.12],[35,.02]],
  WR:[[20,.59],[22,.71],[24,.84],[26,.96],[27,1],[29,.97],[30,.92],[31,.84],[32,.71],[34,.42],[36,.14],[38,.03]],
  TE:[[20,.56],[22,.66],[24,.78],[26,.92],[28,1],[30,.98],[32,.86],[34,.60],[36,.30],[38,.11],[40,.03]]
@@ -57,7 +60,9 @@ function marketPpg(pos,value){
  // League-size scoring units: the previous curve severely undervalued
  // middle-tier starters. Check the aggregate output against independent
  // 2023-26 FIG weekly TOTALS, never per-player historical box scores.
- const f={QB:[5,10.5,800,38],RB:[3,12.5,1800,31],WR:[3.5,12.5,1600,32],TE:[3.5,11,1600,29]}[pos];
+ // QB value 3k is a plausible starter (~26 raw PPG), 5k a quality
+ // starter (~32), and 9k+ an elite QB. Very low-value backups remain low.
+ const f={QB:[5,13.5,800,40],RB:[3,12.5,1800,31],WR:[3.5,12.5,1600,32],TE:[3.5,11,1600,29]}[pos];
  return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
 }
 function makePicks(data){
@@ -123,7 +128,12 @@ function teamRank(scores){
 function projectedPotential(pos,currentAge,value,year,firstYear=2026){
  if(!POS.has(pos)||!Number.isFinite(+value)||+value<0||!Number.isFinite(+currentAge))return null;
  const age=+currentAge+(year-firstYear),peak=PEAK[pos];
- const anchor=marketPpg(pos,+value);
+ // Veteran QB dynasty prices discount remaining career length, not just
+ // next-season scoring. Partially undo that market horizon penalty for
+ // 31–39-year-old QBs, tapering back to neutral by 42. No past PPG used.
+ const veteranQBValueFactor=pos==='QB'?
+  1+.55*clamp((+currentAge-30)/4,0,1)*clamp((42-(+currentAge))/6,0,1):1;
+ const anchor=marketPpg(pos,+value*veteranQBValueFactor);
  // RosterAudit dynasty valuations already include age. For young players,
  // its value defines a plausible eventual talent ceiling while maturation
  // restricts CURRENT output. For older players it represents current ability;
@@ -194,7 +204,9 @@ function project(p,year,r){
  const sigma=.12+Math.min(.14,Math.max(0,devYears)*.015)+
    Math.min(.08,Math.max(0,year-p.baseYear)*.012);
  const talent=Math.exp(r.normal()*sigma-.5*sigma*sigma);
- const injuryChance=clamp(.08+(p.pos==='RB'?.04:0)+Math.max(0,age-29)*.027,.07,.65);
+ // QB age-related availability risk rises more gradually than for RB/WR/TE.
+ const injuryChance=clamp(.08+(p.pos==='RB'?.04:0)+
+  Math.max(0,age-29)*(p.pos==='QB'?.012:.027),.07,.65);
  const availability=r.u()<injuryChance? .40+.43*r.u():1;
  return clamp((expected+upside)*talent*availability,0,p.pos==='QB'?45:38);
 }
@@ -280,7 +292,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3.2-position-age-value-historical-league-baseline',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.3-qb-longevity-league-baseline',status:'research_only',years:YEARS,runs,seed,
   league_scoring_calibration:{baseline_ppg:LEAGUE_BASELINE_PPG,target_range_ppg:LEAGUE_RANGE_PPG,
    retained_raw_trend_fraction:LEAGUE_RAW_TREND_SHARE,by_year:leagueScaleByYear},
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),
@@ -289,7 +301,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
    assumed_2030_2032_picks:YEARS.slice(3).reduce((sum,y)=>sum+future[y].filter(p=>p.assumed).length,0)},
   seasons,whole_horizon,limitations:[
    'Individual incumbent PPG uses only RosterAudit value, player age, and position; no player or franchise historical scoring or PPG calibration.',
-   'Position maturity and aging shapes, breakout odds, injuries, and future rookie position distribution are exploratory assumptions, not historically calibrated probabilities.',
+   'Quarterbacks have a longer prime into the mid-30s, a QB-specific market-value curve, and partial veteran dynasty-price age relief. Maturity, aging, breakout, and injury parameters remain exploratory, not historically calibrated.',
    'Market pricing is a present-day dynasty opinion, not the NFL scoring outcome; a price does not guarantee star production.',
    'Rookie prospects are hypothetical draft slots; only 35% of RosterAudit draft asset value is converted into player scoring talent because acquisition rights are not established players. No 2024–2026 NFL rookie performances enter the model.',
    'Position scoring is uniformly normalized league-wide after simulation toward 1,600 combined PPG (1,570–1,630 target range). Historical player and team scoring do not determine the position/age/value talent model.',

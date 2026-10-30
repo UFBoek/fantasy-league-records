@@ -15,6 +15,21 @@ assert.ok(model.projectedPotential('WR',21,8500,2026)<model.projectedPotential('
  'High-valued 21-year-old WR must have substantial development runway');
 assert.ok(model.projectedPotential('TE',22,3500,2026)<model.projectedPotential('TE',22,3500,2032)*.85,
  'Young TE needs real development runway');
+// QB pricing should distinguish genuine starters from backups, and a 32-year-old
+// established QB should remain capable through age 35 before declining.
+const startingQB=model.projectedPotential('QB',32,3500,2027);
+assert.ok(startingQB>=27&&startingQB<=34,
+ 'Early-30s veteran QB with starter-level value should remain a ~30 PPG talent');
+assert.ok(model.projectedPotential('QB',32,3500,2030)>=startingQB*.9,
+ 'A veteran QB must not lose more than 10% of potential between 33 and 36');
+assert.ok(model.projectedPotential('QB',32,3500,2032)<startingQB,
+ 'Older QB potential eventually declines; no indefinite prime');
+assert.ok(model.projectedPotential('QB',30,9000,2032)>=26,
+ 'An elite 30-year-old QB can remain a high-scoring starter at age 36');
+assert.ok(model.marketPpg('QB',200)<10,
+ 'A backup-level market value must not turn into 25 starter PPG');
+assert.ok(model.marketPpg('QB',5000)>30,
+ 'High-value QB market anchor should clear 30 fantasy points');
 assert.ok(model.breakoutProbability('WR',21,1000)>0,
  'Low-valued young WR must retain a nonzero possibility of breaking out');
 assert.equal(model.breakoutProbability('WR',31,8000),0,
@@ -32,7 +47,7 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3.2-position-age-value-historical-league-baseline');
+assert.equal(initial.version,'experimental-v3.3-qb-longevity-league-baseline');
 assert.equal(initial.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);

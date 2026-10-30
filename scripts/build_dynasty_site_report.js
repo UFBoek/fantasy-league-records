@@ -14,7 +14,7 @@ const files=['current_roster','rosteraudit_values','weekly_scoring_ranks','curre
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.5-historical-league-baseline';
+const reportVersion='fig-beta-1.6-qb-longevity';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,weekly,picks]=files.map(n=>inputs[n]);
  // Actual league history is used only as a benchmark shown beside the
@@ -90,7 +90,7 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
      future_score_interpretation:'Future player talent uses only position, 2026 roster age and current RosterAudit value. One shared league-wide scoring scale targets 1,570–1,630 PPG, centered at the historic 1,600 baseline. Past individual player/team PPG do not enter the talent model.',
-     future_player_model:'Position-specific market-implied PPG, pre-peak maturation, veteran decline and uncertain career breakouts; future rookies use RosterAudit draft-pick value tiers and unknown sampled positions.',
+     future_player_model:'Position-specific market-implied PPG, pre-peak maturation and veteran decline (QBs have longer primes and partial veteran market-age relief), with uncertain career breakouts; future rookies use RosterAudit draft-pick value tiers and unknown sampled positions.',
      player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
     one_year_holdout_better_than_baseline:false,
