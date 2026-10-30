@@ -245,6 +245,9 @@ function statsForDrafts(q,picks){
   ['Team','Selections'],groups.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
 }
 async function ask(q){
+ // The free AI layer converts natural language into a validated, deterministic plan.
+ // Until the Worker URL is configured, preserve the existing offline keyword search.
+ if(root.figAskAi?.ask){const result=await root.figAskAi.ask(q);if(result)return result;}
  const s=clean(q);
  if(s.length<3)return {ok:false,message:'Ask a complete question about league history.'};
  if(/\b(trade|trades|traded)\b/.test(s))return statsForTrades(q,await load('trades'));
@@ -310,6 +313,6 @@ function mountHome(){
  form('','fig-ask-home-input')+'<a href="'+url(EXAMPLES[0])+'">Try: '+esc(EXAMPLES[0])+'</a>';
  hero.after(section);bind(section);
 }
-if(root.document)root.figLeagueSearch={render,mountHome,ask,invalidate:()=>Object.keys(cache).forEach(x=>delete cache[x])};
+if(root.document)root.figLeagueSearch={render,mountHome,ask,invalidate:()=>{Object.keys(cache).forEach(x=>delete cache[x]);root.figAskAi?.invalidate?.();}};
 if(typeof module!=='undefined'&&module.exports)module.exports={statsForGames,statsForPlayers,statsForTrades,statsForDrafts,scope,teamsIn};
 })(typeof window==='undefined'?globalThis:window);
