@@ -36,6 +36,16 @@ async function json(path,method='GET',body){
   assert.equal(result.data.ok,true,'Query must return verified results: '+q);
   assert.ok(Array.isArray(result.data.rows)&&result.data.rows.length,'No result rows for '+q);
   assert.ok(result.data.sql.trim().match(/^(SELECT|WITH)/i),'SQL must be read-only');
+  if(q.includes('lost the most regular season games')){
+   assert.match(result.data.sql,/\bgames\b/i,'Must use individual game scores');
+   assert.doesNotMatch(result.data.sql,/\bteam_seasons\b/i,'Season totals are not individual games');
+   assert.match(result.data.sql,/\b(?:COUNT|SUM)\s*\(/i,'Must count qualifying games');
+   const leaderIds=result.data.rows.filter(r=>Object.entries(r).some(([k,v])=>k!=='team_id'&&
+    /loss|count|games|qualifying/i.test(k)&&Number(v)===2))
+    .map(r=>Number(r.team_id)).sort((a,b)=>a-b);
+   console.log('NOVEL 200+ LOSS LEADERS',JSON.stringify(leaderIds));
+   assert.deepEqual(leaderIds,[1,5,6],'Boek, Leyton and Hayden have two such losses each');
+  }
  }
  const reject=await json('/query','POST',{question:'DROP TABLE starts;'});
  console.log('SAFETY',reject.status,JSON.stringify(reject.data).slice(0,300));
