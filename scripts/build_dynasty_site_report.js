@@ -82,6 +82,17 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      boek_vs_teams:s.boek_vs_teams.map(t=>({id:t.id,gap_ppg:t.gap_ppg,
       p10:t.p10,p90:t.p90}))}];
  }));
+ // Every verified first-round pick must contribute to its actual owner's
+ // projected roster, regardless of which franchise originally owned it.
+ // This guards against silently losing traded early picks in later rebuilds.
+ for(const [year,owned] of Object.entries(allPicks)){
+  for(const pick of owned){
+   if(pick.round!==1||pick.assumed)continue;
+   const id='pick:'+year+':1:'+pick.origin;
+   if(!seasons[2032].players_by_team[pick.owner]?.some(p=>p.id===id))
+    throw Error('Verified future first missing from owner projection: '+id+' -> '+pick.owner);
+  }
+ }
  return {version:reportVersion,status:'experimental_beta_not_calibrated',
    generated_at:generatedAt,source_week:throughWeek,
    source_season:2026,model_version:model.version,runs,seed,
