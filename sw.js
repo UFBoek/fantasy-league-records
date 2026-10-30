@@ -1,5 +1,5 @@
-/* FIG League v221 — keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v221';
+/* FIG League v222 — keep app shell available; never cache live league JSON. */
+const CACHE_NAME = 'fig-league-shell-v222';
 const APP_SHELL = [
   './',
   './index.html',
@@ -46,7 +46,7 @@ const APP_SHELL = [
   './playoff-calculator-v167.css?v=206',
   './historical-predictions-v189.css?v=189',
   './live-matchups.js?v=195',
-  './mobile-v69.js?v=219',
+  './mobile-v69.js?v=222',
   './record-break-watch-v133.js?v=176',
   './single-season-watch-v136.js?v=176',
   './trade-ratings-v143.js?v=153',
@@ -67,11 +67,11 @@ const APP_SHELL = [
   './roster-search-contrast-v207.css?v=207',
   './dynasty-market-v209.js?v=219',
   './dynasty-market-v209.css?v=219',
-  './league-ask-v220.css?v=220',
+  './league-ask-v220.css?v=222',
   './ask-fig-config.js?v=221',
   './league-ask-ai-v221.js?v=221',
-  './league-ask-v220.js?v=221',
-  './app.js?v=221',
+  './league-ask-v220.js?v=222',
+  './app.js?v=222',
   './manifest.webmanifest?v=132',
   './assets/icons/puka-192.png?v=132',
   './assets/icons/puka-512.png?v=132',
