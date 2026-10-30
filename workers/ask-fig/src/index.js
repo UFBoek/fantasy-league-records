@@ -3,8 +3,8 @@ const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const SCHEMA = {
   type:'object',
   properties:{
-    dataset:{type:'string',enum:['games','player_starts','trades','drafts','team_seasons','unsupported']},
-    metric:{type:'string',enum:['count','wins','losses','win_pct','total_points','avg_points','max_points','min_points','total_allowed','avg_allowed','avg_margin','distinct_teams']},
+    dataset:{type:'string',enum:['games','player_starts','trades','drafts','team_seasons','player_touchdowns','unsupported']},
+    metric:{type:'string',enum:['count','wins','losses','win_pct','total_points','avg_points','max_points','min_points','total_allowed','avg_allowed','avg_margin','distinct_teams','touchdowns']},
     group_by:{type:'string',enum:['none','team','opponent','player','position','season','week','team_season','game']},
     team_id:{type:['integer','null']},
     opponent_id:{type:['integer','null']},
@@ -30,7 +30,8 @@ const SCHEMA = {
     rookie_only:{type:'boolean'},
     order:{type:'string',enum:['desc','asc']},
     limit:{type:'integer'},
-    minimum_games:{type:'integer'}
+    minimum_games:{type:'integer'},
+    reason:{type:'string'}
   },
   required:['dataset','metric','group_by'],
   additionalProperties:false
@@ -39,6 +40,12 @@ const SYSTEM = [
 'You translate fantasy football league questions into a verified aggregate query plan. Return only JSON matching the schema. NEVER answer a question or invent statistics.',
 'Team IDs: 1 Boek, 2 Fru, 3 Fromm, 4 Sack (Sak), 5 Leyton, 6 Hayden, 7 Line (Lionel), 8 Winston, 9 CamNol, 10 James.',
 'Published archives: games = one row per team per finalized matchup, player_starts = started fantasy players only (not bench), trades = completed trades, drafts = individual selections, team_seasons = season-level regular season stats.',
+'player_touchdowns = verified Sleeper NFL rushing and receiving touchdowns of STARTED RB/WR/TE/FB players, excluding QB, K, DEF and BENCH. Source includes complete-data coverage checks per team-week. The metric is touchdowns, never count.',
+'Use player_touchdowns ONLY for non-QB offensive TD requests; metric touchdowns, group_by week for each/every week or game of ONE team, team_id of that team, season_from AND season_to requested calendar season, limit 18. Every week means an explicit week-by-week table.',
+'EXACT EXAMPLE: "How many non qb tds does Boek have in every game in 2026": {"dataset":"player_touchdowns","metric":"touchdowns","group_by":"week","team_id":1,"season_from":2026,"season_to":2026,"game_type":"regular","limit":18}. No opponent_id, no count metric. DO NOT output one record per week; add rush_td + rec_td of the starters.',
+'Never substitute game count, player start count, or fantasy points for rushing or receiving TDs. For touchdown requests involving ALL players including QBs, bench players or defense, return dataset unsupported and reason state specific missing coverage.',
+'For rushing yards, receiving yards, passing yards, fumbles, interceptions, sacks or other raw NFL stats not in published archives, return dataset unsupported with a reason; never replace them with a row count.',
+'For unsupported intents add reason (max 180 chars); choose metric count, group_by none but dataset unsupported. Do not pretend this is a valid game count.',
 'Metrics: count=number of qualifying rows; wins, losses, win_pct; total_points, avg_points, max_points, min_points; total_allowed, avg_allowed; avg_margin (points scored minus opponent points); distinct_teams counts distinct franchises where the SAME player has qualifying starts.',
 'Group: none for a named team total, team for a leaderboard, opponent for a head-to-head opponent breakdown, player for player leaderboards, season or week for time series, team_season for each franchise each year, game for each performance.',
 'Use opponent_id for "against Hayden" and team_id for "Hayden" or "for Hayden". When the question says "most wins AGAINST Hayden", group_by team, opponent_id=6, metric wins.',
@@ -52,7 +59,7 @@ const SYSTEM = [
 'For biggest blowouts use games, group_by game, metric avg_margin, result win, sort desc.',
 'When a question asks for top N: limit N (max 30). For "minimum 10 games" set minimum_games=10.',
 'Season data can group team_season by team or season; choose games unless specifically asking for season-level finishes or all-play (unsupported).',
-'If request needs unsupported data/operations (future predictions, all-play, roster slot assignment, trade outcomes over time, streak sequences, championships, complex multi-step joins), choose dataset unsupported, metric count, group_by none and interpretation briefly explain limitation. Never force a different metric.',
+'If request needs unsupported data/operations (future predictions, all-play, roster slot assignment, trade outcomes over time, streak sequences, championships, complex multi-step joins), choose dataset unsupported, metric count, group_by none and reason briefly explain limitation. Never force a different metric.',
 'Never infer a minimum_games, minimum_value, ranking limit, season, or threshold not explicitly present in the actual user question. Example: trade count does NOT need minimum_games, and "highest PPG" does not imply 10 games.',
 'IMPORTANT: A manager can outscore another manager in the SAME WEEK without facing that manager. For these questions, use compare_team_id and compare_direction, NOT opponent_id. Only use opponent_id for actual head-to-head contests.',
 'EXACT EXAMPLE for "How many times did Boek lose while outscoring Hayden in the same week?": {"dataset":"games","metric":"count","group_by":"none","team_id":1,"result":"loss","compare_team_id":6,"compare_direction":"higher"}. Do NOT use opponent_id. Boek lost to someone else, not Hayden.',
@@ -93,6 +100,27 @@ function reconcileQuestion(question, plan){
   plan.max_points=Number(under[1])-0.001;
   plan.min_points=null;
  }
+ // A raw touchdown request cannot be interpreted as a count of games/starts.
+ if(/\b(?:touchdowns?|tds?)\b/.test(q)){
+  if(/\b(?:non[\s-]?qbs?|excluding (?:qbs?|quarterbacks?)|without (?:qbs?|quarterbacks?))\b/.test(q)){
+   plan.dataset='player_touchdowns';plan.metric='touchdowns';
+   plan.game_type=/\bplayoffs?\b/.test(q)?'playoffs':'regular';
+   if(matches.length===1)plan.team_id=matches[0].id;
+   if(/\b(?:every|each|per)\s+(?:single\s+)?(?:game|week)\b|\bby\s+(?:game|week)\b/.test(q)){
+    plan.group_by='week';plan.limit=18;
+   }
+   const oneYear=q.match(/\b(?:in|during|for)\s+(?:the\s+)?(?:season\s+)?(20(?:2[3-9]|3\d))\b/);
+   if(oneYear){plan.season_from=Number(oneYear[1]);plan.season_to=Number(oneYear[1]);}
+   plan.opponent_id=null;plan.compare_team_id=null;plan.compare_direction='none';plan.result='any';
+   plan.min_points=null;plan.max_points=null;plan.min_margin=null;plan.max_margin=null;
+  }else{
+   return {dataset:'unsupported',metric:'count',group_by:'none',
+    reason:'Only started non-QB offensive rushing + receiving touchdowns are verified. Please specify non-QB TDs.'};
+  }
+ }
+ if(/\b(?:rushing|receiving|passing)\s+yards?\b|\b(?:interceptions?|fumbles?|sacks?)\b/.test(q))
+  return {dataset:'unsupported',metric:'count',group_by:'none',
+   reason:'Raw NFL yardage, interceptions, sacks or fumbles are not published in the verified BoekMuse archive.'};
  return plan;
 }
 
@@ -142,7 +170,7 @@ export default {
    const output=await env.AI.run(MODEL,{
     messages:[{role:'system',content:SYSTEM},{role:'user',content:question.trim()}],
     response_format:{type:'json_schema',json_schema:SCHEMA},
-    max_tokens:240,
+    max_tokens:270,
     temperature:0
    });
    const plan=reconcileQuestion(question,parseModel(output));
