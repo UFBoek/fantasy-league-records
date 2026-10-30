@@ -24,6 +24,8 @@ const SCHEMA = {
     max_opponent_points:{type:['number','null']},
     min_margin:{type:['number','null']},
     max_margin:{type:['number','null']},
+    minimum_value:{type:['number','null']},
+    maximum_value:{type:['number','null']},
     draft_round:{type:['integer','null']},
     rookie_only:{type:'boolean'},
     order:{type:'string',enum:['desc','asc']},
@@ -46,11 +48,12 @@ const SYSTEM = [
 'For game_type default regular, playoffs only if asked, all only if explicitly all games / including playoffs.',
 'For player questions use player_starts and player_name full name when present. For "Who drafted Josh Allen" use drafts, player_name="Josh Allen", group_by=team, metric=count.',
 'For "How many trades did Fru make", dataset trades, team_id=2, group_by none, metric count.',
-'For player scoring at least 30 for multiple teams: dataset player_starts, min_points=30, metric distinct_teams, group_by player.',
+'For player scoring at least 30 for multiple teams: dataset player_starts, min_points=30, metric distinct_teams, group_by player. If asks at least 3 franchises, minimum_value=3 (filter AFTER aggregating).',
+'For "minimum 10 occurrences" of an aggregate, set minimum_value=10; for "minimum 10 games" of a sample, set minimum_games=10.',
 'For biggest blowouts use games, group_by game, metric avg_margin, result win, sort desc.',
 'When a question asks for top N: limit N (max 30). For "minimum 10 games" set minimum_games=10.',
 'Season data can group team_season by team or season; choose games unless specifically asking for season-level finishes or all-play (unsupported).',
-'If request needs unsupported data/operations (future predictions, all-play, roster slot assignment, trade outcomes over time, streak sequences, championships, complex multi-step joins), choose dataset unsupported and interpretation briefly explain limitation. Never force a different metric.',
+'If request needs unsupported data/operations (future predictions, all-play, roster slot assignment, trade outcomes over time, streak sequences, championships, complex multi-step joins), choose dataset unsupported, metric count, group_by none and interpretation briefly explain limitation. Never force a different metric.',
 'Do not fill in guessed years, teams, players or thresholds. Make interpretation a concise neutral description of the calculation.',
 'No commentary; JSON object only.'
 ].join('\n');
