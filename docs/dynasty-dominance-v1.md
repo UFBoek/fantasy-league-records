@@ -515,3 +515,90 @@ are **sensitivity checks**, not independent historical forecasts.
 The beta public report version increments to `fig-beta-1.2-value-age`
 so automatic publishing does not retain the previous cached model
 result when source datasets are unchanged.
+
+
+## Proposed v3: position + age + RosterAudit value ONLY (2026-10-30)
+
+This replaces the live page's previous 2027–2032 incumbent-player scoring
+calculation with a **strict three-feature model**. It is not a claim
+of reliable six-year scoring probabilities.
+
+### No historical scoring inputs
+
+The new engine lives in `scripts/dynasty_value_only_model.js`.
+It accepts only the current Sleeper roster (position, 2026 age,
+franchise ownership), current RosterAudit player/pick valuations,
+and real future draft-pick ownership. **It does not read** historical
+player scoring, player game logs, historical RosterAudit trades,
+2026 league team PPG, prior-week actuals, NFL scoring archives, or
+previous rookie fantasy output. Neither the individual player
+projection nor the team's projected scoring uses a retrospective
+performance adjustment or franchise-scoring calibrator.
+
+For the website, `scripts/build_dynasty_site_report.js` loads
+2026 team scoring **only to label the separate "ACTUAL 2026 PPG"
+display**. The year-ahead engine does not receive this data.
+A regression test changes every 2026 team's score to an arbitrary
+value and proves that every 2027–2032 team/player forecast stays
+identical.
+
+### Scoring concept
+
+For current rostered players:
+
+1. **Market-implied talent:** map RosterAudit value to a positional
+   scoring level using a monotone position-specific scale.
+2. **Maturation:** valuable young players begin below their estimated
+   positional peak, then progress along a QB/RB/WR/TE age curve.
+   For example, a 21-year-old WR matures toward a 27-year-old peak,
+   and a 22-year-old TE can continue improving toward age 28.
+3. **Veteran decline:** a current veteran's value is treated as a
+   CURRENT ability estimate rather than pre-peak talent. Future
+   production declines relative to the age of today's valuation,
+   avoiding an automatic double penalty on older players.
+4. **Persistent breakout:** a youth-weighted career latent variable
+   offers a small but nonzero chance for young, modestly priced
+   assets to exceed their normal market-implied ceiling. Breakout
+   gains accumulate gradually approaching positional prime and
+   eventually decline with age. It is not a guaranteed late-career
+   scoring bonus or manager-specific trade reward.
+5. **Uncertainty and missed time:** Monte Carlo scoring volatility
+   and availability depend only on position, age and future horizon.
+
+Future rookie selections do not have known NFL positions or player
+valuations, so their simulated class uses the existing real owned
+draft slots plus RosterAudit future-pick value tiers and an **unknown
+sampled position**. The draft order is estimated from market-only
+model strength, not actual 2026 team results. These are hypothetical
+expected additions, not identified future rookies. No trades or
+manager "trading skill" bonuses are invented.
+
+### Important limitations
+
+The positional talent-price scale was checked for consistency
+against the *same-date* 2026 NFL-scoring sample. Because RosterAudit
+values already know part of 2026, this is not an unbiased
+out-of-sample scoring backtest. Age curves, breakout frequencies
+and future draft compositions are explicitly model assumptions
+and cannot be calibrated against pre-2026 market-value snapshots
+that do not exist. The user's objective is to model **potential
+future growth**, not to maximize a historically tested next-week
+scoring accuracy using actual past PPG.
+
+The 2026 actual PPG display must be kept separate from the
+2027–2032 estimated PPG in every frontend route. A current
+RosterAudit price is never labeled as a predicted future
+market price. A currently rostered player lacking a valid
+market value is given **unknown**, never an invented PPG
+or scoring-history fallback.
+
+### Research and release checks
+
+    node model_tests/test_dynasty_value_only.js
+    node model_tests/test_dynasty_site_report.js
+    node scripts/audit_dynasty_value_only.js --runs 300
+    node scripts/build_dynasty_site_report.js --runs 1500
+
+All simulations remain experimental. The project's publication
+readiness gate continues to state that **validated dynasty
+championship probabilities are not available**.
