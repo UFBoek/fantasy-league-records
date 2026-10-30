@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=path.resolve(__dirname,'..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const html=read('index.html'),app=read('app.js'),css=read('dynasty-dominance-v230.css');
 assert.match(html,/dynasty-dominance-v230\.css\?v=230/);
-assert.match(html,/dynasty-dominance-v230\.js\?v=230/);
+assert.match(html,/dynasty-dominance-v230\.js\?v=231/);
 assert.match(app,/\{icon:'◉',label:'DYNASTY DOMINANCE',href:'#\/dynasty-dominance'\}/);
 assert.match(app,/parts\[0\]==='dynasty-dominance'/);
 assert.match(read('mobile-v69.js'),/dynasty-dominance/);
