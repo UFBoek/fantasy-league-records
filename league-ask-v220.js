@@ -9,9 +9,9 @@ const OWNERS=[
 [9,'CamNol',['camnol','cam nol','nolanfm13']],[10,'James',['james','jamest33']]
 ];
 const EXAMPLES=[
-'Who has the highest PPG in league history?',
-'What is Boek’s record against Hayden since 2024?',
-'Which player scored the most points for Winston?',
+'Which teams had 3 starting WRs score 20+ points in the same week?',
+'How many times did Boek outscore Hayden in the same week but lose?',
+'How many non-QB touchdowns did Boek starters score each week in 2026?',
 'What are the 10 biggest blowouts ever?',
 'How many trades has Fru made?',
 'Who has the most 200 point weeks?',
@@ -245,6 +245,9 @@ function statsForDrafts(q,picks){
   ['Team','Selections'],groups.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
 }
 async function ask(q){
+ // Prefer the genuine, read-only SQL analytics agent. Never silently fall back to a fixed metric.
+ if(root.boekmuseDynamic?.ask)return root.boekmuseDynamic.ask(q);
+ // The legacy engine remains loadable for historical site tests and compatibility.
  // The free AI layer converts natural language into a validated, deterministic plan.
  // Until the Worker URL is configured, preserve the existing offline keyword search.
  if(root.figAskAi?.ask){const result=await root.figAskAi.ask(q);if(result)return result;}
@@ -297,7 +300,8 @@ function renderResult(r){
  '</tbody></table></div>':'';
  return resultAudit(r)+'<div class="fig-ask-answer"><div class="fig-ask-answer-title">'+esc(r.title)+'</div>'+
  '<div class="fig-ask-answer-value">'+esc(r.value)+'</div><p>'+esc(r.context)+'</p></div>'+rows+
- (r.note?'<p class="fig-ask-note">'+esc(r.note)+'</p>':'');
+ (r.note?'<p class="fig-ask-note">'+esc(r.note)+'</p>':'')+
+ (r.sql?'<details class="boekmuse-query-details"><summary>View verified SQL calculation</summary><pre><code>'+esc(r.sql)+'</code></pre></details>':'');
 }
 async function render(encoded){
  const app=document.getElementById('app');if(!app)return;
