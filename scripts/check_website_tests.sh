@@ -3,6 +3,7 @@
 # Sleeper data refresh. UI regressions must not halt weekly score publication.
 set -euo pipefail
 PYTHONPATH=. python tests/test_boekmuse_touchdowns.py
+python scripts/build_boekmuse_touchdowns.py
 node tests/test_league_ask.js
 node tests/test_league_ask_ai.js
 node tests/test_boekmuse_accuracy.js
