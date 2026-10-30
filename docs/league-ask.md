@@ -1,6 +1,6 @@
-# Ask FIG — free AI-assisted historical league search
+# BoekMuse — free AI-assisted historical league search
 
-Ask FIG is a read-only league archive search. The static website stays on GitHub Pages. Cloudflare Workers AI converts an English question into a restricted JSON query plan. The website validates that plan and calculates all the numbers from finalized published archive data. The AI never writes records, invents numerical answers, or receives database dumps.
+BoekMuse is a read-only league archive search. The static website stays on GitHub Pages. Cloudflare Workers AI converts an English question into a restricted JSON query plan. The website validates that plan and calculates all the numbers from finalized published archive data. The AI never writes records, invents numerical answers, or receives database dumps.
 
 Without a configured Worker, the original keyword search remains active. With the AI endpoint configured, an inference error or invalid plan is reported instead of silently substituting a misleading answer.
 
@@ -17,7 +17,7 @@ Without a configured Worker, the original keyword search remains active. With th
 
     window.FIG_ASK_WORKER_URL = 'https://ask-fig-ai.fig-league-archive.workers.dev';
 
-   Commit the change to the Ask FIG feature branch and merge the reviewed pull request to main. GitHub Pages will publish the website normally. No paid API keys are needed.
+   Commit the change to the BoekMuse feature branch and merge the reviewed pull request to main. GitHub Pages will publish the website normally. No paid API keys are needed.
 4. The Worker accepts browser origins in the **ALLOWED_ORIGINS** variable in **workers/ask-fig/wrangler.jsonc**. The configured allowed origin is https://ufboek.github.io. For a custom site domain, add its exact origin (https + hostname; no trailing path) separated by commas, then redeploy.
 5. The new service exposes a simple /health endpoint and accepts statistical interpretation requests on /interpret. The published website continues to use its own /data JSON files.
 
@@ -56,7 +56,7 @@ Run from the repository root:
     node tests/test_league_ask.js
     bash scripts/check_website_tests.sh
 
-End-to-end live inference still requires deploying the Worker to a Cloudflare account; automated tests mock model output. The feature branch does not change live GitHub Pages until merged. An unrelated historical dynasty-market archive assertion currently makes the full website CI fail after Ask FIG's tests pass; that integrity issue should be addressed separately.
+End-to-end live inference still requires deploying the Worker to a Cloudflare account; automated tests mock model output. The feature branch does not change live GitHub Pages until merged. An unrelated historical dynasty-market archive assertion currently makes the full website CI fail after BoekMuse's tests pass; that integrity issue should be addressed separately.
 
 ## Deployment status (October 30, 2026)
 
@@ -65,3 +65,7 @@ Cloudflare Worker `ask-fig-ai` was deployed using the connected Cloudflare accou
 Cloudflare's Workers Free plan includes 10,000 AI neurons per day; the stronger 70B model consumes approximately 30–45 neurons for typical queries tested here, so actual daily capacity varies with question and model output. Stay on the Free plan to avoid overage billing. Worker changes are **not continuously deployed from GitHub**; use Cloudflare connection/API or Wrangler to deploy future backend changes.
 
 For an optional live verification, run `node tests/test_league_ask_worker_smoke.js`. It calls the deployed Worker and consumes a small amount of your free AI allowance. It is intentionally not required during all routine UI regression runs after initial verification.
+
+## Navigation
+
+The feature is branded **BoekMuse** and lives at `#/boekmuse`, accessible from the **More** menu. The separate homepage search and header icon have been removed. Legacy `#/ask` links redirect to BoekMuse, preserving the question. The Cloudflare Worker and source file names remain unchanged as internal infrastructure.

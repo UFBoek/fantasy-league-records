@@ -82,7 +82,11 @@ const drafts=read('draft_picks');
  assert.match(html,/league-ask-v220\.js/);
  assert.match(html,/league-ask-v220\.css/);
  assert.match(app,/figLeagueSearch\.render/);
- assert.match(app,/figLeagueSearch\?\.mountHome/);
+ assert.doesNotMatch(app,/figLeagueSearch\?\.mountHome/);
+ assert.match(app,/parts\[0\]==='boekmuse'/);
+ assert.match(app,/#\/boekmuse/);
+ assert.doesNotMatch(html,/class="fig-ask-nav"/);
+ assert.match(app,/label:'BOEKMUSE',href:'#\/boekmuse'/);
  assert.match(sw,/league-ask-v220\.js/);
  assert.match(sw,/league-ask-v220\.css/);
 }

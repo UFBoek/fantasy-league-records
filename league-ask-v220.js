@@ -269,7 +269,7 @@ async function ask(q){
   return {ok:false,message:'This question does not match a supported statistic.'};
  return statsForGames(q,games);
 }
-const url=q=>'#/ask/'+encodeURIComponent(q);
+const url=q=>'#/boekmuse/'+encodeURIComponent(q);
 function form(q,id){
  return '<form class="fig-ask-form"><label class="sr-only" for="'+id+'">Ask a league statistics question</label>'+
  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+
@@ -294,7 +294,7 @@ function renderResult(r){
 async function render(encoded){
  const app=document.getElementById('app');if(!app)return;
  let q='';try{q=decodeURIComponent(encoded||'');}catch(e){q='';}
- app.innerHTML='<section class="fig-ask-page"><div class="fig-ask-kicker">LEAGUE STAT SEARCH</div><h1>Ask FIG.</h1>'+
+ app.innerHTML='<section class="fig-ask-page"><div class="fig-ask-kicker">LEAGUE STAT SEARCH</div><h1>BoekMuse</h1>'+
  '<p>Explore four seasons of fantasy football history with a question.</p>'+form(q,'fig-ask-input')+
  '<div class="fig-ask-output" aria-live="polite"></div><div class="fig-ask-suggestions"><h2>TRY A QUESTION</h2>'+
  EXAMPLES.map(x=>'<a href="'+url(x)+'">'+esc(x)+' <span aria-hidden="true">↗</span></a>').join('')+
@@ -305,14 +305,6 @@ async function render(encoded){
  try{const result=await ask(q);if(out.isConnected)out.innerHTML=renderResult(result);}
  catch(e){console.error('FIG stats search error',e);if(out.isConnected)out.innerHTML=renderResult({ok:false,message:'League data could not be loaded.'});}
 }
-function mountHome(){
- const app=document.getElementById('app'),hero=app?.querySelector('.hero');
- if(!hero||app.querySelector('.fig-ask-home'))return;
- const section=document.createElement('section');section.className='fig-ask-home';
- section.innerHTML='<div class="fig-ask-home-heading"><span>ASK FIG</span><strong>League history, by the numbers.</strong></div>'+
- form('','fig-ask-home-input')+'<a href="'+url(EXAMPLES[0])+'">Try: '+esc(EXAMPLES[0])+'</a>';
- hero.after(section);bind(section);
-}
-if(root.document)root.figLeagueSearch={render,mountHome,ask,invalidate:()=>{Object.keys(cache).forEach(x=>delete cache[x]);root.figAskAi?.invalidate?.();}};
+if(root.document)root.figLeagueSearch={render,ask,invalidate:()=>{Object.keys(cache).forEach(x=>delete cache[x]);root.figAskAi?.invalidate?.();}};
 if(typeof module!=='undefined'&&module.exports)module.exports={statsForGames,statsForPlayers,statsForTrades,statsForDrafts,scope,teamsIn};
 })(typeof window==='undefined'?globalThis:window);

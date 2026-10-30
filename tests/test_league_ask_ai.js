@@ -101,6 +101,12 @@ function result(plan,data){const r=engine.execute(plan,data);assert.equal(r.ok,t
  eq(html.includes('ask-fig-config.js'),true);
  eq(sw.includes('league-ask-ai-v221.js'),true);
  eq(legacy.includes('figAskAi.ask(q)'),true);
+ eq(legacy.includes("const url=q=>'#/boekmuse/'"),true);
+ eq(legacy.includes('<h1>BoekMuse</h1>'),true);
+ eq(legacy.includes('function mountHome()'),false);
+ const mobile=fs.readFileSync(path.join(root,'mobile-v69.js'),'utf8');
+ eq(mobile.includes("'manager','boekmuse','ask'"),true);
+ eq(mobile.includes("return '#/more'"),true);
  const config=fs.readFileSync(path.join(root,'ask-fig-config.js'),'utf8');
  assert.match(config,/FIG_ASK_WORKER_URL = 'https:\/\/ask-fig-ai\.fig-league-archive\.workers\.dev'/);
 }
