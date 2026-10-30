@@ -25,20 +25,18 @@ const mockPositions=[
  {pos:'WR',ppg:8},{pos:'TE',ppg:11},{pos:'TE',ppg:7}
 ];
 assert.equal(model.legalLineup(mockPositions,'ppg'),30+12+9+16+15+14+11+8+7+20);
-const modifiedArchive={...input.nflHistory,seasons:{...input.nflHistory.seasons}};
 for(const season of ['2024','2025']){
+ const modifiedArchive={...input.nflHistory,seasons:{...input.nflHistory.seasons}};
  const old=modifiedArchive.seasons[season];
  modifiedArchive.seasons[season]={...old,players:{}};
  for(const [pid,record] of Object.entries(old.players)){
   modifiedArchive.seasons[season].players[pid]={...record,weekly:record.weekly.map(([w,pts])=>
    w>7?[w,pts+999]:[w,pts])};
  }
-}
-const changed=model.build({...input,nflHistory:modifiedArchive});
-for(let j=0;j<result.snapshots.length;j++){
- const orig=result.snapshots[j],updated=changed.snapshots[j];
- assert.deepEqual(orig.teams.map(t=>t.baseline_ppg),
-   updated.teams.map(t=>t.baseline_ppg),
+ const changed=model.build({...input,nflHistory:modifiedArchive});
+ const idx=season==='2024'?0:1;
+ assert.deepEqual(result.snapshots[idx].teams.map(t=>t.baseline_ppg),
+   changed.snapshots[idx].teams.map(t=>t.baseline_ppg),
    'Changing data after Week 7 must not affect same-season baseline');
 }
 // A fabricated Week 8 trade cannot change the end-of-Week-7 pick ledger.
