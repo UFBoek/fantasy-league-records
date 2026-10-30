@@ -32,7 +32,9 @@ for(const year of output.years){
   assert.equal(real.length,current.length,'Every actual roster player appears exactly once in each future season');
   assert.equal(new Set(players.map(p=>p.id)).size,players.length,'Future draft slots must have stable unique identifiers');
   assert.ok(players.every(p=>Number.isFinite(p.ppg)&&p.ppg>=0&&Number.isFinite(p.p10)&&Number.isFinite(p.p90)));
-  assert.ok(real.every(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.current_market_value!==null));
+  assert.ok(real.every(p=>['QB','RB','WR','TE'].includes(p.pos)&&
+   (p.current_market_value===null||Number.isFinite(+p.current_market_value))),
+   'Missing RosterAudit player prices must remain unknown, never fabricated');
   assert.ok(future.every(p=>p.pos==='TBD'&&p.current_market_value===null&&p.id.startsWith('pick:')));
   const picksYear=year-2026;
   assert.equal(players.length>=current.length+picksYear, true,'Draft capital creates visible future cohort placeholders');
