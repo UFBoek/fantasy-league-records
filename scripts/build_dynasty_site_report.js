@@ -6,19 +6,27 @@
  * node scripts/build_dynasty_site_report.js
  */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {runModel,makePicks}=require('./dynasty_dominance_model');
+const {runModel}=require('./dynasty_value_only_model');
+const {makePicks}=require('./dynasty_dominance_model');
 const root=path.resolve(__dirname,'../data');
-const files=['current_roster','rosteraudit_values','player_game_log','weekly_scoring_ranks',
- 'current_future_picks','playoff_nfl_weekly_scores','dynasty_nfl_history','draft_picks'];
+// The forecast engine receives NO past game outcomes; weekly scoring is
+// loaded only for the separately labeled 2026 actual-results display.
+const files=['current_roster','rosteraudit_values','weekly_scoring_ranks','current_future_picks'];
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.2-value-age';
+const reportVersion='fig-beta-1.3-position-age-value-only';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
- const [roster,values,logs,weekly,picks,nflCurrent,nflHistory,drafts]=files.map(n=>inputs[n]);
+ const [roster,values,weekly,picks]=files.map(n=>inputs[n]);
+ const completed=weekly.filter(x=>+x.season===2026),
+  throughWeek=Math.max(0,...completed.map(x=>+x.week||0));
+ const actualPpg=id=>{
+  const points=completed.filter(x=>+x.franchise_id===id).map(x=>+x.points_for);
+  return points.length?Number((points.reduce((s,x)=>s+x,0)/points.length).toFixed(1)):0;
+ };
  if(values?.status!=='ready'||Object.keys(values?.players||{}).length<300)
   throw Error('RosterAudit provider not ready');
- const model=runModel({roster,values,logs,weekly,picks,nflCurrent,nflHistory,drafts,runs,seed});
+ const model=runModel({roster,values,picks,runs,seed});
  if(model.status!=='research_only'||model.years.length!==6||model.inputs.market_coverage_pct<95)
   throw Error('Dynasty research input coverage insufficient');
  if(model.inputs.known_2027_2029_picks!==120)
@@ -42,7 +50,7 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
        return [year,{known:count(rows,p=>!p.assumed),round1:count(rows,p=>p.round===1&&!p.assumed),
          projected_assumed:count(rows,p=>p.assumed)}];
      })),
-     current_ppg:model.current_form.find(x=>x.id===id)?.form_ppg||0,
+     current_ppg:actualPpg(id),
      market_value_known_players:Math.round(valued.reduce((s,p)=>s+p.value,0))};
  });
  const seasons=Object.fromEntries(model.years.map(year=>{
@@ -62,14 +70,14 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
       p10:t.p10,p90:t.p90}))}];
  }));
  return {version:reportVersion,status:'experimental_beta_not_calibrated',
-   generated_at:generatedAt,source_week:model.inputs.observed_through_week,
+   generated_at:generatedAt,source_week:throughWeek,
    source_season:2026,model_version:model.version,runs,seed,
    assumptions:{no_future_trades:true,
      known_pick_ownership_through:Math.max(...picks.map(p=>+p.pick_season||2029)),
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
-     future_score_interpretation:'Value-anchored, age-adjusted stylized scoring strength; current price reflects potential, not guaranteed future points',
-     future_player_model:'2027 blends 34% RosterAudit market-implied peak scoring and 66% weighted historical scoring; market share gradually increases to 79% in 2032. One position-specific age curve applied to each pathway, not two.',
+     future_score_interpretation:'Future player PPG uses only position, 2026 roster age and current RosterAudit value. Observed 2026 league scoring is displayed separately; it NEVER feeds future forecasts.',
+     future_player_model:'Position-specific market-implied PPG, pre-peak maturation, veteran decline and uncertain career breakouts; future rookies use RosterAudit draft-pick value tiers and unknown sampled positions.',
      player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
     one_year_holdout_better_than_baseline:false,
