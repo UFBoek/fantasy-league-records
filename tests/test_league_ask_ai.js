@@ -54,6 +54,11 @@ function result(plan,data){const r=engine.execute(plan,data);assert.equal(r.ok,t
  eq(r.rows[0].values[1],'4');
 }
 {
+ const r=result({dataset:'player_starts',metric:'distinct_teams',group_by:'player',min_points:30,minimum_value:3},players);
+ assert.ok(r.rows.length>0);
+ for(const row of r.rows)assert.ok(Number(row.values[1])>=3);
+}
+{
  const r=result({dataset:'trades',metric:'count',group_by:'none',team_id:2},trades);
  eq(clean(r.value),trades.filter(x=>x.franchise_ids.map(Number).includes(2)).length);
  const by=result({dataset:'trades',metric:'count',group_by:'team',team_id:2},trades);
