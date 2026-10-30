@@ -38,7 +38,7 @@ class TouchdownBuilderTests(unittest.TestCase):
                 for i in range(1, 205)]
         result = parse_stat_rows(rows)
         self.assertEqual(len(result), 204)
-        self.assertIn("9509", set(result) | {"9509"})
+        self.assertEqual(result["1"]["rush_td"], 0)
 
 
 if __name__ == "__main__":
