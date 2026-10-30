@@ -58,8 +58,9 @@ function result(p=base,data=stats){return engine.execute(p,data);}
 }
 {
  const front=fs.readFileSync(path.join(__dirname,'..','league-ask-v220.js'),'utf8');
- assert.match(front,/WHAT I CALCULATED/);
+ assert.match(front,/<details class="boekmuse-audit"><summary>Answer details<\/summary>/);
+ assert.doesNotMatch(front,/WHAT I CALCULATED|View verified SQL calculation/);
  assert.match(front,/Grouped by:/);
  assert.match(front,/No verified answer available/);
 }
-console.log('BoekMuse non-QB touchdowns: true counts, per-week rollups, coverage failures, incompatible metric and visible calculation checks passed.');
+console.log('BoekMuse non-QB touchdowns: true counts, per-week rollups, coverage failures, incompatible metric and collapsed calculation detail checks passed.');
