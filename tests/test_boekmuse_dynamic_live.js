@@ -26,7 +26,8 @@ async function json(path,method='GET',body){
   'How many non-QB rushing and receiving touchdowns did Boek starters score each week in 2026?',
   'Which teams have had three starting WRs score at least 20 fantasy points in the same week?',
   'How many times did Boek outscore Hayden in the same week yet lose his matchup?',
-  'Which manager drafted Josh Allen?'
+  'Which manager drafted Josh Allen?',
+  'Which manager lost the most regular season games while scoring at least 200 points?'
  ];
  for(const q of questions){
   const result=await json('/query','POST',{question:q});
