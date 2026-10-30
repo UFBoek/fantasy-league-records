@@ -50,4 +50,31 @@ for(const year of a.years){
  assert.ok(season.boek_vs_teams.every(t=>t.boek_stronger_pct>=0&&t.boek_stronger_pct<=100));
 }
 assert.throws(()=>model.runModel({...input,values:{players:{}},runs:1}),/coverage/);
+
+const {backtest}=require('../scripts/backtest_dynasty_form');
+const {scenarioDefinitions}=require('../scripts/stress_dynasty_dominance');
+const scoringBacktest=backtest(input.weekly);
+assert.equal(scoringBacktest.team_cutoff_samples,90,'only 2023–25 completed league games used');
+assert.ok(scoringBacktest.pooled.full.mae < scoringBacktest.pooled.blend_65_35.mae,
+ 'Historical test should favor full-season mean on this dated 2023–25 sample');
+assert.equal(scoringBacktest.train_2023_24.best_recent_weight,0);
+assert.equal(Math.round(model.getForm(input.weekly)[1]*10)/10,234.9,
+ 'Dynasty model must not reuse unvalidated 65/35 recent-form trend');
+const stressCases=scenarioDefinitions(input.roster,input.values);
+assert.equal(stressCases.length,8);
+assert.ok(stressCases.find(s=>s.key==='boek_star_loss').impacted
+ .some(p=>p.name==='Jaxon Smith-Njigba'));
+assert.ok(stressCases.find(s=>s.key==='hayden_star_loss').impacted
+ .some(p=>p.name==='Josh Allen'));
+const severeLoss=stressCases.find(s=>s.key==='boek_star_loss');
+const shocked=model.runModel({...input,runs:32,seed:47321,scenario:severeLoss.scenario});
+const boekScore=a.seasons[2027].ranking.find(x=>x.id===1).ppg;
+const lostScore=shocked.seasons[2027].ranking.find(x=>x.id===1).ppg;
+assert.ok(lostScore<boekScore,'Removing two top Boek players must reduce expected scoring');
+const lowRookies=model.runModel({...input,runs:32,seed:47321,
+ scenario:{rookieMultiplier:.7}});
+assert.ok(lowRookies.seasons[2029].ranking.length===10);
+assert.throws(()=>model.runModel({...input,runs:1,scenario:{injuryMultiplier:4}}),/scenario/);
+assert.throws(()=>model.runModel({...input,runs:1,scenario:{playerMultipliers:{10859:-1}}}),/player multipliers/);
+
 console.log('Dynasty dominance deterministic data, pick, and probability smoke checks passed');
