@@ -11,6 +11,8 @@ on:
       - scripts/assess_dynasty_validation.js
       - scripts/build_dynasty_asof_snapshots.js
       - scripts/audit_dynasty_turnover.js
+      - scripts/stress_dynasty_roster_evolution.js
+      - model_tests/test_dynasty_roster_evolution.js
       - scripts/backtest_dynasty_next_season.js
       - model_tests/test_dynasty_next_season.js
       - model_tests/test_dynasty_asof.js
@@ -41,6 +43,10 @@ jobs:
         run: node scripts/build_dynasty_asof_snapshots.js --out "$RUNNER_TEMP/dynasty-historical-asof.json"
       - name: Audit historical starter and bench retention
         run: node scripts/audit_dynasty_turnover.js --out "$RUNNER_TEMP/dynasty-turnover-audit.json"
+      - name: Verify neutral roster evolution preserves player talent and historical cutoffs
+        run: node model_tests/test_dynasty_roster_evolution.js
+      - name: Test neutral exchange using historical starter and bench retention
+        run: node scripts/stress_dynasty_roster_evolution.js --runs 800 --out "$RUNNER_TEMP/dynasty-neutral-turnover.json"
       - name: Verify next-season frozen-roster holdout inputs
         run: node model_tests/test_dynasty_next_season.js
       - name: Report true historical next-season frozen-asset forecasts
@@ -68,6 +74,7 @@ jobs:
             ${{ runner.temp }}/dynasty-publication-readiness.json
             ${{ runner.temp }}/dynasty-historical-asof.json
             ${{ runner.temp }}/dynasty-turnover-audit.json
+            ${{ runner.temp }}/dynasty-neutral-turnover.json
             ${{ runner.temp }}/dynasty-next-season-holdout.json
             ${{ runner.temp }}/dynasty-persistence-080.json
           retention-days: 14
