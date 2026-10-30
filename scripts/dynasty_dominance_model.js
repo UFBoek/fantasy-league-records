@@ -75,7 +75,8 @@ function rookieOutcomes(draft,archive){
   byRound[round].push({player_id:String(pick.player_id),name:pick.draft_full_name||pick.player_name||'',
    season:year,round,pos,games:scores.length,
    full_week_ppg:scores.reduce((a,b)=>a+b,0)/17,
-   healthy_ppg:mean(scores)});
+   healthy_ppg:mean(scores),
+   second_year_ppg:year===2024?(samples.get(String(pick.player_id)+':2025')||[]).reduce((a,b)=>a+b,0)/17:null});
  }
  return byRound;
 }
@@ -150,7 +151,7 @@ function ranks(scores){
  return Object.fromEntries(ids.map((id,i)=>[id,i+1]));
 }
 function rookie(r,pick,rank,trial,rookieMultiplier=1,empirical=null){
- let pos,quality,empiricalRookie=false;
+ let pos,quality,empiricalRookie=false,rookieYearTwoShift=0;
  if(empirical?.[pick.round]?.length>=15){
   const row=empirical[pick.round][Math.floor(r.u()*empirical[pick.round].length)];
   pos=row.pos;
@@ -159,6 +160,19 @@ function rookie(r,pick,rank,trial,rookieMultiplier=1,empirical=null){
   // denominator; do not turn limited appearances into 17 healthy games.
   quality=row.full_week_ppg;
   empiricalRookie=true;
+  // Only the 2024 rookie class has a *completed* second season (2025).
+  // When using a 2025 first-year player, sample the closest 2024 class
+  // player's observed first-to-second-year change from the same round and
+  // preferably the same position. Do not manufacture 2026 future points.
+  const older=empirical[pick.round].filter(x=>x.season===2024&&x.second_year_ppg!==null);
+  const matches=older.map(x=>({row:x,
+   distance:Math.abs(x.full_week_ppg-row.full_week_ppg)+(x.pos===row.pos?0:8)
+  })).sort((a,b)=>a.distance-b.distance).slice(0,3);
+  const comparable=row.season===2024?row:matches.length?matches[Math.floor(r.u()*matches.length)].row:null;
+  if(comparable){
+   const delta=comparable.second_year_ppg-comparable.full_week_ppg;
+   rookieYearTwoShift=clamp(delta,-14,16)*rookieMultiplier;
+  }
  }else{
   // Explicit research fallback for data-provider outages or incomplete archives.
   const rates={
@@ -177,19 +191,24 @@ function rookie(r,pick,rank,trial,rookieMultiplier=1,empirical=null){
  return {id:'R'+trial+':'+pick.year+':'+pick.round+':'+pick.origin,
   team:pick.owner,pos,age:21.5,baseYear:pick.year,samples:0,rookie:true,
   basePpg:clamp(quality*tier*posScale*rookieMultiplier*(.8+.4*r.u()),.2,pos==='QB'?37:29),
-  qualityShock:r.normal()*.13,empiricalRookie};
+  qualityShock:r.normal()*.13,empiricalRookie,rookieYearTwoShift:rookieYearTwoShift*tier};
 }
 function scorePlayer(p,year,r,calibration,options={}){
  const age=p.age+year-p.baseYear,ageFactor=Math.pow(ageCurve(p.pos,age)/ageCurve(p.pos,p.age),options.ageCurveExponent||1);
  const elapsed=Math.max(0,year-p.baseYear);
- const development=p.rookie?1+Math.min(3,elapsed)*({QB:.06,RB:.025,WR:.08,TE:.10}[p.pos]):1;
+ // Empirical 2024 rookie-to-sophomore change replaces the fixed year-two
+ // developmental bump. Later growth remains an explicit assumption.
+ const baseline=p.rookie&&elapsed>=1?
+  Math.max(.2,p.basePpg+(p.rookieYearTwoShift||0)):p.basePpg;
+ const development=p.rookie?
+  1+Math.min(2,Math.max(0,elapsed-1))*({QB:.06,RB:.025,WR:.08,TE:.10}[p.pos]):1;
  const sigma=(p.rookie?.27:p.samples<4?.24:p.samples<12?.17:.12)+Math.sqrt(Math.max(0,year-2026))*.028;
  const talent=Math.exp((p.qualityShock||0)+r.normal()*sigma-.5*sigma*sigma);
  const injury=clamp((.11+Math.max(0,age-29)*.027+(p.pos==='RB'?.035:0))*(options.injuryMultiplier||1),.08,.9);
  // Empirical first-year rookie PPG already includes missed weeks in 17-game denominator.
  const availability=p.empiricalRookie&&year===p.baseYear?1:(r.u()<injury?.47+.35*r.u():1);
  const playerMultiplier=options.playerMultipliers?.[p.id]??1;
- return clamp(p.basePpg*ageFactor*development*talent*availability*
+ return clamp(baseline*ageFactor*development*talent*availability*
   clamp(1+r.normal()*.075,.72,1.27)*calibration*playerMultiplier,0,p.pos==='QB'?46:38);
 }
 function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=null,drafts=null,runs=5000,seed=20261030,scenario={}}){
@@ -258,13 +277,14 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
  const whole_horizon=IDS.map(id=>({id,name:TEAMS[id],expected_years_best:rnd(mean(leaders[id]),2),
    chance_best_at_least_three_years_pct:rnd(100*leaders[id].filter(v=>v>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v2',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,playerMultipliers},
+ return {version:'experimental-v2.1',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,playerMultipliers},
   inputs:{observed_through_week:Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week)),
    current_rostered_players:base.length,market_coverage_pct:rnd(100*matched/base.length),
    historical_player_start_logs:logs.length,
    current_nfl_wide_rostered_players:base.filter(p=>p.nflStarts>0).length,
    observed_nfl_wide_rostered_games:base.reduce((sum,p)=>sum+p.nflStarts,0),
    empirical_rookie_samples:Object.fromEntries([1,2,3,4].map(round=>[round,empirical[round].length])),
+   second_year_2024_class_samples:Object.values(empirical).flat().filter(x=>x.season===2024&&x.second_year_ppg!==null).length,
    known_2027_2029_picks:YEARS.slice(0,3).reduce((s,y)=>s+picksByYear[y].length,0),
    assumed_2030_2032_picks:120},
   current_form:IDS.map(id=>({id,name:TEAMS[id],form_ppg:rnd(form[id]),calibration:rnd(calibration[id],3)})),
