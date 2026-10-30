@@ -13,7 +13,7 @@ const files=['current_roster','rosteraudit_values','player_game_log','weekly_sco
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.1';
+const reportVersion='fig-beta-1.2-value-age';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,logs,weekly,picks,nflCurrent,nflHistory,drafts]=files.map(n=>inputs[n]);
  if(values?.status!=='ready'||Object.keys(values?.players||{}).length<300)
@@ -68,7 +68,8 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      known_pick_ownership_through:Math.max(...picks.map(p=>+p.pick_season||2029)),
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
-     future_score_interpretation:'Stylized scoring strength, not a guaranteed weekly or season average',
+     future_score_interpretation:'Value-anchored, age-adjusted stylized scoring strength; current price reflects potential, not guaranteed future points',
+     future_player_model:'2027 blends 34% RosterAudit market-implied peak scoring and 66% weighted historical scoring; market share gradually increases to 79% in 2032. One position-specific age curve applied to each pathway, not two.'
      player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
     one_year_holdout_better_than_baseline:false,
