@@ -1,5 +1,5 @@
 /* Ask FIG: Cloudflare Workers AI is only a query interpreter, never a stats calculator. */
-const MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const SCHEMA = {
   type:'object',
   properties:{
@@ -54,6 +54,12 @@ const SYSTEM = [
 'When a question asks for top N: limit N (max 30). For "minimum 10 games" set minimum_games=10.',
 'Season data can group team_season by team or season; choose games unless specifically asking for season-level finishes or all-play (unsupported).',
 'If request needs unsupported data/operations (future predictions, all-play, roster slot assignment, trade outcomes over time, streak sequences, championships, complex multi-step joins), choose dataset unsupported, metric count, group_by none and interpretation briefly explain limitation. Never force a different metric.',
+'Never infer a minimum_games, minimum_value, ranking limit, season, or threshold not explicitly present in the actual user question. Example: trade count does NOT need minimum_games, and "highest PPG" does not imply 10 games.',
+'IMPORTANT: A manager can outscore another manager in the SAME WEEK without facing that manager. For these questions, use compare_team_id and compare_direction, NOT opponent_id. Only use opponent_id for actual head-to-head contests.',
+'EXACT EXAMPLE for "How many times did Boek lose while outscoring Hayden in the same week?": {"dataset":"games","metric":"count","group_by":"none","team_id":1,"result":"loss","compare_team_id":6,"compare_direction":"higher"}. Do NOT use opponent_id. Boek lost to someone else, not Hayden.',
+'EXACT EXAMPLE for "What percentage of Hayden games under 175 points were wins?": {"dataset":"games","metric":"win_pct","group_by":"none","team_id":6,"max_points":174.999}. Do NOT set opponent_id, min_points or minimum_games.',
+'EXACT EXAMPLE for "Who has the most wins against Hayden?": {"dataset":"games","metric":"wins","group_by":"team","opponent_id":6}. This IS head-to-head.',
+'EXACT EXAMPLE for "How many trades has Fru made?": {"dataset":"trades","metric":"count","group_by":"none","team_id":2}. Do not invent a sample threshold.',
 'Do not fill in guessed years, teams, players or thresholds. Make interpretation a concise neutral description of the calculation.',
 'No commentary; JSON object only.'
 ].join('\n');
