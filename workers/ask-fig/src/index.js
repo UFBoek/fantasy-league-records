@@ -90,7 +90,7 @@ export default {
   let data;try{data=await request.json();}catch(_){return json({error:'Invalid JSON'},400,allowed);}
   const question=data?.question;
   if(typeof question!=='string'||question.trim().length<4||question.length>220)return json({error:'Question must be 4–220 characters'},400,allowed);
-  if(!env.AI||!env.RATE)return json({error:'Service not configured'},503,allowed);
+  if(!env.AI||!env.RATE||!env.GLOBAL_RATE)return json({error:'Service not configured'},503,allowed);
   // Low per-IP limit + shared global throttle protect the free daily neuron allowance.
   // These are approximate point-of-presence limits; the Cloudflare free allocation itself is the spending cap.
   const clientKey=request.headers.get('cf-connecting-ip')||'unknown';
