@@ -13,7 +13,7 @@
  * initial ability is sampled from RosterAudit rookie PICK value tiers
  * (an asset-level prior) and an uncertain positional distribution.
  */
-const {marketPpg,makePicks,legalLineup,random}=require('./dynasty_dominance_model');
+
 const TEAMS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 const IDS=Object.keys(TEAMS).map(Number);
 const YEARS=[2027,2028,2029,2030,2031,2032];
@@ -34,6 +34,52 @@ function maturity(pos,age){
  }
  return .02;
 }
+// Self-contained model. No scoring-history module is imported.
+function random(seed){
+ let state=seed>>>0,spare=null;
+ const u=()=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return(state+.5)/4294967296;};
+ const normal=()=>{
+  if(spare!==null){const x=spare;spare=null;return x;}
+  const q=Math.sqrt(-2*Math.log(Math.max(1e-10,u()))),angle=2*Math.PI*u();
+  spare=q*Math.sin(angle);return q*Math.cos(angle);
+ };
+ return {u,normal};
+}
+function marketPpg(pos,value){
+ // Explicit market-to-scoring unit scale by position. These are heuristic
+ // coefficients, not scores or projections for any named NFL player.
+ const f={QB:[3,10.5,800,37],RB:[1,12,1800,28],WR:[1,12,1600,30],TE:[1,10,1600,26]}[pos];
+ return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
+}
+function makePicks(data){
+ const byYear=Object.fromEntries(YEARS.map(year=>[year,[]]));
+ const ownership=new Map();
+ for(const row of data){
+  const year=+row.pick_season,round=+row.round,origin=+row.original_franchise_id,
+   owner=+row.current_franchise_id;
+  if(!YEARS.includes(year)||round<1||round>4||!IDS.includes(origin)||!IDS.includes(owner))continue;
+  const key=year+':'+round+':'+origin;
+  if(ownership.has(key))throw Error('Duplicate future draft pick '+key);
+  ownership.set(key,{year,round,origin,owner,assumed:false});
+ }
+ for(const year of YEARS)for(const origin of IDS)for(let round=1;round<=4;round++){
+  const key=year+':'+round+':'+origin;
+  if(year<=2029&&!ownership.has(key))throw Error('Missing real future draft pick '+key);
+  byYear[year].push(ownership.get(key)||{year,round,origin,owner:origin,assumed:true});
+ }
+ return byYear;
+}
+function legalLineup(players){
+ const slots={QB:[],RB:[],WR:[],TE:[]};
+ for(const p of players)if(slots[p.pos]&&p.ppg>0)slots[p.pos].push(p.ppg);
+ for(const pos of ['QB','RB','WR','TE'])slots[pos].sort((a,b)=>b-a);
+ const take=(pos,n)=>{let score=0;for(let i=0;i<n;i++)score+=slots[pos].shift()||0;return score;};
+ let score=take('QB',1)+take('RB',2)+take('WR',3)+take('TE',1);
+ const flex=[...slots.RB,...slots.WR,...slots.TE].sort((a,b)=>b-a);
+ score+=(flex.shift()||0)+(flex.shift()||0);
+ return score+Math.max(slots.QB[0]||0,flex[0]||0);
+}
+
 const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const rnd=(v,n=1)=>Number(v.toFixed(n));
