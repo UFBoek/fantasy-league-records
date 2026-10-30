@@ -36,8 +36,10 @@ for(const year of output.years){
    (p.current_market_value===null||Number.isFinite(+p.current_market_value))),
    'Missing RosterAudit player prices must remain unknown, never fabricated');
   assert.ok(future.every(p=>p.pos==='TBD'&&p.current_market_value===null&&p.id.startsWith('pick:')));
-  const picksYear=year-2026;
-  assert.equal(players.length>=current.length+picksYear, true,'Draft capital creates visible future cohort placeholders');
+  const expectedFuture=Object.entries(makePicks(inputs.current_future_picks))
+   .filter(([y])=>+y<=year).flatMap(([,draftPicks])=>draftPicks).filter(p=>p.owner===id);
+  assert.equal(future.length,expectedFuture.length,
+   'Every truly owned and assumed draft slot is represented once by its forecast year');
  }
 }
 const rawPicks=inputs.current_future_picks;
