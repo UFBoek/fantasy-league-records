@@ -127,14 +127,17 @@ function scorePlayer(p,year,r,calibration,options={}){
  const talent=Math.exp((p.qualityShock||0)+r.normal()*sigma-.5*sigma*sigma);
  const injury=clamp((.11+Math.max(0,age-29)*.027+(p.pos==='RB'?.035:0))*(options.injuryMultiplier||1),.08,.9);
  const availability=r.u()<injury?.47+.35*r.u():1;
+ const playerMultiplier=options.playerMultipliers?.[p.id]??1;
  return clamp(p.basePpg*ageFactor*development*talent*availability*
-  clamp(1+r.normal()*.075,.72,1.27)*calibration,0,p.pos==='QB'?46:38);
+  clamp(1+r.normal()*.075,.72,1.27)*calibration*playerMultiplier,0,p.pos==='QB'?46:38);
 }
 function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030,scenario={}}){
  if(!roster?.length||!logs?.length||!weekly?.length||!picks?.length||!values?.players)throw Error('Missing input');
  if(!Number.isInteger(runs)||runs<1||runs>100000)throw Error('Invalid runs');
  const ageCurveExponent=Number(scenario.ageCurveExponent??1),injuryMultiplier=Number(scenario.injuryMultiplier??1),rookieMultiplier=Number(scenario.rookieMultiplier??1);
  if(!Number.isFinite(ageCurveExponent)||ageCurveExponent<.4||ageCurveExponent>2||!Number.isFinite(injuryMultiplier)||injuryMultiplier<.5||injuryMultiplier>2||!Number.isFinite(rookieMultiplier)||rookieMultiplier<.4||rookieMultiplier>1.6)throw Error('Invalid research scenario');
+ const playerMultipliers=scenario.playerMultipliers??{};
+ if(!playerMultipliers||typeof playerMultipliers!=='object'||Array.isArray(playerMultipliers)||Object.values(playerMultipliers).some(x=>!Number.isFinite(x)||x<0||x>1.5))throw Error('Invalid research player multipliers');
  const base=playerBaselines(roster,values,logs),matched=base.filter(p=>values.players[p.id]?.value!=null).length;
  if(!base.length||matched/base.length<.95)throw Error('RosterAudit coverage below 95%');
  const form=getForm(weekly),calibration={};
@@ -154,7 +157,7 @@ function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030,scena
    for(const pick of picksByYear[year])players.push(rookie(r,pick,order[pick.origin]||5,t,rookieMultiplier));
    const annual={};
    for(const id of IDS){
-    const arr=players.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier})}));
+    const arr=players.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,playerMultipliers})}));
     annual[id]=Math.max(0,legalLineup(arr)+5*r.normal());
     samples[year][id].push(annual[id]);
    }
@@ -191,7 +194,7 @@ function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030,scena
  const whole_horizon=IDS.map(id=>({id,name:TEAMS[id],expected_years_best:rnd(mean(leaders[id]),2),
    chance_best_at_least_three_years_pct:rnd(100*leaders[id].filter(v=>v>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v1.1',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier},
+ return {version:'experimental-v1.1',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,playerMultipliers},
   inputs:{observed_through_week:Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week)),
    current_rostered_players:base.length,market_coverage_pct:rnd(100*matched/base.length),
    historical_player_start_logs:logs.length,
