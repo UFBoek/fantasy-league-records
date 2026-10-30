@@ -53,4 +53,13 @@ const reArchive=build({weeklyRosters,transactions,nflHistory:dummyFuture,weeklyS
 const youngSame=model.asofForecast(reArchive.snapshots[1],{drafts,nflHistory:dummyFuture},25,980);
 assert.deepEqual(youngForecast,youngSame,'2025 Week 8+ cannot affect as-of 2025 Week 7 forecast');
 assert.throws(()=>model.asofForecast(archive.snapshots[0],{drafts,nflHistory},0),/simulation/);
+const {audit}=require('../scripts/assess_dynasty_validation');
+const readiness=audit({
+ marketHistory:load('dynasty_market_history'),nflHistory,roster:load('current_roster'),
+ draft:drafts,franchiseSeasons:load('team_season_master'),historicalAsof:archive,nextSeason:a
+});
+assert.equal(readiness.status,'NOT_READY_FOR_VALIDATED_ODDS');
+assert.equal(readiness.public_probability_claims_allowed,false);
+assert.ok(readiness.gates.some(g=>g.name.includes('beats simple roster baseline')&&!g.passed));
+assert.ok(readiness.gates.some(g=>g.name.includes('80% interval')&&!g.passed));
 console.log('Frozen-roster one-year model, original pick ownership, and cutoff leakage checks passed');
