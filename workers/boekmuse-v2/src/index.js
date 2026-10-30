@@ -211,6 +211,48 @@ function questionGuard(question,sql){
  if(/\b(?:rushing|receiving|passing)\s+yards?\b/.test(q))
   throw Error('Raw rushing, receiving and passing yards are not in the indexed archive');
 }
+// Provenance gate: never claim a complete touchdown total if the published
+// starter-to-NFL-stat join lacks even one finalized team-week in the requested scope.
+async function checkTdCompleteness(db,question){
+ const q=question.toLowerCase();
+ if(!/\b(?:touchdowns?|tds?)\b/.test(q))return null;
+ const names=[
+  [1,/\bboek\b/],[2,/\bfru\b/],[3,/\bfromm\b/],[4,/\b(?:sack|sak)\b/],
+  [5,/\bleyton\b/],[6,/\bhayden\b/],[7,/\b(?:line|lionel)\b/],
+  [8,/\bwinston\b/],[9,/\bcamnol\b/],[10,/\bjames\b/]
+ ];
+ const teams=names.filter(([,r])=>r.test(q)).map(([id])=>id);
+ const years=[...q.matchAll(/\b20(?:2[3-9]|3\d)\b/g)].map(m=>Number(m[0]));
+ const cond=[],args=[];
+ if(!/\b(all games|including playoffs|regular and playoffs)\b/.test(q)){
+  cond.push('g.game_type=?');args.push(/\bplayoffs?\b/.test(q)?'Playoffs':'Regular Season');
+ }
+ if(teams.length){
+  cond.push('g.team_id IN ('+teams.map(()=>'?').join(',')+')');args.push(...teams);
+ }
+ if(years.length===1){
+  if(/\b(since|after|from)\s+(?:the\s+)?(?:season\s+)?20\d\d/.test(q)){
+   cond.push('g.season>=?');args.push(years[0]);
+  }else if(/\b(before|until|through)\s+(?:the\s+)?(?:season\s+)?20\d\d/.test(q)){
+   cond.push('g.season<=?');args.push(years[0]);
+  }else{
+   cond.push('g.season=?');args.push(years[0]);
+  }
+ }else if(years.length===2){
+  cond.push('g.season BETWEEN ? AND ?');args.push(Math.min(...years),Math.max(...years));
+ }
+ const sql='SELECT COUNT(*) AS missing FROM games g LEFT JOIN td_coverage c ON '+
+  'g.season=c.season AND g.week=c.week AND g.game_type=c.game_type AND g.team_id=c.team_id WHERE c.team_id IS NULL'+
+  (cond.length?' AND '+cond.join(' AND '):'');
+ const row=await db.prepare(sql).bind(...args).first();
+ if(Number(row?.missing||0)>0){
+  return 'The published NFL touchdown archive is missing '+row.missing+
+   ' finalized team-week(s) in this requested scope. I cannot give a complete touchdown total. '+
+   'Try a specific team and season, or use another statistic.';
+ }
+ return null;
+}
+
 function prompt(question,previous,error){
  return [
   {role:'system',content:'You are BoekMuse, the SQL planner for a fantasy football database. You must NOT invent results. '+SCHEMA},
@@ -303,6 +345,8 @@ export default {
   const previous=prev&&typeof prev.question==='string'&&typeof prev.sql==='string'&&
    prev.question.length<250&&prev.sql.length<4500?{question:prev.question,sql:prev.sql}:null;
   try{
+   const missing=await checkTdCompleteness(env.DB,question);
+   if(missing)return reply({ok:false,unsupported:true,message:missing},200,origin);
    const answer=await runQuery(env,question.trim(),previous);
    return reply(answer,200,origin);
   }catch(e){
