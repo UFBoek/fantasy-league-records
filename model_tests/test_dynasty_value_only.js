@@ -31,6 +31,18 @@ assert.ok(model.projectedPotential('QB',32,3500,2032)<startingQB,
  'Older QB potential eventually declines; no indefinite prime');
 assert.ok(model.projectedPotential('QB',30,9000,2032)>=26,
  'An elite 30-year-old QB can remain a high-scoring starter at age 36');
+// Existing veteran starters should have plausible scoring if still active,
+// without treating young developmental QBs, backups, or likely retired QBs as starters.
+assert.equal(model.projectedPotential('QB',32,3016,2032),21.5,
+ 'Goff-like established QB at age 38 should keep a starter-quality talent floor');
+assert.equal(model.projectedPotential('QB',33,2975,2032),21.5,
+ 'Dak-like veteran QB at age 39 should keep a starter-quality talent floor');
+assert.ok(model.projectedPotential('QB',24,1350,2027)<21.5,
+ 'Developing young QBs are not assigned the veteran starter scoring floor');
+assert.ok(model.projectedPotential('QB',36,299,2027)<21.5,
+ 'Low-valued QB with uncertain starting job cannot inherit a starter floor');
+assert.ok(model.projectedPotential('QB',38,1816,2032)<21.5,
+ 'No automatic scoring floor after 39: retirement/role uncertainty remains');
 assert.ok(model.marketPpg('QB',200)<10,
  'A backup-level market value must not turn into 25 starter PPG');
 assert.ok(model.marketPpg('QB',5000)>30,
@@ -52,7 +64,7 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3.5-qb-late-aging-historical-scale');
+assert.equal(initial.version,'experimental-v3.6-established-veteran-qb-floor');
 assert.equal(initial.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);

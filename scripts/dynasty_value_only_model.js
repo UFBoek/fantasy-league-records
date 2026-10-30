@@ -142,7 +142,16 @@ function projectedPotential(pos,currentAge,value,year,firstYear=2026){
  const readiness=+currentAge<peak?
   maturity(pos,age)/maturity(pos,peak):
   maturity(pos,age)/maturity(pos,+currentAge);
- return clamp(anchor*readiness,.02,pos==='QB'?44:36);
+ // 2026 dynasty prices discount an older QB's remaining career, not just
+ // how many points he can score IF he remains a starting quarterback.
+ // Preserve a credible veteran-starter baseline through age 39, but do
+ // not award it to low-value backups, young developing QBs, or 40+ players
+ // whose role/retirement outlook is considerably less certain.
+ // This floor is BEFORE availability and the shared league normalization;
+ // a season-average projection may still be slightly below this talent floor.
+ const establishedVeteranQB=pos==='QB'&&+currentAge>=29&&+value>=1800&&age>=34&&age<=39;
+ const talent=establishedVeteranQB?Math.max(anchor*readiness,21.5):anchor*readiness;
+ return clamp(talent,.02,pos==='QB'?44:36);
 }
 function breakoutProbability(pos,age,value){
  const until=PEAK[pos]-age;
@@ -292,7 +301,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3.5-qb-late-aging-historical-scale',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.6-established-veteran-qb-floor',status:'research_only',years:YEARS,runs,seed,
   league_scoring_calibration:{baseline_ppg:LEAGUE_BASELINE_PPG,target_range_ppg:LEAGUE_RANGE_PPG,
    retained_raw_trend_fraction:LEAGUE_RAW_TREND_SHARE,by_year:leagueScaleByYear},
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),
