@@ -4,6 +4,8 @@ on:
     paths:
       - scripts/dynasty_dominance_model.js
       - tests/test_dynasty_dominance.js
+      - scripts/backtest_dynasty_form.js
+      - scripts/stress_dynasty_dominance.js
       - .github/workflows/verify-dynasty-dominance.yml
   workflow_dispatch:
 jobs:
@@ -19,9 +21,16 @@ jobs:
         run: node tests/test_dynasty_dominance.js
       - name: Generate review-only research report
         run: node scripts/dynasty_dominance_model.js --runs 1000 --out "$RUNNER_TEMP/dynasty-dominance-research.json"
+      - name: Backtest past single-season scoring form (2023–2025)
+        run: node scripts/backtest_dynasty_form.js --out "$RUNNER_TEMP/dynasty-form-backtest.json"
+      - name: Stress-test injuries, aging and draft outcomes
+        run: node scripts/stress_dynasty_dominance.js --runs 300 --out "$RUNNER_TEMP/dynasty-stress.json"
       - name: Upload preview without publishing the model to the website
         uses: actions/upload-artifact@v4
         with:
           name: dynasty-dominance-research
-          path: ${{ runner.temp }}/dynasty-dominance-research.json
+          path: |
+            ${{ runner.temp }}/dynasty-dominance-research.json
+            ${{ runner.temp }}/dynasty-form-backtest.json
+            ${{ runner.temp }}/dynasty-stress.json
           retention-days: 14
