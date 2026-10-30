@@ -5,15 +5,16 @@ const origin='https://ufboek.github.io';
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 async function json(path,method='GET',body){
  const res=await fetch(base+path,{method,headers:{origin,'content-type':'application/json'},
-  body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});
+  body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(145000)});
  const data=await res.json();
  return {status:res.status,data};
 }
 (async()=>{
  const start=await json('/bootstrap');
+ console.log('BOOTSTRAP RESPONSE',start.status,JSON.stringify(start.data).slice(0,1800));
  assert.ok([200,202].includes(start.status),'Bootstrap: '+JSON.stringify(start));
  let ready=false;
- for(let i=0;i<45;i++){
+ for(let i=0;i<15;i(){
   const h=await json('/health');
   if(h.data.ready){ready=true;console.log('READY',JSON.stringify(h.data));break;}
   if(i%3===0)console.log('Waiting for published league archive sync...',i);
