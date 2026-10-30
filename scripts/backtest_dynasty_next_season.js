@@ -46,7 +46,8 @@ function observedRookieCohort(drafts,nfl,forecastYear){
   return {training_year:trainingYear,usable:valid,by_round:byRound,
     note:valid?'20? No: exactly 10 2024 FIG rookies per draft round':'Insufficient eligible rookie class'};
 }
-function asofForecast(snapshot,{drafts,nflHistory},runs=800,seed=552024){
+function asofForecast(snapshot,{drafts,nflHistory,persistenceFactor=1},runs=800,seed=552024){
+  if(!Number.isFinite(persistenceFactor)||persistenceFactor<0||persistenceFactor>1.5)throw Error('Invalid persistence factor');
   if(!Number.isInteger(runs)||runs<1||runs>20000)throw Error('Invalid simulation count');
   const targetYear=snapshot.year+1;
   const rookies=observedRookieCohort(drafts,nflHistory,targetYear);
@@ -61,9 +62,12 @@ function asofForecast(snapshot,{drafts,nflHistory},runs=800,seed=552024){
       // distribution; do not add a second injury penalty.
       const lineup=team.players.map(p=>{
         const prior=.7*p.ppg+.3*p.past_ppg;
-        // Fixed 0.80 is an explicit post-hoc stress assumption, not
-        // a parameter that was trained before the 2024 Week 7 cutoff.
-        const regression=.8*prior;
+        // The full-week scoring rate already includes missed NFL games.
+        // Do NOT apply the 0.8 prior-FULL-SEASON regression on top of
+        // current seven-week values and separately simulated variance.
+        // Vary this explicit factor in stress checks rather than claiming
+        // it was fitted at this historical cutoff.
+        const regression=persistenceFactor*prior;
         const sd=p.games<3?.65:.36;
         const shock=Math.exp(sd*r.normal()-.5*sd*sd);
         return {pos:p.pos,ppg:Math.max(0,regression*shock)};
@@ -94,7 +98,7 @@ function asofForecast(snapshot,{drafts,nflHistory},runs=800,seed=552024){
     empirical_rookie_training_year:rookies.training_year,
     rookies_included:rookies.usable,
     total_forecast_rookie_picks:rookies.usable?predicted.reduce((s,x)=>s+x.rookie_picks_held,0):0,
-    runs,seed,predicted,leader:predicted[0].id,
+    runs,seed,persistenceFactor,predicted,leader:predicted[0].id,
     model_scope:'Freeze Week 7 franchise roster and pick holdings, no discretionary trades'};
 }
 function heldOutTargets({weeklyScores,weeklyRosters,history,currentNFL},snapshot){
@@ -141,20 +145,20 @@ function evaluate(forecast,actual){
     highest_projected_team_probability:predictedRank[0].best_pct,
     paired:paired.sort((a,b)=>a.id-b.id)};
 }
-function run({snapshots,drafts,nflHistory,weeklyScores,weeklyRosters,currentNFL=null,runs=800,seed=552024}){
+function run({snapshots,drafts,nflHistory,weeklyScores,weeklyRosters,currentNFL=null,runs=800,seed=552024,persistenceFactor=1}){
   if(snapshots?.length!==2||!snapshots.every(s=>[2024,2025].includes(s.year)))throw Error('Need two historical Week 7 snapshots');
   const reports=[];
   for(const s of snapshots){
-    const forecast=asofForecast(s,{drafts,nflHistory},runs,seed+s.year);
+    const forecast=asofForecast(s,{drafts,nflHistory,persistenceFactor},runs,seed+s.year);
     const actual=heldOutTargets({weeklyScores,weeklyRosters,history:nflHistory,currentNFL},s);
     reports.push({forecast,validation:evaluate(forecast,actual)});
   }
   return {version:'frozen-asset-next-season-v1',
     status:'PARTIAL_FROZEN_ROSTER_BACKTEST',
-    outlooks:reports,
+    persistenceFactor,outlooks:reports,
     caveats:[
       '2024 Week-7 to 2025 full season and 2025 Week-7 to 2026 first seven weeks are two different-length holdouts.',
-      'The 0.80 production-regression coefficient was selected with later data during development; this is a retrospective diagnostic, not a pre-registered historic forecast.',
+      'The no-double-discount default persistenceFactor=1 is explicit and heuristic, not fitted before 2024. Alternative factors are diagnostic only.',
       'No historical market values from before October 2026 were used.',
       'Model freezes player and draft-pick ownership; observed next-year teams can trade or add players.',
       '2024 cutoff has no completed previous FIG rookie draft cohort, so forecast rookies are excluded; 2025 cutoff uses only completed 2024 rookies to forecast 2026 picks.',
@@ -164,10 +168,11 @@ function run({snapshots,drafts,nflHistory,weeklyScores,weeklyRosters,currentNFL=
     ]};
 }
 function main(args){
-  let out='',runs=800;
+  let out='',runs=800,persistenceFactor=1;
   for(let i=0;i<args.length;i++){
     if(args[i]==='--out')out=args[++i];
     else if(args[i]==='--runs')runs=+args[++i];
+    else if(args[i]==='--persistence')persistenceFactor=+args[++i];
     else throw Error('Unknown option '+args[i]);
   }
   const weeklyRosters=read('weekly_full_rosters');
@@ -175,13 +180,15 @@ function main(args){
   const weeklyScores=read('weekly_scoring_ranks');
   const archive=build({weeklyRosters,transactions:read('transactions'),nflHistory,weeklyScores});
   const result=run({snapshots:archive.snapshots,drafts:read('draft_picks'),
-    nflHistory,weeklyScores,weeklyRosters,runs});
+    nflHistory,weeklyScores,weeklyRosters,runs,persistenceFactor});
   if(out)fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n');
   for(const r of result.outlooks){
     const s=r.validation;
     console.log('FROZEN_BACKTEST',s.asof_year,'to',s.forecast_year,
       'actual weeks',s.actual_weeks,'mean absolute error',s.mae,
       'naive baseline error',s.baseline_naive_mae,
+      'mean bias',s.mean_bias_ppg,'p10-p90 coverage',s.p10_p90_coverage_pct+'%',
+      'persistence',r.forecast.persistenceFactor,
       'predicted #1',s.predicted_leader,'actual #1',s.actual_leader,
       'rookie cohort',r.forecast.empirical_rookie_training_year,
       'rookies included',r.forecast.rookies_included,
