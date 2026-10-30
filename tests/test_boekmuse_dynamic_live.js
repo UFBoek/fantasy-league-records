@@ -10,6 +10,7 @@ async function json(path,method='GET',body){
  return {status:res.status,data};
 }
 (async()=>{
+ console.log('Testing DB bootstrap and fresh SQL query engine');
  const start=await json('/bootstrap');
  console.log('BOOTSTRAP RESPONSE',start.status,JSON.stringify(start.data).slice(0,1800));
  assert.ok([200,202].includes(start.status),'Bootstrap: '+JSON.stringify(start));
