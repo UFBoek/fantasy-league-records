@@ -28,15 +28,17 @@ const nflBaseline=model.playerBaselines(input.roster,input.values,input.logs,
 assert.ok(nflBaseline.filter(x=>x.nflStarts>0).length>=250);
 assert.ok(actualNfl.has('11632:2026'), 'Unstarted NFL games are retained');
 const sampleRookie={seasons:{2024:{players:{'1':{weekly:[[1,18],[2,22]]}}},
- 2025:{players:{}}}};
+ 2025:{players:{'1':{weekly:[[1,25],[2,25]]}}}}};
 const testDrafts=[{draft_season:'2024',round:1,draft_class:'Rookie',
  draft_position:'WR',player_id:'1',draft_full_name:'Sample WR'}];
 const resultRookie=model.rookieOutcomes(testDrafts,sampleRookie);
 assert.equal(resultRookie[1][0].full_week_ppg,40/17);
+assert.equal(resultRookie[1][0].second_year_ppg,50/17);
 const realRookies=model.rookieOutcomes(input.drafts,input.nflHistory);
 if(input.nflHistory){
  for(const rd of [1,2,3,4])assert.equal(realRookies[rd].length,20);
  assert.ok(realRookies[1].some(x=>x.full_week_ppg>10));
+ assert.equal(realRookies[1].filter(x=>x.season===2024&&x.second_year_ppg!==null).length,10);
 }
 assert.ok(baseline.some(p=>p.samples===0&&p.basePpg>0),'bench player priors are not zero');
 const picks=model.makePicks(input.picks);
