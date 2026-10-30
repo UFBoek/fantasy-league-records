@@ -21,10 +21,11 @@ assert.equal(lineup,84,'Superflex QB and two best flex players');
 assert.equal(model.legalLineup([{pos:'QB',ppg:24},{pos:'QB',ppg:21}]),45);
 const baseline=model.playerBaselines(input.roster,input.values,input.logs);
 assert.ok(baseline.length>300);
-assert.ok(input.nflCurrent.season===2026&&input.nflCurrent.through_week===7);
-const actualNfl=model.nflScoringSamples(input.nflCurrent,input.nflHistory,7);
+assert.equal(input.nflCurrent.season,2026);
+assert.ok(input.nflCurrent.through_week>=7);
+const actualNfl=model.nflScoringSamples(input.nflCurrent,input.nflHistory,input.nflCurrent.through_week);
 const nflBaseline=model.playerBaselines(input.roster,input.values,input.logs,
- input.nflCurrent,input.nflHistory,7);
+ input.nflCurrent,input.nflHistory,input.nflCurrent.through_week);
 assert.ok(nflBaseline.filter(x=>x.nflStarts>0).length>=250);
 assert.ok(actualNfl.has('11632:2026'), 'Unstarted NFL games are retained');
 const sampleRookie={seasons:{2024:{players:{'1':{weekly:[[1,18],[2,22]]}}},
@@ -48,9 +49,14 @@ for(const year of [2027,2028,2029]){
  assert.deepEqual(picks[year].map(x=>[x.round,x.owner,x.origin]).sort(),
   raw.map(x=>[+x.round,+x.current_franchise_id,+x.original_franchise_id]).sort());
 }
-for(const year of [2030,2031,2032])
- for(let id=1;id<=10;id++)
-  assert.deepEqual(picks[year].filter(p=>p.owner===id).map(p=>p.round),[1,2,3,4]);
+for(const year of [2030,2031,2032]){
+ const verified=input.picks.filter(p=>+p.pick_season===year);
+ const got=picks[year].filter(p=>!p.assumed);
+ assert.equal(got.length,verified.length,'Actual future picks must never be overwritten by assumed own picks');
+ for(const pick of verified){
+  assert.ok(got.some(x=>x.round===+pick.round&&x.origin===+pick.original_franchise_id&&x.owner===+pick.current_franchise_id));
+ }
+}
 const a=model.runModel({...input,runs:32,seed:47321});
 const b=model.runModel({...input,runs:32,seed:47321});
 assert.deepEqual(a,b,'same seed gives same result');
@@ -79,8 +85,10 @@ assert.equal(scoringBacktest.team_cutoff_samples,90,'only 2023–25 completed le
 assert.ok(scoringBacktest.pooled.full.mae < scoringBacktest.pooled.blend_65_35.mae,
  'Historical test should favor full-season mean on this dated 2023–25 sample');
 assert.equal(scoringBacktest.train_2023_24.best_recent_weight,0);
-assert.equal(Math.round(model.getForm(input.weekly)[1]*10)/10,234.9,
- 'Dynasty model must not reuse unvalidated 65/35 recent-form trend');
+const currentBook=input.weekly.filter(w=>+w.season===2026&&+w.franchise_id===1);
+const actualBookAverage=currentBook.reduce((sum,w)=>sum+(+w.points_for),0)/currentBook.length;
+assert.ok(Math.abs(model.getForm(input.weekly)[1]-actualBookAverage)<.00001,
+ 'Dynasty model must use the observed complete-season form, not a recent 65/35 blend');
 const stressCases=scenarioDefinitions(input.roster,input.values);
 assert.equal(stressCases.length,8);
 assert.ok(stressCases.find(s=>s.key==='boek_star_loss').impacted
