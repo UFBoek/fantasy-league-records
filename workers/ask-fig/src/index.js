@@ -72,6 +72,11 @@ function reconcileQuestion(question, plan){
   [9,/\b(?:camnol|cam nol)\b/],[10,/\bjames\b/]
  ];
  const matches=known.flatMap(([id,re])=>{const m=re.exec(q);return m?[{id,index:m.index}]:[]}).sort((a,b)=>a.index-b.index);
+ if(plan.dataset==='games'&&matches.length===1&&plan.opponent_id===matches[0].id&&
+  !/\b(against|versus|head.to.head|vs\.?)\b/.test(q)){
+  plan.team_id=matches[0].id;
+  plan.opponent_id=null;
+ }
  if(plan.dataset==='games'&&matches.length===2&&
   /\b(outscor(?:e|es|ed|ing)|more points than|fewer points than|higher score than|lower score than)\b/.test(q)&&
   !/\b(versus|vs\.?|head.to.head)\b/.test(q)){
