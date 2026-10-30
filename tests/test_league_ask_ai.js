@@ -102,7 +102,7 @@ function result(plan,data){const r=engine.execute(plan,data);assert.equal(r.ok,t
  eq(sw.includes('league-ask-ai-v221.js'),true);
  eq(legacy.includes('figAskAi.ask(q)'),true);
  const config=fs.readFileSync(path.join(root,'ask-fig-config.js'),'utf8');
- assert.match(config,/FIG_ASK_WORKER_URL = ''/);
+ assert.match(config,/FIG_ASK_WORKER_URL = 'https:\/\/ask-fig-ai\.fig-league-archive\.workers\.dev'/);
 }
 async function workerTests(){
  const source=fs.readFileSync(path.join(root,'workers/ask-fig/src/index.js'),'utf8');
