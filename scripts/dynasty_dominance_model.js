@@ -1,0 +1,230 @@
+'use strict';
+/* FIG Dynasty Dominance experiment. Read-only Node.js model.
+   node scripts/dynasty_dominance_model.js --runs 5000 --out /tmp/report.json
+   Probabilities are exploratory and have NOT been empirically calibrated. */
+const fs=require('node:fs'),path=require('node:path');
+const TEAMS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
+const IDS=Object.keys(TEAMS).map(Number),YEARS=[2027,2028,2029,2030,2031,2032];
+const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),rnd=(x,d=1)=>Number(x.toFixed(d));
+const pct=(a,p)=>{let v=[...a].sort((x,y)=>x-y);return v[Math.floor((v.length-1)*p)];};
+function random(seed){
+ let state=seed>>>0,spare=null;
+ const u=()=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return(state+.5)/4294967296;};
+ const normal=()=>{if(spare!==null){let x=spare;spare=null;return x;}
+   let r=Math.sqrt(-2*Math.log(Math.max(1e-10,u()))),theta=2*Math.PI*u();
+   spare=r*Math.sin(theta);return r*Math.cos(theta);};
+ return {u,normal};
+}
+function ageCurve(pos,age){
+ const curves={
+ QB:[[20,.84],[23,.93],[26,.99],[29,1],[31,.99],[33,.94],[35,.83],[37,.62],[39,.38],[42,.12]],
+ RB:[[20,.83],[22,.92],[24,1],[26,1],[27,.95],[28,.86],[29,.74],[30,.59],[31,.43],[32,.30],[34,.09],[36,.02]],
+ WR:[[20,.82],[22,.91],[24,.98],[26,1],[28,1],[29,.98],[30,.92],[31,.83],[32,.70],[33,.55],[34,.40],[36,.16],[38,.04]],
+ TE:[[20,.80],[22,.86],[24,.94],[26,1],[29,1],[30,.97],[31,.91],[32,.82],[33,.70],[34,.55],[35,.40],[37,.17],[39,.05]]
+ }[pos];
+ if(!curves)return .01;
+ if(age<=curves[0][0])return curves[0][1];
+ for(let i=1;i<curves.length;i++)if(age<=curves[i][0]){
+   const [a,v]=curves[i-1],[b,w]=curves[i];return v+(w-v)*(age-a)/(b-a);
+ }
+ return .02;
+}
+function marketPpg(pos,value){
+ const f={QB:[3,10,800,35],RB:[1,9,1800,27],WR:[1,9,1600,29],TE:[1,8,1600,25]}[pos];
+ return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
+}
+function playerBaselines(roster,values,logs){
+ const history=new Map();
+ for(const p of logs){
+  if(p.game_type!=='Regular Season'||![2024,2025,2026].includes(+p.season)||!Number.isFinite(+p.starter_points))continue;
+  const key=p.player_id+':'+p.season;
+  if(!history.has(key))history.set(key,[]);
+  history.get(key).push(+p.starter_points);
+ }
+ return roster.filter(x=>['QB','RB','WR','TE'].includes(x.position)).map(x=>{
+  const id=String(x.player_id),value=+values.players[id]?.value||0,prior=marketPpg(x.position,value);
+  let numerator=0,denominator=0,samples=0;
+  for(const [year,weight] of [[2026,.6],[2025,.28],[2024,.12]]){
+   const scores=history.get(id+':'+year)||[];
+   if(!scores.length)continue;
+   const w=weight*scores.length/(scores.length+3);
+   numerator+=mean(scores)*w;denominator+=w;samples+=scores.length;
+  }
+  const observed=denominator?numerator/denominator:prior,credibility=Math.min(.84,samples/(samples+9));
+  return {id,team:+x.franchise_id,name:x.player_name,pos:x.position,age:+x.age||25,
+    baseYear:2026,basePpg:clamp((1-credibility)*prior+credibility*observed,.2,x.position==='QB'?39:34),
+    samples,rookie:false};
+ });
+}
+function legalLineup(players){
+ const g={QB:[],RB:[],WR:[],TE:[]};
+ for(const p of players)if(g[p.pos]&&p.ppg>0)g[p.pos].push(p.ppg);
+ for(const pos of ['QB','RB','WR','TE'])g[pos].sort((a,b)=>b-a);
+ function take(pos,n){let v=0;for(let i=0;i<n;i++)v+=g[pos].shift()||0;return v;}
+ let score=take('QB',1)+take('RB',2)+take('WR',3)+take('TE',1);
+ const flex=[...g.RB,...g.WR,...g.TE].sort((a,b)=>b-a);
+ score+=(flex.shift()||0)+(flex.shift()||0);
+ return score+Math.max(g.QB[0]||0,flex[0]||0);
+}
+function getForm(weekly){
+ const result={};
+ for(const id of IDS){
+  const scores=weekly.filter(x=>+x.season===2026&&+x.franchise_id===id)
+   .sort((a,b)=>+a.week-+b.week).map(x=>+x.points_for);
+  result[id]=.65*mean(scores)+.35*mean(scores.slice(-3));
+ }
+ return result;
+}
+function makePicks(data){
+ const byYear=Object.fromEntries(YEARS.map(y=>[y,[]]));
+ for(const x of data){
+  const year=+x.pick_season,round=+x.round;
+  if(year>=2027&&year<=2029&&round>=1&&round<=4)
+   byYear[year].push({year,round,owner:+x.current_franchise_id,origin:+x.original_franchise_id});
+ }
+ for(let year=2030;year<=2032;year++)for(const id of IDS)for(let round=1;round<=4;round++)
+  byYear[year].push({year,round,owner:id,origin:id,assumed:true});
+ for(const year of YEARS){
+  const keys=new Set();
+  for(const p of byYear[year]){
+   const key=p.year+':'+p.round+':'+p.origin;
+   if(keys.has(key))throw Error('Duplicate draft pick '+key);
+   keys.add(key);
+  }
+ }
+ return byYear;
+}
+function ranks(scores){
+ const ids=[...IDS].sort((a,b)=>(scores[a]||0)-(scores[b]||0));
+ return Object.fromEntries(ids.map((id,i)=>[id,i+1]));
+}
+function rookie(r,pick,rank,trial){
+ const rates={
+  1:[[.09,24],[.25,17],[.40,10],[.26,3]],
+  2:[[.04,20],[.13,13],[.30,7],[.53,2]],
+  3:[[.02,16],[.08,10],[.19,5],[.71,1]],
+  4:[[.008,13],[.042,8],[.15,4],[.80,.7]]
+ }[pick.round];
+ let u=r.u(),quality=1;
+ for(const [prob,value] of rates){u-=prob;if(u<=0){quality=value;break;}}
+ const d=r.u(),qb=pick.round===1?.23:.14;
+ const pos=d<qb?'QB':d<.51?'WR':d<.80?'RB':'TE';
+ const tier=rank>=8?1.17:rank<=3?.91:1;
+ const posScale={QB:1.34,RB:.98,WR:1,TE:.74}[pos];
+ return {id:'R'+trial+':'+pick.year+':'+pick.round+':'+pick.origin,
+  team:pick.owner,pos,age:21.5,baseYear:pick.year,samples:0,rookie:true,
+  basePpg:clamp(quality*tier*posScale*(.8+.4*r.u()),.2,pos==='QB'?37:29),
+  qualityShock:r.normal()*.13};
+}
+function scorePlayer(p,year,r,calibration){
+ const age=p.age+year-p.baseYear,ageFactor=ageCurve(p.pos,age)/ageCurve(p.pos,p.age);
+ const elapsed=Math.max(0,year-p.baseYear);
+ const development=p.rookie?1+Math.min(3,elapsed)*({QB:.06,RB:.025,WR:.08,TE:.10}[p.pos]):1;
+ const sigma=(p.rookie?.27:p.samples<4?.24:p.samples<12?.17:.12)+Math.sqrt(Math.max(0,year-2026))*.028;
+ const talent=Math.exp((p.qualityShock||0)+r.normal()*sigma-.5*sigma*sigma);
+ const injury=clamp(.11+Math.max(0,age-29)*.027+(p.pos==='RB'?.035:0),.08,.6);
+ const availability=r.u()<injury?.47+.35*r.u():1;
+ return clamp(p.basePpg*ageFactor*development*talent*availability*
+  clamp(1+r.normal()*.075,.72,1.27)*calibration,0,p.pos==='QB'?46:38);
+}
+function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030}){
+ if(!roster?.length||!logs?.length||!weekly?.length||!picks?.length||!values?.players)throw Error('Missing input');
+ if(!Number.isInteger(runs)||runs<1||runs>100000)throw Error('Invalid runs');
+ const base=playerBaselines(roster,values,logs),matched=base.filter(p=>values.players[p.id]?.value!=null).length;
+ if(!base.length||matched/base.length<.95)throw Error('RosterAudit coverage below 95%');
+ const form=getForm(weekly),calibration={};
+ for(const id of IDS){
+  const current=legalLineup(base.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:p.basePpg})));
+  calibration[id]=current?clamp((.75*current+.25*(form[id]||current))/current,.85,1.15):1;
+ }
+ const picksByYear=makePicks(picks),r=random(seed);
+ const samples=Object.fromEntries(YEARS.map(y=>[y,Object.fromEntries(IDS.map(id=>[id,[]]))]));
+ const leaders=Object.fromEntries(IDS.map(id=>[id,[]]));
+ for(let t=0;t<runs;t++){
+  const players=base.map(p=>({...p,qualityShock:r.normal()*.055}));
+  let last={...form};
+  const first=Object.fromEntries(IDS.map(id=>[id,0]));
+  for(const year of YEARS){
+   const order=ranks(last);
+   for(const pick of picksByYear[year])players.push(rookie(r,pick,order[pick.origin]||5,t));
+   const annual={};
+   for(const id of IDS){
+    const arr=players.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:scorePlayer(p,year,r,calibration[id])}));
+    annual[id]=Math.max(0,legalLineup(arr)+5*r.normal());
+    samples[year][id].push(annual[id]);
+   }
+   const best=Math.max(...Object.values(annual));
+   for(const id of IDS)if(annual[id]===best)first[id]++;
+   last=annual;
+  }
+  for(const id of IDS)leaders[id].push(first[id]);
+ }
+ const seasons={};
+ for(const year of YEARS){
+  const arr=samples[year];
+  const ranking=IDS.map(id=>{
+   let first=0,top3=0;
+   for(let i=0;i<runs;i++){
+    const better=IDS.filter(other=>other!==id&&arr[other][i]>arr[id][i]).length;
+    if(better===0)first++;
+    if(better<3)top3++;
+   }
+   return {id,name:TEAMS[id],ppg:rnd(mean(arr[id])),p10:rnd(pct(arr[id],.1)),p90:rnd(pct(arr[id],.9)),
+     best_pct:rnd(100*first/runs),top3_pct:rnd(100*top3/runs)};
+  }).sort((a,b)=>b.ppg-a.ppg);
+  const boek=arr[1];
+  const comparisons=IDS.filter(id=>id!==1).map(id=>{
+   const gaps=boek.map((value,i)=>value-arr[id][i]);
+   return {id,name:TEAMS[id],gap_ppg:rnd(mean(gaps)),p10:rnd(pct(gaps,.1)),p90:rnd(pct(gaps,.9)),
+     boek_stronger_pct:rnd(100*gaps.filter(v=>v>0).length/runs)};
+  }).sort((a,b)=>a.gap_ppg-b.gap_ppg);
+  const bestOther=boek.map((value,i)=>value-Math.max(...IDS.filter(id=>id!==1).map(id=>arr[id][i])));
+  seasons[year]={ranking,boek_vs_leagues_best_opponent:{
+   gap_ppg:rnd(mean(bestOther)),p10:rnd(pct(bestOther,.1)),p90:rnd(pct(bestOther,.9)),
+   boek_stronger_pct:rnd(100*bestOther.filter(v=>v>0).length/runs)},boek_vs_teams:comparisons};
+ }
+ const whole_horizon=IDS.map(id=>({id,name:TEAMS[id],expected_years_best:rnd(mean(leaders[id]),2),
+   chance_best_at_least_three_years_pct:rnd(100*leaders[id].filter(v=>v>=3).length/runs)
+ })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
+ return {version:'experimental-v1',status:'research_only',seed,runs,years:YEARS,
+  inputs:{observed_through_week:Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week)),
+   current_rostered_players:base.length,market_coverage_pct:rnd(100*matched/base.length),
+   historical_player_start_logs:logs.length,
+   known_2027_2029_picks:YEARS.slice(0,3).reduce((s,y)=>s+picksByYear[y].length,0),
+   assumed_2030_2032_picks:120},
+  current_form:IDS.map(id=>({id,name:TEAMS[id],form_ppg:rnd(form[id]),calibration:rnd(calibration[id],3)})),
+  seasons,whole_horizon,
+  limitations:[
+   'Research only; future probabilities not historically validated or betting odds.',
+   'League player logs include starts only; bench players are regressed toward market valuation priors, never assumed to score zero.',
+   'Player aging, injury and rookie outcome priors are transparent hypothetical assumptions, not trained on NFL-wide samples.',
+   'Real 2027-29 pick ownership; 2030-32 own picks assumed one per round and may later change with trades.',
+   'Draft tier is inferred from previous simulated scoring, not guaranteed draft order.',
+   'Season scoring is a stylized best legal lineup with availability penalties, not week-by-week injury-aware lineup optimization.',
+   'No fabricated future trades or manager ability bonuses; schedule not used to measure scoring dominance.'
+  ]};
+}
+function main(args){
+ let runs=5000,out='',seed=20261030;
+ for(let i=0;i<args.length;i++){
+  if(args[i]==='--runs')runs=+args[++i];
+  else if(args[i]==='--seed')seed=+args[++i];
+  else if(args[i]==='--out')out=args[++i];
+  else throw Error('Unknown option '+args[i]);
+ }
+ const read=f=>JSON.parse(fs.readFileSync(path.resolve(__dirname,'../data',f),'utf8'));
+ const m=runModel({roster:read('current_roster.json'),values:read('rosteraudit_values.json'),
+  logs:read('player_game_log.json'),weekly:read('weekly_scoring_ranks.json'),
+  picks:read('current_future_picks.json'),runs,seed});
+ if(out)fs.writeFileSync(out,JSON.stringify(m,null,2)+'\n');
+ console.log('FIG Dynasty Dominance '+runs+' experimental simulations');
+ for(const year of YEARS){
+  const y=m.seasons[year],boek=y.ranking.find(x=>x.id===1),hayden=y.ranking.find(x=>x.id===6);
+  console.log(year, 'Boek',boek.ppg,'PPG, #1',boek.best_pct+'%; Hayden',hayden.ppg,
+    'PPG, #1',hayden.best_pct+'%; gap vs top opponent',y.boek_vs_leagues_best_opponent.gap_ppg);
+ }
+ console.log('Research-only; see JSON for limitations.');
+}
+if(require.main===module)main(process.argv.slice(2));
+module.exports={random,ageCurve,marketPpg,playerBaselines,legalLineup,getForm,makePicks,runModel};
