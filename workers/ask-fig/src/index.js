@@ -103,7 +103,7 @@ function reconcileQuestion(question, plan){
  // A raw touchdown request cannot be interpreted as a count of games/starts.
  if(/\b(?:touchdowns?|tds?)\b/.test(q)){
   if(/\b(?:non[\s-]?qbs?|excluding (?:qbs?|quarterbacks?)|without (?:qbs?|quarterbacks?))\b/.test(q)){
-   plan.dataset='player_touchdowns';plan.metric='touchdowns';
+   plan.dataset='player_touchdowns';plan.metric='touchdowns';plan.position=null;
    plan.game_type=/\bplayoffs?\b/.test(q)?'playoffs':'regular';
    if(matches.length===1)plan.team_id=matches[0].id;
    if(/\b(?:every|each|per)\s+(?:single\s+)?(?:game|week)\b|\bby\s+(?:game|week)\b/.test(q)){
