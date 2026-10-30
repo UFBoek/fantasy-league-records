@@ -54,7 +54,8 @@ function scope(q,games){
  return {type,from,to,desc:(from===to&&from!==null?from:from&&to?from+'–'+to:from?'Since '+from:to?'Through '+to:'All seasons')+
   (wmin!==null&&wmin===wmax?' · Week '+wmin:wmin!==null?' · Since Week '+wmin:wmax!==null?' · Through Week '+wmax:'')+' · '+type,
   test:g=>(from===null||n(g.season)>=from)&&(to===null||n(g.season)<=to)&&
-   (wmin===null||n(g.week)>=wmin)&&(wmax===null||n(g.week)<=wmax)&&
+   (wmin===null||((from!==null&&to!==from)?(n(g.season)>from||n(g.week)>=wmin):n(g.week)>=wmin))&&
+   (wmax===null||((to!==null&&from!==to)?(n(g.season)<to||n(g.week)<=wmax):n(g.week)<=wmax))&&
    (combined||String(g.game_type).toLowerCase()===(playoffs?'playoffs':'regular season'))};
 }
 function limit(q){const m=clean(q).match(/\btop\s+(\d{1,2})\b|\b(\d{1,2})\s+(?:biggest|highest|lowest|best|worst)/);return Math.min(30,Math.max(1,n(m&&(m[1]||m[2]))||10));}
@@ -178,10 +179,13 @@ function statsForGames(q,games){
   'Figures come from published, finalized '+sc.type.toLowerCase()+' games.');
 }
 function statsForPlayers(q,players,games){
- const s=clean(q),sc=scope(q,games),tm=teamsIn(q)[0];
+ const s=clean(q),sc=scope(q,games);
+ let tm=teamsIn(q)[0];
  const names=new Map();
  for(const x of players)if(x.player_name)names.set(String(x.player_id),x.player_name);
  const mentioned=[...names].filter(pair=>(' '+s+' ').includes(' '+clean(pair[1])+' ')).sort((a,b)=>b[1].length-a[1].length)[0];
+ if(mentioned&&tm&&(' '+clean(mentioned[1])+' ').includes(' '+clean(tm.name)+' ')&&
+  !new RegExp('(?:for|on|by) '+clean(tm.name)+'(?: |$)').test(s))tm=null;
  const position=/\b(qb|quarterback)\b/.test(s)?'QB':/\b(wr|wide receiver)\b/.test(s)?'WR':
   /\b(rb|running back)\b/.test(s)?'RB':/\b(te|tight end)\b/.test(s)?'TE':null;
  const eligible=players.filter(x=>sc.test(x)&&(!tm||n(x.franchise_id)===tm.id)&&
@@ -245,13 +249,18 @@ async function ask(q){
  if(s.length<3)return {ok:false,message:'Ask a complete question about league history.'};
  if(/\b(trade|trades|traded)\b/.test(s))return statsForTrades(q,await load('trades'));
  if(/\b(draft|drafted|drafts|drafting)\b/.test(s))return statsForDrafts(q,await load('drafts'));
- if(/\b(superflex|bench|roster value|win probability|projected|future odds)\b/.test(s))
+ if(/\b(superflex|bench|roster value|win probability|projected|future odds|streak|strength of schedule|all.play|rushing yards|receiving yards|touchdowns|passing yards)\b/.test(s))
   return {ok:false,message:'That question needs a data source this search does not support yet.'};
  const games=await load('games');
- if(/\b(player|players|starter|starters|started|starts|qb|rb|wr|te|quarterback|wide receiver|running back|tight end|puka|burrow|mahomes|herbert)\b/.test(s)){
-  const result=statsForPlayers(q,await load('players'),games);
-  if(result.ok)return result;
-  return result;
+ const playerIntent=/\b(player|players|starter|starters|started|starts|qb|rb|wr|te|quarterback|wide receiver|running back|tight end)\b/.test(s);
+ if(playerIntent){return statsForPlayers(q,await load('players'),games);}
+ if(/\b(point|points|ppg|scored|scoring|score|average)\b/.test(s)){
+  const players=await load('players');
+  const seen=new Set();
+  const hasPlayer=players.some(x=>{const id=String(x.player_id);if(seen.has(id))return false;seen.add(id);
+   return x.player_name&&(' '+s+' ').includes(' '+clean(x.player_name)+' ');
+  });
+  if(hasPlayer)return statsForPlayers(q,players,games);
  }
  if(!/\b(win|wins|won|loss|losses|lost|record|points|point|ppg|score|scored|scoring|games|weeks|blowout|blowouts|championship|championships|titles|average|margin|matchup|matchups)\b/.test(s))
   return {ok:false,message:'This question does not match a supported statistic.'};
