@@ -20,7 +20,7 @@ const EXAMPLES=[
 ];
 const files={games:'games',players:'player_game_log',trades:'trades',drafts:'draft_picks'},cache={};
 const n=x=>Number(x)||0,fmt=x=>Number(x).toLocaleString('en-US',{maximumFractionDigits:2});
-const clean=x=>String(x==null?'':x).toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9+.\s-]/g,' ').replace(/\s+/g,' ').trim();
+const clean=x=>String(x==null?'':x).toLowerCase().replace(/([a-z])['’]s\b/g,'$1').replace(/[’']/g,'').replace(/[^a-z0-9+.\s-]/g,' ').replace(/\s+/g,' ').trim();
 const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const name=id=>(OWNERS.find(o=>o[0]===n(id))||[0,'Unknown'])[1];
 const teamHref=id=>'#/team/'+n(id),gameHref=g=>'#/game/'+g.season+'/'+g.week+'/'+g.matchup_id;
@@ -89,6 +89,11 @@ function statsForGames(q,games){
   const second=teamList[1].id,matchups=all.filter(g=>[n(g.franchise_1),n(g.franchise_2)].includes(first)&&
    [n(g.franchise_1),n(g.franchise_2)].includes(second));
   if(!matchups.length)return {ok:false,message:'No finalized matchups match those teams and dates.'};
+  if(matchups.length===1&&/\b(score|result|what happened|final score|week)\b/.test(s)&&!/\brecord\b/.test(s)){
+   const g=matchups[0];return success(name(g.franchise_1)+' vs '+name(g.franchise_2),
+    fmt(g.score_1)+' – '+fmt(g.score_2),g.season+' · Week '+g.week+' · '+g.game_type,
+    ['Team','Score'],[resultRow([name(g.franchise_1),fmt(g.score_1)],teamHref(g.franchise_1)),resultRow([name(g.franchise_2),fmt(g.score_2)],teamHref(g.franchise_2))]);
+  }
   const wins=matchups.filter(g=>n(g.winner_franchise_id)===first).length;
   const ties=matchups.filter(g=>n(g.score_1)===n(g.score_2)).length;
   const losses=matchups.length-wins-ties;
@@ -96,6 +101,20 @@ function statsForGames(q,games){
    sc.desc+' · '+matchups.length+' games',['Week','Team 1','Team 2'],
    matchups.slice().reverse().slice(0,limit(q)).map(g=>resultRow([g.season+' W'+g.week,name(g.franchise_1)+' '+fmt(g.score_1),name(g.franchise_2)+' '+fmt(g.score_2)],gameHref(g))),
    'The record is from '+name(first)+'’s perspective.');
+ }
+ if(first&&/\bagainst\b/.test(s)&&/\b(most|best|highest|fewest|least|wins|losses|points|ppg|average|record)\b/.test(s)){
+  const vs=perf.filter(x=>x.opp===first);
+  const sums=OWNERS.filter(x=>x[0]!==first).map(o=>{
+   const matches=vs.filter(x=>x.team===o[0]);return {id:o[0],games:matches.length,wins:matches.filter(x=>x.win).length,
+    points:matches.reduce((a,x)=>a+x.points,0)};
+  }).filter(x=>x.games);
+  const ppg=/\b(ppg|average|per game)\b/.test(s),points=/\b(points|point|scored|score|ppg)\b/.test(s);
+  const measure=x=>points?(ppg?x.points/x.games:x.points):x.wins;
+  const low=/\b(fewest|least|lowest)\b/.test(s);
+  sums.sort((a,b)=>(low?1:-1)*(measure(a)-measure(b))||a.id-b.id);
+  const title=(points?(ppg?'PPG':'Points scored'):'Wins')+' against '+name(first);
+  return success(title,sums.length?fmt(measure(sums[0])):0,sc.desc,
+   ['Team',points?(ppg?'PPG':'Points'):'Wins','Games'],sums.map(x=>resultRow([name(x.id),fmt(measure(x)),x.games],teamHref(x.id))));
  }
  const relevant=first?perf.filter(x=>x.team===first):perf;
  if(!relevant.length)return {ok:false,message:'No finalized games match those filters.'};
@@ -121,7 +140,7 @@ function statsForGames(q,games){
    by.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
  }
  const avg=/\b(ppg|average|avg|per game)\b/.test(s);
- const weekly=/\b(week|weekly|single|highest score|lowest score|one game)\b/.test(s)&&!avg&&
+ const weekly=/\b(week|weekly|single|highest scor|lowest scor|one game)\b/.test(s)&&!avg&&
   /\b(score|scored|points|point|week|weekly)\b/.test(s);
  if(weekly&&/\b(highest|lowest|most|least|best|worst|top|score|scored)\b/.test(s)){
   const low=/\b(lowest|least|worst|fewest)\b/.test(s);
@@ -138,7 +157,12 @@ function statsForGames(q,games){
   return {id:o[0],games:a.length,wins:a.filter(x=>x.win).length,losses:a.filter(x=>x.loss).length,
    ties:a.filter(x=>x.tie).length,points:a.reduce((p,x)=>p+x.points,0),against:a.reduce((p,x)=>p+x.against,0)};
  }).filter(x=>x.games);
- const rate=/\b(win percentage|win rate|winning percentage|win pct)\b/.test(s);
+ const rate=/\b(win percentage|win rate|winning percentage|win pct)\b/.test(s)||(!first&&/\bbest record\b/.test(s));
+ if(first&&/\brecord\b/.test(s)&&!rate){
+  const x=groups.find(g=>g.id===first);
+  if(x)return success(name(first)+' record',x.wins+'–'+x.losses+(x.ties?'–'+x.ties:''),sc.desc,
+   ['Team','Wins','Losses','Games'],[resultRow([name(first),x.wins,x.losses,x.games],teamHref(first))]);
+ }
  const value=x=>rate?100*x.wins/x.games:stat==='points'?(avg?x.points/x.games:x.points):
   stat==='against'?(avg?x.against/x.games:x.against):x[stat];
  const low=/\b(lowest|fewest|least|worst)\b/.test(s);
@@ -229,7 +253,7 @@ async function ask(q){
   if(result.ok)return result;
   return result;
  }
- if(!/\b(who|what|which|how|most|least|highest|lowest|best|worst|top|score|scored|points|point|ppg|wins|losses|record|against|versus|vs|week|games|blowout|championship|titles|average|total)\b/.test(s))
+ if(!/\b(win|wins|won|loss|losses|lost|record|points|point|ppg|score|scored|scoring|games|weeks|blowout|blowouts|championship|championships|titles|average|margin|matchup|matchups)\b/.test(s))
   return {ok:false,message:'This question does not match a supported statistic.'};
  return statsForGames(q,games);
 }
