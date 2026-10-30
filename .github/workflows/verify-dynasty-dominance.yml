@@ -10,6 +10,7 @@ on:
       - scripts/backtest_dynasty_franchise.js
       - scripts/assess_dynasty_validation.js
       - scripts/build_dynasty_asof_snapshots.js
+      - model_tests/test_dynasty_asof.js
       - model_tests/test_dynasty_retrospective.js
       - data/dynasty_nfl_history.json
       - .github/workflows/verify-dynasty-dominance.yml
@@ -33,6 +34,8 @@ jobs:
         run: node scripts/backtest_dynasty_franchise.js --out "$RUNNER_TEMP/dynasty-franchise-backtest.json"
       - name: Assess whether model is actually validated enough for publication
         run: node scripts/assess_dynasty_validation.js --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
+      - name: Check historical roster and pick cutoff integrity
+        run: node model_tests/test_dynasty_asof.js
       - name: Reconstruct 2024/2025 point-in-time rosters and picks
         run: node scripts/build_dynasty_asof_snapshots.js --out "$RUNNER_TEMP/dynasty-historical-asof.json"
       - name: Generate review-only research report
