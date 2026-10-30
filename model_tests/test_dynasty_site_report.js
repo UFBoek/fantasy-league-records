@@ -11,7 +11,7 @@ assert.equal(output.validation.full_six_year_backtest_passed,false);
 assert.equal(output.validation.one_year_holdout_better_than_baseline,false);
 assert.equal(output.generated_at,fixedDate);
 assert.equal(output.teams.length,10);
-assert.equal(output.version,'fig-beta-1.9-established-qb-starter-floor');
+assert.equal(output.version,'fig-beta-2.0-qb-cap-r1-pick-development');
 assert.equal(output.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(output.league_scoring_calibration.target_range_ppg,[1570,1630]);
 assert.ok(output.league_scoring_reference.completed_ten_team_weeks>=49);
@@ -46,6 +46,13 @@ assert.notDeepEqual(changed.teams.map(x=>x.current_ppg),
  'Observed PPG remains a separate actual-performance display');
 assert.ok(output.teams.every(t=>Number.isFinite(t.top10_value_weighted_age)));
 assert.ok(output.teams.every(t=>Object.keys(t.draft_by_year).length===6));
+for(const year of [2028,2029]){
+ const jamesFirst=output.seasons[2032].players_by_team[2]
+  .find(p=>p.projected_rookie&&p.pick_origin===10&&p.pick_round===1&&p.pick_year===year);
+ assert.ok(jamesFirst,'Fru must retain the projected result of his James-origin '+year+' first');
+ assert.ok(jamesFirst.ppg>0,'James-origin first cannot be ignored in projection');
+}
+
 for(const year of output.years){
  const season=output.seasons[year];
  for(let id=1;id<=10;id++){

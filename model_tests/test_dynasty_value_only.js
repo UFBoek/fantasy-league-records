@@ -47,6 +47,33 @@ assert.ok(model.marketPpg('QB',200)<10,
  'A backup-level market value must not turn into 25 starter PPG');
 assert.ok(model.marketPpg('QB',5000)>30,
  'High-value QB market anchor should clear 30 fantasy points');
+assert.ok(model.marketPpg('QB',10000)<=34,
+ 'Even elite QB pricing should not imply a 37-point future scoring average');
+assert.ok(model.marketPpg('QB',10000)>model.marketPpg('QB',2000),
+ 'Elite QB talent must still exceed average QB talent');
+const fixedPickRandom={u:()=>.5,normal:()=>0};
+const jamesEarly={year:2028,round:1,origin:10,owner:2};
+const jamesTop=model.makeFuturePick(jamesEarly,fixedPickRandom,1,input.values);
+const jamesLate=model.makeFuturePick(jamesEarly,fixedPickRandom,10,input.values);
+assert.equal(jamesTop.team,2,'Traded James first-rounder must belong to Fru');
+assert.equal(jamesTop.pick_origin,10,'Original draft franchise must be preserved');
+assert.equal(jamesTop.value,input.values.future_picks['2027:1:early']*.65,
+ 'Weak James franchise should confer EARLY first-round pick quality');
+assert.equal(jamesLate.value,input.values.future_picks['2027:1:late']*.65,
+ 'Strong original franchise must confer LATE pick quality');
+assert.ok(jamesTop.value>jamesLate.value,'Draft pick tiers must rank in the correct direction');
+assert.ok(model.projectedPotential(jamesTop.pos,jamesTop.age,jamesTop.value,2032,2028)>
+ model.projectedPotential(jamesTop.pos,jamesTop.age,jamesTop.value,2028,2028),
+ 'First-round rookie should gain ability as he matures');
+const allFuturePicks=model.makePicks(input.picks);
+for(const year of [2028,2029]){
+ const jamesFirst=allFuturePicks[year].find(x=>x.origin===10&&x.round===1);
+ assert.equal(jamesFirst.owner,2,'Fru must own James '+year+' first');
+ assert.equal(jamesFirst.assumed,false,'James '+year+' first ownership is verified');
+}
+const lateFutureJames=allFuturePicks[2032].find(x=>x.origin===10&&x.round===1);
+assert.equal(lateFutureJames.owner,10,
+ 'Do not fabricate a transfer of James 2032 first without actual ownership data');
 assert.ok(model.breakoutProbability('WR',21,1000)>0,
  'Low-valued young WR must retain a nonzero possibility of breaking out');
 assert.equal(model.breakoutProbability('WR',31,8000),0,
@@ -64,7 +91,7 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3.6-established-veteran-qb-floor');
+assert.equal(initial.version,'experimental-v3.7-qb-scoring-and-r1-draft-order');
 assert.equal(initial.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);

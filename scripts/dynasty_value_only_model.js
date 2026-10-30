@@ -61,8 +61,10 @@ function marketPpg(pos,value){
  // middle-tier starters. Check the aggregate output against independent
  // 2023-26 FIG weekly TOTALS, never per-player historical box scores.
  // QB value 3k is a plausible starter (~26 raw PPG), 5k a quality
- // starter (~32), and 9k+ an elite QB. Very low-value backups remain low.
- const f={QB:[5,13.5,800,40],RB:[3,12.5,1800,31],WR:[3.5,12.5,1600,32],TE:[3.5,11,1600,29]}[pos];
+ // starter (~32). Elite QB model *mean* should top out around 33 PPG:
+ // cap the raw market anchor at 34 before injuries/variance/league scaling.
+ // This is NOT a limit on individual game results.
+ const f={QB:[5,13.5,800,34],RB:[3,12.5,1800,31],WR:[3.5,12.5,1600,32],TE:[3.5,11,1600,29]}[pos];
  return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
 }
 function makePicks(data){
@@ -182,18 +184,20 @@ function draftAssetValue(pick,tier,values){
  return Number.isFinite(+raw)&&+raw>0?+raw:null;
 }
 function makeFuturePick(pick,r,rank,values){
- const tier=rank>=8?'early':rank<=3?'late':'mid';
+ // rank 1 is the weakest originating team: it earns an EARLY pick.
+ // rank 10 is the strongest originating team: it earns a LATE pick.
+ const tier=rank<=3?'early':rank>=8?'late':'mid';
  const value=draftAssetValue(pick,tier,values);
  // A pick does not have a known NFL player or position. These are
  // hypothetical positions, NOT forecasts of draft selections.
  const x=r.u(),pos=x<.18?'QB':x<.43?'RB':x<.81?'WR':'TE';
  const age=21.5, id='pick:'+pick.year+':'+pick.round+':'+pick.origin;
- // A dynasty draft pick is an uncertain acquisition right, not a
- // fully established NFL starter. Only part of its market asset price
- // maps to future scoring ability; the rest reflects risk/liquidity.
- // Do not let six successive classes create an implausibly inflated
- // league scoring environment while keeping all old rosters frozen.
- const scaled=value===null?null:value*.35;
+ // First-round selections have materially more starter / breakout potential
+ // than later rounds. Convert 65% of R1 pick value to hypothetical talent,
+ // versus 35% for R2-R4; none is a guaranteed star or known NFL player.
+ // The original franchise's rank determines early/mid/late draft quality,
+ // while the CURRENT owner receives the player. E.g. Fru owns James 2028/29 R1s.
+ const scaled=value===null?null:value*(pick.round===1?.65:.35);
  const chance=scaled===null?0:breakoutProbability(pos,age,scaled);
  const breakout=scaled!==null&&r.u()<chance?
   clamp((STAR[pos]-marketPpg(pos,scaled))*(.5+.45*r.u()),0,18):0;
@@ -301,7 +305,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3.6-established-veteran-qb-floor',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.7-qb-scoring-and-r1-draft-order',status:'research_only',years:YEARS,runs,seed,
   league_scoring_calibration:{baseline_ppg:LEAGUE_BASELINE_PPG,target_range_ppg:LEAGUE_RANGE_PPG,
    retained_raw_trend_fraction:LEAGUE_RAW_TREND_SHARE,by_year:leagueScaleByYear},
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),
@@ -312,7 +316,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
    'Individual incumbent PPG uses only RosterAudit value, player age, and position; no player or franchise historical scoring or PPG calibration.',
    'Quarterbacks have a longer prime into the mid-30s, a QB-specific market-value curve, and partial veteran dynasty-price age relief. Maturity, aging, breakout, and injury parameters remain exploratory, not historically calibrated.',
    'Market pricing is a present-day dynasty opinion, not the NFL scoring outcome; a price does not guarantee star production.',
-   'Rookie prospects are hypothetical draft slots; only 35% of RosterAudit draft asset value is converted into player scoring talent because acquisition rights are not established players. No 2024–2026 NFL rookie performances enter the model.',
+   'Hypothetical rookies use an age-position development curve and RosterAudit pick tiers; 65% of R1 asset value versus 35% for R2-R4 maps into scoring talent. Weak original franchises earn early-tier prospects; actual pick owners receive them. No historical rookie scoring is imported.',
    'Position scoring is uniformly normalized league-wide after simulation toward 1,600 combined PPG (1,570–1,630 target range). Historical player and team scoring do not determine the position/age/value talent model.',
    'All current rosters held constant; no manager trading ability, future trades, waivers or unowned acquisitions are invented.',
    'Missing price data generate unknown PPG rather than substituting scoring history.',

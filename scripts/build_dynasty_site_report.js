@@ -14,7 +14,7 @@ const files=['current_roster','rosteraudit_values','weekly_scoring_ranks','curre
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.9-established-qb-starter-floor';
+const reportVersion='fig-beta-2.0-qb-cap-r1-pick-development';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,weekly,picks]=files.map(n=>inputs[n]);
  // Actual league history is used only as a benchmark shown beside the
@@ -90,7 +90,7 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
      future_score_interpretation:'Future player talent uses only position, 2026 roster age and current RosterAudit value. One shared league-wide scoring scale targets 1,570–1,630 PPG, centered at the historic 1,600 baseline. Past individual player/team PPG do not enter the talent model.',
-     future_player_model:'Position-specific market-implied PPG, development and decline, with a healthy-starter scoring floor for higher-value veteran QBs ages 34–39. Availability may lower season projections. 40+ veterans and backups can lose starting roles; future rookies are modeled from draft-pick value tiers.',
+     future_player_model:'Position/age/RosterAudit-value model with elite QB average near 33 PPG and a veteran starter floor through age 39. Round-one rookies have stronger breakout/development potential. Early/late pick quality follows the ORIGINAL franchise strength; scoring belongs to the confirmed current pick owner, including Fru holding James 2028 and 2029 firsts.',
      player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
     one_year_holdout_better_than_baseline:false,
