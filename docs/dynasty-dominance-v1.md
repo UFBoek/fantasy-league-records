@@ -122,3 +122,88 @@ For reproducibility:
 
 The data acquisition workflow commits only the historical research JSON
 onto this **draft branch**. The public site stays unchanged.
+
+## Retrospective validation (October 30, 2026)
+
+The model's **scoring components**, not the 2027–2032 league probabilities,
+were checked against genuinely unseen historical outcomes.
+
+### NFL-wide player persistence, held-out 2025
+
+One-year full-season scoring (all 17 weeks, missed weeks included) was
+modeled using 2023 to predict 2024, fitting only those observations.
+The frozen coefficient was 0.80 times prior-year weekly scoring with no
+intercept. It was evaluated on 2024 to predict 2025, which played no part
+in parameter selection. All seasons use FIG's 2026 scoring weights.
+
+| 2024 to 2025 scoring cohort | n | Unchanged PPG MAE | Pretrained 0.80 PPG MAE |
+| --- | ---: | ---: | ---: |
+| All 2024 players with at least one NFL appearance | 706 | 2.276 | **2.100** |
+| Played at least 8 games in 2024 | 358 | 3.581 | **3.268** |
+| 2024 full-week PPG of 8+, at least 8 appearances | 150 | 5.081 | **4.546** |
+| 2024 full-week PPG of 15+, at least 8 appearances | 49 | 6.459 | **5.428** |
+
+The **0.80 coefficient has not been inserted directly into the dynasty
+simulator**: it is fitted on all-17-week PPG that already includes
+missed games and lost roles. The simulator starts with played-game
+production and independently samples availability. Direct multiplication
+would risk counting missed time twice. It motivates a future split
+between role retention, played-game productivity, and injury time.
+
+For 193 prior-season players still on FIG's 2026 rosters, the
+position-specific age curve slightly improved 2025 MAE from 4.349 to
+4.318 PPG. This survivor-only cohort is biased toward remaining useful
+NFL players; it is not an independent age curve validation.
+
+### Rookie holdout: real FIG 2024 draft -> 2025 draft
+
+Fantasy draft-round priors were learned from 40 players drafted in
+2024, then tested against the 40 distinct rookies drafted in 2025.
+No 2025 results were used to select prior values.
+
+- 2025 class MAE: **3.817 PPG** using 2024 round averages, versus
+  **3.931 PPG** for a pooled class-average baseline.
+- Each round has only **10 training and 10 holdout players**.
+- Historical 2024 round-three 10th-to-90th range contained only
+  **1 of 10** 2025 round-three rookie outcomes. The uncertainty
+  distribution is insufficiently calibrated.
+- The 2024 class's 2025 sophomore performance is available for fitting,
+  but **no separate independent sophomore cohort is yet available**
+  to test second-year extrapolations.
+
+### Franchise scoring benchmark, not a dynasty replay
+
+The prior-season team PPG baseline was evaluated across all 10 franchises,
+using 2023->2024 to train a regression toward the league mean, then 2024
+to predict 2025. The mean regression achieved **16.983 PPG MAE**, versus
+**16.744 PPG MAE** from unchanged prior-season scoring. This is a case
+where a seemingly attractive trained adjustment actually **failed** its
+out-of-sample test and should not be advertised as improvement.
+
+### Publication gate
+
+`node scripts/assess_dynasty_validation.js` returns
+`NOT_READY_FOR_VALIDATED_ODDS` with these explicit unresolved issues:
+
+- No date-correct **pre-2026** RosterAudit dynasty-market archive:
+  the actual market snapshots begin on **October 9, 2026**.
+- No tested time-safe joining of full historical rosters, traded draft
+  holdings, and market priors for a complete multiseason historical replay.
+- No independent out-of-sample sophomore rookie class.
+- No elapsed 2027–2032 seasons with which to check the calibration of
+  the actual six-year strongest-roster probabilities.
+
+The GitHub Actions model workflow executes no-leakage unit tests and
+uploads full player, rookie, franchise and publication-gate research
+artifacts. It **must not** be taken as evidence that exact championship
+or dynasty dominance probabilities have been validated.
+
+Run locally on the draft branch:
+
+    node model_tests/test_dynasty_retrospective.js
+    node scripts/backtest_dynasty_players.js --out /tmp/dynasty-player-backtest.json
+    node scripts/backtest_dynasty_franchise.js --out /tmp/dynasty-franchise-backtest.json
+    node scripts/assess_dynasty_validation.js --out /tmp/dynasty-publication-readiness.json
+
+All official league records, Sleeper updates, website UI and the live
+playoff calculator remain untouched.
