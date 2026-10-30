@@ -54,6 +54,8 @@ function validatePlan(raw){
   max_opponent_points:optionalNumber(raw.max_opponent_points,'max_opponent_points',-100,1000),
   min_margin:optionalNumber(raw.min_margin,'min_margin',-1000,1000),
   max_margin:optionalNumber(raw.max_margin,'max_margin',-1000,1000),
+  minimum_value:optionalNumber(raw.minimum_value,'minimum_value',-100000,100000),
+  maximum_value:optionalNumber(raw.maximum_value,'maximum_value',-100000,100000),
   draft_round:optionalNumber(raw.draft_round,'draft_round',1,30),
   player_name:typeof raw.player_name==='string'?raw.player_name.trim().slice(0,100):null,
   position:typeof raw.position==='string'?raw.position.trim().toUpperCase():null,
@@ -206,7 +208,8 @@ function execute(raw,source){
   const g=groups.get(info.key);g.rows.push(row);g.points+=row.points;g.against+=row.against;
   g.games+=row.games;g.wins+=row.wins;g.losses+=row.losses;
  }
- const ranked=[...groups.values()].filter(g=>g.games>=p.minimum_games).map(g=>({...g,value:computeValue(g,p)}));
+ const ranked=[...groups.values()].filter(g=>g.games>=p.minimum_games).map(g=>({...g,value:computeValue(g,p)}))
+  .filter(g=>(p.minimum_value===null||g.value>=p.minimum_value)&&(p.maximum_value===null||g.value<=p.maximum_value));
  if(!ranked.length)return error('No results meet the minimum sample size ('+p.minimum_games+').');
  ranked.sort((a,b)=>p.order==='asc'?a.value-b.value||a.label.localeCompare(b.label):b.value-a.value||a.label.localeCompare(b.label));
  const top=ranked[0],shown=ranked.slice(0,p.limit);
@@ -226,6 +229,8 @@ function execute(raw,source){
  if(p.result!=='any')filters.push('Result: '+p.result);
  if(p.compare_team_id)filters.push('Score '+(p.compare_direction==='higher'?'above ':'below ')+teamName(p.compare_team_id));
  if(p.minimum_games>1)filters.push('Min '+p.minimum_games+' games');
+ if(p.minimum_value!==null)filters.push('Result ≥ '+fmt(p.minimum_value));
+ if(p.maximum_value!==null)filters.push('Result ≤ '+fmt(p.maximum_value));
  const context=filters.join(' · ')||'All available finalized records';
  return {ok:true,title:top.label+' · '+METRIC_NAMES[p.metric],value:fmt(top.value)+unit,context,
   columns:[viewName,METRIC_NAMES[p.metric],'Sample'],
