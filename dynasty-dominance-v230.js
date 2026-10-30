@@ -199,7 +199,7 @@
    '<details class="dd-details"><summary>How the challenger model works <span>+</span></summary>'+
     '<div class="dd-details-body"><p>2026 actual points are recorded team scoring through Week '+
       report.source_week+'. Future years are stylized lineup-strength projections and should not be interpreted as directly observed season averages or future championship odds.</p>'+
-     '<p>Each season’s closest challenger is ranked by projected mean points, not by a validated probability of finishing first. RosterAudit value increasingly anchors player production at longer horizons (34% for 2027 up to 79% for 2032), with position-specific aging applied once. Modeling also includes rookie development, injuries, and future draft capital. Real future trades are not invented, and no manager receives a subjective trading-skill bonus.</p>'+
+     '<p>Each season’s closest challenger is ranked by projected mean points, not by a validated probability of finishing first. Future player scoring uses only position, age and current RosterAudit value. Past player and team PPG do not enter the forecast. Young players can develop into their peak seasons or occasionally break out, while older players decline. Real future trades are not invented, and no manager receives a subjective trading-skill bonus.</p>'+
      '<p>Actual ownership for original picks is sourced through '+
        ageAndPicks(selected).knownThrough+'. Beyond that date, original picks are assumed and can change with real trades. Historical one-year scoring holdouts have not demonstrated reliable long-horizon calibration.</p>'+
      '<a href="#/dynasty">ROSTER VALUES ↗</a></div></details>'+
@@ -252,14 +252,14 @@
     '<div><span>2026 ROSTER PLAYERS</span><strong>'+fmt(actual.length,0)+'</strong></div>'+
     '<div><span>SIMULATED FUTURE PICKS</span><strong>'+fmt(future.length,0)+'</strong></div></div>'+
    '<div class="dd-warning" role="note"><strong>Future player estimates, not market-value forecasts</strong>'+
-    '<span>Projected PPG combines current RosterAudit market-implied talent, position, age and prior NFL scoring in the dynasty simulation. Market values shown are current RosterAudit values, not estimated '+year+' resale values. Future rookies are unidentified draft slots.</span></div>'+
+    '<span>Projected PPG uses only current RosterAudit value, player position and age, plus uncertain development and availability. Previous NFL scoring is not an input. Market values shown are current RosterAudit values, not estimated '+year+' resale values. Future rookies are unidentified draft slots.</span></div>'+
    '<section class="dd-panel dd-player-panel"><div class="dd-panel-heading"><div>'+
      '<span class="dd-overline">PLAYER OUTLOOK · '+year+'</span><h3>Expected fantasy scoring</h3></div>'+
      '<label class="dd-player-filter-label">POSITION <select id="ddPositionFilter" aria-label="Filter projected players by position">'+
       labels.map(p=>'<option value="'+p+'">'+(p==='ALL'?'All positions':p==='TBD'?'Future picks':p)+'</option>').join('')+
      '</select></label></div>'+
      '<div id="ddPlayerTable"></div>'+
-     '<p class="dd-player-note">Scenario 10th–90th percentile ranges show model sensitivity, not validated confidence intervals. Future rookie entries are expected contributions of draft picks, not identified NFL players. Players are assumed to remain on their current dynasty franchise; the model does not simulate later trades.</p>'+
+     '<p class="dd-player-note">Players without a RosterAudit market quote show — for PPG rather than invented scores. Scenario 10th–90th percentile ranges show sensitivity, not validated confidence intervals. Future rookie entries are unidentified draft-pick possibilities. Players are assumed to remain on their current dynasty franchise; the model does not simulate later trades.</p>'+
    '</section>'+
    '<div class="dd-player-navigation"><a href="#/dynasty-dominance/'+id+'/'+year+'">← BACK TO '+esc(TEAMS[id]).toUpperCase()+' '+year+'</a>'+
     '<a href="#/team/'+id+'">CURRENT TEAM ROSTER ↗</a></div>'+
@@ -278,8 +278,8 @@
      '<td class="dd-player-name"><span class="dd-player-rank">'+String(i+1).padStart(2,'0')+'</span>'+name+'</td>'+
      '<td><span class="dd-position">'+esc(p.pos||'TBD')+'</span></td>'+
      '<td>'+fmt(p.age)+'</td>'+
-     '<td class="dd-player-ppg">'+fmt(p.ppg)+'</td>'+
-     '<td class="dd-player-range">'+fmt(p.p10)+'–'+fmt(p.p90)+'</td>'+
+     '<td class="dd-player-ppg">'+(p.ppg===null?'—':fmt(p.ppg))+'</td>'+ 
+     '<td class="dd-player-range">'+(p.p10===null||p.p90===null?'—':fmt(p.p10)+'–'+fmt(p.p90))+'</td>'+ 
      '<td class="dd-market-2026">'+value+'</td></tr>';
    }).join('');
    table.innerHTML='<div class="dd-player-scroll"><table class="dd-player-table">'+
