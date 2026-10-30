@@ -2,7 +2,7 @@
    This module replaces the legacy fixed-metric AI without removing historical pages. */
 (function(root){
  'use strict';
- const ENDPOINT='https://boekmuse-sql-preview.fig-league-archive.workers.dev';
+ const ENDPOINT='https://boekmuse-sql.fig-league-archive.workers.dev';
  const NAMES={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
  let previous=null;
  const MAX_WAIT=55000;
