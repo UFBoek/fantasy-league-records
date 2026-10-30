@@ -6,19 +6,19 @@ Without a configured Worker, the original keyword search remains active. With th
 
 ## One-time deployment on the Cloudflare free tier
 
-1. Create a Cloudflare Workers **Free** account at https://dash.cloudflare.com/. Remain on the Free plan. As of October 2026 Workers AI allows 10,000 free neurons daily; the Free plan rejects over-limit usage rather than billing for overages.
+1. Sign in to the Cloudflare Workers **Free** account at https://dash.cloudflare.com/. Remain on the Free plan. As of October 2026 Workers AI allows 10,000 free neurons daily; the Free plan rejects over-limit usage rather than billing for overages.
 2. Install Node.js if necessary. Clone or download the repository to your computer. Open a terminal in the **workers/ask-fig** folder and run:
 
     npx wrangler login
     npx wrangler deploy
 
-   Follow the Cloudflare browser login prompt. Deployment prints a URL resembling https://ask-fig-ai.YOUR-SUBDOMAIN.workers.dev.
-3. In the website repository, edit **ask-fig-config.js** to set the public URL returned by Cloudflare:
+   Follow the Cloudflare browser login prompt. Deployment prints a URL resembling https://ask-fig-ai.fig-league-archive.workers.dev.
+3. In the website repository, edit **ask-fig-config.js** to set the public URL returned by Cloudflare (already configured for this league):
 
-    window.FIG_ASK_WORKER_URL = 'https://ask-fig-ai.YOUR-SUBDOMAIN.workers.dev';
+    window.FIG_ASK_WORKER_URL = 'https://ask-fig-ai.fig-league-archive.workers.dev';
 
    Commit the change to the Ask FIG feature branch and merge the reviewed pull request to main. GitHub Pages will publish the website normally. No paid API keys are needed.
-4. The Worker accepts browser origins in the **ALLOWED_ORIGINS** variable in **workers/ask-fig/wrangler.jsonc**. The initial value is https://ufboek.github.io. For a custom site domain, add its exact origin (https + hostname; no trailing path) separated by commas, then redeploy.
+4. The Worker accepts browser origins in the **ALLOWED_ORIGINS** variable in **workers/ask-fig/wrangler.jsonc**. The configured allowed origin is https://ufboek.github.io. For a custom site domain, add its exact origin (https + hostname; no trailing path) separated by commas, then redeploy.
 5. The new service exposes a simple /health endpoint and accepts statistical interpretation requests on /interpret. The published website continues to use its own /data JSON files.
 
 Never put Cloudflare API tokens or other secrets in the public repository. The Worker includes allowed-origin checks, a maximum question length, approximate per-client and aggregate rate limits and AI usage under the free daily cap. Browser Origin is not authentication: forged requests are still possible, so do not upgrade to a paid plan without reviewing usage protections.
@@ -42,7 +42,7 @@ Not yet supported: arbitrary multi-table joins, all-play, injury timelines, dyna
 
 ## Code and verification
 
-- **workers/ask-fig/src/index.js**: free Llama 3.1 8B interpreter, JSON schema, input checks and rate limiting.
+- **workers/ask-fig/src/index.js**: free-tier-compatible Llama 3.3 70B interpreter, JSON schema, input checks and rate limiting.
 - **workers/ask-fig/wrangler.jsonc**: Workers AI binding and Worker settings.
 - **ask-fig-config.js**: optional public endpoint URL, initially blank.
 - **league-ask-ai-v221.js**: validated, deterministic query execution in the browser.
@@ -57,3 +57,11 @@ Run from the repository root:
     bash scripts/check_website_tests.sh
 
 End-to-end live inference still requires deploying the Worker to a Cloudflare account; automated tests mock model output. The feature branch does not change live GitHub Pages until merged. An unrelated historical dynasty-market archive assertion currently makes the full website CI fail after Ask FIG's tests pass; that integrity issue should be addressed separately.
+
+## Deployment status (October 30, 2026)
+
+Cloudflare Worker `ask-fig-ai` was deployed using the connected Cloudflare account, with Workers AI, allowed-origin and per-IP/global rate-limit bindings. Its endpoint is `https://ask-fig-ai.fig-league-archive.workers.dev` and the public URL is committed to `ask-fig-config.js` on the feature branch. Automated live smoke tests from GitHub Actions confirmed the health endpoint, real AI inference and CORS. The production website is **still unchanged** until the feature PR is merged.
+
+Cloudflare's Workers Free plan includes 10,000 AI neurons per day; the stronger 70B model consumes approximately 30–45 neurons for typical queries tested here, so actual daily capacity varies with question and model output. Stay on the Free plan to avoid overage billing. Worker changes are **not continuously deployed from GitHub**; use Cloudflare connection/API or Wrangler to deploy future backend changes.
+
+For an optional live verification, run `node tests/test_league_ask_worker_smoke.js`. It calls the deployed Worker and consumes a small amount of your free AI allowance. It is intentionally not required during all routine UI regression runs after initial verification.
