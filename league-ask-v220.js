@@ -137,7 +137,7 @@ function statsForGames(q,games){
     resultRow([x.g.season+' W'+x.g.week,fmt(x.points),name(x.opp)],gameHref(x.g))));
   const by=OWNERS.map(o=>({id:o[0],count:filtered.filter(x=>x.team===o[0]).length}))
    .sort((a,b)=>b.count-a.count||a.id-b.id);
-  return success('Most '+target+'+ point games',by[0].count,sc.desc,['Team','Games'],
+  return success(name(by[0].id)+' · Most '+target+'+ point games',by[0].count,sc.desc,['Team','Games'],
    by.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
  }
  const avg=/\b(ppg|average|avg|per game)\b/.test(s);
@@ -146,7 +146,7 @@ function statsForGames(q,games){
  if(weekly&&/\b(highest|lowest|most|least|best|worst|top|score|scored)\b/.test(s)){
   const low=/\b(lowest|least|worst|fewest)\b/.test(s);
   const ordered=relevant.slice().sort((a,b)=>low?a.points-b.points:b.points-a.points);
-  return success(low?'Lowest weekly scores':'Highest weekly scores',fmt(ordered[0].points)+' pts',sc.desc,
+  return success(name(ordered[0].team)+' · '+(low?'Lowest weekly score':'Highest weekly score'),fmt(ordered[0].points)+' pts',sc.desc,
    ['Team','Week','Score','Opponent'],ordered.slice(0,limit(q)).map(x=>
     resultRow([name(x.team),x.g.season+' W'+x.g.week,fmt(x.points),name(x.opp)],gameHref(x.g))));
  }
@@ -172,7 +172,7 @@ function statsForGames(q,games){
  if(!selected.length)return {ok:false,message:'No games for that team in the requested period.'};
  const title=rate?'Win percentage':stat==='wins'?'Wins':stat==='losses'?'Losses':
   stat==='against'?(avg?'Points allowed per game':'Points allowed'):avg?'Points per game':'Total points';
- return success((first?name(first)+' · ':'')+title,
+ return success((first?name(first):name(selected[0].id))+' · '+title,
   fmt(value(selected[0]))+(rate?'%':stat==='points'||stat==='against'?' pts':''),
   sc.desc,['Team',title,'Record','Games'],selected.map(x=>
    resultRow([name(x.id),fmt(value(x)),x.wins+'–'+x.losses+(x.ties?'–'+x.ties:''),x.games],teamHref(x.id))),
@@ -203,7 +203,7 @@ function statsForPlayers(q,players,games){
  const score=x=>starts?x.games:average?x.points/x.games:single?x.high:x.points;
  const ranked=[...groups.values()].sort((a,b)=>score(b)-score(a)||a.player.localeCompare(b.player));
  const target=ranked[0],selection=mentioned?ranked:ranked.slice(0,limit(q));
- return success(mentioned?target.player+' · '+(tm?.name||'League'):((tm?.name||'League')+' player '+(starts?'starts':average?'PPG':single?'weekly highs':'points')),
+ return success(target.player+' · '+(tm?.name||'League')+' '+(starts?'starts':average?'PPG':single?'weekly high':'points'),
   fmt(score(target))+(starts?' starts':' pts'),sc.desc+' · started fantasy players only',
   ['Player','Pos',starts?'Starts':average?'PPG':single?'Best':'Points','Starts'],
   selection.map(x=>resultRow([x.player,x.pos,fmt(score(x)),x.games],playerHref(x.id))),
@@ -219,7 +219,7 @@ function statsForTrades(q,trades){
   'Each archived trade transaction is counted once.');
  const groups=OWNERS.map(o=>({id:o[0],count:subset.filter(t=>(t.franchise_ids||[]).map(Number).includes(o[0])).length}))
   .sort((a,b)=>b.count-a.count||a.id-b.id);
- return success('Most trades',groups[0].count,years.join(', ')||'All seasons',['Team','Trades'],
+ return success(name(groups[0].id)+' · Most trades',groups[0].count,years.join(', ')||'All seasons',['Team','Trades'],
   groups.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
 }
 function statsForDrafts(q,picks){
@@ -233,7 +233,7 @@ function statsForDrafts(q,picks){
   .find(x=>(' '+s+' ').includes(' '+clean(x)+' '));
  if(mentioned){
   rows=rows.filter(x=>x.player_name===mentioned);
-  return success('Who drafted '+mentioned+'?',rows.length,years.join(', ')||'All seasons',
+  return success('Who drafted '+mentioned+'?',rows.map(x=>name(x.franchise_id)).join(', ')||'Not found',years.join(', ')||'All seasons',
    ['Year','Team','Draft','Pick'],rows.map(x=>resultRow([x.draft_season,name(x.franchise_id),x.draft_class,x.pick_label],'#/draft')));
  }
  if(tm)return success(tm.name+' draft selections',rows.length,years.join(', ')||'All seasons',
@@ -241,7 +241,7 @@ function statsForDrafts(q,picks){
    resultRow([x.draft_season,x.pick_label,x.player_name,x.position],playerHref(x.player_id))));
  const groups=OWNERS.map(o=>({id:o[0],count:rows.filter(x=>n(x.franchise_id)===o[0]).length}))
   .sort((a,b)=>b.count-a.count||a.id-b.id);
- return success('Most draft selections',groups[0].count,years.join(', ')||'All seasons',
+ return success(name(groups[0].id)+' · Most draft selections',groups[0].count,years.join(', ')||'All seasons',
   ['Team','Selections'],groups.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
 }
 async function ask(q){
