@@ -257,4 +257,4 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
    'Nominal simulation ranges and ranking frequencies are not statistically calibrated.'
   ]};
 }
-module.exports={runModel,projectedPotential,maturity,breakoutProbability,makeIncumbent,makeFuturePick,project,draftAssetValue};
+module.exports={runModel,makePicks,projectedPotential,maturity,marketPpg,legalLineup,breakoutProbability,makeIncumbent,makeFuturePick,project,draftAssetValue};
