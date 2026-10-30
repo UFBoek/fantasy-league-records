@@ -199,7 +199,7 @@
    '<details class="dd-details"><summary>How the challenger model works <span>+</span></summary>'+
     '<div class="dd-details-body"><p>2026 actual points are recorded team scoring through Week '+
       report.source_week+'. Future years are stylized lineup-strength projections and should not be interpreted as directly observed season averages or future championship odds.</p>'+
-     '<p>Each season’s closest challenger is ranked by projected mean points, not by a validated probability of finishing first. Modeling assumptions include aging, rookie development, injuries, and future draft capital. Real future trades are not invented, and no manager receives a subjective trading-skill bonus.</p>'+
+     '<p>Each season’s closest challenger is ranked by projected mean points, not by a validated probability of finishing first. RosterAudit value increasingly anchors player production at longer horizons (34% for 2027 up to 79% for 2032), with position-specific aging applied once. Modeling also includes rookie development, injuries, and future draft capital. Real future trades are not invented, and no manager receives a subjective trading-skill bonus.</p>'+
      '<p>Actual ownership for original picks is sourced through '+
        ageAndPicks(selected).knownThrough+'. Beyond that date, original picks are assumed and can change with real trades. Historical one-year scoring holdouts have not demonstrated reliable long-horizon calibration.</p>'+
      '<a href="#/dynasty">ROSTER VALUES ↗</a></div></details>'+
@@ -252,7 +252,7 @@
     '<div><span>2026 ROSTER PLAYERS</span><strong>'+fmt(actual.length,0)+'</strong></div>'+
     '<div><span>SIMULATED FUTURE PICKS</span><strong>'+fmt(future.length,0)+'</strong></div></div>'+
    '<div class="dd-warning" role="note"><strong>Future player estimates, not market-value forecasts</strong>'+
-    '<span>Projected PPG comes from the dynasty scoring simulation. Market values shown are the current RosterAudit values, not estimated '+year+' resale values. Future rookies are unidentified draft slots.</span></div>'+
+    '<span>Projected PPG combines current RosterAudit market-implied talent, position, age and prior NFL scoring in the dynasty simulation. Market values shown are current RosterAudit values, not estimated '+year+' resale values. Future rookies are unidentified draft slots.</span></div>'+
    '<section class="dd-panel dd-player-panel"><div class="dd-panel-heading"><div>'+
      '<span class="dd-overline">PLAYER OUTLOOK · '+year+'</span><h3>Expected fantasy scoring</h3></div>'+
      '<label class="dd-player-filter-label">POSITION <select id="ddPositionFilter" aria-label="Filter projected players by position">'+

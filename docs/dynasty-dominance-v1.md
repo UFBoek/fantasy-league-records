@@ -461,3 +461,57 @@ probability, starter-versus-bench status, observed NFL role
 persistence, known picks and rookie outcomes, with uncertain future
 acquisitions carried as distributions rather than assumed
 discretionary trades.
+
+
+## October 30, 2026: market-value and age-weighted dynasty player projections
+
+The original 2026 player baseline applied a historical-scoring credibility
+weight of up to **84%**, leaving only **16%** of the estimate to the
+RosterAudit-derived production prior. That was reasonable for a short
+horizon, but could obscure the higher developmental potential of
+valuable young players several years into the future.
+
+The successor `experimental-v2.2-value-age` makes the **incumbent
+player's future scoring** the combination of two distinguishable paths:
+
+- **Historical production path:** 2026 base PPG inferred from observed
+  2024–2026 scoring and the market prior, aged using the ratio of
+  target-year position age curve to current position age curve.
+- **RosterAudit market-talent path:** position-calibrated scoring level
+  inferred from **today's** market value, multiplied by the target-year
+  position age curve once in the simulation. The input market value is
+  not a forecast of a future RosterAudit price.
+- **Forecast horizon blend:** market path contributes 34% in 2027, 43%
+  in 2028, 52% in 2029, 61% in 2030, 70% in 2031, 79% in 2032.
+  Historical scoring contributes the complementary portion.
+
+The market value to PPG scale is monotone but varies by position.
+The RB, WR and TE coefficients were revised using a **same-date
+2026 cross-sectional** comparison against the first seven real NFL
+weeks. This check can show better consistency of today's RosterAudit
+values with today's production, but **cannot show that the method
+predicts future seasons**, because the current market values reflect
+some of those observed NFL performances. No pre-2026 historical
+RosterAudit valuation snapshots exist for a time-safe independent
+backtest. A verified one-year or six-year calibration remains pending.
+
+Current market values are not future resale prices. The model continues
+to avoid assumed manager skill bonuses and fictional trades. Unknown
+individual market values fall back to the production path rather than
+being assigned zero-valued market talent; unidentified future rookie
+draft slots receive no fabricated current RosterAudit price. The team
+and player projections still use the **same** simulation draws.
+
+Research diagnostics / reproduction:
+
+    node model_tests/test_dynasty_value_age.js
+    node scripts/audit_dynasty_value_age.js --runs 300
+    node model_tests/test_dynasty_site_report.js
+    node scripts/build_dynasty_site_report.js --runs 1500
+
+The diagnostic compares the full-season scoring-strength simulations
+with market weighting off (0) versus on (1) using a fixed seed. These
+are **sensitivity checks**, not independent historical forecasts.
+The beta public report version increments to `fig-beta-1.2-value-age`
+so automatic publishing does not retain the previous cached model
+result when source datasets are unchanged.
