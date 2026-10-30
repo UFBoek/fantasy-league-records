@@ -25,6 +25,7 @@ const SCHEMA= [
  'Use td_coverage JOIN for any non-QB touchdown calculation, AND ensure sum only non-QB RB/WR/TE/FB. Exclude QB passing TDs. TDs for players without verified coverage must NOT be presented as complete.',
 'When a user asks for TOTAL touchdowns, include SUM(s.td) AS touchdowns as an explicit numeric result column, even if you also show rushing and receiving breakdowns separately. The total must be visible without mental addition.',
  'Which team has most wins against Hayden? SELECT team_id,COUNT(*) AS wins FROM games WHERE opponent_id=6 AND win=1 AND game_type=\'Regular Season\' GROUP BY team_id ORDER BY wins DESC.',
+ 'For most/fewest/best/worst rankings, show a sorted leaderboard of relevant managers including all ties for first place; do not apply LIMIT 1 unless the user expressly requests one answer. Returning every tied leader is essential.',
  'Use a LIMIT of 50 or less, unless the question needs all weeks (max 100 output rows). Use sensible column aliases.',
  'RETURN JSON with supported:boolean, sql:string, title:string, understood:string, reason:string. SQL SELECT only. No markdown fences.'
 ].join('\n');
@@ -217,7 +218,10 @@ function questionGuard(question,sql){
    !/\b(?:COUNT|SUM)\s*\(/i.test(sql))
    throw Error('Counting qualifying games requires COUNT or SUM over individual weekly game rows.');
  }
- if(!/\b(?:current|this|latest|most recent)\s+season\b/.test(q)&&
+ if(/\b(?:most|fewest)\b/.test(q)&&!(/\b(?:top|only|just|single|one)\s*1\b/.test(q))&&
+  /\bLIMIT\s+1\b/i.test(sql))
+  throw Error('Ranking may have tied leaders. Do not use LIMIT 1; show all equal top-ranking teams.');
+  if(!/\b(?:current|this|latest|most recent)\s+season\b/.test(q)&&
   !/\b20(?:2[3-9]|3\d)\b/.test(q)&&
   /\bseason\s*=\s*\(\s*SELECT\s+MAX\s*\(\s*season\s*\)/i.test(sql))
   throw Error('Do not invent a latest-season filter; the user did not specify a season. Include all league years.');
