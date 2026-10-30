@@ -108,11 +108,17 @@ function main(argv){
   nflHistory:data('dynasty_nfl_history'),weeklyScores:data('weekly_scoring_ranks')};
  const result=build(input);
  const current=data('current_future_picks');
- const comparison=replayPicks(input.transactions,2026,7);
+ // Current draft-pick ownership can change in the next weekly Sleeper
+ // refresh. Reconcile to the latest *completed transaction week*, not the
+ // historical experiment's fixed 2024/2025 Week-7 holdout cutoff.
+ const latestTransferWeek=Math.max(1,...input.transactions.filter(t=>+t.season===2026&&t.status==='complete')
+  .map(t=>+t.week||1));
+ const comparison=replayPicks(input.transactions,2026,latestTransferWeek);
  const expected=new Map(current.filter(x=>+x.pick_season>=2027&&+x.pick_season<=2029)
   .map(x=>[K(+x.pick_season,+x.round,+x.original_franchise_id),+x.current_franchise_id]));
  const mismatches=comparison.picks.filter(p=>expected.get(K(p.year,p.round,p.origin))!==p.owner);
- result.reconciliation_2026={checked:comparison.picks.length,expected:expected.size,
+ result.reconciliation_2026={through_transaction_week:latestTransferWeek,
+  checked:comparison.picks.length,expected:expected.size,
   matched:comparison.picks.length-mismatches.length,
   chain_warnings:comparison.warnings.length,
   mismatches:mismatches.map(x=>({...x,expected:expected.get(K(x.year,x.round,x.origin))}))};
@@ -130,6 +136,7 @@ function main(argv){
   console.log('ASOF_MISSING_POSITIONS',p.year,JSON.stringify(p.unknown_positions.slice(0,10)));
  }
  console.log('ASOF_PICK_2026_RECONCILIATION',JSON.stringify({
+  through_week:result.reconciliation_2026.through_transaction_week,
   checked:result.reconciliation_2026.checked,matched:result.reconciliation_2026.matched,
   chain_warnings:result.reconciliation_2026.chain_warnings,
   mismatches:result.reconciliation_2026.mismatches.slice(0,12)}));
