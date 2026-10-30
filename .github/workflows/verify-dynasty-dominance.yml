@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - scripts/dynasty_dominance_model.js
+      - scripts/dynasty_value_only_model.js
+      - scripts/audit_dynasty_value_only.js
+      - model_tests/test_dynasty_value_only.js
       - scripts/audit_dynasty_value_age.js
       - model_tests/test_dynasty_value_age.js
       - scripts/build_dynasty_site_report.js
@@ -34,6 +37,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify three-input-only player projection and developmental breakouts
+        run: node model_tests/test_dynasty_value_only.js
+      - name: Audit model replacement and player growth
+        run: node scripts/audit_dynasty_value_only.js --runs 300 > "$RUNNER_TEMP/dynasty-value-only-audit.log"
       - name: Verify contracts and deterministic runs
         run: node tests/test_dynasty_dominance.js
       - name: Check market-based age/production composition
@@ -80,6 +87,7 @@ jobs:
           name: dynasty-dominance-research
           path: |
             ${{ runner.temp }}/dynasty-dominance-research.json
+            ${{ runner.temp }}/dynasty-value-only-audit.log
             ${{ runner.temp }}/dynasty-value-age-audit.log
             ${{ runner.temp }}/dynasty-form-backtest.json
             ${{ runner.temp }}/dynasty-stress.json

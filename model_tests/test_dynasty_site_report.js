@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {build,files,reportVersion}=require('../scripts/build_dynasty_site_report');
-const {makePicks}=require('../scripts/dynasty_dominance_model');
+const {makePicks}=require('../scripts/dynasty_value_only_model');
 const inputs=Object.fromEntries(files.map(n=>[n,JSON.parse(fs.readFileSync(path.resolve(__dirname,'../data',n+'.json'),'utf8'))]));
 const fixedDate='2026-10-30T00:00:00Z';
 const output=build(inputs,{runs:12,seed:407,generatedAt:fixedDate});
@@ -20,6 +20,15 @@ for(const year of output.years){
  assert.ok(ranking.every(t=>Number.isFinite(t.ppg)&&t.ppg>=0));
  assert.equal(new Set(ranking.map(t=>t.id)).size,10);
 }
+const distorted={...inputs,weekly_scoring_ranks:inputs.weekly_scoring_ranks.map(row=>({
+ ...row,points_for:99999
+}))};
+const changed=build(distorted,{runs:12,seed:407,generatedAt:fixedDate});
+assert.deepEqual(changed.seasons,output.seasons,
+ '2026 actual team scoring may change the display, never projected 2027-2032 PPG');
+assert.notDeepEqual(changed.teams.map(x=>x.current_ppg),
+ output.teams.map(x=>x.current_ppg),
+ 'Observed PPG remains a separate actual-performance display');
 assert.ok(output.teams.every(t=>Number.isFinite(t.top10_value_weighted_age)));
 assert.ok(output.teams.every(t=>Object.keys(t.draft_by_year).length===6));
 for(const year of output.years){
@@ -31,7 +40,9 @@ for(const year of output.years){
   const current=inputs.current_roster.filter(p=>+p.franchise_id===id&&['QB','RB','WR','TE'].includes(p.position));
   assert.equal(real.length,current.length,'Every actual roster player appears exactly once in each future season');
   assert.equal(new Set(players.map(p=>p.id)).size,players.length,'Future draft slots must have stable unique identifiers');
-  assert.ok(players.every(p=>Number.isFinite(p.ppg)&&p.ppg>=0&&Number.isFinite(p.p10)&&Number.isFinite(p.p90)));
+  assert.ok(players.every(p=>p.ppg===null||(Number.isFinite(p.ppg)&&p.ppg>=0&&Number.isFinite(p.p10)&&Number.isFinite(p.p90))));
+  assert.ok(real.filter(p=>p.current_market_value===null).every(p=>p.ppg===null),
+   'No RosterAudit quote means PPG remains unknown, never borrowed from historical scoring');
   assert.ok(real.every(p=>['QB','RB','WR','TE'].includes(p.pos)&&
    (p.current_market_value===null||Number.isFinite(+p.current_market_value))),
    'Missing RosterAudit player prices must remain unknown, never fabricated');
