@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
-const base='https://boekmuse-sql-preview.fig-league-archive.workers.dev';
+const base='https://boekmuse-sql.fig-league-archive.workers.dev';
 const origin='https://ufboek.github.io';
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 async function json(path,method='GET',body){
