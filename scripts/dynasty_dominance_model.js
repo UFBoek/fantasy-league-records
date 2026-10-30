@@ -129,20 +129,19 @@ function getForm(weekly){
 }
 function makePicks(data){
  const byYear=Object.fromEntries(YEARS.map(y=>[y,[]]));
+ const actual=new Map();
  for(const x of data){
-  const year=+x.pick_season,round=+x.round;
-  if(year>=2027&&year<=2029&&round>=1&&round<=4)
-   byYear[year].push({year,round,owner:+x.current_franchise_id,origin:+x.original_franchise_id});
+  const year=+x.pick_season,round=+x.round,origin=+x.original_franchise_id,
+    owner=+x.current_franchise_id;
+  if(!YEARS.includes(year)||round<1||round>4||!IDS.includes(origin)||!IDS.includes(owner))continue;
+  const key=year+':'+round+':'+origin;
+  if(actual.has(key))throw Error('Duplicate draft pick '+key);
+  actual.set(key,{year,round,owner,origin,assumed:false});
  }
- for(let year=2030;year<=2032;year++)for(const id of IDS)for(let round=1;round<=4;round++)
-  byYear[year].push({year,round,owner:id,origin:id,assumed:true});
- for(const year of YEARS){
-  const keys=new Set();
-  for(const p of byYear[year]){
-   const key=p.year+':'+p.round+':'+p.origin;
-   if(keys.has(key))throw Error('Duplicate draft pick '+key);
-   keys.add(key);
-  }
+ for(const year of YEARS)for(const id of IDS)for(let round=1;round<=4;round++){
+  const key=year+':'+round+':'+id;
+  if(year<=2029&&!actual.has(key))throw Error('Missing verified draft pick '+key);
+  byYear[year].push(actual.get(key)||{year,round,owner:id,origin:id,assumed:true});
  }
  return byYear;
 }
@@ -285,15 +284,16 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
    observed_nfl_wide_rostered_games:base.reduce((sum,p)=>sum+p.nflStarts,0),
    empirical_rookie_samples:Object.fromEntries([1,2,3,4].map(round=>[round,empirical[round].length])),
    second_year_2024_class_samples:Object.values(empirical).flat().filter(x=>x.season===2024&&x.second_year_ppg!==null).length,
-   known_2027_2029_picks:YEARS.slice(0,3).reduce((s,y)=>s+picksByYear[y].length,0),
-   assumed_2030_2032_picks:120},
+   known_2027_2029_picks:YEARS.slice(0,3).reduce((s,y)=>s+picksByYear[y].filter(p=>!p.assumed).length,0),
+   known_2030_2032_picks:YEARS.slice(3).reduce((s,y)=>s+picksByYear[y].filter(p=>!p.assumed).length,0),
+   assumed_2030_2032_picks:YEARS.slice(3).reduce((s,y)=>s+picksByYear[y].filter(p=>p.assumed).length,0)},
   current_form:IDS.map(id=>({id,name:TEAMS[id],form_ppg:rnd(form[id]),calibration:rnd(calibration[id],3)})),
   seasons,whole_horizon,
   limitations:[
    'Research only; future probabilities not historically validated or betting odds.',
    'Prefer standardized NFL-wide 2023-2026 observed games; fall back to league started-player logs, then market-position priors for unobserved bench players.',
    'Empirical rookie year-one samples use 80 FIG rookies in 2024-25; sophomore development uses 40 FIG rookies selected in 2024. Later aging and injuries remain hypothetical.',
-   'Real 2027-29 pick ownership; 2030-32 own picks assumed one per round and may later change with trades.',
+   'Real pick ownership for all seasons present in Sleeper; unlisted future years assume one original pick per round per team and may change with trades.',
    'Draft tier is inferred from previous simulated scoring, not guaranteed draft order.',
    'Season scoring is a stylized best legal lineup with availability penalties, not week-by-week injury-aware lineup optimization.',
    'No fabricated future trades or manager ability bonuses; schedule not used to measure scoring dominance.'
