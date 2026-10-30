@@ -39,7 +39,9 @@ jobs:
       - name: Check market-based age/production composition
         run: node model_tests/test_dynasty_value_age.js
       - name: Audit valuation-to-scoring cross-section and future sensitivities
-        run: node scripts/audit_dynasty_value_age.js --runs 300 > "$RUNNER_TEMP/dynasty-value-age-audit.log"
+        run: |
+          node scripts/audit_dynasty_value_age.js --runs 300 > "$RUNNER_TEMP/dynasty-value-age-audit.log"
+          tail -n 9 "$RUNNER_TEMP/dynasty-value-age-audit.log"
       - name: Verify no-leakage player and rookie holdout tests
         run: node model_tests/test_dynasty_retrospective.js
       - name: Generate historical player and rookie holdout report
