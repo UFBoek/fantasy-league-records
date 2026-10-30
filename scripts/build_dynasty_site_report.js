@@ -69,7 +69,7 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
      future_score_interpretation:'Value-anchored, age-adjusted stylized scoring strength; current price reflects potential, not guaranteed future points',
-     future_player_model:'2027 blends 34% RosterAudit market-implied peak scoring and 66% weighted historical scoring; market share gradually increases to 79% in 2032. One position-specific age curve applied to each pathway, not two.'
+     future_player_model:'2027 blends 34% RosterAudit market-implied peak scoring and 66% weighted historical scoring; market share gradually increases to 79% in 2032. One position-specific age curve applied to each pathway, not two.',
      player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
     one_year_holdout_better_than_baseline:false,
