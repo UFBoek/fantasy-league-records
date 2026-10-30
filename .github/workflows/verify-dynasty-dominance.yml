@@ -54,7 +54,7 @@ jobs:
       - name: Sensitivity - double-discounted 0.80 persistence for comparison
         run: node scripts/backtest_dynasty_next_season.js --runs 250 --persistence 0.80 --out "$RUNNER_TEMP/dynasty-persistence-080.json"
       - name: Assess historical validation and publication readiness
-        run: node scripts/assess_dynasty_validation.js --asof "$RUNNER_TEMP/dynasty-historical-asof.json" --next-season "$RUNNER_TEMP/dynasty-next-season-holdout.json" --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
+        run: node scripts/assess_dynasty_validation.js --asof "$RUNNER_TEMP/dynasty-historical-asof.json" --next-season "$RUNNER_TEMP/dynasty-next-season-holdout.json" --turnover "$RUNNER_TEMP/dynasty-neutral-turnover.json" --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
       - name: Generate review-only research report
         run: node scripts/dynasty_dominance_model.js --runs 1000 --out "$RUNNER_TEMP/dynasty-dominance-research.json"
       - name: Backtest past single-season scoring form (2023–2025)
