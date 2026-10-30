@@ -92,7 +92,7 @@ assert.equal(typeof context.window.figDynastyDominance,'function');
  assert.match(holder.innerHTML,/#\/dynasty-dominance\/9\/2032\/players/);
  assert.equal(context.location.hash,'#/dynasty-dominance/9/2032');
  await context.window.figDynastyDominance(6,2030);
- assert.match(holder.innerHTML,/2030 · BOEK VS HAYDEN/);
+ assert.match(holder.innerHTML,/2030 · BOEK’S CLOSEST CHALLENGER/);
  assert.match(holder.innerHTML,/#\/dynasty-dominance\/6\/2030\/players/);
  assert.match(holder.innerHTML,/#\/dynasty-dominance\/6\/2030/);
  assert.equal(fetchCount,1);
