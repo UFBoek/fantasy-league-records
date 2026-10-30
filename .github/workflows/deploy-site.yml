@@ -19,6 +19,10 @@ jobs:
       - name: Check out website
         uses: actions/checkout@v4
 
+      - name: Prepare latest Dynasty Dominance beta report for this Pages artifact
+        run: |
+          node --version
+          node scripts/build_dynasty_site_report.js --runs 1500
       - name: Stage static website
         run: bash scripts/stage_pages.sh "$RUNNER_TEMP/league-site"
 
