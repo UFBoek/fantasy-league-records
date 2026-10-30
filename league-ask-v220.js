@@ -9,9 +9,9 @@ const OWNERS=[
 [9,'CamNol',['camnol','cam nol','nolanfm13']],[10,'James',['james','jamest33']]
 ];
 const EXAMPLES=[
-'Who has the highest PPG in league history?',
-'What is Boek’s record against Hayden since 2024?',
-'Which player scored the most points for Winston?',
+'Which teams had 3 starting WRs score 20+ points in the same week?',
+'How many times did Boek outscore Hayden in the same week but lose?',
+'How many non-QB touchdowns did Boek starters score each week in 2026?',
 'What are the 10 biggest blowouts ever?',
 'How many trades has Fru made?',
 'Who has the most 200 point weeks?',
@@ -245,29 +245,9 @@ function statsForDrafts(q,picks){
   ['Team','Selections'],groups.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
 }
 async function ask(q){
- // The free AI layer converts natural language into a validated, deterministic plan.
- // Until the Worker URL is configured, preserve the existing offline keyword search.
- if(root.figAskAi?.ask){const result=await root.figAskAi.ask(q);if(result)return result;}
- const s=clean(q);
- if(s.length<3)return {ok:false,message:'Ask a complete question about league history.'};
- if(/\b(trade|trades|traded)\b/.test(s))return statsForTrades(q,await load('trades'));
- if(/\b(draft|drafted|drafts|drafting)\b/.test(s))return statsForDrafts(q,await load('drafts'));
- if(/\b(superflex|bench|roster value|win probability|projected|future odds|streak|strength of schedule|all.play|rushing yards|receiving yards|touchdowns|passing yards|season total|season record|single.season|per season|each season)\b/.test(s))
-  return {ok:false,message:'That question needs a data source this search does not support yet.'};
- const games=await load('games');
- const playerIntent=/\b(player|players|starter|starters|started|starts|qb|rb|wr|te|quarterback|wide receiver|running back|tight end)\b/.test(s);
- if(playerIntent){return statsForPlayers(q,await load('players'),games);}
- if(/\b(point|points|ppg|scored|scoring|score|average)\b/.test(s)){
-  const players=await load('players');
-  const seen=new Set();
-  const hasPlayer=players.some(x=>{const id=String(x.player_id);if(seen.has(id))return false;seen.add(id);
-   return x.player_name&&(' '+s+' ').includes(' '+clean(x.player_name)+' ');
-  });
-  if(hasPlayer)return statsForPlayers(q,players,games);
- }
- if(!/\b(win|wins|won|loss|losses|lost|record|points|point|ppg|score|scored|scoring|games|weeks|blowout|blowouts|championship|championships|titles|average|margin|matchup|matchups)\b/.test(s))
-  return {ok:false,message:'This question does not match a supported statistic.'};
- return statsForGames(q,games);
+ // No fixed-metric fallback. Every response must come from a verified SQL calculation.
+ if(root.boekmuseDynamic?.ask)return root.boekmuseDynamic.ask(q);
+ return {ok:false,message:'The verified BoekMuse SQL engine is unavailable. No substitute statistic was returned.'};
 }
 const url=q=>'#/boekmuse/'+encodeURIComponent(q);
 function form(q,id){
@@ -297,7 +277,8 @@ function renderResult(r){
  '</tbody></table></div>':'';
  return resultAudit(r)+'<div class="fig-ask-answer"><div class="fig-ask-answer-title">'+esc(r.title)+'</div>'+
  '<div class="fig-ask-answer-value">'+esc(r.value)+'</div><p>'+esc(r.context)+'</p></div>'+rows+
- (r.note?'<p class="fig-ask-note">'+esc(r.note)+'</p>':'');
+ (r.note?'<p class="fig-ask-note">'+esc(r.note)+'</p>':'')+
+ (r.sql?'<details class="boekmuse-query-details"><summary>View verified SQL calculation</summary><pre><code>'+esc(r.sql)+'</code></pre></details>':'');
 }
 async function render(encoded){
  const app=document.getElementById('app');if(!app)return;

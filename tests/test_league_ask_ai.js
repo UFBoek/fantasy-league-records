@@ -100,7 +100,9 @@ function result(plan,data){const r=engine.execute(plan,data);assert.equal(r.ok,t
  eq(html.includes('league-ask-ai-v221.js'),true);
  eq(html.includes('ask-fig-config.js'),true);
  eq(sw.includes('league-ask-ai-v221.js'),true);
- eq(legacy.includes('figAskAi.ask(q)'),true);
+ eq(legacy.includes('figAskAi.ask(q)'),false);
+ eq(legacy.includes('boekmuseDynamic?.ask'),true);
+ eq(legacy.includes('No substitute statistic was returned'),true);
  eq(legacy.includes("const url=q=>'#/boekmuse/'"),true);
  eq(legacy.includes('<h1>BoekMuse</h1>'),true);
  eq(legacy.includes('function mountHome()'),false);
