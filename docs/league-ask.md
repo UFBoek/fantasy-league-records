@@ -69,3 +69,17 @@ For an optional live verification, run `node tests/test_league_ask_worker_smoke.
 ## Navigation
 
 The feature is branded **BoekMuse** and lives at `#/boekmuse`, accessible from the **More** menu. The separate homepage search and header icon have been removed. Legacy `#/ask` links redirect to BoekMuse, preserving the question. The Cloudflare Worker and source file names remain unchanged as internal infrastructure.
+
+## Answer integrity and verified touchdown statistics
+
+BoekMuse now explains the **statistic calculated, grouping, team, season scope and source** above each numeric result. The interpreter must preserve these elements, and the browser independently rejects incompatible plans before computing an answer. If the question asks for a raw statistic that does not exist, BoekMuse must say so instead of substituting counts of games or players.
+
+**Non-QB offensive touchdowns** are calculated from Sleeper weekly NFL `rush_td + rec_td`, joined to the players actually started by the league in a **finalized** week. Included positions: RB, WR, TE and FB. Excluded: QBs, defenders, kickers, bench players, and passing touchdowns thrown by these offensive players. The source is `data/player_weekly_touchdowns.json`, built incrementally by `scripts/build_boekmuse_touchdowns.py` as part of the hourly league refresh.
+
+Touchdown counts are published only for team-weeks where all eligible starters have matching player records in the raw Sleeper NFL box-score response. Each query checks source completeness against finalized `games.json` matchups. If any week is incomplete or the archive has not been published, it displays an explicit **no verified answer** message, never a partial answer disguised as a complete season or a false zero. Future unfinalized weeks are not counted.
+
+Example: **How many non qb tds does Boek have in every game in 2026?** BoekMuse should show a week-by-week breakdown for Boek in 2026, with total non-QB offensive rushing/receiving TDs and each week's player-start sample.
+
+The touchdown source uses a publicly readable but undocumented Sleeper NFL stats endpoint. If the provider changes its schema or becomes unavailable, the updater retains the last verified archive and marks new missing weeks incomplete. Do not remove coverage checks to make a query return a number.
+
+**Known remaining limits:** BoekMuse does not yet reliably answer arbitrary NFL yardage, defense, injury, bench, all-play or complex transaction-after-effects questions. Inability to compute an answer should be shown as a limitation, not fabricated.

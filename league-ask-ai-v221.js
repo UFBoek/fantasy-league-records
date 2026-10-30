@@ -2,18 +2,18 @@
 (function(root){
 'use strict';
 const ALLOWED={
- dataset:['games','player_starts','trades','drafts','team_seasons'],
- metric:['count','wins','losses','win_pct','total_points','avg_points','max_points','min_points','total_allowed','avg_allowed','avg_margin','distinct_teams'],
+ dataset:['games','player_starts','trades','drafts','team_seasons','player_touchdowns'],
+ metric:['count','wins','losses','win_pct','total_points','avg_points','max_points','min_points','total_allowed','avg_allowed','avg_margin','distinct_teams','touchdowns'],
  group_by:['none','team','opponent','player','position','season','week','team_season','game'],
  game_type:['regular','playoffs','all'],result:['any','win','loss','tie'],order:['desc','asc'],
  compare_direction:['none','higher','lower']
 };
 const TEAMS=['','Boek','Fru','Fromm','Sack','Leyton','Hayden','Line','Winston','CamNol','James'];
-const SOURCES={games:'games',player_starts:'player_game_log',trades:'trades',drafts:'draft_picks',team_seasons:'team_season_master'};
+const SOURCES={games:'games',player_starts:'player_game_log',trades:'trades',drafts:'draft_picks',team_seasons:'team_season_master',player_touchdowns:'player_weekly_touchdowns'};
 const METRIC_NAMES={count:'Count',wins:'Wins',losses:'Losses',win_pct:'Win percentage',
  total_points:'Total points',avg_points:'Points per game',max_points:'Highest score',
  min_points:'Lowest score',total_allowed:'Points allowed',avg_allowed:'Points allowed per game',
- avg_margin:'Average scoring margin',distinct_teams:'Different teams'};
+ avg_margin:'Average scoring margin',distinct_teams:'Different teams',touchdowns:'Offensive touchdowns'};
 const CACHE=new Map(),PLANS=new Map();
 const numeric=x=>Number(x)||0;
 const fmt=x=>Number(x).toLocaleString('en-US',{maximumFractionDigits:2});
@@ -69,6 +69,10 @@ function validatePlan(raw){
  if(p.season_from!==null&&p.season_to!==null&&p.season_from>p.season_to)throw Error('Invalid season interval');
  if(p.season_from!==null&&p.season_to!==null&&p.season_from===p.season_to&&p.week_from!==null&&p.week_to!==null&&p.week_from>p.week_to)throw Error('Invalid week interval');
  if(p.min_points!==null&&p.max_points!==null&&p.min_points>p.max_points)throw Error('Invalid points interval');
+ if(p.dataset==='player_touchdowns'&&p.metric!=='touchdowns')throw Error('Touchdown archive only supports verified touchdown totals');
+ if(p.metric==='touchdowns'&&p.dataset!=='player_touchdowns')throw Error('Touchdown count requires raw player touchdown statistics');
+ if(p.dataset==='player_touchdowns'&&!['none','team','season','week','game','player','position'].includes(p.group_by))throw Error('Unavailable touchdown grouping');
+ if(p.dataset==='player_touchdowns'&&(p.opponent_id!==null||p.compare_team_id!==null||p.compare_direction!=='none'||p.result!=='any'||p.min_points!==null||p.max_points!==null||p.min_opponent_points!==null||p.max_opponent_points!==null||p.min_margin!==null||p.max_margin!==null))throw Error('Touchdown archive does not support matchup or fantasy-point filters');
  if(p.metric==='distinct_teams'&&!(p.dataset==='player_starts'&&p.group_by==='player'))throw Error('Different-team count requires player starts grouped by player');
  if(p.dataset==='player_starts'&&['wins','losses','win_pct','total_allowed','avg_allowed','avg_margin'].includes(p.metric))throw Error('Player start log cannot verify wins or points allowed');
  if(['trades','drafts'].includes(p.dataset)&&!['count'].includes(p.metric))throw Error('Unsupported transaction metric');
@@ -85,8 +89,8 @@ function validatePlan(raw){
  if(p.compare_team_id!==null&&p.compare_team_id===p.team_id)throw Error('A team cannot outscore itself');
  if(raw.minimum_games!==undefined&&!Number.isInteger(raw.minimum_games))throw Error('Invalid minimum sample');
  if(raw.limit!==undefined&&!Number.isInteger(raw.limit))throw Error('Invalid result limit');
- if(p.group_by==='player'&&!['player_starts','drafts'].includes(p.dataset))throw Error('Player grouping unavailable in this source');
- if(p.group_by==='position'&&!['player_starts','drafts'].includes(p.dataset))throw Error('Position grouping unavailable in this source');
+ if(p.group_by==='player'&&!['player_starts','drafts','player_touchdowns'].includes(p.dataset))throw Error('Player grouping unavailable in this source');
+ if(p.group_by==='position'&&!['player_starts','drafts','player_touchdowns'].includes(p.dataset))throw Error('Position grouping unavailable in this source');
  if(p.group_by==='opponent'&&p.dataset!=='games')throw Error('Opponent grouping unavailable in this source');
  if(p.group_by==='game'&&!['games','player_starts'].includes(p.dataset))throw Error('Game-level rows unavailable');
  return p;
@@ -179,8 +183,124 @@ function computeValue(g,p){
  if(p.metric==='distinct_teams')return new Set(g.rows.map(x=>x.team)).size;
  throw Error('Unsupported calculation');
 }
+// Every touchdown result is audited against a finalized game's COMPLETE starter list.
+// A missing starter or weekly provider snapshot blocks the result; missing never means zero.
+function executeTouchdowns(p,source){
+ if(!source||!Array.isArray(source.records)||!source.coverage||!Array.isArray(source.games))
+  return error('Verified NFL touchdown records have not been published yet. No touchdown estimate will be shown.');
+ const games=source.games.filter(g=>{
+  const y=Number(g.season),w=Number(g.week);
+  if(p.game_type==='regular'&&g.game_type!=='Regular Season')return false;
+  if(p.game_type==='playoffs'&&g.game_type!=='Playoffs')return false;
+  if(p.season_from!==null&&(y<p.season_from||(y===p.season_from&&p.week_from!==null&&w<p.week_from)))return false;
+  if(p.season_to!==null&&(y>p.season_to||(y===p.season_to&&p.week_to!==null&&w>p.week_to)))return false;
+  if(p.season_from===null&&p.season_to===null){
+   if(p.week_from!==null&&w<p.week_from)return false;
+   if(p.week_to!==null&&w>p.week_to)return false;
+  }
+  return true;
+ });
+ const expected=[];
+ for(const g of games)for(const side of [1,2]){
+  const team=Number(g['franchise_'+side]);
+  if(p.team_id!==null&&team!==p.team_id)continue;
+  expected.push({team,season:Number(g.season),week:Number(g.week),type:g.game_type,
+   href:'#/game/'+g.season+'/'+g.week+'/'+g.matchup_id});
+ }
+ if(!expected.length)return error('No finalized games match the requested team and season.');
+ const sourceKey=x=>x.season+':'+x.week+':'+x.type+':'+x.team;
+ const missing=expected.filter(x=>!Array.isArray(source.coverage[sourceKey(x)]));
+ if(missing.length)return error('Touchdown records are incomplete for '+missing.slice(0,4)
+  .map(x=>x.season+' Week '+x.week+' ('+teamName(x.team)+')').join(', ')+
+  (missing.length>4?' and '+(missing.length-4)+' others':'')+
+  '. I will not substitute a game count or treat missing players as zero touchdowns.');
+ const groupedByTeamWeek=new Map();
+ for(const x of expected)groupedByTeamWeek.set(sourceKey(x),{...x,players:[],ids:source.coverage[sourceKey(x)]});
+ for(const player of source.records){
+  const key=player.season+':'+player.week+':'+player.game_type+':'+player.franchise_id;
+  const group=groupedByTeamWeek.get(key);
+  if(group)group.players.push(player);
+ }
+ for(const group of groupedByTeamWeek.values()){
+  const expectedIds=group.ids.map(String);
+  if(group.players.length!==expectedIds.length||
+   new Set(group.players.map(x=>String(x.player_id))).size!==expectedIds.length||
+   group.players.some(x=>!expectedIds.includes(String(x.player_id))||
+    !Number.isInteger(x.touchdowns)||x.touchdowns<0||x.touchdowns!==Number(x.rush_td)+Number(x.rec_td)||
+    !['RB','WR','TE','FB'].includes(x.position)))
+   return error('Source coverage check failed for '+group.season+' Week '+group.week+' ('+
+    teamName(group.team)+'). Unable to report verified touchdowns.');
+ }
+ const groups=new Map(),filtered=[];
+ for(const week of groupedByTeamWeek.values()){
+  for(const player of week.players){
+   if(p.position&&player.position!==p.position)continue;
+   if(p.player_name&&norm(player.player_name)!==norm(p.player_name))continue;
+   filtered.push({...player,team:week.team,href:week.href});
+  }
+  // Include 0-TD team-weeks even if a specific position has no starters in a week.
+  if(!p.player_name&&['none','team','week','season','game'].includes(p.group_by)){
+   const key=p.group_by==='none'?'all':p.group_by==='team'?'t'+week.team:
+    p.group_by==='season'?'s'+week.season:
+    p.group_by==='week'?'w'+week.season+':'+week.week:
+    'g'+week.season+':'+week.week+':'+week.team;
+   const label=p.group_by==='none'?(p.team_id?teamName(p.team_id):'League'):
+    p.group_by==='team'?teamName(week.team):
+    p.group_by==='season'?String(week.season):
+    p.group_by==='week'?week.season+' W'+week.week:
+    teamName(week.team)+' · '+week.season+' W'+week.week;
+   if(!groups.has(key))groups.set(key,{label,href:p.group_by==='team'?'#/team/'+week.team:
+    p.group_by==='week'&&p.team_id!==null?week.href:p.group_by==='game'?week.href:'',
+    order:week.season*100+week.week,tds:0,starts:0,gameKeys:new Set()});
+   groups.get(key).gameKeys.add(sourceKey(week));
+  }
+ }
+ for(const ptd of filtered){
+  const week={team:ptd.team,season:Number(ptd.season),week:Number(ptd.week)};
+  const key=p.group_by==='none'?'all':p.group_by==='team'?'t'+week.team:
+   p.group_by==='season'?'s'+week.season:
+   p.group_by==='week'?'w'+week.season+':'+week.week:
+   p.group_by==='game'?'g'+week.season+':'+week.week+':'+week.team:
+   p.group_by==='position'?'pos'+ptd.position:'player'+ptd.player_id;
+  if(!groups.has(key))groups.set(key,{
+   label:p.group_by==='player'?ptd.player_name:ptd.position,
+   href:p.group_by==='player'?'#/player/'+encodeURIComponent(ptd.player_id):'',
+   order:0,tds:0,starts:0,gameKeys:new Set()});
+  const group=groups.get(key);
+  group.tds+=Number(ptd.touchdowns);
+  group.starts++;
+ }
+ let entries=[...groups.values()].filter(x=>x.gameKeys.size>=p.minimum_games||
+  (['player','position'].includes(p.group_by)&&x.starts>=p.minimum_games))
+  .filter(x=>(p.minimum_value===null||x.tds>=p.minimum_value)&&(p.maximum_value===null||x.tds<=p.maximum_value));
+ if(!entries.length)return error('No verified touchdown records match those filters.');
+ if(['week','game','season'].includes(p.group_by))entries.sort((a,b)=>a.order-b.order||a.label.localeCompare(b.label));
+ else entries.sort((a,b)=>p.order==='asc'?a.tds-b.tds||a.label.localeCompare(b.label):b.tds-a.tds||a.label.localeCompare(b.label));
+ const total=entries.reduce((a,x)=>a+x.tds,0);
+ const perWeek=['week','game'].includes(p.group_by),shown=entries.slice(0,p.limit);
+ const gameCount=expected.length;
+ const label=p.team_id?teamName(p.team_id):'League';
+ const scope=p.season_from!==null&&p.season_to!==null&&p.season_from===p.season_to?String(p.season_from):
+  p.season_from!==null?String(p.season_from)+' onward':'League history';
+ const metricDescription='Started RB/WR/TE/FB rushing + receiving touchdowns; excludes QBs, bench, passing TDs, kickers and defenses';
+ return {ok:true,title:label+' · non-QB offensive TDs'+(perWeek?' by '+(p.group_by==='game'?'game':'week'):''),
+  value:String(total)+' TDs',context:scope+' · '+gameCount+' finalized team-games · '+metricDescription,
+  interpretation:{measure:'Rushing + receiving touchdowns',unit:'TDs',
+   group:p.group_by==='week'?'Each week':p.group_by==='game'?'Each team game':
+    p.group_by==='player'?'Player':p.group_by==='position'?'Position':
+    p.group_by==='team'?'Team':p.group_by==='season'?'Season':'All matching games',
+   team:label,scope,method:metricDescription},
+  columns:[p.group_by==='week'?'Week':p.group_by==='game'?'Team game':
+   p.group_by==='player'?'Player':p.group_by==='team'?'Team':
+   p.group_by==='season'?'Season':p.group_by==='position'?'Position':'Result','Offensive TDs','Player starts'],
+  rows:shown.map(x=>cell([x.label,x.tds,x.starts],x.href)),
+  note:'NFL raw stats: rec_td + rush_td, joined to finalized Sleeper fantasy starters. '+filtered.length+
+   ' verified player starts, '+gameCount+' complete team-games. No touchdowns inferred from fantasy points.'};
+}
+
 function execute(raw,source){
  let p;try{p=validatePlan(raw);}catch(e){return error('The AI request could not be verified: '+e.message);}
+ if(p.dataset==='player_touchdowns')return executeTouchdowns(p,source);
  if(!Array.isArray(source))return error('Published archive was not available.');
  const records=transform(source,p.dataset);
  let rows=filterRows(records,p);
@@ -245,6 +365,33 @@ function apiRoot(){
  if(!url)return '';
  try{const parsed=new URL(url);return parsed.protocol==='https:'?parsed.origin:'';}catch(_){return '';}
 }
+function verifyQuestion(question,plan){
+ const q=String(question||'').toLowerCase();
+ const asksTds=/\b(?:touchdowns?|tds?)\b/.test(q);
+ const nonQb=/\b(?:non[\s-]?qbs?|excluding (?:qbs?|quarterbacks?)|without (?:qbs?|quarterbacks?))\b/.test(q);
+ if(asksTds&&(!nonQb||plan.dataset!=='player_touchdowns'||plan.metric!=='touchdowns'))
+  return 'Touchdowns cannot be counted using game or player-start counts. I only have verified rushing and receiving TDs for started non-QB offensive players. Please specify non-QB TDs.';
+ if(!asksTds&&plan.dataset==='player_touchdowns')
+  return 'The AI selected touchdowns even though the question did not ask for them. No answer was returned.';
+ if(/\b(?:rushing|receiving|passing)\s+yards?\b/.test(q))
+  return 'Yardage is not recorded in the published league player-start archive. I cannot use fantasy points as yards.';
+ if(/\b(?:interceptions?|sacks?|fumbles?)\b/.test(q)&&plan.metric==='count')
+  return 'Raw NFL interceptions, sacks, or fumbles are not verified by this data source. A game count would be misleading.';
+ const wantsEvery=/\b(?:every|each|per)\s+(?:single\s+)?(?:game|week)\b|\bby\s+(?:game|week)\b/.test(q);
+ if(wantsEvery&&!['week','game'].includes(plan.group_by))
+  return 'You requested a game-by-game result, but the AI did not group by game or week. Please retry.';
+ const years=[...q.matchAll(/\b(20(?:2[3-9]|3[0-9]))\b/g)].map(m=>Number(m[1]));
+ if(years.length===1&&/\b(?:in|during|for|throughout|every game in|each week in)\s+(?:the\s+)?(?:season\s+)?20\d\d\b/.test(q)&&
+  (plan.season_from!==years[0]||plan.season_to!==years[0]))
+  return 'The AI did not preserve the requested '+years[0]+' season filter. No answer was returned.';
+ const names=[['boek',1],['fru',2],['fromm',3],['sack',4],['leyton',5],['hayden',6],['line',7],['winston',8],['camnol',9],['james',10]];
+ const seen=names.filter(([n])=>new RegExp('\\b'+n+'\\b').test(q));
+ if(seen.length===1&&/\b(?:does|did|has|have|for|from|of)\b/.test(q)&&
+  plan.group_by!=='team'&&plan.team_id!==seen[0][1]&&plan.opponent_id!==seen[0][1])
+  return 'The AI did not preserve the requested team: '+teamName(seen[0][1])+'. No answer was returned.';
+ return '';
+}
+
 async function queryPlan(question){
  const base=apiRoot();if(!base)return null;
  const key=String(question).trim().toLowerCase();
@@ -256,8 +403,11 @@ async function queryPlan(question){
   if(!response.ok)throw Error('AI request failed: '+response.status);
   const data=await response.json();
   if(!data?.ok||!data.plan)throw Error('No valid AI plan');
-  if(data.plan.dataset==='unsupported')return {unsupported:true,reason:String(data.plan.interpretation||'This question needs additional historical data.').slice(0,250)};
+  if(data.plan.dataset==='unsupported')return {unsupported:true,reason:String(data.plan.reason||'This question needs historical data or an operation BoekMuse cannot verify yet.').slice(0,250)};
   const plan=validatePlan(data.plan);
+  const mismatch=verifyQuestion(question,plan);
+  if(mismatch)return {unsupported:true,reason:mismatch};
+  if(plan.dataset==='player_touchdowns'&&/\b(?:every|each|per)\s+(?:single\s+)?(?:game|week)\b/.test(question.toLowerCase()))plan.limit=Math.max(18,plan.limit);
   PLANS.set(key,plan);
   return plan;
  }finally{clearTimeout(timeout);}
@@ -268,8 +418,18 @@ async function ask(question){
   const plan=await queryPlan(question);
   if(plan?.unsupported)return error(plan.reason);
   if(!plan)return null;
-  const source=await load(SOURCES[plan.dataset]);
-  return execute(plan,source);
+  const source=plan.dataset==='player_touchdowns'
+   ? {...await load('player_weekly_touchdowns').catch(()=>({records:[],coverage:{}})),games:await load('games')}
+   : await load(SOURCES[plan.dataset]);
+  const result=execute(plan,source);
+  if(result.ok&&!result.interpretation){
+   result.interpretation={measure:METRIC_NAMES[plan.metric]||plan.metric,
+    group:{none:'Overall',team:'Team',opponent:'Opponent',player:'Player',position:'Position',season:'Season',week:'Week',game:'Game',team_season:'Team season'}[plan.group_by],
+    team:plan.team_id?teamName(plan.team_id):'League-wide',
+    scope:result.context,
+    method:'Calculated from '+SOURCES[plan.dataset]+'.json; '+(plan.metric==='count'?'counts archive rows, not player statistics':'metric checked against finalized records')};
+  }
+  return result;
  }catch(e){
   console.warn('FIG AI interpreter unavailable',e);
   return error('AI search is temporarily unavailable or the request could not be verified. Please retry shortly.');
@@ -282,7 +442,7 @@ function load(name){
  return CACHE.get(name);
 }
 function invalidate(){CACHE.clear();PLANS.clear();}
-const api={ask,execute,validatePlan,invalidate};
+const api={ask,execute,validatePlan,verifyQuestion,invalidate};
 if(root.document)root.figAskAi=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

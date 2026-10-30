@@ -23,6 +23,8 @@ on:
       - 'scripts/quick_refresh_check.py'
       - 'scripts/build_site_data.py'
       - 'scripts/build_playoff_player_scores.py'
+      - 'scripts/build_boekmuse_touchdowns.py'
+      - 'tests/test_boekmuse_touchdowns.py'
       - 'tests/test_playoff_player_scores.py'
       - 'tests/test_playoff_nfl_wide.py'
       - 'scripts/prepare_player_records.py'
@@ -107,6 +109,18 @@ jobs:
       - name: Prepare verified completed-week player records for website
         if: steps.quick.outputs.refresh == 'true'
         run: python scripts/prepare_player_records.py
+
+      - name: Backfill verified started-player touchdowns for BoekMuse
+        if: steps.quick.outputs.refresh == 'true'
+        shell: bash
+        run: |
+          # The raw NFL stat endpoint is undocumented; outages must never block official league records.
+          if python scripts/build_boekmuse_touchdowns.py; then
+            echo 'BoekMuse started-player touchdown archive checked.'
+          else
+            echo '::warning::NFL touchdown feed failed; retaining last verified snapshot.'
+            git restore -- data/player_weekly_touchdowns.json 2>/dev/null || rm -f data/player_weekly_touchdowns.json
+          fi
 
       - name: Build 70/30 player scores from all played NFL games and Sleeper fallback
         if: steps.quick.outputs.refresh == 'true'
