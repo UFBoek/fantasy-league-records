@@ -22,6 +22,22 @@ for(const year of output.years){
 }
 assert.ok(output.teams.every(t=>Number.isFinite(t.top10_value_weighted_age)));
 assert.ok(output.teams.every(t=>Object.keys(t.draft_by_year).length===6));
+for(const year of output.years){
+ const season=output.seasons[year];
+ for(let id=1;id<=10;id++){
+  const players=season.players_by_team[id];
+  const real=players.filter(p=>!p.projected_rookie);
+  const future=players.filter(p=>p.projected_rookie);
+  const current=inputs.current_roster.filter(p=>+p.franchise_id===id&&['QB','RB','WR','TE'].includes(p.position));
+  assert.equal(real.length,current.length,'Every actual roster player appears exactly once in each future season');
+  assert.equal(new Set(players.map(p=>p.id)).size,players.length,'Future draft slots must have stable unique identifiers');
+  assert.ok(players.every(p=>Number.isFinite(p.ppg)&&p.ppg>=0&&Number.isFinite(p.p10)&&Number.isFinite(p.p90)));
+  assert.ok(real.every(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.current_market_value!==null));
+  assert.ok(future.every(p=>p.pos==='TBD'&&p.current_market_value===null&&p.id.startsWith('pick:')));
+  const picksYear=year-2026;
+  assert.equal(players.length>=current.length+picksYear, true,'Draft capital creates visible future cohort placeholders');
+ }
+}
 const rawPicks=inputs.current_future_picks;
 const fixture=rawPicks.filter(x=>+x.pick_season===2030);
 if(fixture.length===40){
