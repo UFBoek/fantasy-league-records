@@ -44,4 +44,16 @@ for(const c of model.cases){
 assert.throws(()=>neutral.forecast({year:2024,teams:[]},{rates:{
  starter_retention:0.7,bench_retention:0.4,train_through_year:2025}},1),
  /Future turnover training leakage/);
+const {audit:assess}=require('../scripts/assess_dynasty_validation');
+const readiness=assess({
+ marketHistory:read('dynasty_market_history'),nflHistory:input.nflHistory,
+ roster:read('current_roster'),draft:input.drafts,
+ franchiseSeasons:read('team_season_master'),
+ turnoverStress:{cases:[
+  {asof_year:2024,comparison:{neutral_turnover:{mae:19,predicted_leader:6,actual_leader:6},frozen_assets:{mae:24}}},
+  {asof_year:2025,comparison:{neutral_turnover:{mae:29,predicted_leader:6,actual_leader:1},frozen_assets:{mae:25}}}
+ ]}
+});
+assert.equal(readiness.public_probability_claims_allowed,false);
+assert.ok(readiness.gates.some(g=>g.name.includes('Neutral turnover')&&!g.passed));
 console.log('Evidence-based neutral roster transfer stress, cutoff and conservation tests passed');
