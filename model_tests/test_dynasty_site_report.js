@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {build,files,reportVersion}=require('../scripts/build_dynasty_site_report');
-const {makePicks}=require('../scripts/dynasty_dominance_model');
+const {makePicks}=require('../scripts/dynasty_value_only_model');
 const inputs=Object.fromEntries(files.map(n=>[n,JSON.parse(fs.readFileSync(path.resolve(__dirname,'../data',n+'.json'),'utf8'))]));
 const fixedDate='2026-10-30T00:00:00Z';
 const output=build(inputs,{runs:12,seed:407,generatedAt:fixedDate});
