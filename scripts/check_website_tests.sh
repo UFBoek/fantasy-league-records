@@ -2,7 +2,7 @@
 # Front-end behavior tests are intentionally separate from the scheduled
 # Sleeper data refresh. UI regressions must not halt weekly score publication.
 set -euo pipefail
-python tests/probe_sleeper_td.py
+PYTHONPATH=. python tests/test_boekmuse_touchdowns.py
 node tests/test_league_ask.js
 node tests/test_league_ask_ai.js
 node tests/test_record_break_watch.js
