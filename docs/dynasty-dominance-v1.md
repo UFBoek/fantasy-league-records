@@ -207,3 +207,83 @@ Run locally on the draft branch:
 
 All official league records, Sleeper updates, website UI and the live
 playoff calculator remain untouched.
+
+
+## Time-sliced historical full-roster reconstruction (2024/2025)
+
+The draft branch now contains
+`scripts/build_dynasty_asof_snapshots.js` and
+`model_tests/test_dynasty_asof.js`.
+
+The builder reconstructs **all ten actual fantasy rosters at the end of
+Week 7** using `data/weekly_full_rosters.json` rather than substituting
+present-day roster memberships. It reconstructs original-franchise draft
+picks from timestamped `data/transactions.json` transfers, including
+trades that occurred in earlier league seasons. No 2026 RosterAudit prices
+are inserted into 2024–2025.
+
+| Snapshot | Actual rostered players | Future owned picks | Time-safe lineup baseline MAE, Weeks 8–14 | Frozen baseline leader | Actual rest-of-year leader |
+| --- | ---: | ---: | ---: | --- | --- |
+| 2024 after Week 7 | 303 | 120 | 14.82 PPG | Hayden | Hayden |
+| 2025 after Week 7 | 318 | 120 | 10.56 PPG | Hayden | Hayden |
+
+Baselines were calculated from NFL games **through the cutoff only**,
+scored consistently using FIG's 2026 scoring weights. The target is
+historical actual regular-season team scoring over Weeks 8–14.
+Because actual scores use the earlier years' specific scoring rules and
+future lineup/roster decisions, this is a **partial short-horizon test**
+and the PPG absolute error is not a perfectly like-for-like comparison.
+
+Blending 30% previous-season player scoring into the frozen roster was
+*less* accurate in 2024 (22.55 PPG MAE) but *slightly* better in 2025
+(9.56 PPG MAE). The model **does not retroactively tune that weight
+using the 2025 results**.
+
+The 2024 and 2025 pick replay flagged respectively **three and one**
+Sleeper `previous_owner_id` chain inconsistencies, which remain visible
+in the report. These are evidence gaps in the chain, NOT proof of an
+incorrect final owner. As an independent check, replaying transfers
+through 2026 Week 7 exactly matches **120/120** official current
+2027–2029 pick owners despite **two chain warnings**. Never suppress
+the warnings or convert a chain mismatch into a known-clean transfer.
+
+One 2025 Week 7 roster entry carried the non-offensive position DB and
+is excluded from the QB/RB/WR/TE lineup forecast, but retained in the
+roster-count audit.
+
+**No-leakage regression:** the tests alter NFL game results *after*
+each historical cutoff and inject a fabricated Week 8 pick transaction.
+Neither can change the historical pre-cutoff projection or owned picks.
+
+### What this newly verifies
+
+- Historical fantasy roster membership of all ten franchises at an
+  actual Week 7 decision point.
+- Historical 120 original-franchise pick assignments per snapshot
+  across the next three annual four-round drafts.
+- Forward consistency of the pick transfer ledger with all 120
+  presently known 2027–2029 original pick owners.
+- Time-safe week 8–14 team strength comparisons, including
+  demonstrable forecast error and a holdout year.
+
+### What remains *unverified*
+
+This is **not** a fully backtested multiyear dynasty engine. Historical
+2024 and 2025 RosterAudit *market values* were never archived at those
+dates, so the exact current simulation cannot be run historically
+without importing future values into its priors. Actual subsequent
+fantasy team scores also reflect later trading, waivers, rookie picks,
+injuries, and managers' weekly lineup choices, whereas these projections
+freeze the old roster and treat picks as owned assets. Proper
+multiyear calibration needs historical as-of player priors and
+explicit treatment of unknown future roster transactions.
+
+### Commands
+
+    node model_tests/test_dynasty_asof.js
+    node scripts/build_dynasty_asof_snapshots.js --out /tmp/dynasty-historical-asof.json
+    node scripts/assess_dynasty_validation.js --asof /tmp/dynasty-historical-asof.json --out /tmp/dynasty-publication-readiness.json
+
+The CI research artifact contains historical rosters, all their future
+pick holdings, model errors, chain warnings, and a 2026 reconciliation
+check. All of this stays on the draft PR.
