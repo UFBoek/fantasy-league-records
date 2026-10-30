@@ -74,7 +74,7 @@ function reconcileQuestion(question, plan){
  const matches=known.flatMap(([id,re])=>{const m=re.exec(q);return m?[{id,index:m.index}]:[]}).sort((a,b)=>a.index-b.index);
  if(plan.dataset==='games'&&matches.length===2&&
   /\b(outscor(?:e|es|ed|ing)|more points than|fewer points than|higher score than|lower score than)\b/.test(q)&&
-  !/\b(versus|vs\\.?|head.to.head)\b/.test(q)){
+  !/\b(versus|vs\.?|head.to.head)\b/.test(q)){
   plan.team_id=matches[0].id;
   plan.compare_team_id=matches[1].id;
   plan.compare_direction=/\b(fewer points|lower score|outscored by|less than)\b/.test(q)?'lower':'higher';
