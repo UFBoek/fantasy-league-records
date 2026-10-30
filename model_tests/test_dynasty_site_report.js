@@ -11,7 +11,7 @@ assert.equal(output.validation.full_six_year_backtest_passed,false);
 assert.equal(output.validation.one_year_holdout_better_than_baseline,false);
 assert.equal(output.generated_at,fixedDate);
 assert.equal(output.teams.length,10);
-assert.equal(output.version,'fig-beta-1.7-qb-longevity-historical-scale');
+assert.equal(output.version,'fig-beta-1.8-qb-late-aging');
 assert.equal(output.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(output.league_scoring_calibration.target_range_ppg,[1570,1630]);
 assert.ok(output.league_scoring_reference.completed_ten_team_weeks>=49);

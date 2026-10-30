@@ -20,8 +20,13 @@ assert.ok(model.projectedPotential('TE',22,3500,2026)<model.projectedPotential('
 const startingQB=model.projectedPotential('QB',32,3500,2027);
 assert.ok(startingQB>=27&&startingQB<=34,
  'Early-30s veteran QB with starter-level value should remain a ~30 PPG talent');
-assert.ok(model.projectedPotential('QB',32,3500,2030)>=startingQB*.9,
- 'A veteran QB must not lose more than 10% of potential between 33 and 36');
+const veteranAt36=model.projectedPotential('QB',32,3500,2030);
+assert.ok(veteranAt36>=startingQB*.79&&veteranAt36<=startingQB*.90,
+ 'A veteran QB should meaningfully decline from ages 33 to 36');
+assert.ok(model.maturity('QB',34)>model.maturity('QB',36)&&model.maturity('QB',36)>model.maturity('QB',38),
+ 'Late-career QB scoring must progressively decline');
+assert.ok(model.projectedPotential('QB',30,9000,2032)<model.projectedPotential('QB',30,9000,2028)*.9,
+ 'Even elite QBs should not retain 90% of peak potential at age 36');
 assert.ok(model.projectedPotential('QB',32,3500,2032)<startingQB,
  'Older QB potential eventually declines; no indefinite prime');
 assert.ok(model.projectedPotential('QB',30,9000,2032)>=26,
@@ -47,7 +52,7 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3.4-qb-longevity-historical-scale');
+assert.equal(initial.version,'experimental-v3.5-qb-late-aging-historical-scale');
 assert.equal(initial.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);

@@ -27,10 +27,10 @@ const POS=new Set(['QB','RB','WR','TE']);
 const PEAK={QB:30,RB:25,WR:27,TE:28};
 const STAR={QB:37,RB:28,WR:30,TE:25};
 const MATURITY={
- // Unlike RBs, established quarterbacks can maintain strong production
- // through their mid-30s. Decline and retirement risk build later.
- QB:[[20,.61],[22,.72],[24,.82],[26,.92],[28,.98],[30,1],[32,1],[34,.99],
-     [35,.97],[36,.94],[37,.88],[38,.78],[39,.64],[40,.49],[41,.35],[42,.23],[44,.07]],
+ // Quarterbacks can retain prime scoring into their early 30s.
+ // Average production declines more quickly after age 34.
+ QB:[[20,.61],[22,.72],[24,.82],[26,.92],[28,.98],[30,1],[32,1],[34,.98],
+     [35,.93],[36,.84],[37,.74],[38,.63],[39,.51],[40,.38],[41,.27],[42,.17],[44,.05]],
  RB:[[20,.67],[22,.80],[24,.94],[25,1],[26,.98],[27,.92],[28,.84],[29,.70],[30,.53],[31,.37],[33,.12],[35,.02]],
  WR:[[20,.59],[22,.71],[24,.84],[26,.96],[27,1],[29,.97],[30,.92],[31,.84],[32,.71],[34,.42],[36,.14],[38,.03]],
  TE:[[20,.56],[22,.66],[24,.78],[26,.92],[28,1],[30,.98],[32,.86],[34,.60],[36,.30],[38,.11],[40,.03]]
@@ -292,7 +292,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3.4-qb-longevity-historical-scale',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.5-qb-late-aging-historical-scale',status:'research_only',years:YEARS,runs,seed,
   league_scoring_calibration:{baseline_ppg:LEAGUE_BASELINE_PPG,target_range_ppg:LEAGUE_RANGE_PPG,
    retained_raw_trend_fraction:LEAGUE_RAW_TREND_SHARE,by_year:leagueScaleByYear},
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),
