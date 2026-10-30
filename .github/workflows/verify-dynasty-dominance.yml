@@ -10,6 +10,8 @@ on:
       - scripts/backtest_dynasty_franchise.js
       - scripts/assess_dynasty_validation.js
       - scripts/build_dynasty_asof_snapshots.js
+      - scripts/backtest_dynasty_next_season.js
+      - model_tests/test_dynasty_next_season.js
       - model_tests/test_dynasty_asof.js
       - model_tests/test_dynasty_retrospective.js
       - data/dynasty_nfl_history.json
@@ -36,6 +38,10 @@ jobs:
         run: node model_tests/test_dynasty_asof.js
       - name: Reconstruct 2024/2025 point-in-time rosters and picks
         run: node scripts/build_dynasty_asof_snapshots.js --out "$RUNNER_TEMP/dynasty-historical-asof.json"
+      - name: Verify next-season frozen-roster holdout inputs
+        run: node model_tests/test_dynasty_next_season.js
+      - name: Report true historical next-season frozen-asset forecasts
+        run: node scripts/backtest_dynasty_next_season.js --runs 750 --out "$RUNNER_TEMP/dynasty-next-season-holdout.json"
       - name: Assess historical validation and publication readiness
         run: node scripts/assess_dynasty_validation.js --asof "$RUNNER_TEMP/dynasty-historical-asof.json" --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
       - name: Generate review-only research report
@@ -56,4 +62,5 @@ jobs:
             ${{ runner.temp }}/dynasty-franchise-backtest.json
             ${{ runner.temp }}/dynasty-publication-readiness.json
             ${{ runner.temp }}/dynasty-historical-asof.json
+            ${{ runner.temp }}/dynasty-next-season-holdout.json
           retention-days: 14
