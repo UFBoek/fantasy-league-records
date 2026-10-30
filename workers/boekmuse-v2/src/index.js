@@ -272,8 +272,13 @@ export default {
    await ensureSchema(env.DB);
    const meta=await env.DB.prepare('SELECT generation FROM sync_meta WHERE id=1').first();
    if(meta?.generation)return reply({ok:true,ready:true,already_initialized:true},200,origin);
-   ctx.waitUntil(synchronize(env).catch(e=>console.error('D1 bootstrap:',String(e).slice(0,400))));
-   return reply({ok:true,ready:false,initializing:true},202,origin);
+   try {
+    const synced=await synchronize(env);
+    return reply({ok:true,ready:true,initialized:true,synced},200,origin);
+   }catch(e){
+    console.error('D1 bootstrap:',String(e).slice(0,400));
+    return reply({ok:false,ready:false,error:'Bootstrap failed: '+String(e?.message||e).slice(0,250)},503,origin);
+   }
   }
   if(url.pathname!=='/query')return reply({ok:false,error:'Not found'},404,origin);
   if(!origin)return reply({ok:false,error:'Origin not permitted'},403);
