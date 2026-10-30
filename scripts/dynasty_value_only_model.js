@@ -48,7 +48,10 @@ function random(seed){
 function marketPpg(pos,value){
  // Explicit market-to-scoring unit scale by position. These are heuristic
  // coefficients, not scores or projections for any named NFL player.
- const f={QB:[3,10.5,800,37],RB:[1,12,1800,28],WR:[1,12,1600,30],TE:[1,10,1600,26]}[pos];
+ // League-size scoring units: the previous curve severely undervalued
+ // middle-tier starters. Check the aggregate output against independent
+ // 2023-26 FIG weekly TOTALS, never per-player historical box scores.
+ const f={QB:[5,10.5,800,38],RB:[3,12.5,1800,31],WR:[3.5,12.5,1600,32],TE:[3.5,11,1600,29]}[pos];
  return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
 }
 function makePicks(data){
@@ -137,7 +140,12 @@ function makeFuturePick(pick,r,rank,values){
  // hypothetical positions, NOT forecasts of draft selections.
  const x=r.u(),pos=x<.18?'QB':x<.43?'RB':x<.81?'WR':'TE';
  const age=21.5, id='pick:'+pick.year+':'+pick.round+':'+pick.origin;
- const scaled=value===null?null:value*.78;
+ // A dynasty draft pick is an uncertain acquisition right, not a
+ // fully established NFL starter. Only part of its market asset price
+ // maps to future scoring ability; the rest reflects risk/liquidity.
+ // Do not let six successive classes create an implausibly inflated
+ // league scoring environment while keeping all old rosters frozen.
+ const scaled=value===null?null:value*.35;
  const chance=scaled===null?0:breakoutProbability(pos,age,scaled);
  const breakout=scaled!==null&&r.u()<chance?
   clamp((STAR[pos]-marketPpg(pos,scaled))*(.5+.45*r.u()),0,18):0;
@@ -242,7 +250,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3-value-position-age-only',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.1-position-age-value-league-scale',status:'research_only',years:YEARS,runs,seed,
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),
    known_2027_2029_picks:YEARS.slice(0,3).reduce((sum,y)=>sum+future[y].filter(p=>!p.assumed).length,0),
    known_2030_2032_picks:YEARS.slice(3).reduce((sum,y)=>sum+future[y].filter(p=>!p.assumed).length,0),
@@ -251,7 +259,8 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
    'Individual incumbent PPG uses only RosterAudit value, player age, and position; no player or franchise historical scoring or PPG calibration.',
    'Position maturity and aging shapes, breakout odds, injuries, and future rookie position distribution are exploratory assumptions, not historically calibrated probabilities.',
    'Market pricing is a present-day dynasty opinion, not the NFL scoring outcome; a price does not guarantee star production.',
-   'Rookie prospects are hypothetical draft slots using current RosterAudit draft asset price tiers; no 2024–2026 NFL rookie performances enter the model.',
+   'Rookie prospects are hypothetical draft slots; only 35% of RosterAudit draft asset value is converted into player scoring talent because acquisition rights are not established players. No 2024–2026 NFL rookie performances enter the model.',
+   'Position-scoring unit coefficients are checked against the league-wide 2023–2026 average total PPG; historical scores never enter individual player forecasts or team-specific calibration.',
    'All current rosters held constant; no manager trading ability, future trades, waivers or unowned acquisitions are invented.',
    'Missing price data generate unknown PPG rather than substituting scoring history.',
    'Nominal simulation ranges and ranking frequencies are not statistically calibrated.'
