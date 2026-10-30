@@ -271,8 +271,8 @@ async function ask(question){
   const source=await load(SOURCES[plan.dataset]);
   return execute(plan,source);
  }catch(e){
-  console.warn('FIG AI unavailable; using deterministic search',e);
-  return null;
+  console.warn('FIG AI interpreter unavailable',e);
+  return error('AI search is temporarily unavailable or the request could not be verified. Please retry shortly.');
  }
 }
 function load(name){
