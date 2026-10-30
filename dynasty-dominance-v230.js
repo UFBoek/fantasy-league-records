@@ -18,134 +18,208 @@
  const button=(year,active)=>'<button class="dd-year'+(active?' is-active':'')+
   '" type="button" data-dd-year="'+year+'" aria-pressed="'+active+'">'+year+'</button>';
  const ppg=(s,id)=>s.ranking.find(x=>x.id===id);
- function linePlot(years,selected){
-  const dims={left:40,right:900,top:22,bottom:247};
-  const plotted=[1,6,selected].filter((id,i,arr)=>arr.indexOf(id)===i);
-  const values=years.flatMap(y=>plotted.map(id=>ppg(report.seasons[y],id)?.ppg||0));
+ function rankYear(year){
+  const rows=report.seasons[year].ranking;
+  const boek=rows.find(x=>x.id===1);
+  const opponents=rows.filter(x=>x.id!==1).slice().sort((x,y)=>y.ppg-x.ppg);
+  return {boek,opponents,leader:opponents[0]};
+ }
+ function observedYear(){
+  const book=report.teams.find(x=>x.id===1);
+  const opponent=report.teams.filter(t=>t.id!==1)
+   .slice().sort((a,b)=>b.current_ppg-a.current_ppg)[0];
+  return {book,opponent,gap:book.current_ppg-opponent.current_ppg};
+ }
+ function ageAndPicks(id){
+  const t=report.teams.find(t=>t.id===id);
+  const knownThrough=Number(report.assumptions?.known_pick_ownership_through)||2029;
+  const confirmed=Object.entries(t.draft_by_year).filter(([year])=>+year<=knownThrough)
+    .reduce((sum,[,value])=>sum+(Number(value.known)||0),0);
+  return {t,knownThrough,confirmed};
+ }
+ function lineupChart(selected){
+  const years=report.years;
+  const selectedTeams=[1,6,9,selected].filter((id,i,all)=>all.indexOf(id)===i);
+  const dims={left:46,right:895,top:24,bottom:232};
+  const values=years.flatMap(y=>selectedTeams.map(id=>ppg(report.seasons[y],id)?.ppg||0));
   const lo=Math.max(0,Math.floor((Math.min(...values)-15)/20)*20);
   const hi=Math.ceil((Math.max(...values)+15)/20)*20;
   const x=i=>dims.left+(dims.right-dims.left)*i/(years.length-1);
   const y=v=>dims.bottom-(v-lo)*(dims.bottom-dims.top)/Math.max(1,hi-lo);
-  const ticks=Array.from({length:5},(_,i)=>lo+(hi-lo)*i/4);
-  return '<svg class="dd-chart-svg" viewBox="0 0 940 290" role="img" aria-label="Experimental PPG trajectories for Boek, Hayden and the selected franchise from 2027 to 2032">'+
-   ticks.map(v=>'<line class="dd-chart-grid" x1="40" y1="'+y(v)+'" x2="900" y2="'+y(v)+'"/>'+
-    '<text class="dd-chart-label" x="32" y="'+(y(v)+4)+'" text-anchor="end">'+Math.round(v)+'</text>').join('')+
-   years.map((yr,i)=>'<text class="dd-chart-label" x="'+x(i)+'" y="272" text-anchor="middle">'+yr+'</text>').join('')+
-   plotted.map(id=>{
-    const stroke=COLORS[id],pts=years.map((yr,i)=>x(i)+','+y(ppg(report.seasons[yr],id).ppg)).join(' ');
-    return '<polyline points="'+pts+'" fill="none" stroke="'+stroke+
-     '" stroke-width="'+(id===selected?4:2.7)+'" stroke-linejoin="round" stroke-linecap="round"/>'+
-     years.map((yr,i)=>'<circle cx="'+x(i)+'" cy="'+y(ppg(report.seasons[yr],id).ppg)+
-      '" r="'+(id===selected?5:3)+'" fill="'+stroke+'" stroke="#0d1425" stroke-width="2"/>').join('');
-   }).join('')+
-   '</svg>';
+  const grid=Array.from({length:5},(_,i)=>lo+(hi-lo)*i/4);
+  const axis=grid.map(v=>'<line class="dd-chart-grid" x1="46" y1="'+y(v)+'" x2="895" y2="'+y(v)+'"/>'+
+   '<text class="dd-chart-label" x="37" y="'+(y(v)+4)+'" text-anchor="end">'+Math.round(v)+'</text>').join('')+
+   years.map((yr,i)=>'<text class="dd-chart-label" x="'+x(i)+'" y="267" text-anchor="middle">'+yr+'</text>').join('');
+  const lines=selectedTeams.map(id=>{
+   const stroke=COLORS[id],pts=years.map((yr,i)=>x(i)+','+y(ppg(report.seasons[yr],id).ppg)).join(' ');
+   const active=id===selected;
+   return '<polyline points="'+pts+'" fill="none" stroke="'+stroke+
+    '" stroke-width="'+(active?4:2.6)+'" stroke-linejoin="round" stroke-linecap="round"'+
+    (active?'':' opacity=".8"')+'/>'+
+    years.map((yr,i)=>'<circle cx="'+x(i)+'" cy="'+y(ppg(report.seasons[yr],id).ppg)+
+     '" r="'+(active?4.8:3.1)+'" fill="'+stroke+'" stroke="#0e1729" stroke-width="2"/>').join('');
+  }).join('');
+  return '<div class="dd-chart-head"><span>HOW THE CHALLENGERS CHANGE</span><div class="dd-legend">'+
+   selectedTeams.map(id=>'<span><i style="background:'+COLORS[id]+'"></i>'+esc(TEAMS[id])+'</span>').join('')+
+   '</div></div><div class="dd-chart"><svg class="dd-chart-svg" viewBox="0 0 940 286" role="img" aria-label="Projected scoring strength from 2027 through 2032 for Boek and leading challengers">'+axis+lines+'</svg></div>';
  }
- function teamList(selected){
-  const vals=[...report.teams].sort((a,b)=>ppg(report.seasons[selectedYear],b.id).ppg-ppg(report.seasons[selectedYear],a.id).ppg);
-  return '<div class="dd-team-list">'+vals.map((t,i)=>'<a href="#/dynasty-dominance/'+t.id+
-   '" class="dd-team-row'+(t.id===selected?' is-selected':'')+'"'+
-   (t.id===selected?' aria-current="page"':'')+'>'+
-   '<span class="dd-team-rank">'+String(i+1).padStart(2,'0')+'</span>'+
-   '<span class="dd-team-avatar">'+avatar(t.id)+'</span>'+
-   '<span class="dd-team-label"><strong>'+esc(t.name)+'</strong><small>'+fmt(t.current_ppg)+' current PPG</small></span>'+
-   '<span class="dd-team-score"><strong>'+fmt(ppg(report.seasons[selectedYear],t.id).ppg)+'</strong><small>model PPG</small></span></a>').join('')+'</div>';
+ function leagueLadder(selected,year){
+  const current=rankYear(year);
+  const high=current.boek.ppg;
+  return '<div class="dd-ladder">'+current.opponents.map((p,i)=>{
+   const gap=high-p.ppg,filled=Math.max(3,Math.min(100,100*p.ppg/Math.max(1,high)));
+   const active=p.id===selected;
+   return '<a class="dd-ladder-row'+(active?' is-selected':'')+'" href="#/dynasty-dominance/'+p.id+'"'+
+    (active?' aria-current="page"':'')+'>'+
+    '<span class="dd-ladder-rank">'+String(i+1).padStart(2,'0')+'</span>'+
+    '<span class="dd-ladder-avatar">'+avatar(p.id)+'</span>'+
+    '<span class="dd-ladder-info"><strong>'+esc(TEAMS[p.id])+'</strong>'+
+      '<span class="dd-ladder-track" aria-hidden="true"><i style="width:'+filled.toFixed(1)+'%;background:'+COLORS[p.id]+'"></i></span></span>'+
+    '<span class="dd-ladder-nums"><strong>'+fmt(p.ppg)+'</strong><small>'+
+     (gap>=0?fmt(gap)+' behind':'+'+fmt(-gap)+' ahead')+'</small></span></a>';
+  }).join('')+'</div>';
  }
- function summaryItem(label,value,detail){
-  return '<div class="dd-metric"><span>'+esc(label)+'</span><strong>'+value+
-   '</strong><small>'+esc(detail||'')+'</small></div>';
+ function futureLeaders(){
+  return '<div class="dd-year-table-wrap"><table class="dd-year-table dd-challenger-table">'+
+   '<thead><tr><th>SEASON</th><th>CLOSEST CHALLENGER</th><th>CHALLENGER PPG</th><th>BOEK PPG</th><th>BOEK MARGIN</th></tr></thead><tbody>'+
+   report.years.map(year=>{
+    const r=rankYear(year),gap=r.boek.ppg-r.leader.ppg;
+    return '<tr class="'+(year===selectedYear?'is-active':'')+'"><td>'+
+     '<button type="button" class="dd-year-row-button" data-dd-year="'+year+'">'+year+'</button></td>'+
+     '<td><a class="dd-year-opponent" href="#/dynasty-dominance/'+r.leader.id+'">'+
+      '<span class="dd-year-avatar">'+avatar(r.leader.id)+'</span>'+esc(TEAMS[r.leader.id])+'</a></td>'+
+     '<td>'+fmt(r.leader.ppg)+'</td><td>'+fmt(r.boek.ppg)+'</td>'+
+     '<td class="'+(gap>=0?'dd-pos':'dd-neg')+'">'+(gap>=0?'+'+fmt(gap):'−'+fmt(-gap))+'</td></tr>';
+   }).join('')+'</tbody></table></div>';
  }
- function gapRows(selected){
-  const comparisons=report.years.map(year=>{
-   const entry=report.seasons[year],book=ppg(entry,1).ppg,team=ppg(entry,selected).ppg;
-   const challenger=entry.ranking.filter(x=>x.id!==1).sort((a,b)=>b.ppg-a.ppg)[0];
-   return {year,book,team,bookGap:book-team,bestOther:challenger.ppg};
-  });
-  return '<div class="dd-year-table-wrap"><table class="dd-year-table"><thead><tr><th>YEAR</th><th>BOEK</th><th>'+esc(TEAMS[selected]).toUpperCase()+'</th><th>GAP TO BOEK</th><th>TOP CHALLENGER</th></tr></thead><tbody>'+
-   comparisons.map(r=>'<tr class="'+(r.year===selectedYear?'is-active':'')+'">'+
-    '<td><button type="button" class="dd-year-row-button" data-dd-year="'+r.year+'">'+r.year+'</button></td>'+
-    '<td>'+fmt(r.book)+'</td><td>'+fmt(r.team)+'</td><td class="'+(r.bookGap>=0?'dd-pos':'dd-neg')+'">'+
-    (selected===1?'—':sign(r.bookGap))+'</td><td>'+fmt(r.bestOther)+'</td></tr>').join('')+
-   '</tbody></table></div>';
+ function seasonStats(){
+  const years=report.years;
+  const leaders=years.map(year=>({year,...rankYear(year)}));
+  const first=leaders[0],last=leaders[leaders.length-1],gap=last.boek.ppg-last.leader.ppg;
+  const counts={};
+  leaders.forEach(y=>counts[y.leader.id]=(counts[y.leader.id]||0)+1);
+  const recurring=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  return {first,last,recurring,gap};
  }
- function display(selected){
+ function profile(selected){
+  const {t,knownThrough,confirmed}=ageAndPicks(selected);
+  return '<div class="dd-identity">'+avatar(selected)+'<div><strong>'+esc(t.name)+'</strong>'+
+   '<small>'+t.roster_count+' eligible players · '+fmt(t.current_ppg)+' actual PPG in 2026</small></div></div>'+
+   '<div class="dd-profile-stats">'+
+    '<div><span>TOP-10 VALUE-WEIGHTED AGE</span><b>'+fmt(t.top10_value_weighted_age)+'</b></div>'+
+    '<div><span>VERIFIED FUTURE PICKS</span><b>'+fmt(confirmed,0)+'</b></div>'+
+    '<div><span>VERIFIED FIRST-ROUND PICKS</span><b>'+fmt(t.known_first_rounders,0)+'</b></div>'+
+    '<div><span>'+selectedYear+' RANK VS BOEK</span><b>#'+
+      (rankYear(selectedYear).opponents.findIndex(x=>x.id===selected)+1)+'</b></div>'+
+   '</div>'+
+   '<div class="dd-draft-title">FUTURE PICK INVENTORY <small>VERIFIED THROUGH '+knownThrough+'</small></div>'+
+   '<div class="dd-draft-grid">'+[2027,2028,2029,2030].map(year=>{
+    const d=t.draft_by_year[year]||{known:0,round1:0,projected_assumed:4};
+    const assumed=Number(d.projected_assumed)||0,known=Number(d.known)||0;
+    return '<div><span>'+year+'</span><strong>'+fmt(known+assumed,0)+'</strong><small>'+
+     (assumed?(known?known+' known · '+assumed+' assumed':'assumed'):(d.round1+' firsts'))+
+     '</small></div>';
+   }).join('')+'</div>'+
+   '<a class="dd-related" href="#/team/'+selected+'">VIEW '+esc(TEAMS[selected]).toUpperCase()+' TEAM PAGE <span>↗</span></a>'+
+   '<a class="dd-related" href="#/stock-market">DYNASTY STOCK MARKET <span>↗</span></a>';
+ }
+ function display(focusId){
   const node=document.getElementById('app');
   if(!node||!report)return;
   if(!report.years.includes(selectedYear))selectedYear=report.years[0];
-  const t=report.teams.find(x=>x.id===selected),yr=report.seasons[selectedYear],peak=ppg(yr,selected);
-  const book=ppg(yr,1),hayden=ppg(yr,6);
-  const highest=yr.ranking[0],bookTop=yr.ranking.filter(x=>x.id!==1)[0];
-  const future=report.years.map(year=>({year,p:ppg(report.seasons[year],selected).ppg}));
-  const peakYear=[...future].sort((a,b)=>b.p-a.p)[0];
-  const knownThrough=Number(report.assumptions?.known_pick_ownership_through)||2029;
-  const known2027to30=Object.entries(t.draft_by_year).filter(([year])=>+year<=knownThrough)
-    .reduce((sum,[,r])=>sum+r.known,0);
+  const current=rankYear(selectedYear),focus=TEAMS[+focusId]&&+focusId!==1?+focusId:null;
+  const selected=focus||current.leader.id,selectedScore=ppg(report.seasons[selectedYear],selected);
+  const gap=current.boek.ppg-selectedScore.ppg;
+  const observed=observedYear(),span=seasonStats();
   const generated=report.generated_at?
    new Date(report.generated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
-  const sep=' · ';
-  node.innerHTML='<div class="dd-page">'+
-   '<div class="dd-back"><a href="#/more">← MORE</a><span>FIG ANALYTICS / RESEARCH</span></div>'+
-   '<header class="dd-hero"><div class="dd-overline"><span class="dd-pulse"></span> MODEL LAB <span class="dd-tag">BETA</span></div>'+
-    '<h1>DYNASTY <em>DOMINANCE</em></h1>'+
-    '<p>Projected scoring strength across the next six seasons.</p>'+
-    '<div class="dd-meta"><span>2026 THROUGH WEEK '+report.source_week+'</span><span>UPDATED '+esc(generated)+'</span><span>'+fmt(report.runs,0)+' SIMULATIONS</span></div>'+
-   '</header>'+
-   '<div class="dd-warning" role="note"><strong>Experimental projections</strong><span>Long-term accuracy has not been validated. These are model scenarios, not championship probabilities or guaranteed future scoring.</span></div>'+
-   '<section class="dd-main">'+
-    '<div class="dd-main-top"><div><span class="dd-overline">SCORING OUTLOOK</span><h2>'+esc(TEAMS[selected])+' <span>through 2032</span></h2></div>'+
-      '<div class="dd-view-team"><span>FRANCHISE</span><select id="ddTeamSelect" aria-label="Choose franchise">'+
-        report.teams.map(x=>'<option value="'+x.id+'"'+(x.id===selected?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></div></div>'+
-    '<div class="dd-metrics">'+
-      summaryItem(selectedYear+' MODEL PPG',fmt(peak.ppg),'Scenario scoring strength')+
-      summaryItem('2026 ACTUAL PPG',fmt(t.current_ppg),'Through completed Week '+report.source_week)+
-      summaryItem('GAP VS BOEK',selected===1?'—':sign(peak.ppg-book.ppg),'Model PPG, selected year')+
-      summaryItem('PEAK MODEL YEAR',String(peakYear.year),fmt(peakYear.p)+' projected PPG')+
+  const isTop=selected===current.leader.id;
+  const title=isTop?'BOEK’S CLOSEST CHALLENGER':'BOEK VS '+esc(TEAMS[selected]).toUpperCase();
+  node.innerHTML='<div class="dd-page dd-challenger-page">'+
+   '<div class="dd-back"><a href="#/more">← MORE</a><span>FIG ANALYTICS / DYNASTY</span></div>'+
+   '<header class="dd-hero"><div class="dd-overline"><span class="dd-pulse"></span> DYNASTY DOMINANCE <span class="dd-tag">EXPERIMENTAL BETA</span></div>'+
+    '<h1>WHO CAN <em>CHALLENGE BOEK?</em></h1>'+
+    '<p>Ranking the challengers to Boek’s dynasty, season by season.</p>'+
+    '<div class="dd-meta"><span>2026 THROUGH WEEK '+report.source_week+'</span><span>UPDATED '+esc(generated)+
+     '</span><span>'+fmt(report.runs,0)+' SIMULATIONS</span></div></header>'+
+   '<section class="dd-observed" aria-label="Observed current season scoring">'+
+    '<div class="dd-observed-label"><span class="dd-overline">2026 · ACTUAL SCORING SO FAR</span>'+
+     '<small>THROUGH WEEK '+report.source_week+'</small></div>'+
+    '<div class="dd-observed-score">'+
+      '<span><b>'+fmt(observed.book.current_ppg)+'</b><small>BOEK PPG</small></span>'+
+      '<span class="dd-observed-versus">VS</span>'+
+      '<span><b>'+fmt(observed.opponent.current_ppg)+'</b><small>'+esc(TEAMS[observed.opponent.id]).toUpperCase()+' PPG</small></span>'+
+      '<strong class="dd-observed-gap">BOEK '+(observed.gap>=0?'+':'−')+fmt(Math.abs(observed.gap))+' PPG</strong>'+
     '</div>'+
-    '<div class="dd-chart-head"><span>SEASON TRAJECTORY</span><div class="dd-legend">'+
-      [1,6,selected].filter((id,i,a)=>a.indexOf(id)===i).map(id=>
-       '<span><i style="background:'+COLORS[id]+'"></i>'+esc(TEAMS[id])+'</span>').join('')+'</div></div>'+
-    '<div class="dd-chart">'+linePlot(report.years,selected)+'</div>'+
-    '<div class="dd-year-selector" role="group" aria-label="Forecast season">'+report.years.map(y=>button(y,y===selectedYear)).join('')+'</div>'+
+    '<p>The current season is measured from completed weeks. Forecast years below use a different model, not observed results.</p>'+
    '</section>'+
-   '<div class="dd-columns">'+
-    '<section class="dd-panel"><div class="dd-panel-heading"><div><span class="dd-overline">LEAGUE TABLE</span><h3>'+selectedYear+' projected order</h3></div><span class="dd-mini">MODEL PPG</span></div>'+
-      teamList(selected)+'</section>'+
-    '<section class="dd-panel"><div class="dd-panel-heading"><div><span class="dd-overline">ROSTER PROFILE</span><h3>'+esc(t.name)+'</h3></div>'+
-     '<a class="dd-link" href="#/team/'+selected+'">TEAM PAGE ↗</a></div>'+
-     '<div class="dd-identity">'+avatar(selected)+'<div><strong>'+esc(TEAMS[selected])+'</strong><small>'+t.roster_count+' eligible NFL players</small></div></div>'+
-     '<div class="dd-profile-stats">'+
-      '<div><span>TOP-10 VALUE-WEIGHTED AGE</span><b>'+fmt(t.top10_value_weighted_age)+'</b></div>'+
-      '<div><span>KNOWN FUTURE DRAFT PICKS</span><b>'+fmt(known2027to30,0)+'</b></div>'+
-      '<div><span>KNOWN FIRST-ROUND PICKS</span><b>'+fmt(t.known_first_rounders,0)+'</b></div>'+
-      '<div><span>'+selectedYear+' SCORING RANK</span><b>#'+(yr.ranking.findIndex(x=>x.id===selected)+1)+'</b></div>'+
-     '</div>'+
-     '<div class="dd-draft-title">PICK CAPITAL <small>KNOWN THROUGH '+knownThrough+'</small></div>'+
-     '<div class="dd-draft-grid">'+[2027,2028,2029,2030].map(y=>{
-      const d=t.draft_by_year[y];
-      return '<div><span>'+y+'</span><strong>'+(d.known||d.projected_assumed)+'</strong><small>'+
-        (d.projected_assumed ? (d.known?d.known+' known · '+d.projected_assumed+' assumed':'assumed') : d.round1+' firsts')+'</small></div>';
-     }).join('')+'</div>'+
-     '<a class="dd-related" href="#/dynasty">VIEW ROSTER MARKET VALUES <span>↗</span></a>'+
-     '<a class="dd-related" href="#/stock-market">VIEW DYNASTY STOCK MARKET <span>↗</span></a>'+
-    '</section>'+
-   '</div>'+
-   '<section class="dd-panel dd-compare"><div class="dd-panel-heading"><div><span class="dd-overline">SIX-SEASON COMPARISON</span><h3>Boek vs '+esc(TEAMS[selected])+'</h3></div>'+
-    '<span class="dd-mini">PPG / MODEL</span></div>'+gapRows(selected)+'</section>'+
-   '<details class="dd-details"><summary>Model notes and limitations <span>+</span></summary>'+
-    '<div class="dd-details-body"><p>Current data: FIG weekly team scoring, roster ownership and player scoring; RosterAudit values; actual 2027–'+knownThrough+' original-franchise draft holdings. Later original picks are assumed until real ownership is available.</p>'+
-    '<p>Future player production depends on provisional aging, rookie-development, injury and roster assumptions. The model does not invent future trades or award any manager a trading-skill bonus. The historical one-year backtests have not consistently outperformed a simple roster baseline.</p>'+
-    '<p>Projected PPG is a stylized lineup-strength estimate. It is not the number of points a franchise is guaranteed to score. The service refreshes its report from new FIG data; no live sports provider is queried when opening this page.</p>'+
-    '<a href="#/historical-predictions">HISTORICAL PROJECTIONS ↗</a></div></details>'+
-   '<footer class="dd-foot">FROMM IS GARBAGE <span>•</span> RESEARCH / 2026 <span>•</span> VERSION '+esc(report.model_version)+'</footer>'+
-  '</div>';
+   '<div class="dd-warning" role="note"><strong>Model projections · not verified probabilities</strong>'+
+    '<span>Future scoring strength is experimental. Historical one-year tests have not consistently beaten a simple baseline.</span></div>'+
+   '<div class="dd-year-selector dd-challenger-years" role="group" aria-label="Select projected season">'+
+    report.years.map(y=>button(y,y===selectedYear)).join('')+'</div>'+
+   '<section class="dd-feature" aria-label="Selected future challenger">'+
+    '<div class="dd-feature-head"><span class="dd-overline">'+selectedYear+' · '+title+'</span>'+
+     '<span class="dd-feature-badge">MODEL ESTIMATE</span></div>'+
+    '<div class="dd-feature-compare"><div class="dd-feature-person">'+
+      '<span class="dd-feature-avatar">'+avatar(1)+'</span><span class="dd-feature-name">BOEK</span>'+
+      '<strong>'+fmt(current.boek.ppg)+'</strong><small>PROJECTED PPG</small></div>'+
+     '<div class="dd-feature-gap"><span>SCORING DIFFERENCE</span><strong class="'+(gap>=0?'dd-pos':'dd-neg')+'">'+
+      (gap>=0?'+':'−')+fmt(Math.abs(gap))+'</strong>'+
+      '<small>'+(gap>=0?'Boek projected ahead':'Challenger projected ahead')+'</small></div>'+
+     '<div class="dd-feature-person"><span class="dd-feature-avatar">'+avatar(selected)+'</span>'+
+      '<span class="dd-feature-name">'+esc(TEAMS[selected]).toUpperCase()+'</span>'+
+      '<strong>'+fmt(selectedScore.ppg)+'</strong><small>PROJECTED PPG</small></div></div>'+
+    '<div class="dd-feature-foot"><span>'+ (isTop?'Closest opponent by projected average':'Selected franchise comparison')+
+     '</span><label>COMPARE TEAM <select id="ddTeamSelect" aria-label="Compare a challenger">'+
+       current.opponents.map(t=>'<option value="'+t.id+'"'+(t.id===selected?' selected':'')+'>'+esc(TEAMS[t.id])+'</option>').join('')+
+     '</select></label></div></section>'+
+   '<div class="dd-overview"><section class="dd-panel dd-ladder-panel"><div class="dd-panel-heading">'+
+     '<div><span class="dd-overline">THREAT RANKING</span><h3>Who is closest in '+selectedYear+'?</h3></div>'+
+     '<span class="dd-mini">PROJECTED PPG</span></div>'+
+    leagueLadder(selected,selectedYear)+'</section>'+
+    '<section class="dd-panel dd-trend-panel"><div class="dd-panel-heading"><div>'+
+      '<span class="dd-overline">LONG-TERM OUTLOOK</span><h3>The challengers’ trajectory</h3></div>'+
+      '<span class="dd-mini">2027–2032</span></div>'+
+      lineupChart(selected)+
+      '<div class="dd-insight"><span>EARLY FAVORITE</span><b>'+
+         esc(TEAMS[span.first.leader.id])+'</b><small>'+fmt(span.first.leader.ppg)+' PPG in 2027</small></div>'+
+      '<div class="dd-insight"><span>2032 CHALLENGER</span><b>'+esc(TEAMS[span.last.leader.id])+
+         '</b><small>'+fmt(span.last.leader.ppg)+' model PPG · '+fmt(Math.abs(span.gap))+
+         (span.gap>=0?' behind Boek':' ahead of Boek')+'</small></div>'+
+     '</section></div>'+
+   '<section class="dd-panel dd-compare"><div class="dd-panel-heading"><div>'+
+     '<span class="dd-overline">THE SUCCESSION RACE</span><h3>Boek’s top challenger, every year</h3></div>'+
+     '<span class="dd-mini">EXPECTED TEAM SCORING</span></div>'+futureLeaders()+
+    '<p class="dd-table-note">The top challenger is the non-Boek franchise with the highest projected average PPG, not an estimated championship probability.</p></section>'+
+   '<section class="dd-panel dd-roster-profile"><div class="dd-panel-heading"><div>'+
+    '<span class="dd-overline">CHALLENGER PROFILE</span><h3>'+esc(TEAMS[selected])+' roster & draft capital</h3></div>'+
+    '<a class="dd-link" href="#/team/'+selected+'">TEAM PAGE ↗</a></div>'+
+    profile(selected)+'</section>'+
+   '<details class="dd-details"><summary>How the challenger model works <span>+</span></summary>'+
+    '<div class="dd-details-body"><p>2026 actual points are recorded team scoring through Week '+
+      report.source_week+'. Future years are stylized lineup-strength projections and should not be interpreted as directly observed season averages or future championship odds.</p>'+
+     '<p>Each season’s closest challenger is ranked by projected mean points, not by a validated probability of finishing first. Modeling assumptions include aging, rookie development, injuries, and future draft capital. Real future trades are not invented, and no manager receives a subjective trading-skill bonus.</p>'+
+     '<p>Actual ownership for original picks is sourced through '+
+       ageAndPicks(selected).knownThrough+'. Beyond that date, original picks are assumed and can change with real trades. Historical one-year scoring holdouts have not demonstrated reliable long-horizon calibration.</p>'+
+     '<a href="#/dynasty">ROSTER VALUES ↗</a></div></details>'+
+   '<footer class="dd-foot">FROMM IS GARBAGE <span>•</span> EXPERIMENTAL DYNASTY RESEARCH <span>•</span> '+
+     esc(report.model_version)+'</footer></div>';
   node.querySelectorAll('[data-dd-year]').forEach(b=>b.addEventListener('click',()=>{
-   selectedYear=Number(b.dataset.ddYear);display(selected);
+    selectedYear=Number(b.dataset.ddYear);
+    if(location.hash!=='#/dynasty-dominance')location.hash='#/dynasty-dominance';
+    display(null);
   }));
-  node.querySelector('#ddTeamSelect').addEventListener('change',e=>{
-   const id=Number(e.target.value);if(TEAMS[id])location.hash='#/dynasty-dominance/'+id;
+  const picker=node.querySelector('#ddTeamSelect');
+  if(picker)picker.addEventListener('change',e=>{
+    const id=Number(e.target.value);
+    if(TEAMS[id]&&id!==1){
+      location.hash='#/dynasty-dominance/'+id;
+      display(id);
+    }
   });
  }
  async function render(id){
-  const selected=TEAMS[+id]?+id:1;
+  const selected=TEAMS[+id]&&+id!==1?+id:null;
   if(!report){
    try{
     const response=await fetch('data/dynasty_dominance_projection.json',{cache:'no-store'});

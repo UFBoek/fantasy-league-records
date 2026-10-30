@@ -14,3 +14,82 @@
 @media(max-width:900px){.dd-columns{grid-template-columns:1fr}.dd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:699px){.dd-page{margin:-6px -9px 15px;border-radius:12px;border-left:0;border-right:0;padding:16px 13px 24px}.dd-back{margin-bottom:22px}.dd-back span{font-size:9px;letter-spacing:.07em}.dd-hero{padding-bottom:22px}.dd-hero h1{font-size:clamp(31px,8vw,47px);letter-spacing:-.066em}.dd-meta{gap:7px 12px;font-size:9px}.dd-warning{display:block;padding:12px 13px;font-size:11px;margin-bottom:15px}.dd-warning strong{display:block;margin-bottom:3px}.dd-main{padding:14px 12px}.dd-main-top{align-items:flex-start}.dd-main h2{font-size:21px}.dd-main h2 span{display:block;font-size:11px;margin-top:3px}.dd-view-team{min-width:108px}.dd-view-team select{max-width:130px;width:100%;font-size:11px;padding:8px 5px}.dd-metrics{gap:7px;margin-bottom:20px}.dd-metric{padding:13px 10px;gap:7px}.dd-metric>span{font-size:8px;letter-spacing:.07em}.dd-metric strong{font-size:23px}.dd-metric small{font-size:9px}.dd-chart-head{align-items:flex-start;flex-direction:column;gap:8px}.dd-chart{margin-left:-5px;margin-right:-3px}.dd-year{font-size:11px;padding:9px 0}.dd-columns{gap:14px;margin:14px 0}.dd-panel{padding:17px 12px}.dd-panel h3{font-size:18px}.dd-panel-heading{margin-bottom:15px}.dd-team-row{padding:8px 6px}.dd-team-avatar{width:32px;height:32px}.dd-team-rank{width:18px}.dd-team-label strong{font-size:12px}.dd-team-score strong{font-size:14px}.dd-year-table{min-width:520px}.dd-year-table th,.dd-year-table td{padding:10px 11px}.dd-profile-stats b{font-size:22px}.dd-compare{margin-top:14px}.dd-details{margin-top:14px}.dd-details summary{padding:15px 12px}.dd-details-body{padding:12px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.dd-page a,.dd-page button{transition:none!important}}
+
+
+/* Challenger-first research dashboard · v232 */
+.dd-challenger-page .dd-hero{padding-bottom:26px}
+.dd-challenger-page .dd-hero h1{font-size:clamp(30px,5.1vw,58px);max-width:1020px}
+.dd-challenger-page .dd-hero h1 em{color:#8ebaff}
+.dd-observed{background:linear-gradient(105deg,#1b344c,#14263a 70%,#152438);border:1px solid #3b556f;border-radius:12px;padding:16px 20px;margin-bottom:14px}
+.dd-observed-label{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dd-observed-label small{font-size:9px;letter-spacing:.12em;font-weight:800;color:#b1c4db}
+.dd-observed-score{display:flex;align-items:center;gap:clamp(10px,2vw,28px);flex-wrap:wrap;margin-top:13px}
+.dd-observed-score>span:not(.dd-observed-versus){display:flex;align-items:baseline;gap:8px}
+.dd-observed-score>span b{font-weight:850;font-size:clamp(22px,3.5vw,35px);letter-spacing:-.055em;font-variant-numeric:tabular-nums}
+.dd-observed-score>span small{font-size:10px;font-weight:800;letter-spacing:.075em;color:#afc5dd}
+.dd-observed-versus{font-size:11px;font-weight:900;letter-spacing:.18em;color:#708ead}
+.dd-observed-gap{font-weight:800;font-size:clamp(12px,1.8vw,15px);color:#8be3ba;letter-spacing:.025em;margin-left:auto}
+.dd-observed p{margin:12px 0 0;color:#94a9c3;font-size:10px;line-height:1.5}
+.dd-challenger-page .dd-warning{margin-bottom:20px}
+.dd-challenger-years{max-width:650px;margin:0 0 12px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.dd-challenger-years .dd-year{min-height:42px}
+.dd-feature{border-radius:13px;border:1px solid #4871a5;box-shadow:0 10px 32px #050c1c3b;background:radial-gradient(ellipse 90% 175% at 85% -25%,#315383 0%,transparent 80%),linear-gradient(155deg,#1b3559,#132640 55%,#122238);padding:clamp(17px,3vw,30px);margin-bottom:18px}
+.dd-feature-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dd-feature-head .dd-overline{color:#b5cfff}
+.dd-feature-badge{font-size:9px;letter-spacing:.09em;border:1px solid #6d8db880;color:#b9d0f4;border-radius:5px;padding:5px 8px;font-weight:850;white-space:nowrap}
+.dd-feature-compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(125px,.85fr) minmax(0,1fr);align-items:center;gap:14px;padding:26px 0}
+.dd-feature-person{display:flex;align-items:center;flex-direction:column;gap:6px;min-width:0;text-align:center}
+.dd-feature-avatar{width:clamp(48px,7vw,74px);height:clamp(48px,7vw,74px);border-radius:50%;overflow:hidden;border:3px solid #5c87bb;background:#29415f;box-shadow:0 5px 18px #07152e80;display:block}
+.dd-feature-avatar img{width:100%;height:100%;object-fit:cover}
+.dd-feature-person:nth-child(3) .dd-feature-avatar{border-color:#c3a26b}
+.dd-feature-name{color:#c5d9f3;font-size:11px;font-weight:900;letter-spacing:.15em}
+.dd-feature-person>strong{font-size:clamp(27px,4.1vw,48px);line-height:1.13;letter-spacing:-.065em;font-weight:850;color:#f9fbff;font-variant-numeric:tabular-nums}
+.dd-feature-person>small{font-size:9px;color:#96b4d6;letter-spacing:.12em;font-weight:800}
+.dd-feature-gap{background:#0b1a30b9;border:1px solid #43668e;border-radius:11px;padding:20px 12px;display:flex;align-items:center;flex-direction:column;gap:7px;text-align:center}
+.dd-feature-gap>span{font-weight:800;font-size:9px;color:#a9bfdd;letter-spacing:.12em}
+.dd-feature-gap strong{font-size:clamp(25px,3.3vw,39px);font-weight:850;letter-spacing:-.055em;font-variant-numeric:tabular-nums}
+.dd-feature-gap small{font-size:10px;color:#b4c7df}
+.dd-feature-foot{border-top:1px solid #4661829c;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:16px}
+.dd-feature-foot>span{font-size:10px;font-weight:750;color:#adc8e7}
+.dd-feature-foot label{font-size:10px;display:flex;align-items:center;gap:10px;color:#b8ceed;font-weight:800;white-space:nowrap}
+.dd-feature-foot select{max-width:145px;min-width:100px;border:1px solid #4f739f;background:#132740;color:#f1f6ff;border-radius:7px;padding:8px;font-weight:800;font-size:11px}
+.dd-overview{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:18px;margin-bottom:18px;align-items:stretch}
+.dd-overview>.dd-panel{min-width:0}
+.dd-ladder{display:flex;flex-direction:column;gap:4px}
+.dd-ladder-row{display:grid;grid-template-columns:23px 38px minmax(0,1fr) 94px;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;border:1px solid transparent;transition:background .17s,border-color .17s;min-width:0}
+.dd-ladder-row:hover{background:#29436680}
+.dd-ladder-row.is-selected{border-color:#4974b8;background:#294c76a8}
+.dd-ladder-rank{font-size:10px;color:#a3bad8;font-weight:850}
+.dd-ladder-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;background:#304d70}
+.dd-ladder-avatar img{width:100%;height:100%;object-fit:cover}
+.dd-ladder-info{min-width:0;display:flex;flex-direction:column;gap:9px}
+.dd-ladder-info strong{font-size:12px;color:#eef5ff;font-weight:800;line-height:1}
+.dd-ladder-track{height:5px;background:#364a64;border-radius:6px;overflow:hidden;width:100%}
+.dd-ladder-track>i{display:block;height:100%;border-radius:6px}
+.dd-ladder-nums{text-align:right;min-width:0;display:flex;flex-direction:column;gap:4px}
+.dd-ladder-nums strong{font-weight:850;color:#f2f7ff;font-size:14px;font-variant-numeric:tabular-nums}
+.dd-ladder-nums small{font-size:9px;color:#9db4d2}
+.dd-trend-panel .dd-chart{padding-top:11px}
+.dd-trend-panel .dd-chart-head{margin:0 0 3px;display:block}
+.dd-trend-panel .dd-chart-head>span{display:none}
+.dd-trend-panel .dd-legend{gap:6px 13px}
+.dd-trend-panel .dd-chart-label{font-size:12px}
+.dd-insight{border-top:1px solid #2c4058;padding:12px 1px 3px;display:grid;grid-template-columns:1fr auto;gap:3px 12px;align-items:center}
+.dd-insight>span{font-size:9px;color:#8ca9cf;font-weight:850;letter-spacing:.12em}
+.dd-insight>b{font-size:13px;color:#e4eefc;text-align:right}
+.dd-insight>small{grid-column:1/-1;font-size:10px;color:#819bb9;text-align:right}
+.dd-challenger-table td,.dd-challenger-table th{font-variant-numeric:tabular-nums}
+.dd-challenger-table td:nth-child(2),.dd-challenger-table th:nth-child(2){text-align:left}
+.dd-year-opponent{display:inline-flex;align-items:center;gap:9px;color:#edf4ff!important;font-weight:800}
+.dd-year-opponent:hover{color:#8dbbff!important}
+.dd-year-avatar{width:26px;height:26px;display:inline-block;border-radius:50%;overflow:hidden;background:#2a405f}
+.dd-year-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.dd-table-note{color:#8ca4c1;font-size:10px;margin:15px 0 0;line-height:1.6}
+.dd-roster-profile{margin-top:18px}
+.dd-roster-profile .dd-identity,.dd-roster-profile .dd-profile-stats{max-width:720px}
+.dd-roster-profile .dd-draft-grid{max-width:600px}
+.dd-roster-profile .dd-related{max-width:650px}
+.dd-challenger-page .dd-feature a:focus-visible,.dd-challenger-page .dd-ladder-row:focus-visible,.dd-challenger-page button:focus-visible,.dd-challenger-page select:focus-visible,.dd-challenger-page a:focus-visible{outline:2px solid #95bfff;outline-offset:3px}
+@media(max-width:900px){.dd-overview{grid-template-columns:1fr}.dd-feature{padding:22px}.dd-feature-compare{gap:15px}}
+@media(max-width:699px){.dd-challenger-page .dd-hero h1{font-size:clamp(28px,7.3vw,43px)}.dd-challenger-page .dd-hero{padding-bottom:20px}.dd-observed{padding:13px 12px}.dd-observed-label small{font-size:8px}.dd-observed-score{gap:7px 12px}.dd-observed-score>span:not(.dd-observed-versus){gap:5px;flex-wrap:wrap}.dd-observed-score>span b{font-size:25px}.dd-observed-score>span small{font-size:9px}.dd-observed-gap{width:100%;margin:3px 0 0;font-size:12px}.dd-observed p{font-size:9px}.dd-challenger-years{gap:5px}.dd-challenger-years .dd-year{font-size:11px;min-height:39px}.dd-feature{padding:15px 11px}.dd-feature-head .dd-overline{font-size:8px;letter-spacing:.09em}.dd-feature-badge{font-size:8px;padding:5px;letter-spacing:0}.dd-feature-compare{grid-template-columns:minmax(0,1fr) minmax(90px,.93fr) minmax(0,1fr);gap:6px;padding:22px 0}.dd-feature-avatar{width:48px;height:48px}.dd-feature-name{font-size:9px}.dd-feature-person>strong{font-size:clamp(22px,6.5vw,32px)}.dd-feature-person>small{font-size:8px;letter-spacing:0}.dd-feature-gap{padding:13px 5px;gap:6px}.dd-feature-gap>span{font-size:8px;letter-spacing:.04em}.dd-feature-gap strong{font-size:clamp(21px,5.6vw,28px)}.dd-feature-gap small{font-size:8px}.dd-feature-foot{align-items:flex-start;gap:10px}.dd-feature-foot>span{font-size:9px;max-width:125px;line-height:1.4}.dd-feature-foot label{flex-direction:column;gap:4px;align-items:flex-end;font-size:9px}.dd-feature-foot select{width:115px}.dd-overview{gap:13px;margin-bottom:13px}.dd-ladder-row{grid-template-columns:19px 31px minmax(0,1fr) 78px;gap:7px;padding:8px 5px}.dd-ladder-avatar{height:29px;width:29px}.dd-ladder-nums strong{font-size:13px}.dd-ladder-nums small{font-size:8px}.dd-ladder-info strong{font-size:11px}.dd-challenger-table{min-width:615px}.dd-challenger-table td,.dd-challenger-table th{padding:9px}.dd-challenger-page .dd-hero p{max-width:320px}.dd-roster-profile{margin-top:13px}.dd-trend-panel .dd-chart{margin-top:10px}}
+@media(max-width:370px){.dd-feature-avatar{width:42px;height:42px}.dd-feature-compare{grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr)}.dd-feature-person>strong{font-size:22px}.dd-feature-gap strong{font-size:21px}.dd-ladder-row{grid-template-columns:18px 29px minmax(0,1fr) 72px}}
