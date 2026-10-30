@@ -287,3 +287,79 @@ explicit treatment of unknown future roster transactions.
 The CI research artifact contains historical rosters, all their future
 pick holdings, model errors, chain warnings, and a 2026 reconciliation
 check. All of this stays on the draft PR.
+
+
+## Frozen-asset one-season holdout (October 30, 2026)
+
+A standalone, **non-market-based one-season forecast** now operates on the
+two verified Week 7 historical roster and future-pick snapshots:
+`scripts/backtest_dynasty_next_season.js`.
+
+- 2024 W7 cutoff → 2025 full 14-week regular season.
+- 2025 W7 cutoff → 2026 verified Weeks 1–7.
+- Uses **only pre-cutoff NFL scores** for each current rostered player.
+- For 2026, first-year future picks draw from the actual **2024** completed
+  FIG rookie-draft outcomes (40 players). The 2025 rookie class is deliberately
+  **not** used to predict 2026; it would leak future information.
+- For the 2025 target, there was **no completed earlier FIG rookie-draft
+  class** at the 2024 Week 7 cutoff. That forecast excludes unobservable
+  rookie contributions and explicitly discloses the omission.
+- Future player trades and waiver acquisitions are never invented.
+- The target is real subsequent team scoring, including later roster
+  turnover. These are not equivalent to a frozen roster's outcomes.
+
+### Actual historical results — 750 Monte Carlo trials per snapshot
+
+| Cutoff -> target | Model MAE using undiscouned full-week production | Simple Week-7 roster baseline MAE | Difference | 10–90% interval coverage |
+| --- | ---: | ---: | ---: | ---: |
+| 2024 W7 -> 2025 season | **24.03 PPG** | **22.55 PPG** | 1.48 PPG worse | **60%** |
+| 2025 W7 -> 2026 W1–7 | **25.23 PPG** | **23.96 PPG** | 1.27 PPG worse | **70%** |
+
+Both model predicted #1 ranks matched actual leading scoring teams
+(Hayden in 2025 and Boek in 2026), **but the 10-team scoring predictions
+failed to beat the simple historical roster baseline**. Probability
+interval coverage is also below nominal 80%. **Do not publish the
+model's season-by-season #1 probabilities as calibrated odds.**
+
+Crucial Boek–Hayden comparisons:
+
+- From 2024 Week 7, simulated 2025 PPG: Hayden **189.88** vs Boek
+  **161.03**. Real 2025: Hayden **214.30**, Boek **209.55**.
+- From 2025 Week 7, simulated 2026 PPG: Boek **224.38** vs Hayden
+  **223.30**. Actual verified 2026 W1–7: Boek **234.91** vs Hayden
+  **213.94**.
+- Mean 2024-to-2025 franchise roster retention measured at the
+  following season's Week 7 was **53.1%**, and for 2025-to-2026
+  **50.7%**. Future trading, waivers and draft acquisitions are
+  therefore an important *missing process*, not an earned bonus for any
+  particular manager.
+
+An experimental 0.80 carry-forward multiplier **failed more badly**:
+36.01 PPG MAE for 2025 and 38.74 for 2026, with 80% intervals covering
+only 30% and 10% of observed outcomes respectively. We therefore use
+1.00 full-week persistence by default in this *separate one-year test*.
+This does not rewrite the live playoff calculator or multiyear dynasty
+projection, which must be calibrated independently.
+
+### Statistical / publication consequences
+
+The formal validation gate now flags these as **failed**:
+
+1. The experimental one-year model must outperform the simple cutoff
+   roster baseline in **both** holdouts.
+2. Its nominal 80% intervals must cover at least 80% of the ten
+   observed team scores at **each** historical cutoff.
+
+The code now contains deterministic tests that keep the publication
+gate blocked when the model fails these checks. Passing CI means the
+model is working **as coded**, not that its predictions are statistically
+trustworthy.
+
+Run locally:
+
+    node model_tests/test_dynasty_next_season.js
+    node scripts/backtest_dynasty_next_season.js --runs 750 --out /tmp/fig-next-year.json
+    node scripts/backtest_dynasty_next_season.js --runs 250 --persistence 0.8 --out /tmp/fig-overdiscounted.json
+
+The project remains a research-only branch with no website/production
+deployment or changes to the existing historical league records.
