@@ -71,3 +71,54 @@ Next validation priorities: NFL-wide started + bench scoring priors,
 historically fitted rookie distribution and longevity curves, sensitivity
 to correlations between players and full-year lineup availability,
 and time-cutoff asset snapshot backtests where true snapshots exist.
+
+
+## Experimental v2.1: Actual NFL-wide scoring and rookie follow-up
+
+A separate draft-branch-only GitHub Actions workflow now builds
+`data/dynasty_nfl_history.json` by reusing FIG's existing Sleeper weekly
+NFL player-stats parser, standardizing 2023–2025 to FIG's **2026** scoring
+weights. This is research data only; it never replaces official league
+scores or the production playoff scoring archive.
+
+- 2023: **679** NFL player-season records, Weeks 1–17
+- 2024: **706** NFL player-season records, Weeks 1–17
+- 2025: **702** NFL player-season records, Weeks 1–17
+- 2026: reuse the current NFL-wide archive through verified Week 7
+- **299 of 318** current FIG rostered skill-position players have observed
+  NFL-wide games in the 2023–2026 scoring samples, representing **6,797**
+  played-game observations; remaining player priors are retained instead
+  of pretending they never scored.
+
+The model prioritizes NFL-wide **played games** for rostered and bench players,
+falls back to official historical FIG starter points when needed, and then
+regresses low-sample players toward RosterAudit market-linked positional priors.
+It never treats an unstarted fantasy player as having an NFL 0-point game.
+
+The rookie component now uses **80 actually selected FIG rookies** from
+2024 and 2025: 20 picks per fantasy draft round. Each selection's rookie
+NFL scoring is measured over a fixed 17-week denominator, including
+zero-game rookies. The 40 rookies drafted in 2024 also have a completed
+2025 NFL season, from which the model measures **first-to-second-year**
+change. For a 2025 rookie without a completed sophomore year, the model
+samples changes from similarly productive 2024 selections in the same
+fantasy draft round, preferring the same position. Later-career growth,
+future injury probability and positional aging remain documented
+hypothetical assumptions.
+
+This is an improvement in input provenance, **not proof of calibration**:
+two rookie classes, one sophomore follow-up class and three historical
+NFL seasons are not a large enough sample for precise 2032 probabilities.
+2026 current-week results and the present RosterAudit market values are
+not retrospectively available at 2023–2025 cutoffs, so do not use them to
+pretend this is a leakage-free long-term performance backtest.
+
+For reproducibility:
+
+    python scripts/build_dynasty_nfl_history.py
+    node tests/test_dynasty_dominance.js
+    node scripts/dynasty_dominance_model.js --runs 5000 --out /tmp/fig-dynasty-v2.json
+    node scripts/stress_dynasty_dominance.js --runs 500 --out /tmp/fig-stress-v2.json
+
+The data acquisition workflow commits only the historical research JSON
+onto this **draft branch**. The public site stays unchanged.
