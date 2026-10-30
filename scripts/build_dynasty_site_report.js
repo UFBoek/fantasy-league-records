@@ -6,8 +6,7 @@
  * node scripts/build_dynasty_site_report.js
  */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {runModel}=require('./dynasty_value_only_model');
-const {makePicks}=require('./dynasty_dominance_model');
+const {runModel,makePicks}=require('./dynasty_value_only_model');
 const root=path.resolve(__dirname,'../data');
 // The forecast engine receives NO past game outcomes; weekly scoring is
 // loaded only for the separately labeled 2026 actual-results display.
