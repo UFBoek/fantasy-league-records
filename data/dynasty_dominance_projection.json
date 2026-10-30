@@ -1,7 +1,7 @@
 {
   "version": "fig-beta-1.4-league-scale",
   "status": "experimental_beta_not_calibrated",
-  "generated_at": "2026-10-30T11:49:40.520Z",
+  "generated_at": "2026-10-30T11:53:48.733Z",
   "source_week": 7,
   "source_season": 2026,
   "model_version": "experimental-v3.1-position-age-value-league-scale",
@@ -39826,5 +39826,5 @@
     2031,
     2032
   ],
-  "input_fingerprint": "eabe3be737747ad99f7e9a4e"
+  "input_fingerprint": "dc238b3de76a0269759ee5fb"
 }
