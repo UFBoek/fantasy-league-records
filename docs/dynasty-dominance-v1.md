@@ -363,3 +363,56 @@ Run locally:
 
 The project remains a research-only branch with no website/production
 deployment or changes to the existing historical league records.
+
+
+## Historical turnover and neutral roster-evolution experiment
+
+The new `scripts/audit_dynasty_turnover.js` computes **actual player-ID
+retention** at ten-team Week-7 historical roster snapshots, with separate
+starter and bench retention. It uses the 2023, 2024, 2025 and 2026
+historical weekly rosters, and preserves 2026 as **outcome-only** evidence
+for the earlier forecasts.
+
+| Historical Week 7 -> next Week 7 | Mean team roster retained | League starter retained | League bench retained | Newly rostered players across the league |
+| --- | ---: | ---: | ---: | ---: |
+| 2023 -> 2024 | 42.9% | 53.0% | 36.7% | 189 |
+| 2024 -> 2025 | 53.1% | 70.0% | 44.8% | 157 |
+| 2025 -> 2026 | 50.7% | 65.0% | 43.3% | 163 |
+
+The starter/bench rates were calculated from the actual prior-week roster
+designation, not from managers' subjective skill scores. Lower bench
+retention than starter retention means a team can change half its roster
+without changing half its scoring talent.
+
+The experimental neutral turnover simulator
+`scripts/stress_dynasty_roster_evolution.js` models **common league-wide
+starter and bench retention rates** learned only from cohorts already
+observable at each historical forecast date:
+
+- For a 2024 Week-7 forecast, train solely on the completed 2023->2024
+  Week-7 transitions.
+- For a 2025 Week-7 forecast, train on 2023->2024 and 2024->2025.
+- NEVER train 2025->2026 parameters when forecasting 2026.
+- Retained players stay with their franchises. Departing players are
+  redistributed within the league in balanced exchanges, creating
+  **no new trade-acquired points** or management-quality bonuses.
+- Rookie selections are included only when a completely historical
+  pre-cutoff rookie training class is available. No future rookie class
+  or later trade partner is invented.
+- This is a **hypothetical talent-neutral stress scenario**, not actual
+  predicted transfers. Transfers from outside the league, role changes
+  and free agents are not reconstructed.
+- Its held-out MAE, rank and nominal 80% interval coverage must be
+  checked against the simpler frozen-roster forecast before promotion
+  into any other modeling engine.
+
+Research commands:
+
+    node scripts/audit_dynasty_turnover.js --out /tmp/dynasty-turnover.json
+    node model_tests/test_dynasty_roster_evolution.js
+    node scripts/stress_dynasty_roster_evolution.js --runs 800 --out /tmp/dynasty-neutral-turnover.json
+
+The no-leakage tests check that altering unseen 2025->2026 retention
+cannot change either earlier training prior, and that balanced transfers
+conserve every modeled player's fantasy scoring. None of these experiments
+is active on the public website.
