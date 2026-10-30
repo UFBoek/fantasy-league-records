@@ -20,6 +20,15 @@ for(const year of output.years){
  assert.ok(ranking.every(t=>Number.isFinite(t.ppg)&&t.ppg>=0));
  assert.equal(new Set(ranking.map(t=>t.id)).size,10);
 }
+const distorted={...inputs,weekly_scoring_ranks:inputs.weekly_scoring_ranks.map(row=>({
+ ...row,points_for:99999
+}))};
+const changed=build(distorted,{runs:12,seed:407,generatedAt:fixedDate});
+assert.deepEqual(changed.seasons,output.seasons,
+ '2026 actual team scoring may change the display, never projected 2027-2032 PPG');
+assert.notDeepEqual(changed.teams.map(x=>x.current_ppg),
+ output.teams.map(x=>x.current_ppg),
+ 'Observed PPG remains a separate actual-performance display');
 assert.ok(output.teams.every(t=>Number.isFinite(t.top10_value_weighted_age)));
 assert.ok(output.teams.every(t=>Object.keys(t.draft_by_year).length===6));
 for(const year of output.years){
