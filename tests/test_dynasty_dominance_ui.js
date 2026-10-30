@@ -6,7 +6,7 @@ assert.match(html,/dynasty-dominance-v230\.css\?v=233/);
 assert.match(html,/dynasty-dominance-v230\.js\?v=234/);
 assert.match(app,/figDynastyDominance\(parts\[1\],parts\[2\],parts\[3\]\)/);
 assert.match(read('mobile-v69.js'),/dynasty-dominance/);
-assert.match(sw,/dynasty-dominance-v230\.js\?v=233/);
+assert.match(sw,/dynasty-dominance-v230\.js\?v=234/);
 assert.match(css,/\.dd-page \.dd-challenger-table tbody tr td\{background:transparent!important;color:#e4efff!important/);
 assert.match(css,/\.dd-page \.dd-challenger-table tbody tr\.is-active/);
 assert.match(css,/dd-player-table|dd-player-summary/);
