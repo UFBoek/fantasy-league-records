@@ -1,0 +1,27 @@
+name: Verify experimental dynasty model
+on:
+  pull_request:
+    paths:
+      - scripts/dynasty_dominance_model.js
+      - tests/test_dynasty_dominance.js
+      - .github/workflows/verify-dynasty-dominance.yml
+  workflow_dispatch:
+jobs:
+  validate-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify contracts and deterministic runs
+        run: node tests/test_dynasty_dominance.js
+      - name: Generate review-only research report
+        run: node scripts/dynasty_dominance_model.js --runs 1000 --out "$RUNNER_TEMP/dynasty-dominance-research.json"
+      - name: Upload preview without publishing the model to the website
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynasty-dominance-research
+          path: \${{ runner.temp }}/dynasty-dominance-research.json
+          retention-days: 14
