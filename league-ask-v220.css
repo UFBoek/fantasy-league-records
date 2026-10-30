@@ -1,5 +1,5 @@
 /* Ask FIG natural-language stat search — scoped, responsive, app-like. */
-.fig-ask-form input:focus-visible,.fig-ask-form button:focus-visible,.fig-ask-suggestions a:focus-visible{outline:3px solid #4c8fd7;outline-offset:3px}
+.fig-ask-form input:focus-visible,.fig-ask-form button:focus-visible,.boekmuse-audit summary:focus-visible{outline:3px solid #4c8fd7;outline-offset:3px}
 .fig-ask-kicker{font-size:11px;font-weight:900;letter-spacing:.13em;color:#466787}
 .fig-ask-page{max-width:1060px;margin:0 auto;padding:24px 0 55px}
 .fig-ask-kicker{margin-bottom:11px}
@@ -29,13 +29,6 @@
 .fig-ask-error{border:1px solid #d9e1e9;background:#fff;border-radius:16px;padding:24px}
 .fig-ask-error h2{font-size:18px;margin:0 0 10px}
 .fig-ask-error p{color:#63778b;line-height:1.5}
-.fig-ask-suggestions{margin-top:39px}
-.fig-ask-suggestions h2{font-size:11px;letter-spacing:.13em;font-weight:900;color:#63768a;margin:0 0 16px}
-.fig-ask-suggestions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fig-ask-suggestions h2{grid-column:1/-1}
-.fig-ask-suggestions a{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid #d9e2e9;background:#fff;border-radius:13px;padding:17px 19px;font-weight:650;color:#233f59;font-size:13px;transition:transform .16s,border-color .16s}
-.fig-ask-suggestions a:hover{transform:translateY(-2px);border-color:#99b5cf}
-.fig-ask-suggestions a span{color:#7695b3}
 @media(max-width:699px){
  .fig-ask-page{padding:8px 0 50px}
  .fig-ask-page h1{font-size:53px}
@@ -46,20 +39,15 @@
  .fig-ask-form button{padding:12px 11px;font-size:12px}
  .fig-ask-form button span{display:none}
  .fig-ask-answer{padding:23px 19px}
- .fig-ask-suggestions{grid-template-columns:1fr}
- .fig-ask-suggestions a{padding:14px 15px}
  .fig-ask-table{min-width:510px}
 }
-@media(prefers-reduced-motion:reduce){.fig-ask-output:not(:empty){animation:none}.fig-ask-suggestions a{transition:none}}
-
-/* BoekMuse: transparent result semantics (statistic / grouping / source). */
-.boekmuse-audit{background:#f5f8fb;border:1px solid #d8e3ee;border-radius:15px;padding:17px 20px;margin:0 0 15px;color:#263d54;font-size:13px;line-height:1.7}
-.boekmuse-audit>strong{display:block;color:#36597c;font-weight:900;font-size:10px;letter-spacing:.13em;margin-bottom:8px}
-.boekmuse-audit b{font-weight:800}
-.boekmuse-audit small{display:block;color:#61758b;font-size:12px;line-height:1.5;margin-top:7px}
-@media(max-width:699px){.boekmuse-audit{padding:15px 16px;font-size:12px}}
-
-/* BoekMuse: visible generated SQL and data traceability without visual clutter. */
-.boekmuse-query-details{margin:16px 0 8px;border:1px solid #dae4ee;border-radius:13px;background:#fff;overflow:hidden}
-.boekmuse-query-details summary{cursor:pointer;padding:14px 18px;color:#234867;font-size:12px;font-weight:800;letter-spacing:.015em}
-.boekmuse-query-details pre{white-space:pre-wrap;word-break:break-word;padding:15px 18px;margin:0;border-top:1px solid #e1e9f0;background:#f6f9fc;font-size:12px;line-height:1.7;max-height:340px;overflow:auto}
+@media(prefers-reduced-motion:reduce){.fig-ask-output:not(:empty){animation:none}}
+/* BoekMuse answer methodology: collapsed until the user asks for details. */
+.boekmuse-audit{margin:15px 0 0;background:#fff;border:1px solid #dce5ed;border-radius:13px;overflow:hidden;color:#3b536b;font-size:12px}
+.boekmuse-audit summary{cursor:pointer;list-style-position:inside;padding:13px 16px;color:#42617c;font-weight:750}
+.boekmuse-audit summary:hover{background:#f7f9fc}
+.boekmuse-audit-content{border-top:1px solid #e5ecf2;padding:14px 18px;line-height:1.7}
+.boekmuse-audit-content b{font-weight:800}
+.boekmuse-audit-content small{display:block;color:#63778b;font-size:12px;line-height:1.5;margin-top:7px}
+.boekmuse-audit-note{margin:8px 0 0;color:#63778b;font-size:12px;line-height:1.5}
+@media(max-width:699px){.boekmuse-audit-content{padding:12px 15px}}

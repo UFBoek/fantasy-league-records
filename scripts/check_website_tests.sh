@@ -6,6 +6,7 @@ PYTHONPATH=. python tests/test_boekmuse_touchdowns.py
 node tests/test_league_ask.js
 node tests/test_league_ask_ai.js
 node tests/test_boekmuse_dynamic.js
+node tests/test_boekmuse_minimal_ui.js
 node tests/test_boekmuse_accuracy.js
 node tests/test_record_break_watch.js
 node tests/test_team_record_views.js

@@ -8,16 +8,6 @@ const OWNERS=[
 [7,'Line',['line','lionel','lionelcoll']],[8,'Winston',['winston','wincollins2']],
 [9,'CamNol',['camnol','cam nol','nolanfm13']],[10,'James',['james','jamest33']]
 ];
-const EXAMPLES=[
-'Which teams had 3 starting WRs score 20+ points in the same week?',
-'How many times did Boek outscore Hayden in the same week but lose?',
-'How many non-QB touchdowns did Boek starters score each week in 2026?',
-'What are the 10 biggest blowouts ever?',
-'How many trades has Fru made?',
-'Who has the most 200 point weeks?',
-'Who drafted Josh Allen?',
-'Who scored the most points in Week 7 of 2026?'
-];
 const files={games:'games',players:'player_game_log',trades:'trades',drafts:'draft_picks'},cache={};
 const n=x=>Number(x)||0,fmt=x=>Number(x).toLocaleString('en-US',{maximumFractionDigits:2});
 const clean=x=>String(x==null?'':x).toLowerCase().replace(/([a-z])['’]s\b/g,'$1').replace(/[’']/g,'').replace(/[^a-z0-9+.\s-]/g,' ').replace(/\s+/g,' ').trim();
@@ -261,12 +251,14 @@ function bind(el){el.querySelector('.fig-ask-form')?.addEventListener('submit',e
  e.preventDefault();const q=e.target.querySelector('input').value.trim();if(q)root.location.hash=url(q);
 });}
 function resultAudit(r){
- if(!r.interpretation)return '';
  const i=r.interpretation;
- return '<div class="boekmuse-audit" role="note"><strong>WHAT I CALCULATED</strong>'+
- '<div><b>Statistic:</b> '+esc(i.measure||'Not specified')+' <span aria-hidden="true">·</span> <b>Grouped by:</b> '+esc(i.group||'Overall')+'</div>'+
+ if(!i&&!r.note)return '';
+ return '<details class="boekmuse-audit"><summary>Answer details</summary><div class="boekmuse-audit-content">'+
+ (i?'<div><b>Statistic:</b> '+esc(i.measure||'Not specified')+' <span aria-hidden="true">·</span> <b>Grouped by:</b> '+esc(i.group||'Overall')+'</div>'+
  '<div><b>For:</b> '+esc(i.team||'League-wide')+' <span aria-hidden="true">·</span> <b>Scope:</b> '+esc(i.scope||'All published records')+'</div>'+
- '<small>'+esc(i.method||'Calculated from verified league data.')+'</small></div>';
+ '<small>'+esc(i.method||'Calculated from verified league data.')+'</small>':'')+
+ (r.note?'<p class="boekmuse-audit-note">'+esc(r.note)+'</p>':'')+
+ '</div></details>';
 }
 function renderResult(r){
  if(!r.ok)return '<div class="fig-ask-error"><h2>No verified answer available</h2><p>'+esc(r.message)+
@@ -275,19 +267,16 @@ function renderResult(r){
  r.columns.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+
  r.rows.map(x=>'<tr>'+x.values.map((v,i)=>'<td>'+(i===0&&x.href?'<a href="'+esc(x.href)+'">'+esc(v)+'</a>':esc(v))+'</td>').join('')+'</tr>').join('')+
  '</tbody></table></div>':'';
- return resultAudit(r)+'<div class="fig-ask-answer"><div class="fig-ask-answer-title">'+esc(r.title)+'</div>'+
+ return '<div class="fig-ask-answer"><div class="fig-ask-answer-title">'+esc(r.title)+'</div>'+
  '<div class="fig-ask-answer-value">'+esc(r.value)+'</div><p>'+esc(r.context)+'</p></div>'+rows+
- (r.note?'<p class="fig-ask-note">'+esc(r.note)+'</p>':'')+
- (r.sql?'<details class="boekmuse-query-details"><summary>View verified SQL calculation</summary><pre><code>'+esc(r.sql)+'</code></pre></details>':'');
+ resultAudit(r);
 }
 async function render(encoded){
  const app=document.getElementById('app');if(!app)return;
  let q='';try{q=decodeURIComponent(encoded||'');}catch(e){q='';}
  app.innerHTML='<section class="fig-ask-page"><div class="fig-ask-kicker">LEAGUE STAT SEARCH</div><h1>BoekMuse</h1>'+
- '<p>Search verified league statistics. Each answer shows the calculation and source.</p>'+form(q,'fig-ask-input')+
- '<div class="fig-ask-output" aria-live="polite"></div><div class="fig-ask-suggestions"><h2>TRY A QUESTION</h2>'+
- EXAMPLES.map(x=>'<a href="'+url(x)+'">'+esc(x)+' <span aria-hidden="true">↗</span></a>').join('')+
- '</div></section>';
+ '<p>Ask a question about league history.</p>'+form(q,'fig-ask-input')+
+ '<div class="fig-ask-output" aria-live="polite"></div></section>';
  bind(app);
  if(!q){app.querySelector('input')?.focus();return;}
  const out=app.querySelector('.fig-ask-output');out.innerHTML='<p class="fig-ask-note">Searching finalized league data…</p>';
