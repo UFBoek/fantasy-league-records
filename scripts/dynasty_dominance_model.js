@@ -363,4 +363,4 @@ function main(args){
  console.log('Research-only; see JSON for limitations.');
 }
 if(require.main===module)main(process.argv.slice(2));
-module.exports={random,ageCurve,marketPpg,nflScoringSamples,rookieOutcomes,playerBaselines,legalLineup,getForm,makePicks,runModel};
+module.exports={random,ageCurve,marketPpg,nflScoringSamples,rookieOutcomes,playerBaselines,scorePlayer,legalLineup,getForm,makePicks,runModel};
