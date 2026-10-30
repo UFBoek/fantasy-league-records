@@ -249,7 +249,7 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
      const ppg=scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,playerMultipliers});
      const stableId=p.slot_id||p.id,tracked=playerSamples[year][id];
      if(!tracked.has(stableId))tracked.set(stableId,{
-      id:stableId,name:p.name||'Future rookie',pos:p.pos,rookie:!!p.rookie,
+      id:stableId,name:p.name||'Future rookie',pos:p.rookie?'TBD':p.pos,rookie:!!p.rookie,
       age:p.age+year-p.baseYear,pick_year:p.pick_year||null,
       pick_round:p.pick_round||null,pick_origin:p.pick_origin||null,
       sum:0,values:[]});
