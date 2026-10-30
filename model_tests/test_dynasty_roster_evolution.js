@@ -25,7 +25,7 @@ const idsBefore=pool.map(x=>x.ppg).sort((a,b)=>a-b);
 let state=1;const random={u:()=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return(state+.5)/4294967296;}};
 const swap=neutral.shuffledExchange(pool,[1,2,3],random);
 assert.deepEqual(pool.map(x=>x.ppg).sort((a,b)=>a-b),idsBefore,
- 'Neutral trade exchange must conserve every player's output');
+ "Neutral trade exchange must conserve every player\'s output");
 assert.ok(swap.selfReturn>=0);
 const model=neutral.study({...input,runs:25,seed:712});
 assert.equal(model.cases.length,2);
