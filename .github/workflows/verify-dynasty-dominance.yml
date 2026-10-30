@@ -42,6 +42,8 @@ jobs:
         run: node model_tests/test_dynasty_next_season.js
       - name: Report true historical next-season frozen-asset forecasts
         run: node scripts/backtest_dynasty_next_season.js --runs 750 --out "$RUNNER_TEMP/dynasty-next-season-holdout.json"
+      - name: Sensitivity - double-discounted 0.80 persistence for comparison
+        run: node scripts/backtest_dynasty_next_season.js --runs 250 --persistence 0.80 --out "$RUNNER_TEMP/dynasty-persistence-080.json"
       - name: Assess historical validation and publication readiness
         run: node scripts/assess_dynasty_validation.js --asof "$RUNNER_TEMP/dynasty-historical-asof.json" --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
       - name: Generate review-only research report
@@ -63,4 +65,5 @@ jobs:
             ${{ runner.temp }}/dynasty-publication-readiness.json
             ${{ runner.temp }}/dynasty-historical-asof.json
             ${{ runner.temp }}/dynasty-next-season-holdout.json
+            ${{ runner.temp }}/dynasty-persistence-080.json
           retention-days: 14
