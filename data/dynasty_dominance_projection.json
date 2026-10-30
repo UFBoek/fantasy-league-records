@@ -1,7 +1,7 @@
 {
   "version": "fig-beta-1.2-value-age",
   "status": "experimental_beta_not_calibrated",
-  "generated_at": "2026-10-30T10:53:31.775Z",
+  "generated_at": "2026-10-30T10:56:59.207Z",
   "source_week": 7,
   "source_season": 2026,
   "model_version": "experimental-v2.2-value-age",
@@ -39826,5 +39826,5 @@
     2031,
     2032
   ],
-  "input_fingerprint": "a7f9c1f7b873bdd2eba908ca"
+  "input_fingerprint": "9a115443c57f7b0ea1958023"
 }
