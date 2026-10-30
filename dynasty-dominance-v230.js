@@ -69,7 +69,7 @@
   return '<div class="dd-ladder">'+current.opponents.map((p,i)=>{
    const gap=high-p.ppg,filled=Math.max(3,Math.min(100,100*p.ppg/Math.max(1,high)));
    const active=p.id===selected;
-   return '<a class="dd-ladder-row'+(active?' is-selected':'')+'" href="#/dynasty-dominance/'+p.id+'"'+
+   return '<a class="dd-ladder-row'+(active?' is-selected':'')+'" href="#/dynasty-dominance/'+p.id+'/'+year+'"'+
     (active?' aria-current="page"':'')+'>'+
     '<span class="dd-ladder-rank">'+String(i+1).padStart(2,'0')+'</span>'+
     '<span class="dd-ladder-avatar">'+avatar(p.id)+'</span>'+
@@ -86,7 +86,7 @@
     const r=rankYear(year),gap=r.boek.ppg-r.leader.ppg;
     return '<tr class="'+(year===selectedYear?'is-active':'')+'"><td>'+
      '<button type="button" class="dd-year-row-button" data-dd-year="'+year+'">'+year+'</button></td>'+
-     '<td><a class="dd-year-opponent" href="#/dynasty-dominance/'+r.leader.id+'">'+
+     '<td><a class="dd-year-opponent" href="#/dynasty-dominance/'+r.leader.id+'/'+year+'">'+
       '<span class="dd-year-avatar">'+avatar(r.leader.id)+'</span>'+esc(TEAMS[r.leader.id])+'</a></td>'+
      '<td>'+fmt(r.leader.ppg)+'</td><td>'+fmt(r.boek.ppg)+'</td>'+
      '<td class="'+(gap>=0?'dd-pos':'dd-neg')+'">'+(gap>=0?'+'+fmt(gap):'−'+fmt(-gap))+'</td></tr>';
@@ -120,6 +120,7 @@
      (assumed?(known?known+' known · '+assumed+' assumed':'assumed'):(d.round1+' firsts'))+
      '</small></div>';
    }).join('')+'</div>'+
+   '<a class="dd-related dd-projection-action" href="#/dynasty-dominance/'+selected+'/'+selectedYear+'/players">VIEW '+selectedYear+' PLAYER PROJECTIONS <span>↗</span></a>'+
    '<a class="dd-related" href="#/team/'+selected+'">VIEW '+esc(TEAMS[selected]).toUpperCase()+' TEAM PAGE <span>↗</span></a>'+
    '<a class="dd-related" href="#/stock-market">DYNASTY STOCK MARKET <span>↗</span></a>';
  }
@@ -161,7 +162,7 @@
     '<div class="dd-feature-head"><span class="dd-overline">'+selectedYear+' · '+title+'</span>'+
      '<span class="dd-feature-badge">MODEL ESTIMATE</span></div>'+
     '<div class="dd-feature-compare"><div class="dd-feature-person">'+
-      '<span class="dd-feature-avatar">'+avatar(1)+'</span><span class="dd-feature-name">BOEK</span>'+
+      '<a class="dd-feature-avatar" href="#/dynasty-dominance/1/'+selectedYear+'/players" aria-label="View Boek projected players">'+avatar(1)+'</a><span class="dd-feature-name">BOEK</span>'+
       '<strong>'+fmt(current.boek.ppg)+'</strong><small>PROJECTED PPG</small></div>'+
      '<div class="dd-feature-gap"><span>SCORING DIFFERENCE</span><strong class="'+(gap>=0?'dd-pos':'dd-neg')+'">'+
       (gap>=0?'+':'−')+fmt(Math.abs(gap))+'</strong>'+
@@ -169,7 +170,7 @@
      '<div class="dd-feature-person"><span class="dd-feature-avatar">'+avatar(selected)+'</span>'+
       '<span class="dd-feature-name">'+esc(TEAMS[selected]).toUpperCase()+'</span>'+
       '<strong>'+fmt(selectedScore.ppg)+'</strong><small>PROJECTED PPG</small></div></div>'+
-    '<div class="dd-feature-foot"><span>'+ (isTop?'Closest opponent by projected average':'Selected franchise comparison')+
+    '<div class="dd-feature-foot"><span><a class="dd-profile-quicklink" href="#/dynasty-dominance/'+selected+'/'+selectedYear+'/players">VIEW '+selectedYear+' PLAYERS ↗</a></span>'+
      '</span><label>COMPARE TEAM <select id="ddTeamSelect" aria-label="Compare a challenger">'+
        current.opponents.map(t=>'<option value="'+t.id+'"'+(t.id===selected?' selected':'')+'>'+esc(TEAMS[t.id])+'</option>').join('')+
      '</select></label></div></section>'+
@@ -205,21 +206,24 @@
    '<footer class="dd-foot">FROMM IS GARBAGE <span>•</span> EXPERIMENTAL DYNASTY RESEARCH <span>•</span> '+
      esc(report.model_version)+'</footer></div>';
   node.querySelectorAll('[data-dd-year]').forEach(b=>b.addEventListener('click',()=>{
+    const focused=Number((location.hash.match(/^#\/dynasty-dominance\/(\d+)/)||[])[1]);
     selectedYear=Number(b.dataset.ddYear);
-    if(location.hash!=='#/dynasty-dominance')location.hash='#/dynasty-dominance';
-    display(null);
+    const team=TEAMS[focused]?focused:rankYear(selectedYear).leader.id;
+    location.hash='#/dynasty-dominance/'+team+'/'+selectedYear;
+    display(team);
   }));
   const picker=node.querySelector('#ddTeamSelect');
   if(picker)picker.addEventListener('change',e=>{
     const id=Number(e.target.value);
     if(TEAMS[id]&&id!==1){
-      location.hash='#/dynasty-dominance/'+id;
+      location.hash='#/dynasty-dominance/'+id+'/'+selectedYear;
       display(id);
     }
   });
  }
- async function render(id){
-  const selected=TEAMS[+id]&&+id!==1?+id:null;
+ async function render(id,year,view){
+  const selected=TEAMS[+id]?+id:null;
+  if([2027,2028,2029,2030,2031,2032].includes(+year))selectedYear=+year;
   if(!report){
    try{
     const response=await fetch('data/dynasty_dominance_projection.json',{cache:'no-store'});
@@ -238,6 +242,7 @@
     console.warn('FIG Dynasty Dominance:',err);return;
    }
   }
+  if(view==='players'&&selected){displayPlayers(selected,selectedYear);return;}
   display(selected);
  }
  window.figDynastyDominance=render;
