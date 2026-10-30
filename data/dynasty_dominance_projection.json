@@ -1,7 +1,7 @@
 {
   "version": "fig-beta-1.9-established-qb-starter-floor",
   "status": "experimental_beta_not_calibrated",
-  "generated_at": "2026-10-30T12:46:54.581Z",
+  "generated_at": "2026-10-30T13:08:46.815Z",
   "source_week": 7,
   "source_season": 2026,
   "model_version": "experimental-v3.6-established-veteran-qb-floor",
@@ -39866,5 +39866,5 @@
     2031,
     2032
   ],
-  "input_fingerprint": "4231b70075d11288e23b069e"
+  "input_fingerprint": "5b3ef387d31aa47c057560f2"
 }
