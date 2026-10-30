@@ -275,7 +275,7 @@ function executeTouchdowns(p,source){
   .filter(x=>(p.minimum_value===null||x.tds>=p.minimum_value)&&(p.maximum_value===null||x.tds<=p.maximum_value));
  if(!entries.length)return error('No verified touchdown records match those filters.');
  if(['week','game','season'].includes(p.group_by))entries.sort((a,b)=>a.order-b.order||a.label.localeCompare(b.label));
- else entries.sort((a,b)=>p.order==='asc'?a.tds-b.tds:a.tds-b.tds).reverse();
+ else entries.sort((a,b)=>p.order==='asc'?a.tds-b.tds||a.label.localeCompare(b.label):b.tds-a.tds||a.label.localeCompare(b.label));
  const total=entries.reduce((a,x)=>a+x.tds,0);
  const perWeek=['week','game'].includes(p.group_by),shown=entries.slice(0,p.limit);
  const gameCount=expected.length;
@@ -403,7 +403,7 @@ async function queryPlan(question){
   if(!response.ok)throw Error('AI request failed: '+response.status);
   const data=await response.json();
   if(!data?.ok||!data.plan)throw Error('No valid AI plan');
-  if(data.plan.dataset==='unsupported')return {unsupported:true,reason:String(data.plan.interpretation||'This question needs additional historical data.').slice(0,250)};
+  if(data.plan.dataset==='unsupported')return {unsupported:true,reason:String(data.plan.reason||'This question needs historical data or an operation BoekMuse cannot verify yet.').slice(0,250)};
   const plan=validatePlan(data.plan);
   const mismatch=verifyQuestion(question,plan);
   if(mismatch)return {unsupported:true,reason:mismatch};
@@ -419,7 +419,7 @@ async function ask(question){
   if(plan?.unsupported)return error(plan.reason);
   if(!plan)return null;
   const source=plan.dataset==='player_touchdowns'
-   ? {...await load('player_weekly_touchdowns'),games:await load('games')}
+   ? {...await load('player_weekly_touchdowns').catch(()=>({records:[],coverage:{}})),games:await load('games')}
    : await load(SOURCES[plan.dataset]);
   const result=execute(plan,source);
   if(result.ok&&!result.interpretation){
