@@ -101,7 +101,7 @@ assert.equal(typeof context.window.figDynastyDominance,'function');
  assert.match(holder.innerHTML,/BOEK VS SACK/);
  await context.window.figDynastyDominance(6,2030,'players');
  assert.match(holder.innerHTML,/HAYDEN <em>2030 PLAYERS/);
- assert.match(holder.innerHTML,/CURRENT MARKET VALUE/);
+ assert.match(playerTable.innerHTML,/CURRENT MARKET VALUE/);
  assert.match(holder.innerHTML,/not estimated 2030 resale values/);
  assert.match(playerTable.innerHTML,/Josh Allen/);
  assert.match(playerTable.innerHTML,/#\/player\/101/);
