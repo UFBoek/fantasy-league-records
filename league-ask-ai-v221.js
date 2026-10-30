@@ -79,6 +79,10 @@ function validatePlan(raw){
  if(['trades','drafts'].includes(p.dataset)&&(p.min_points!==null||p.max_points!==null))throw Error('Transaction records have no scored points');
  if(p.dataset==='games'&&p.player_name)throw Error('Game summaries do not identify individual players');
  if(p.dataset==='team_seasons'&&p.group_by==='game')throw Error('Team seasons do not list games');
+ if(p.dataset==='team_seasons'&&p.game_type!=='regular')throw Error('Season summary only covers regular season');
+ if(p.compare_team_id!==null&&p.compare_team_id===p.team_id)throw Error('A team cannot outscore itself');
+ if(raw.minimum_games!==undefined&&!Number.isInteger(raw.minimum_games))throw Error('Invalid minimum sample');
+ if(raw.limit!==undefined&&!Number.isInteger(raw.limit))throw Error('Invalid result limit');
  if(p.group_by==='player'&&!['player_starts','drafts'].includes(p.dataset))throw Error('Player grouping unavailable in this source');
  if(p.group_by==='position'&&!['player_starts','drafts'].includes(p.dataset))throw Error('Position grouping unavailable in this source');
  if(p.group_by==='opponent'&&p.dataset!=='games')throw Error('Opponent grouping unavailable in this source');
@@ -191,7 +195,7 @@ function execute(raw,source){
   });
  }
  if(p.dataset==='trades'&&p.group_by==='team'){
-  rows=rows.flatMap(r=>r.teamIds.map(id=>({...r,team:id})));
+  rows=rows.flatMap(r=>r.teamIds.filter(id=>p.team_id===null||id===p.team_id).map(id=>({...r,team:id})));
  }
  if(p.dataset==='trades'&&!['team','season','week','none'].includes(p.group_by))return error('Trade archive does not support that grouping.');
  if(!rows.length)return error('No finalized records match those filters.');
