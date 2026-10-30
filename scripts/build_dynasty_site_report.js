@@ -14,7 +14,7 @@ const files=['current_roster','rosteraudit_values','weekly_scoring_ranks','curre
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.4-league-scale';
+const reportVersion='fig-beta-1.5-historical-league-baseline';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,weekly,picks]=files.map(n=>inputs[n]);
  // Actual league history is used only as a benchmark shown beside the
@@ -89,7 +89,7 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      known_pick_ownership_through:Math.max(...picks.map(p=>+p.pick_season||2029)),
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
-     future_score_interpretation:'Future player PPG uses only position, 2026 roster age and current RosterAudit value. Observed 2026 league scoring is displayed separately; it NEVER feeds future forecasts.',
+     future_score_interpretation:'Future player talent uses only position, 2026 roster age and current RosterAudit value. One shared league-wide scoring scale targets 1,570–1,630 PPG, centered at the historic 1,600 baseline. Past individual player/team PPG do not enter the talent model.',
      future_player_model:'Position-specific market-implied PPG, pre-peak maturation, veteran decline and uncertain career breakouts; future rookies use RosterAudit draft-pick value tiers and unknown sampled positions.',
      player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
@@ -97,7 +97,8 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
     one_year_intervals_calibrated:false,
     description:'Historical one-year tests did not consistently beat the simpler roster scoring baseline. The model is research only.'},
    league_scoring_reference:{historical_weekly_avg:leagueAvg,completed_ten_team_weeks:leagueWeeks.length,
-    description:'Measured total team scoring across completed 10-team regular-season FIG weeks; display-only context, never an input to a player forecast'},
+    description:'Actual completed 10-team weeks independently check the league-wide 1,600-point baseline; past individual player/team scoring never sets talent projections'},
+   league_scoring_calibration:model.league_scoring_calibration,
    inputs:model.inputs,teams,seasons,years:model.years};
 }
 function main(){

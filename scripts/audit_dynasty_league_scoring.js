@@ -39,7 +39,8 @@ function audit({runs=300,seed=20261030}={}){
  });
  return {reference,model_version:projected.version,runs,
   future,within_12_pct_each_year:future.every(x=>Math.abs(x.gap_pct)<=12),
-  note:'Aggregate historical league scoring is a diagnostic ONLY, not a player-scoring or team-specific input.'};
+  within_1570_1630_each_year:future.every(x=>x.total_ppg>=1570&&x.total_ppg<=1630),
+  note:'Completed historical league averages validate the fixed 1,600-point scoring anchor; past individual player and team PPG never enter talent forecasts.'};
 }
 if(require.main===module){
  let runs=300;
@@ -50,7 +51,7 @@ if(require.main===module){
  const result=audit({runs});
  console.log('FIG_HISTORICAL_WEEKLY_TOTAL',JSON.stringify(result.reference));
  for(const row of result.future)console.log('FIG_FUTURE_WEEKLY_TOTAL',JSON.stringify(row));
- console.log('FIG_SCORING_SCALE_CHECK',result.within_12_pct_each_year?'PASS':'FAIL');
- if(!result.within_12_pct_each_year)process.exitCode=1;
+ console.log('FIG_SCORING_SCALE_CHECK',result.within_12_pct_each_year&&result.within_1570_1630_each_year?'PASS':'FAIL');
+ if(!result.within_12_pct_each_year||!result.within_1570_1630_each_year)process.exitCode=1;
 }
 module.exports={audit,actualLeague};

@@ -17,6 +17,12 @@
 const TEAMS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 const IDS=Object.keys(TEAMS).map(Number);
 const YEARS=[2027,2028,2029,2030,2031,2032];
+// Calibrate only the league-wide scoring UNIT after position/age/value draws.
+// 49 completed FIG weeks average ~1,602 PPG across all ten franchises.
+// No historical player or individual franchise PPG enters the talent model.
+const LEAGUE_BASELINE_PPG=1600;
+const LEAGUE_RANGE_PPG=[1570,1630];
+const LEAGUE_RAW_TREND_SHARE=.20;
 const POS=new Set(['QB','RB','WR','TE']);
 const PEAK={QB:29,RB:25,WR:27,TE:28};
 const STAR={QB:37,RB:28,WR:30,TE:25};
@@ -87,6 +93,29 @@ const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const rnd=(v,n=1)=>Number(v.toFixed(n));
 function pct(a,q){const s=[...a].sort((a,b)=>a-b);return s[Math.floor((s.length-1)*q)];}
+function calibrateLeagueScoring(teamSamples,playerSamples){
+ const byYear={};
+ for(const year of YEARS){
+  const raw=IDS.reduce((sum,id)=>sum+mean(teamSamples[year][id]),0);
+  if(!Number.isFinite(raw)||raw<=0)throw Error('Invalid league-wide simulated PPG');
+  // Keep 20% of the simulated year-to-year league scoring movement rather
+  // than flattening every season to exactly 1,600 points.
+  const target=clamp(LEAGUE_BASELINE_PPG+(raw-LEAGUE_BASELINE_PPG)*LEAGUE_RAW_TREND_SHARE,
+   LEAGUE_RANGE_PPG[0],LEAGUE_RANGE_PPG[1]);
+  const multiplier=target/raw;
+  for(const id of IDS){
+   // Every team and individual player receives exactly the same year factor:
+   // no relative team/player boost or ranking intervention.
+   teamSamples[year][id]=teamSamples[year][id].map(ppg=>ppg*multiplier);
+   for(const player of playerSamples[year][id].values()){
+    player.total*=multiplier;
+    player.draws=player.draws.map(ppg=>ppg*multiplier);
+   }
+  }
+  byYear[year]={raw_ppg:rnd(raw),target_ppg:rnd(target),multiplier:rnd(multiplier,5)};
+ }
+ return byYear;
+}
 function teamRank(scores){
  const ordered=IDS.slice().sort((a,b)=>scores[a]-scores[b]);
  return Object.fromEntries(ordered.map((id,i)=>[id,i+1]));
@@ -219,6 +248,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   }
   for(const id of IDS)leaderCounts[id].push(first[id]);
  }
+ const leagueScaleByYear=calibrateLeagueScoring(teamSamples,playerSamples);
  const seasons={};
  for(const year of YEARS){
   const scores=teamSamples[year];
@@ -250,7 +280,9 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
   expected_years_best:rnd(mean(leaderCounts[id]),2),
   chance_best_at_least_three_years_pct:rnd(100*leaderCounts[id].filter(x=>x>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v3.1-position-age-value-league-scale',status:'research_only',years:YEARS,runs,seed,
+ return {version:'experimental-v3.2-position-age-value-historical-league-baseline',status:'research_only',years:YEARS,runs,seed,
+  league_scoring_calibration:{baseline_ppg:LEAGUE_BASELINE_PPG,target_range_ppg:LEAGUE_RANGE_PPG,
+   retained_raw_trend_fraction:LEAGUE_RAW_TREND_SHARE,by_year:leagueScaleByYear},
   inputs:{current_rostered_players:current.length,market_coverage_pct:rnd(coverage),
    known_2027_2029_picks:YEARS.slice(0,3).reduce((sum,y)=>sum+future[y].filter(p=>!p.assumed).length,0),
    known_2030_2032_picks:YEARS.slice(3).reduce((sum,y)=>sum+future[y].filter(p=>!p.assumed).length,0),
@@ -260,7 +292,7 @@ function runModel({roster,values,picks,runs=1500,seed=20261030}){
    'Position maturity and aging shapes, breakout odds, injuries, and future rookie position distribution are exploratory assumptions, not historically calibrated probabilities.',
    'Market pricing is a present-day dynasty opinion, not the NFL scoring outcome; a price does not guarantee star production.',
    'Rookie prospects are hypothetical draft slots; only 35% of RosterAudit draft asset value is converted into player scoring talent because acquisition rights are not established players. No 2024–2026 NFL rookie performances enter the model.',
-   'Position-scoring unit coefficients are checked against the league-wide 2023–2026 average total PPG; historical scores never enter individual player forecasts or team-specific calibration.',
+   'Position scoring is uniformly normalized league-wide after simulation toward 1,600 combined PPG (1,570–1,630 target range). Historical player and team scoring do not determine the position/age/value talent model.',
    'All current rosters held constant; no manager trading ability, future trades, waivers or unowned acquisitions are invented.',
    'Missing price data generate unknown PPG rather than substituting scoring history.',
    'Nominal simulation ranges and ranking frequencies are not statistically calibrated.'

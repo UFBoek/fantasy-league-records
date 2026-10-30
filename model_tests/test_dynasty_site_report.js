@@ -11,7 +11,9 @@ assert.equal(output.validation.full_six_year_backtest_passed,false);
 assert.equal(output.validation.one_year_holdout_better_than_baseline,false);
 assert.equal(output.generated_at,fixedDate);
 assert.equal(output.teams.length,10);
-assert.equal(output.version,'fig-beta-1.4-league-scale');
+assert.equal(output.version,'fig-beta-1.5-historical-league-baseline');
+assert.equal(output.league_scoring_calibration.baseline_ppg,1600);
+assert.deepEqual(output.league_scoring_calibration.target_range_ppg,[1570,1630]);
 assert.ok(output.league_scoring_reference.completed_ten_team_weeks>=49);
 assert.ok(output.league_scoring_reference.historical_weekly_avg>1550&&
  output.league_scoring_reference.historical_weekly_avg<1650,
@@ -21,6 +23,8 @@ for(const year of output.years){
  const sum=season.ranking.reduce((a,x)=>a+x.ppg,0);
  assert.ok(Math.abs(sum-season.league_total_ppg)<.11,
   'Reported league total must agree with all ten displayed team projections');
+ assert.ok(season.league_total_ppg>=1569.5&&season.league_total_ppg<=1630.5,
+  'All forecast years must land inside the target league scoring interval');
 }
 assert.deepEqual(output.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(output.source_week>=7);

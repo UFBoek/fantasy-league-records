@@ -32,13 +32,17 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3.1-position-age-value-league-scale');
+assert.equal(initial.version,'experimental-v3.2-position-age-value-historical-league-baseline');
+assert.equal(initial.league_scoring_calibration.baseline_ppg,1600);
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);
 assert.deepEqual(initial,model.runModel({...input,runs:20,seed:1107}),'Model must be deterministic');
 for(const year of initial.years){
  const s=initial.seasons[year];
  assert.equal(s.ranking.length,10);
+ const leagueTotal=s.ranking.reduce((sum,team)=>sum+team.ppg,0);
+ assert.ok(leagueTotal>=1569.5&&leagueTotal<=1630.5,
+  'League-wide PPG should stay within the 1,570–1,630 historical target band');
  assert.ok(s.ranking.every(t=>Number.isFinite(t.ppg)&&t.ppg>=0));
  for(let id=1;id<=10;id++){
   const cohort=s.player_projections[id];
