@@ -4,6 +4,7 @@
 set -euo pipefail
 node tests/test_league_ask.js
 node tests/test_league_ask_ai.js
+node tests/test_league_ask_worker_smoke.js
 node tests/test_dynasty_market.js
 node tests/test_record_break_watch.js
 node tests/test_team_record_views.js
