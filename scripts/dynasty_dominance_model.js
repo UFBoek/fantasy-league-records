@@ -31,7 +31,9 @@ function ageCurve(pos,age){
  return .02;
 }
 function marketPpg(pos,value){
- const f={QB:[3,10,800,35],RB:[1,9,1800,27],WR:[1,9,1600,29],TE:[1,8,1600,25]}[pos];
+ // Position-specific scale checked against the 2026 current NFL scoring
+ // cross-section. This is not a time-separated out-of-sample calibration.
+ const f={QB:[3,10.5,800,37],RB:[1,12,1800,28],WR:[1,12,1600,30],TE:[1,10,1600,26]}[pos];
  return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
 }
 function nflScoringSamples(nflCurrent,nflHistory,cutoff=17){
@@ -91,7 +93,8 @@ function playerBaselines(roster,values,logs,nflCurrent=null,nflHistory=null,cuto
   history.get(key).push(+p.starter_points);
  }
  return roster.filter(x=>['QB','RB','WR','TE'].includes(x.position)).map(x=>{
-  const id=String(x.player_id),value=+values.players[id]?.value||0,prior=marketPpg(x.position,value);
+  const id=String(x.player_id),knownMarket=values.players[id]?.value!=null,
+   value=knownMarket?+values.players[id].value:0,prior=marketPpg(x.position,value);
   let numerator=0,denominator=0,samples=0;
   for(const [year,weight] of [[2026,.6],[2025,.28],[2024,.12]]){
    const scores=nfl.get(id+':'+year)||history.get(id+':'+year)||[];
@@ -102,7 +105,8 @@ function playerBaselines(roster,values,logs,nflCurrent=null,nflHistory=null,cuto
   const observed=denominator?numerator/denominator:prior,credibility=Math.min(.84,samples/(samples+9));
   const nflStarts=[2024,2025,2026].reduce((sum,year)=>sum+(nfl.get(id+':'+year)||[]).length,0);
   return {id,team:+x.franchise_id,name:x.player_name,pos:x.position,age:+x.age||25,
-    baseYear:2026,basePpg:clamp((1-credibility)*prior+credibility*observed,.2,x.position==='QB'?39:34),
+    baseYear:2026,marketValue:knownMarket?value:null,
+   basePpg:clamp((1-credibility)*prior+credibility*observed,.2,x.position==='QB'?39:34),
     samples,nflStarts,rookie:false};
  });
 }
@@ -202,6 +206,18 @@ function scorePlayer(p,year,r,calibration,options={}){
  // developmental bump. Later growth remains an explicit assumption.
  const baseline=p.rookie&&elapsed>=1?
   Math.max(.2,p.basePpg+(p.rookieYearTwoShift||0)):p.basePpg;
+ // RosterAudit is a forward-looking dynasty asset ranking, not points
+ // itself. For existing players, infer peak-ability scoring by position
+ // from current value, then apply exactly ONE future-year age curve.
+ // Blend more market weight at longer horizons because 2026 production
+ // becomes less predictive, without awarding any manager trade skill.
+ const historicalPath=baseline*ageFactor;
+ const marketAvailable=!p.rookie&&p.marketValue!==null&&p.marketValue!==undefined;
+ const marketPath=marketAvailable?
+  marketPpg(p.pos,p.marketValue)*Math.pow(ageCurve(p.pos,age),options.ageCurveExponent||1):historicalPath;
+ const horizon=Math.max(0,year-2026);
+ const marketShare=marketAvailable?clamp((.25+.09*horizon)*Number(options.valuationBlendStrength??1),0,.9):0;
+ const blendedPath=p.rookie?historicalPath:(1-marketShare)*historicalPath+marketShare*marketPath;
  const development=p.rookie?
   1+Math.min(2,Math.max(0,elapsed-1))*({QB:.06,RB:.025,WR:.08,TE:.10}[p.pos]):1;
  const sigma=(p.rookie?.27:p.samples<4?.24:p.samples<12?.17:.12)+Math.sqrt(Math.max(0,year-2026))*.028;
@@ -210,14 +226,14 @@ function scorePlayer(p,year,r,calibration,options={}){
  // Empirical first-year rookie PPG already includes missed weeks in 17-game denominator.
  const availability=p.empiricalRookie&&year===p.baseYear?1:(r.u()<injury?.47+.35*r.u():1);
  const playerMultiplier=options.playerMultipliers?.[p.id]??1;
- return clamp(baseline*ageFactor*development*talent*availability*
+ return clamp(blendedPath*development*talent*availability*
   clamp(1+r.normal()*.075,.72,1.27)*calibration*playerMultiplier,0,p.pos==='QB'?46:38);
 }
 function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=null,drafts=null,runs=5000,seed=20261030,scenario={}}){
  if(!roster?.length||!logs?.length||!weekly?.length||!picks?.length||!values?.players)throw Error('Missing input');
  if(!Number.isInteger(runs)||runs<1||runs>100000)throw Error('Invalid runs');
- const ageCurveExponent=Number(scenario.ageCurveExponent??1),injuryMultiplier=Number(scenario.injuryMultiplier??1),rookieMultiplier=Number(scenario.rookieMultiplier??1);
- if(!Number.isFinite(ageCurveExponent)||ageCurveExponent<.4||ageCurveExponent>2||!Number.isFinite(injuryMultiplier)||injuryMultiplier<.5||injuryMultiplier>2||!Number.isFinite(rookieMultiplier)||rookieMultiplier<.4||rookieMultiplier>1.6)throw Error('Invalid research scenario');
+ const ageCurveExponent=Number(scenario.ageCurveExponent??1),injuryMultiplier=Number(scenario.injuryMultiplier??1),rookieMultiplier=Number(scenario.rookieMultiplier??1),valuationBlendStrength=Number(scenario.valuationBlendStrength??1);
+ if(!Number.isFinite(ageCurveExponent)||ageCurveExponent<.4||ageCurveExponent>2||!Number.isFinite(injuryMultiplier)||injuryMultiplier<.5||injuryMultiplier>2||!Number.isFinite(rookieMultiplier)||rookieMultiplier<.4||rookieMultiplier>1.6||!Number.isFinite(valuationBlendStrength)||valuationBlendStrength<0||valuationBlendStrength>1.5)throw Error('Invalid research scenario');
  const playerMultipliers=scenario.playerMultipliers??{};
  if(!playerMultipliers||typeof playerMultipliers!=='object'||Array.isArray(playerMultipliers)||Object.values(playerMultipliers).some(x=>!Number.isFinite(x)||x<0||x>1.5))throw Error('Invalid research player multipliers');
  const officialCutoff=Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week));
@@ -246,7 +262,7 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
    const annual={};
    for(const id of IDS){
     const arr=players.filter(p=>p.team===id).map(p=>{
-     const ppg=scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,playerMultipliers});
+     const ppg=scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,valuationBlendStrength,playerMultipliers});
      const stableId=p.slot_id||p.id,tracked=playerSamples[year][id];
      if(!tracked.has(stableId))tracked.set(stableId,{
       id:stableId,name:p.name||'Future rookie',pos:p.rookie?'TBD':p.pos,rookie:!!p.rookie,
@@ -298,7 +314,7 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
  const whole_horizon=IDS.map(id=>({id,name:TEAMS[id],expected_years_best:rnd(mean(leaders[id]),2),
    chance_best_at_least_three_years_pct:rnd(100*leaders[id].filter(v=>v>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v2.1',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,playerMultipliers},
+ return {version:'experimental-v2.2-value-age',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,valuationBlendStrength,playerMultipliers},
   inputs:{observed_through_week:Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week)),
    current_rostered_players:base.length,market_coverage_pct:rnd(100*matched/base.length),
    historical_player_start_logs:logs.length,
@@ -313,6 +329,8 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
   seasons,whole_horizon,
   limitations:[
    'Research only; future probabilities not historically validated or betting odds.',
+   'RosterAudit age-and-position-adjusted market talent is blended into incumbent player PPG increasingly from 34% in 2027 to 79% in 2032. Current 2026 production anchors the rest. Future-age adjustment is applied only once per pathway.',
+   'Market-to-PPG scale matches 2026 scoring cross-section but is not calibrated against an independent historical RosterAudit holdout. Future market prices themselves are NOT predicted.',
    'Prefer standardized NFL-wide 2023-2026 observed games; fall back to league started-player logs, then market-position priors for unobserved bench players.',
    'Empirical rookie year-one samples use 80 FIG rookies in 2024-25; sophomore development uses 40 FIG rookies selected in 2024. Later aging and injuries remain hypothetical.',
    'Real pick ownership for all seasons present in Sleeper; unlisted future years assume one original pick per round per team and may change with trades.',
