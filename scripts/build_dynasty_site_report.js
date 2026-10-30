@@ -13,7 +13,7 @@ const files=['current_roster','rosteraudit_values','player_game_log','weekly_sco
 const output=path.join(root,'dynasty_dominance_projection.json');
 const IDS=Array.from({length:10},(_,i)=>i+1);
 const LABELS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
-const reportVersion='fig-beta-1.0';
+const reportVersion='fig-beta-1.1';
 function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOString()}={}){
  const [roster,values,logs,weekly,picks,nflCurrent,nflHistory,drafts]=files.map(n=>inputs[n]);
  if(values?.status!=='ready'||Object.keys(values?.players||{}).length<300)
@@ -48,6 +48,14 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
  const seasons=Object.fromEntries(model.years.map(year=>{
    const s=model.seasons[year];
    return [year,{ranking:s.ranking.map(t=>({id:t.id,ppg:t.ppg,p10:t.p10,p90:t.p90})),
+     // From the same simulation used for the franchise scores; the market
+     // value shown is TODAY's RosterAudit figure, never a future estimate.
+     players_by_team:Object.fromEntries(IDS.map(id=>[id,(s.player_projections?.[id]||[]).map(p=>({
+       id:p.id,name:p.name,pos:p.pos,age:p.age,ppg:p.ppg,p10:p.p10,p90:p.p90,
+       projected_rookie:p.rookie,pick_year:p.pick_year,pick_round:p.pick_round,
+       pick_origin:p.pick_origin,
+       current_market_value:p.rookie?null:(values.players?.[String(p.id)]?.value??null)
+     }))])), 
      boek_vs_leagues_best_opponent:{gap_ppg:s.boek_vs_leagues_best_opponent.gap_ppg,
       p10:s.boek_vs_leagues_best_opponent.p10,p90:s.boek_vs_leagues_best_opponent.p90},
      boek_vs_teams:s.boek_vs_teams.map(t=>({id:t.id,gap_ppg:t.gap_ppg,
@@ -60,7 +68,8 @@ function build(inputs,{runs=1500,seed=20261030,generatedAt=new Date().toISOStrin
      known_pick_ownership_through:Math.max(...picks.map(p=>+p.pick_season||2029)),
      later_picks_assumed_by_original_franchise:true,
      scenario_range:'Model sensitivity only; percentile bands are not calibrated confidence intervals',
-     future_score_interpretation:'Stylized scoring strength, not a guaranteed weekly or season average'},
+     future_score_interpretation:'Stylized scoring strength, not a guaranteed weekly or season average',
+     player_forecast_interpretation:'Future fantasy PPG from the exact team simulation; current RosterAudit values are historical present-day reference only, never projected resale values'},
    validation:{full_six_year_backtest_passed:false,
     one_year_holdout_better_than_baseline:false,
     one_year_intervals_calibrated:false,
