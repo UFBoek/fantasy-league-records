@@ -1,0 +1,30 @@
+{
+  "name": "ask-fig-ai",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "ai": {
+    "binding": "AI"
+  },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://ufboek.github.io"
+  },
+  "ratelimits": [
+    {
+      "name": "RATE",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 8,
+        "period": 60
+      }
+    },
+    {
+      "name": "GLOBAL_RATE",
+      "namespace_id": "1002",
+      "simple": {
+        "limit": 40,
+        "period": 60
+      }
+    }
+  ]
+}
