@@ -151,7 +151,7 @@ function snapshotRows(data,generation){
 }
 async function storeRows(db,table,rows){
  const fields=TABLE_COLUMNS[table];
- const perStatement=Math.max(1,Math.floor(175/fields.length));
+ const perStatement=Math.max(1,Math.floor(80/fields.length));
  const bound=[];
  for(let i=0;i<rows.length;i+=perStatement){
   const chunk=rows.slice(i,i+perStatement);
