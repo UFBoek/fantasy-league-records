@@ -191,7 +191,9 @@
    '<section class="dd-panel dd-compare"><div class="dd-panel-heading"><div>'+
      '<span class="dd-overline">THE SUCCESSION RACE</span><h3>Boek’s top challenger, every year</h3></div>'+
      '<span class="dd-mini">EXPECTED TEAM SCORING</span></div>'+futureLeaders()+
-    '<p class="dd-table-note">The top challenger is the non-Boek franchise with the highest projected average PPG, not an estimated championship probability.</p></section>'+
+    '<p class="dd-table-note">The top challenger is the non-Boek franchise with the highest projected average PPG, not an estimated championship probability.</p>'+ 
+    '<div class="dd-league-benchmark"><span>'+selectedYear+' projected league total</span><strong>'+fmt(report.seasons[selectedYear].league_total_ppg??report.seasons[selectedYear].ranking.reduce((sum,t)=>sum+t.ppg,0),0)+' PPG</strong>'+ 
+    (report.league_scoring_reference?.historical_weekly_avg!=null?'<small>Historical 10-team average: '+fmt(report.league_scoring_reference.historical_weekly_avg,0)+' PPG ('+fmt(report.league_scoring_reference.completed_ten_team_weeks,0)+' completed weeks)</small>':'')+'</div></section>'+
    '<section class="dd-panel dd-roster-profile"><div class="dd-panel-heading"><div>'+
     '<span class="dd-overline">CHALLENGER PROFILE</span><h3>'+esc(TEAMS[selected])+' roster & draft capital</h3></div>'+
     '<a class="dd-link" href="#/team/'+selected+'">TEAM PAGE ↗</a></div>'+

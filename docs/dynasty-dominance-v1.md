@@ -602,3 +602,67 @@ or scoring-history fallback.
 All simulations remain experimental. The project's publication
 readiness gate continues to state that **validated dynasty
 championship probabilities are not available**.
+
+
+## October 30, 2026: league-wide scoring scale correction (v3.1)
+
+The first position/age/RosterAudit-value-only release substantially
+undervalued the **league-wide weekly scoring environment**.
+
+Measured real complete ten-team regular-season FIG weekly totals:
+
+| Season | Completed weeks | Average combined team points |
+| --- | ---: | ---: |
+| 2023 | 14 | 1,599.2 |
+| 2024 | 14 | 1,623.8 |
+| 2025 | 14 | 1,595.2 |
+| 2026, through Week 7 | 7 | 1,577.2 |
+| All 49 measured weeks | 49 | **1,602.0** |
+
+The original model's first six future-season **ten-team totals**
+were only approximately **1,335 / 1,439 / 1,509 / 1,554 /
+1,575 / 1,581** PPG for 2027–2032. The error originates in the
+position/market-to-scoring translation, not in missing historical
+player PPG. The model valued weak or mid-tier roster players so
+low that the uninjured 2026 market-only lineups totaled only
+~1,234 across all ten teams.
+
+### Changes
+
+1. Revise the QB/RB/WR/TE market-price-to-PPG scale, particularly
+   its minimum and middle-value scoring levels. RosterAudit remains
+   the **only individual player talent input**, with age and position.
+   Historical player statistics, prior player PPG and actual team
+   scoring do not enter any future player's projection.
+2. Reduce the value assigned to future speculative rookie *acquisition
+   rights* when converting them into established NFL-player scoring
+   potential: 35% of their RosterAudit pick asset price, rather than
+   the previous 78%. These are different asset types, and future
+   successful starters are **not guaranteed** by owned draft picks.
+   The 35% factor is a heuristic research assumption, not an
+   independent draft-outcome calibration.
+3. Show the projected **combined league points per week**, alongside
+   the measured historical 49-week average, on the Dynasty Dominance
+   challenger page.
+4. Add a separate aggregate scoring diagnostic
+   `scripts/audit_dynasty_league_scoring.js` and automated check
+   that all six projected season totals stay within ±12% of the
+   independently measured league norm. This is an *environment
+   plausibility test*, not proof of individual player accuracy.
+
+At 320 fixed-seed simulation runs, the corrected league totals
+were **1,555 / 1,639 / 1,695 / 1,716 / 1,706 / 1,665** in
+2027–2032, instead of the old low totals.
+
+The 49 real scored league weeks are **display and independent
+validation context only**. The self-contained forecast engine
+never accepts them, and model/report tests prove changing all
+historical scores cannot alter future player or team forecasts.
+No manager/trading-skill bonus or individual previous-scoring
+feature has been reintroduced. Actual and modeled PPG are still
+distinct, and the model's long-range uncertainty remains
+uncalibrated.
+
+    node scripts/audit_dynasty_league_scoring.js --runs 300
+    node model_tests/test_dynasty_value_only.js
+    node model_tests/test_dynasty_site_report.js

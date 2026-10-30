@@ -4,6 +4,7 @@ on:
     paths:
       - scripts/dynasty_dominance_model.js
       - scripts/dynasty_value_only_model.js
+      - scripts/audit_dynasty_league_scoring.js
       - scripts/audit_dynasty_value_only.js
       - model_tests/test_dynasty_value_only.js
       - scripts/audit_dynasty_value_age.js
@@ -37,6 +38,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Compare projected league totals against 49 complete historical weeks
+        run: node scripts/audit_dynasty_league_scoring.js --runs 240 > "$RUNNER_TEMP/dynasty-league-scoring-audit.log"
       - name: Verify three-input-only player projection and developmental breakouts
         run: node model_tests/test_dynasty_value_only.js
       - name: Audit model replacement and player growth
@@ -88,6 +91,7 @@ jobs:
           path: |
             ${{ runner.temp }}/dynasty-dominance-research.json
             ${{ runner.temp }}/dynasty-value-only-audit.log
+            ${{ runner.temp }}/dynasty-league-scoring-audit.log
             ${{ runner.temp }}/dynasty-value-age-audit.log
             ${{ runner.temp }}/dynasty-form-backtest.json
             ${{ runner.temp }}/dynasty-stress.json

@@ -2,11 +2,11 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const html=read('index.html'),app=read('app.js'),css=read('dynasty-dominance-v230.css'),sw=read('sw.js');
-assert.match(html,/dynasty-dominance-v230\.css\?v=233/);
-assert.match(html,/dynasty-dominance-v230\.js\?v=234/);
+assert.match(html,/dynasty-dominance-v230\.css\?v=235/);
+assert.match(html,/dynasty-dominance-v230\.js\?v=235/);
 assert.match(app,/figDynastyDominance\(parts\[1\],parts\[2\],parts\[3\]\)/);
 assert.match(read('mobile-v69.js'),/dynasty-dominance/);
-assert.match(sw,/dynasty-dominance-v230\.js\?v=234/);
+assert.match(sw,/dynasty-dominance-v230\.js\?v=235/);
 assert.match(css,/\.dd-page \.dd-challenger-table tbody tr td\{background:transparent!important;color:#e4efff!important/);
 assert.match(css,/\.dd-page \.dd-challenger-table tbody tr\.is-active/);
 assert.match(css,/dd-player-table|dd-player-summary/);
@@ -36,7 +36,8 @@ const scores=Object.fromEntries(years.map(year=>[year,{
  boek_vs_leagues_best_opponent:{gap_ppg:12,p10:-10,p90:45},
  boek_vs_teams:ids.filter(x=>x!==1).map(id=>({id,gap_ppg:227-id*5,p10:0,p90:25}))
 }]));
-const report={status:'experimental_beta_not_calibrated',generated_at:'2026-10-30T09:00:00Z',
+const report={league_scoring_reference:{historical_weekly_avg:1602,completed_ten_team_weeks:49},
+ status:'experimental_beta_not_calibrated',generated_at:'2026-10-30T09:00:00Z',
  source_week:7,source_season:2026,runs:1500,model_version:'experimental-v2.1',years,seasons:scores,
  assumptions:{known_pick_ownership_through:2029},
  teams:ids.map(id=>({id,name:names[id],current_ppg:id===1?234.9:id===6?213.9:165-id*6,
@@ -79,6 +80,8 @@ assert.equal(typeof context.window.figDynastyDominance,'function');
  assert.match(holder.innerHTML,/2027 · BOEK’S CLOSEST CHALLENGER/);
  assert.match(holder.innerHTML,/THREAT RANKING/);
  assert.match(holder.innerHTML,/Boek’s top challenger, every year/);
+ assert.match(holder.innerHTML,/Historical 10-team average: 1,602 PPG/);
+ assert.match(holder.innerHTML,/2027 projected league total/);
  assert.match(holder.innerHTML,/#\/dynasty-dominance\/6\/2027/);
  assert.match(holder.innerHTML,/#\/dynasty-dominance\/9\/2032/);
  assert.match(holder.innerHTML,/#\/dynasty-dominance\/6\/2027\/players/);

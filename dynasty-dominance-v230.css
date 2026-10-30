@@ -149,3 +149,10 @@
 .dd-player-navigation{display:flex;align-items:center;justify-content:space-between;gap:13px;margin:23px 0 0;font-size:11px;font-weight:850;color:#a8c9f6;letter-spacing:.05em}
 .dd-player-navigation a:hover{color:#fff}
 @media(max-width:699px){.dd-player-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.dd-player-summary>div{padding:12px 11px}.dd-player-summary span{font-size:8px}.dd-player-summary strong{font-size:23px}.dd-player-panel .dd-panel-heading{align-items:flex-start}.dd-player-filter-label select{min-width:105px;padding:8px}.dd-player-table{min-width:620px}.dd-player-navigation{flex-direction:column;align-items:flex-start;gap:12px}}
+
+/* League scoring environment check: independent actual history vs season model */
+.dd-page .dd-league-benchmark{display:flex;gap:8px 18px;align-items:center;flex-wrap:wrap;margin-top:16px;padding:13px 14px;border:1px solid #375373;border-radius:8px;background:#1b304a;color:#a9c9ec}
+.dd-page .dd-league-benchmark span{font-size:10px;letter-spacing:.065em;font-weight:820;text-transform:uppercase}
+.dd-page .dd-league-benchmark strong{font-size:17px;color:#f4f9ff;font-variant-numeric:tabular-nums}
+.dd-page .dd-league-benchmark small{font-size:10px;color:#b2c5df;margin-left:auto}
+@media(max-width:699px){.dd-page .dd-league-benchmark{gap:6px 11px;padding:11px}.dd-page .dd-league-benchmark small{margin-left:0;flex-basis:100%}}

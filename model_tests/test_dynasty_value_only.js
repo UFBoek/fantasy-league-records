@@ -32,7 +32,7 @@ const noQuote=model.makeIncumbent({player_id:'C',position:'WR',age:22,franchise_
 assert.equal(model.project(noQuote,2029,r()),null,'Never backfill unknown RosterAudit value using past PPG');
 const initial=model.runModel({...input,runs:20,seed:1107});
 assert.equal(initial.status,'research_only');
-assert.equal(initial.version,'experimental-v3-value-position-age-only');
+assert.equal(initial.version,'experimental-v3.1-position-age-value-league-scale');
 assert.deepEqual(initial.years,[2027,2028,2029,2030,2031,2032]);
 assert.ok(initial.inputs.market_coverage_pct>=95);
 assert.deepEqual(initial,model.runModel({...input,runs:20,seed:1107}),'Model must be deterministic');
