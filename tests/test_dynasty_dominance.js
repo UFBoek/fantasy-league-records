@@ -3,8 +3,10 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const model=require('../scripts/dynasty_dominance_model');
 const load=f=>JSON.parse(fs.readFileSync(path.join(__dirname,'../data',f+'.json'),'utf8'));
+const optional=f=>fs.existsSync(path.join(__dirname,'../data',f+'.json'))?load(f):null;
 const input={roster:load('current_roster'),values:load('rosteraudit_values'),
- logs:load('player_game_log'),weekly:load('weekly_scoring_ranks'),picks:load('current_future_picks')};
+ logs:load('player_game_log'),weekly:load('weekly_scoring_ranks'),picks:load('current_future_picks'),
+ nflCurrent:load('playoff_nfl_weekly_scores'),nflHistory:optional('dynasty_nfl_history'),drafts:load('draft_picks')};
 assert.equal(model.ageCurve('RB',25),1);
 assert.ok(model.ageCurve('RB',31)<model.ageCurve('RB',25));
 assert.ok(model.ageCurve('WR',23)<model.ageCurve('WR',27));
@@ -19,6 +21,23 @@ assert.equal(lineup,84,'Superflex QB and two best flex players');
 assert.equal(model.legalLineup([{pos:'QB',ppg:24},{pos:'QB',ppg:21}]),45);
 const baseline=model.playerBaselines(input.roster,input.values,input.logs);
 assert.ok(baseline.length>300);
+assert.ok(input.nflCurrent.season===2026&&input.nflCurrent.through_week===7);
+const actualNfl=model.nflScoringSamples(input.nflCurrent,input.nflHistory,7);
+const nflBaseline=model.playerBaselines(input.roster,input.values,input.logs,
+ input.nflCurrent,input.nflHistory,7);
+assert.ok(nflBaseline.filter(x=>x.nflStarts>0).length>=250);
+assert.ok(actualNfl.has('11632:2026'), 'Unstarted NFL games are retained');
+const sampleRookie={seasons:{2024:{players:{'1':{weekly:[[1,18],[2,22]]}}},
+ 2025:{players:{}}}};
+const testDrafts=[{draft_season:'2024',round:1,draft_class:'Rookie',
+ draft_position:'WR',player_id:'1',draft_full_name:'Sample WR'}];
+const resultRookie=model.rookieOutcomes(testDrafts,sampleRookie);
+assert.equal(resultRookie[1][0].full_week_ppg,40/17);
+const realRookies=model.rookieOutcomes(input.drafts,input.nflHistory);
+if(input.nflHistory){
+ for(const rd of [1,2,3,4])assert.equal(realRookies[rd].length,20);
+ assert.ok(realRookies[1].some(x=>x.full_week_ppg>10));
+}
 assert.ok(baseline.some(p=>p.samples===0&&p.basePpg>0),'bench player priors are not zero');
 const picks=model.makePicks(input.picks);
 for(const year of [2027,2028,2029,2030,2031,2032])assert.equal(picks[year].length,40);
