@@ -93,3 +93,59 @@
 @media(max-width:900px){.dd-overview{grid-template-columns:1fr}.dd-feature{padding:22px}.dd-feature-compare{gap:15px}}
 @media(max-width:699px){.dd-challenger-page .dd-hero h1{font-size:clamp(28px,7.3vw,43px)}.dd-challenger-page .dd-hero{padding-bottom:20px}.dd-observed{padding:13px 12px}.dd-observed-label small{font-size:8px}.dd-observed-score{gap:7px 12px}.dd-observed-score>span:not(.dd-observed-versus){gap:5px;flex-wrap:wrap}.dd-observed-score>span b{font-size:25px}.dd-observed-score>span small{font-size:9px}.dd-observed-gap{width:100%;margin:3px 0 0;font-size:12px}.dd-observed p{font-size:9px}.dd-challenger-years{gap:5px}.dd-challenger-years .dd-year{font-size:11px;min-height:39px}.dd-feature{padding:15px 11px}.dd-feature-head .dd-overline{font-size:8px;letter-spacing:.09em}.dd-feature-badge{font-size:8px;padding:5px;letter-spacing:0}.dd-feature-compare{grid-template-columns:minmax(0,1fr) minmax(90px,.93fr) minmax(0,1fr);gap:6px;padding:22px 0}.dd-feature-avatar{width:48px;height:48px}.dd-feature-name{font-size:9px}.dd-feature-person>strong{font-size:clamp(22px,6.5vw,32px)}.dd-feature-person>small{font-size:8px;letter-spacing:0}.dd-feature-gap{padding:13px 5px;gap:6px}.dd-feature-gap>span{font-size:8px;letter-spacing:.04em}.dd-feature-gap strong{font-size:clamp(21px,5.6vw,28px)}.dd-feature-gap small{font-size:8px}.dd-feature-foot{align-items:flex-start;gap:10px}.dd-feature-foot>span{font-size:9px;max-width:125px;line-height:1.4}.dd-feature-foot label{flex-direction:column;gap:4px;align-items:flex-end;font-size:9px}.dd-feature-foot select{width:115px}.dd-overview{gap:13px;margin-bottom:13px}.dd-ladder-row{grid-template-columns:19px 31px minmax(0,1fr) 78px;gap:7px;padding:8px 5px}.dd-ladder-avatar{height:29px;width:29px}.dd-ladder-nums strong{font-size:13px}.dd-ladder-nums small{font-size:8px}.dd-ladder-info strong{font-size:11px}.dd-challenger-table{min-width:615px}.dd-challenger-table td,.dd-challenger-table th{padding:9px}.dd-challenger-page .dd-hero p{max-width:320px}.dd-roster-profile{margin-top:13px}.dd-trend-panel .dd-chart{margin-top:10px}}
 @media(max-width:370px){.dd-feature-avatar{width:42px;height:42px}.dd-feature-compare{grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr)}.dd-feature-person>strong{font-size:22px}.dd-feature-gap strong{font-size:21px}.dd-ladder-row{grid-template-columns:18px 29px minmax(0,1fr) 72px}}
+
+
+/* Contrast repair: override global generic table row/cell styles, including
+   zebra and active states, only inside the Succession Race. */
+.dd-page .dd-challenger-table{background:#122137!important;border:1px solid #314963;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden}
+.dd-page .dd-challenger-table thead th{background:#20344d!important;color:#afc9e5!important;border-bottom:1px solid #44617d!important}
+.dd-page .dd-challenger-table tbody tr,
+.dd-page .dd-challenger-table tbody tr:nth-child(even),
+.dd-page .dd-challenger-table tbody tr:nth-child(odd){background:#14243a!important}
+.dd-page .dd-challenger-table tbody tr:nth-child(even){background:#192c44!important}
+.dd-page .dd-challenger-table tbody tr td{background:transparent!important;color:#e4efff!important;border-bottom:1px solid #30465f!important}
+.dd-page .dd-challenger-table tbody tr.is-active{background:#2a4a70!important}
+.dd-page .dd-challenger-table tbody tr.is-active td{background:transparent!important;color:#fff!important}
+.dd-page .dd-challenger-table .dd-year-opponent,
+.dd-page .dd-challenger-table .dd-year-opponent:visited{color:#eff6ff!important}
+.dd-page .dd-challenger-table .dd-year-opponent:hover{color:#b3d1ff!important}
+.dd-page .dd-challenger-table .dd-year-row-button{color:#9dc4ff!important}
+.dd-page .dd-challenger-table tbody tr td.dd-pos{color:#8eebc5!important}
+.dd-page .dd-challenger-table tbody tr td.dd-neg{color:#ffacae!important}
+.dd-page .dd-projection-action{background:linear-gradient(90deg,#264b7a7f,transparent);border-top:1px solid #476ca0;border-bottom:1px solid #35547d;color:#b7d7ff!important;border-radius:5px;padding:15px 11px;margin:8px 0 4px}
+.dd-page .dd-projection-action:hover{background:#254878;color:#fff!important}
+.dd-page .dd-profile-quicklink{color:#d6eaff!important;font-size:10px;font-weight:850;letter-spacing:.055em;white-space:nowrap}
+.dd-page .dd-profile-quicklink:hover{color:#fff!important}
+
+/* Future-year team and player drilldowns. */
+.dd-player-page .dd-hero{padding-bottom:25px}
+.dd-player-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 16px}
+.dd-player-summary>div{display:flex;flex-direction:column;gap:9px;padding:16px 13px;background:#152840;border:1px solid #34506f;border-radius:9px;min-width:0}
+.dd-player-summary span{color:#9dbad9;font-size:9px;letter-spacing:.11em;font-weight:850;line-height:1.4}
+.dd-player-summary strong{font-size:clamp(19px,2.8vw,29px);color:#f2f8ff;font-weight:850;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.dd-player-filter-label{display:flex;align-items:flex-end;flex-direction:column;gap:5px;color:#a3bddc;font-weight:800;letter-spacing:.11em;font-size:9px}
+.dd-player-filter-label select{border:1px solid #547399;background:#172b46;color:#f4f8ff;border-radius:7px;padding:9px 11px;font-size:11px;font-weight:750;min-width:120px}
+.dd-player-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #354d6d;border-radius:9px}
+.dd-player-table{border-collapse:collapse;width:100%;min-width:670px;table-layout:auto;font-variant-numeric:tabular-nums}
+.dd-page .dd-player-table thead th{background:#253a55!important;color:#bbd3ed!important;font-size:9px;font-weight:850;letter-spacing:.07em;padding:12px 13px;white-space:nowrap;text-align:right;border-bottom:1px solid #496180}
+.dd-page .dd-player-table thead th:first-child{text-align:left}
+.dd-page .dd-player-table tbody tr{background:#15263d!important}
+.dd-page .dd-player-table tbody tr:nth-child(even){background:#1b2e46!important}
+.dd-page .dd-player-table tbody tr.is-projected-pick{background:#20334b!important}
+.dd-page .dd-player-table tbody td{padding:11px 13px;background:transparent!important;color:#e4f0ff!important;text-align:right;border-bottom:1px solid #2b405c!important;font-size:12px;white-space:nowrap}
+.dd-page .dd-player-table tbody td:first-child{text-align:left;white-space:normal}
+.dd-player-table .dd-player-name{font-weight:760;min-width:195px}
+.dd-player-rank{display:inline-block;font-size:9px;color:#7a9bc3;font-weight:850;margin-right:11px;min-width:18px}
+.dd-player-table a.dd-player-anchor{color:#e7f2ff!important;font-weight:770}
+.dd-player-table a.dd-player-anchor:hover{color:#91bdff!important;text-decoration:underline}
+.dd-player-future{color:#d0d7ef;font-size:11px}
+.dd-position{display:inline-block;min-width:32px;text-align:center;color:#a4c9ee;background:#28425f;border:1px solid #3d6186;border-radius:5px;padding:3px 5px;font-size:10px;font-weight:850}
+.dd-page .dd-player-table td.dd-player-ppg{font-size:15px;color:#f5faff!important;font-weight:900}
+.dd-page .dd-player-table td.dd-player-range{color:#b6cce4!important}
+.dd-page .dd-player-table td.dd-market-2026{color:#9edfc3!important}
+.dd-player-note{margin:17px 0 0;color:#a0b6d2;font-size:11px;line-height:1.75;max-width:930px}
+.dd-player-count{font-size:10px;color:#8ba7c8;font-weight:750;margin:11px 0 0}
+.dd-player-empty{font-size:12px;color:#b8c7de}
+.dd-player-navigation{display:flex;align-items:center;justify-content:space-between;gap:13px;margin:23px 0 0;font-size:11px;font-weight:850;color:#a8c9f6;letter-spacing:.05em}
+.dd-player-navigation a:hover{color:#fff}
+@media(max-width:699px){.dd-player-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.dd-player-summary>div{padding:12px 11px}.dd-player-summary span{font-size:8px}.dd-player-summary strong{font-size:23px}.dd-player-panel .dd-panel-heading{align-items:flex-start}.dd-player-filter-label select{min-width:105px;padding:8px}.dd-player-table{min-width:620px}.dd-player-navigation{flex-direction:column;align-items:flex-start;gap:12px}}

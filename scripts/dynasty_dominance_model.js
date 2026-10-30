@@ -188,6 +188,9 @@ function rookie(r,pick,rank,trial,rookieMultiplier=1,empirical=null){
  const tier=rank>=8?1.17:rank<=3?.91:1;
  const posScale=empiricalRookie?1:{QB:1.34,RB:.98,WR:1,TE:.74}[pos];
  return {id:'R'+trial+':'+pick.year+':'+pick.round+':'+pick.origin,
+  slot_id:'pick:'+pick.year+':'+pick.round+':'+pick.origin,
+  name:pick.year+' R'+pick.round+' · '+TEAMS[pick.origin]+' original pick',
+  pick_year:pick.year,pick_round:pick.round,pick_origin:pick.origin,
   team:pick.owner,pos,age:21.5,baseYear:pick.year,samples:0,rookie:true,
   basePpg:clamp(quality*tier*posScale*rookieMultiplier*(.8+.4*r.u()),.2,pos==='QB'?37:29),
   qualityShock:r.normal()*.13,empiricalRookie,rookieYearTwoShift:rookieYearTwoShift*tier};
@@ -230,6 +233,9 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
  const picksByYear=makePicks(picks),r=random(seed),empirical=rookieOutcomes(drafts,nflHistory);
  const samples=Object.fromEntries(YEARS.map(y=>[y,Object.fromEntries(IDS.map(id=>[id,[]]))]));
  const leaders=Object.fromEntries(IDS.map(id=>[id,[]]));
+ // Track individual outputs from the same simulations as team strength.
+ // Rookie trial IDs vary, so their original draft slot is the stable key.
+ const playerSamples=Object.fromEntries(YEARS.map(y=>[y,Object.fromEntries(IDS.map(id=>[id,new Map()]))]));
  for(let t=0;t<runs;t++){
   const players=base.map(p=>({...p,qualityShock:r.normal()*.055}));
   let last={...form};
@@ -239,7 +245,18 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
    for(const pick of picksByYear[year])players.push(rookie(r,pick,order[pick.origin]||5,t,rookieMultiplier,empirical));
    const annual={};
    for(const id of IDS){
-    const arr=players.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,playerMultipliers})}));
+    const arr=players.filter(p=>p.team===id).map(p=>{
+     const ppg=scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,playerMultipliers});
+     const stableId=p.slot_id||p.id,tracked=playerSamples[year][id];
+     if(!tracked.has(stableId))tracked.set(stableId,{
+      id:stableId,name:p.name||'Future rookie',pos:p.rookie?'TBD':p.pos,rookie:!!p.rookie,
+      age:p.age+year-p.baseYear,pick_year:p.pick_year||null,
+      pick_round:p.pick_round||null,pick_origin:p.pick_origin||null,
+      sum:0,values:[]});
+     const item=tracked.get(stableId);
+     item.sum+=ppg;item.values.push(ppg);
+     return {pos:p.pos,ppg};
+    });
     annual[id]=Math.max(0,legalLineup(arr)+5*r.normal());
     samples[year][id].push(annual[id]);
    }
@@ -252,6 +269,11 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
  const seasons={};
  for(const year of YEARS){
   const arr=samples[year];
+  const player_projections=Object.fromEntries(IDS.map(id=>[id,[...playerSamples[year][id].values()].map(p=>({
+   id:p.id,name:p.name,pos:p.pos,rookie:p.rookie,age:rnd(p.age,1),
+   pick_year:p.pick_year,pick_round:p.pick_round,pick_origin:p.pick_origin,
+   ppg:rnd(p.sum/runs),p10:rnd(pct(p.values,.1)),p90:rnd(pct(p.values,.9))
+  })).sort((a,b)=>b.ppg-a.ppg||a.name.localeCompare(b.name))]));
   const ranking=IDS.map(id=>{
    let first=0,top3=0;
    for(let i=0;i<runs;i++){
@@ -269,7 +291,7 @@ function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=nu
      boek_stronger_pct:rnd(100*gaps.filter(v=>v>0).length/runs)};
   }).sort((a,b)=>a.gap_ppg-b.gap_ppg);
   const bestOther=boek.map((value,i)=>value-Math.max(...IDS.filter(id=>id!==1).map(id=>arr[id][i])));
-  seasons[year]={ranking,boek_vs_leagues_best_opponent:{
+  seasons[year]={ranking,player_projections,boek_vs_leagues_best_opponent:{
    gap_ppg:rnd(mean(bestOther)),p10:rnd(pct(bestOther,.1)),p90:rnd(pct(bestOther,.9)),
    boek_stronger_pct:rnd(100*bestOther.filter(v=>v>0).length/runs)},boek_vs_teams:comparisons};
  }
