@@ -6,6 +6,11 @@ on:
       - tests/test_dynasty_dominance.js
       - scripts/backtest_dynasty_form.js
       - scripts/stress_dynasty_dominance.js
+      - scripts/backtest_dynasty_players.js
+      - scripts/backtest_dynasty_franchise.js
+      - scripts/assess_dynasty_validation.js
+      - model_tests/test_dynasty_retrospective.js
+      - data/dynasty_nfl_history.json
       - .github/workflows/verify-dynasty-dominance.yml
   workflow_dispatch:
 jobs:
@@ -19,6 +24,14 @@ jobs:
           node-version: '22'
       - name: Verify contracts and deterministic runs
         run: node tests/test_dynasty_dominance.js
+      - name: Verify no-leakage player and rookie holdout tests
+        run: node model_tests/test_dynasty_retrospective.js
+      - name: Generate historical player and rookie holdout report
+        run: node scripts/backtest_dynasty_players.js --out "$RUNNER_TEMP/dynasty-player-backtest.json"
+      - name: Generate historical franchise scoring benchmark
+        run: node scripts/backtest_dynasty_franchise.js --out "$RUNNER_TEMP/dynasty-franchise-backtest.json"
+      - name: Assess whether model is actually validated enough for publication
+        run: node scripts/assess_dynasty_validation.js --out "$RUNNER_TEMP/dynasty-publication-readiness.json"
       - name: Generate review-only research report
         run: node scripts/dynasty_dominance_model.js --runs 1000 --out "$RUNNER_TEMP/dynasty-dominance-research.json"
       - name: Backtest past single-season scoring form (2023–2025)
@@ -33,4 +46,7 @@ jobs:
             ${{ runner.temp }}/dynasty-dominance-research.json
             ${{ runner.temp }}/dynasty-form-backtest.json
             ${{ runner.temp }}/dynasty-stress.json
+            ${{ runner.temp }}/dynasty-player-backtest.json
+            ${{ runner.temp }}/dynasty-franchise-backtest.json
+            ${{ runner.temp }}/dynasty-publication-readiness.json
           retention-days: 14
