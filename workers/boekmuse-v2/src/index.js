@@ -18,6 +18,8 @@ const SCHEMA= [
  'Use standard SQLite SQL SELECT, JOIN, CTE, aggregates, CASE, subqueries, window functions; never write to a table.',
  'No ambiguous assumptions: state in "understood" which team, season, scoring metric and grouping were used.',
  'Only request fields that exist in these views. If the requested raw data does not exist, set supported=false and explain missing data; DO NOT substitute another metric (game COUNT is NOT touchdowns).',
+ 'CRITICAL: team_seasons.points_for and team_seasons.losses are SEASON TOTALS. Questions about weeks/games when a team scored 200+ and lost MUST use games (points>=200 AND loss=1), then COUNT/group by team. Season cumulative points_for>=200 is never equivalent to scoring 200 in one game.',
+ 'Never select the latest, first or a specific season unless the question explicitly asks for that season or this/latest season. Without a year request, include ALL seasons. The question might ask for the MOST games, not the MOST RECENT games.',
  'Examples: Who had 3 starting WRs with 20+ points in a week? SELECT team_id,season,week,COUNT(*) AS qualifying_wrs FROM starts WHERE position=\'WR\' AND fantasy_points>=20 GROUP BY team_id,season,week HAVING COUNT(*)>=3 ORDER BY qualifying_wrs DESC,season,week.',
  'How many non-QB offensive TDs did Boek starters have each 2026 week? SELECT s.week,SUM(s.td) AS touchdowns,COUNT(*) AS non_qb_starts FROM starts s JOIN td_coverage c ON c.season=s.season AND c.week=s.week AND c.game_type=s.game_type AND c.team_id=s.team_id WHERE s.team_id=1 AND s.season=2026 AND s.game_type=\'Regular Season\' AND s.position IN (\'RB\',\'WR\',\'TE\',\'FB\') GROUP BY s.week ORDER BY s.week.',
  'Use td_coverage JOIN for any non-QB touchdown calculation, AND ensure sum only non-QB RB/WR/TE/FB. Exclude QB passing TDs. TDs for players without verified coverage must NOT be presented as complete.',
@@ -204,6 +206,22 @@ function sqlClean(input){
 }
 function questionGuard(question,sql){
  const q=question.toLowerCase();
+ // Verify the distinction between weekly game scores and season aggregate totals.
+ const weeklySubject=/\b(?:games?|weeks?|matchups?)\b/.test(q);
+ const scoringSubject=/\b(?:scor(?:e|ed|ing)|points?|pts|put up)\b/.test(q);
+ const threshold=/\b(?:at least|over|more than|under|below|above|fewer than|less than)\s*\d+\s*(?:points?|pts)?\b|\b\d+\+\s*(?:points?|pts)?\b/.test(q);
+ if(weeklySubject&&scoringSubject&&threshold){
+  if(!/\b(?:games|starts)\b/i.test(sql)||(/\bteam_seasons\b/i.test(sql)&&!/\b(?:games|starts)\b/i.test(sql)))
+   throw Error('The question requires individual GAME scores and filters. Season totals are not a substitute; use games.points or starts.fantasy_points.');
+  if(/\b(?:most|fewest)\b/.test(q)&&/\b(?:lost|loss|losses|won|win|wins)\b/.test(q)&&
+   !/\b(?:COUNT|SUM)\s*\(/i.test(sql))
+   throw Error('Counting qualifying games requires COUNT or SUM over individual weekly game rows.');
+ }
+ if(!/\b(?:current|this|latest|most recent)\s+season\b/.test(q)&&
+  !/\b20(?:2[3-9]|3\d)\b/.test(q)&&
+  /\bseason\s*=\s*\(\s*SELECT\s+MAX\s*\(\s*season\s*\)/i.test(sql))
+  throw Error('Do not invent a latest-season filter; the user did not specify a season. Include all league years.');
+
  if(/\b(?:touchdowns?|tds?)\b/.test(q)){
   if(!/\bstarts\b/i.test(sql)||!/\b(?:td|rush_td|rec_td)\b/i.test(sql)||
    !/\btd_coverage\b/i.test(sql))
