@@ -25,7 +25,14 @@
   return '';
  }
  function resultToPage(data){
-  const cols=data.columns||[],raw=data.rows||[];
+  let cols=[...(data.columns||[])],raw=[...(data.rows||[])];
+  // If the AI returns rushing and receiving TD columns separately, also show
+  // the actual verified combined total. Do not ask readers to add two columns.
+  let derivedTotal=false;
+  if(cols.includes('rush_touchdowns')&&cols.includes('rec_touchdowns')&&!cols.includes('touchdowns')){
+   raw=raw.map(x=>({...x,touchdowns:Number(x.rush_touchdowns||0)+Number(x.rec_touchdowns||0)}));
+   cols.push('touchdowns');derivedTotal=true;
+  }
   const one=raw.length===1&&cols.length===1?raw[0][cols[0]]:null;
   const summary=one!==null&&one!==undefined?shown(cols[0],one):
    String(raw.length)+' '+(raw.length===1?'matching result':'matching results');
@@ -36,7 +43,8 @@
     method:'Calculated directly with a read-only SQL query against the published league database.'},
    columns:cols.map(displayColumn),
    rows:raw.map(r=>({values:cols.map(c=>shown(c,r[c])),href:link(r)})),
-   sql:data.sql,note:'Computed by Cloudflare D1 using published league records. The AI generated a read-only query; the numbers come from database results.'};
+   sql:data.sql,note:'Computed by Cloudflare D1 using published league records. The AI generated a read-only query; the numbers come from database results.'+
+    (derivedTotal?' Total touchdowns = verified rushing + receiving TD columns.':'')};
  }
  async function ask(question){
   if(!ENDPOINT)return {ok:false,message:'Database connection not configured.'};
