@@ -34,8 +34,55 @@ function marketPpg(pos,value){
  const f={QB:[3,10,800,35],RB:[1,9,1800,27],WR:[1,9,1600,29],TE:[1,8,1600,25]}[pos];
  return f?clamp(f[0]+f[1]*Math.log1p(Math.max(0,+value||0)/f[2]),.2,f[3]):0;
 }
-function playerBaselines(roster,values,logs){
+function nflScoringSamples(nflCurrent,nflHistory,cutoff=17){
+ const data=new Map();
+ const put=(pid,year,weekly,limit)=>{
+  if(!Array.isArray(weekly))return;
+  const key=String(pid)+':'+year;
+  const seen=new Set(),scores=[];
+  for(const row of weekly){
+   if(!Array.isArray(row)||row.length!==2)continue;
+   const week=+row[0],score=+row[1];
+   if(!Number.isInteger(week)||week<1||week>limit||!Number.isFinite(score)||seen.has(week))continue;
+   scores.push(score);seen.add(week);
+  }
+  if(scores.length)data.set(key,scores);
+ };
+ for(const [year,season] of Object.entries(nflHistory?.seasons||{})){
+  if(![2023,2024,2025].includes(+year)||!season||!season.players)continue;
+  for(const [pid,rec] of Object.entries(season.players))put(pid,+year,rec.weekly,17);
+ }
+ if(nflCurrent?.season===2026&&nflCurrent?.weeks&&+nflCurrent.through_week>=1){
+  for(const [week,players] of Object.entries(nflCurrent.weeks)){
+   if(+week>cutoff||+week<1||!players)continue;
+   for(const [pid,val] of Object.entries(players)){
+    if(!/^\d+$/.test(pid)||!Number.isFinite(+val))continue;
+    const key=pid+':2026';
+    const row=data.get(key)||[];row.push(+val);data.set(key,row);
+   }
+  }
+ }
+ return data;
+}
+function rookieOutcomes(draft,archive){
+ const byRound={1:[],2:[],3:[],4:[]};
+ if(!draft?.length||!archive?.seasons)return byRound;
+ const samples=nflScoringSamples(null,archive);
+ for(const pick of draft){
+  const year=+pick.draft_season,round=+pick.round,pos=pick.draft_position||pick.position;
+  if(![2024,2025].includes(year)||!byRound[round]||!['QB','RB','WR','TE'].includes(pos)||pick.draft_class!=='Rookie')continue;
+  const scores=samples.get(String(pick.player_id)+':'+year)||[];
+  byRound[round].push({player_id:String(pick.player_id),name:pick.draft_full_name||pick.player_name||'',
+   season:year,round,pos,games:scores.length,
+   full_week_ppg:scores.reduce((a,b)=>a+b,0)/17,
+   healthy_ppg:mean(scores)});
+ }
+ return byRound;
+}
+
+function playerBaselines(roster,values,logs,nflCurrent=null,nflHistory=null,cutoff=17){
  const history=new Map();
+ const nfl=nflScoringSamples(nflCurrent,nflHistory,cutoff);
  for(const p of logs){
   if(p.game_type!=='Regular Season'||![2024,2025,2026].includes(+p.season)||!Number.isFinite(+p.starter_points))continue;
   const key=p.player_id+':'+p.season;
@@ -46,15 +93,16 @@ function playerBaselines(roster,values,logs){
   const id=String(x.player_id),value=+values.players[id]?.value||0,prior=marketPpg(x.position,value);
   let numerator=0,denominator=0,samples=0;
   for(const [year,weight] of [[2026,.6],[2025,.28],[2024,.12]]){
-   const scores=history.get(id+':'+year)||[];
+   const scores=nfl.get(id+':'+year)||history.get(id+':'+year)||[];
    if(!scores.length)continue;
    const w=weight*scores.length/(scores.length+3);
    numerator+=mean(scores)*w;denominator+=w;samples+=scores.length;
   }
   const observed=denominator?numerator/denominator:prior,credibility=Math.min(.84,samples/(samples+9));
+  const nflStarts=[2024,2025,2026].reduce((sum,year)=>sum+(nfl.get(id+':'+year)||[]).length,0);
   return {id,team:+x.franchise_id,name:x.player_name,pos:x.position,age:+x.age||25,
     baseYear:2026,basePpg:clamp((1-credibility)*prior+credibility*observed,.2,x.position==='QB'?39:34),
-    samples,rookie:false};
+    samples,nflStarts,rookie:false};
  });
 }
 function legalLineup(players){
@@ -101,23 +149,35 @@ function ranks(scores){
  const ids=[...IDS].sort((a,b)=>(scores[a]||0)-(scores[b]||0));
  return Object.fromEntries(ids.map((id,i)=>[id,i+1]));
 }
-function rookie(r,pick,rank,trial,rookieMultiplier=1){
- const rates={
-  1:[[.09,24],[.25,17],[.40,10],[.26,3]],
-  2:[[.04,20],[.13,13],[.30,7],[.53,2]],
-  3:[[.02,16],[.08,10],[.19,5],[.71,1]],
-  4:[[.008,13],[.042,8],[.15,4],[.80,.7]]
- }[pick.round];
- let u=r.u(),quality=1;
- for(const [prob,value] of rates){u-=prob;if(u<=0){quality=value;break;}}
- const d=r.u(),qb=pick.round===1?.23:.14;
- const pos=d<qb?'QB':d<.51?'WR':d<.80?'RB':'TE';
+function rookie(r,pick,rank,trial,rookieMultiplier=1,empirical=null){
+ let pos,quality,empiricalRookie=false;
+ if(empirical?.[pick.round]?.length>=15){
+  const row=empirical[pick.round][Math.floor(r.u()*empirical[pick.round].length)];
+  pos=row.pos;
+  // Directly sample 2024–25 FIG-league drafted rookie outcomes, including
+  // players who earned zero NFL points. Their first 17 NFL weeks are the
+  // denominator; do not turn limited appearances into 17 healthy games.
+  quality=row.full_week_ppg;
+  empiricalRookie=true;
+ }else{
+  // Explicit research fallback for data-provider outages or incomplete archives.
+  const rates={
+   1:[[.09,24],[.25,17],[.40,10],[.26,3]],
+   2:[[.04,20],[.13,13],[.30,7],[.53,2]],
+   3:[[.02,16],[.08,10],[.19,5],[.71,1]],
+   4:[[.008,13],[.042,8],[.15,4],[.80,.7]]
+  }[pick.round];
+  let u=r.u();quality=1;
+  for(const [prob,value] of rates){u-=prob;if(u<=0){quality=value;break;}}
+  const d=r.u(),qb=pick.round===1?.23:.14;
+  pos=d<qb?'QB':d<.51?'WR':d<.80?'RB':'TE';
+ }
  const tier=rank>=8?1.17:rank<=3?.91:1;
- const posScale={QB:1.34,RB:.98,WR:1,TE:.74}[pos];
+ const posScale=empiricalRookie?1:{QB:1.34,RB:.98,WR:1,TE:.74}[pos];
  return {id:'R'+trial+':'+pick.year+':'+pick.round+':'+pick.origin,
   team:pick.owner,pos,age:21.5,baseYear:pick.year,samples:0,rookie:true,
   basePpg:clamp(quality*tier*posScale*rookieMultiplier*(.8+.4*r.u()),.2,pos==='QB'?37:29),
-  qualityShock:r.normal()*.13};
+  qualityShock:r.normal()*.13,empiricalRookie};
 }
 function scorePlayer(p,year,r,calibration,options={}){
  const age=p.age+year-p.baseYear,ageFactor=Math.pow(ageCurve(p.pos,age)/ageCurve(p.pos,p.age),options.ageCurveExponent||1);
@@ -126,26 +186,30 @@ function scorePlayer(p,year,r,calibration,options={}){
  const sigma=(p.rookie?.27:p.samples<4?.24:p.samples<12?.17:.12)+Math.sqrt(Math.max(0,year-2026))*.028;
  const talent=Math.exp((p.qualityShock||0)+r.normal()*sigma-.5*sigma*sigma);
  const injury=clamp((.11+Math.max(0,age-29)*.027+(p.pos==='RB'?.035:0))*(options.injuryMultiplier||1),.08,.9);
- const availability=r.u()<injury?.47+.35*r.u():1;
+ // Empirical first-year rookie PPG already includes missed weeks in 17-game denominator.
+ const availability=p.empiricalRookie&&year===p.baseYear?1:(r.u()<injury?.47+.35*r.u():1);
  const playerMultiplier=options.playerMultipliers?.[p.id]??1;
  return clamp(p.basePpg*ageFactor*development*talent*availability*
   clamp(1+r.normal()*.075,.72,1.27)*calibration*playerMultiplier,0,p.pos==='QB'?46:38);
 }
-function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030,scenario={}}){
+function runModel({roster,values,logs,weekly,picks,nflCurrent=null,nflHistory=null,drafts=null,runs=5000,seed=20261030,scenario={}}){
  if(!roster?.length||!logs?.length||!weekly?.length||!picks?.length||!values?.players)throw Error('Missing input');
  if(!Number.isInteger(runs)||runs<1||runs>100000)throw Error('Invalid runs');
  const ageCurveExponent=Number(scenario.ageCurveExponent??1),injuryMultiplier=Number(scenario.injuryMultiplier??1),rookieMultiplier=Number(scenario.rookieMultiplier??1);
  if(!Number.isFinite(ageCurveExponent)||ageCurveExponent<.4||ageCurveExponent>2||!Number.isFinite(injuryMultiplier)||injuryMultiplier<.5||injuryMultiplier>2||!Number.isFinite(rookieMultiplier)||rookieMultiplier<.4||rookieMultiplier>1.6)throw Error('Invalid research scenario');
  const playerMultipliers=scenario.playerMultipliers??{};
  if(!playerMultipliers||typeof playerMultipliers!=='object'||Array.isArray(playerMultipliers)||Object.values(playerMultipliers).some(x=>!Number.isFinite(x)||x<0||x>1.5))throw Error('Invalid research player multipliers');
- const base=playerBaselines(roster,values,logs),matched=base.filter(p=>values.players[p.id]?.value!=null).length;
+ const officialCutoff=Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week));
+ if(nflCurrent&&nflCurrent.season!==2026)throw Error('Wrong NFL season for current player samples');
+ if(nflHistory&&nflHistory.scoring_season!==2026)throw Error('NFL history must be standardized to FIG 2026 scoring');
+ const base=playerBaselines(roster,values,logs,nflCurrent,nflHistory,officialCutoff),matched=base.filter(p=>values.players[p.id]?.value!=null).length;
  if(!base.length||matched/base.length<.95)throw Error('RosterAudit coverage below 95%');
  const form=getForm(weekly),calibration={};
  for(const id of IDS){
   const current=legalLineup(base.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:p.basePpg})));
   calibration[id]=current?clamp((.75*current+.25*(form[id]||current))/current,.85,1.15):1;
  }
- const picksByYear=makePicks(picks),r=random(seed);
+ const picksByYear=makePicks(picks),r=random(seed),empirical=rookieOutcomes(drafts,nflHistory);
  const samples=Object.fromEntries(YEARS.map(y=>[y,Object.fromEntries(IDS.map(id=>[id,[]]))]));
  const leaders=Object.fromEntries(IDS.map(id=>[id,[]]));
  for(let t=0;t<runs;t++){
@@ -154,7 +218,7 @@ function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030,scena
   const first=Object.fromEntries(IDS.map(id=>[id,0]));
   for(const year of YEARS){
    const order=ranks(last);
-   for(const pick of picksByYear[year])players.push(rookie(r,pick,order[pick.origin]||5,t,rookieMultiplier));
+   for(const pick of picksByYear[year])players.push(rookie(r,pick,order[pick.origin]||5,t,rookieMultiplier,empirical));
    const annual={};
    for(const id of IDS){
     const arr=players.filter(p=>p.team===id).map(p=>({pos:p.pos,ppg:scorePlayer(p,year,r,calibration[id],{ageCurveExponent,injuryMultiplier,playerMultipliers})}));
@@ -194,10 +258,13 @@ function runModel({roster,values,logs,weekly,picks,runs=5000,seed=20261030,scena
  const whole_horizon=IDS.map(id=>({id,name:TEAMS[id],expected_years_best:rnd(mean(leaders[id]),2),
    chance_best_at_least_three_years_pct:rnd(100*leaders[id].filter(v=>v>=3).length/runs)
  })).sort((a,b)=>b.expected_years_best-a.expected_years_best);
- return {version:'experimental-v1.1',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,playerMultipliers},
+ return {version:'experimental-v2',status:'research_only',seed,runs,years:YEARS,scenario:{ageCurveExponent,injuryMultiplier,rookieMultiplier,playerMultipliers},
   inputs:{observed_through_week:Math.max(...weekly.filter(x=>+x.season===2026).map(x=>+x.week)),
    current_rostered_players:base.length,market_coverage_pct:rnd(100*matched/base.length),
    historical_player_start_logs:logs.length,
+   current_nfl_wide_rostered_players:base.filter(p=>p.nflStarts>0).length,
+   observed_nfl_wide_rostered_games:base.reduce((sum,p)=>sum+p.nflStarts,0),
+   empirical_rookie_samples:Object.fromEntries([1,2,3,4].map(round=>[round,empirical[round].length])),
    known_2027_2029_picks:YEARS.slice(0,3).reduce((s,y)=>s+picksByYear[y].length,0),
    assumed_2030_2032_picks:120},
   current_form:IDS.map(id=>({id,name:TEAMS[id],form_ppg:rnd(form[id]),calibration:rnd(calibration[id],3)})),
@@ -234,4 +301,4 @@ function main(args){
  console.log('Research-only; see JSON for limitations.');
 }
 if(require.main===module)main(process.argv.slice(2));
-module.exports={random,ageCurve,marketPpg,playerBaselines,legalLineup,getForm,makePicks,runModel};
+module.exports={random,ageCurve,marketPpg,nflScoringSamples,rookieOutcomes,playerBaselines,legalLineup,getForm,makePicks,runModel};
