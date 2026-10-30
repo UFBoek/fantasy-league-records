@@ -126,5 +126,22 @@ async function workerTests(){
  eq(capped.status,429);
  const err=await handler.fetch(request(origin,'Who wins?'),{...env,AI:{run:async()=>({response:{dataset:'games',metric:'fake',group_by:'team'}})}});
  eq(err.status,503);
+ const weekly=await handler.fetch(request(origin,'How many times did Boek lose while outscoring Hayden in the same week?'),
+  {...env,AI:{run:async()=>({response:{dataset:'games',metric:'count',group_by:'team',team_id:1,opponent_id:6,result:'loss',minimum_games:10}})}});
+ eq(weekly.status,200);
+ const sameWeek=(await weekly.json()).plan;
+ eq(sameWeek.team_id,1);
+ eq(sameWeek.compare_team_id,6);
+ eq(sameWeek.compare_direction,'higher');
+ eq(sameWeek.opponent_id,null);
+ eq(sameWeek.minimum_games,undefined);
+ const under=await handler.fetch(request(origin,'What percentage of Hayden games under 175 points were wins?'),
+  {...env,AI:{run:async()=>({response:{dataset:'games',metric:'win_pct',group_by:'team',opponent_id:6,min_points:175,minimum_games:10}})}});
+ const low=(await under.json()).plan;
+ eq(low.team_id,6);
+ eq(low.opponent_id,null);
+ eq(low.min_points,null);
+ eq(low.max_points,174.999);
+ eq(low.minimum_games,undefined);
 }
 workerTests().then(()=>console.log('League Ask AI: query validation, real dataset calculations, Cloudflare CORS and rate-limit checks passed')).catch(err=>{console.error(err);process.exitCode=1;});
