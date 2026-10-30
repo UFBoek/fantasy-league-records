@@ -63,8 +63,12 @@ function main(args){
   else if(args[i]==='--out')out=args[++i];
   else throw Error('Unknown argument '+args[i]);
  }
+ const exists=f=>fs.existsSync(path.resolve(__dirname,'../data',f+'.json'));
+ const optional=f=>exists(f)?read(f):null;
  const input={roster:read('current_roster'),values:read('rosteraudit_values'),
-  logs:read('player_game_log'),weekly:read('weekly_scoring_ranks'),picks:read('current_future_picks')};
+  logs:read('player_game_log'),weekly:read('weekly_scoring_ranks'),picks:read('current_future_picks'),
+  nflCurrent:optional('playoff_nfl_weekly_scores'),nflHistory:optional('dynasty_nfl_history'),
+  drafts:optional('draft_picks')};
  const report=study(input,{runs,seed});
  if(out)fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');
  for(const c of report.results)
