@@ -21,7 +21,7 @@
     if (['team','teamseason','teams'].includes(route)) return 'teams';
     if (route.startsWith('player')) return 'players';
     if (['records','record','singleseasons','breakdown','special','streak','streaks'].includes(route)) return 'records';
-    if (route === 'boekmuse' || route === 'ask') return 'more';
+    if (['boekmuse','ask','dynasty-dominance'].includes(route)) return 'more';
     return 'home';
   }
   function fallbackBack(route) {
@@ -31,7 +31,7 @@
     if (['playoffbracket'].includes(route)) return '#/champions';
     if (route === 'game') return '#/games';
     if (route === 'manager') return '#/manager-ratings';
-    if (route === 'boekmuse' || route === 'ask') return '#/more';
+    if (['boekmuse','ask','dynasty-dominance'].includes(route)) return '#/more';
     if (route === 'livematch') return '#/home';
     if (['matchup','rivalry'].includes(route)) return '#/h2h';
     if (route.startsWith('player') && route !== 'players') return '#/players';
@@ -102,7 +102,7 @@
       ['streaks','streak'].includes(route) ? 'streaks' :
       ['minigames','game'].includes(route) ? 'more' :
       route === 'livematch' ? 'home' :
-      ['standings','playoffs','champions','h2h','dynasty','stock-market','draft','trades','manager-ratings','manager','boekmuse','ask'].includes(route) ? 'more' : route;
+      ['standings','playoffs','champions','h2h','dynasty','stock-market','draft','trades','manager-ratings','manager','boekmuse','ask','dynasty-dominance'].includes(route) ? 'more' : route;
     document.querySelectorAll('.app-dock a').forEach(a => {
       const active = a.getAttribute('href') === '#/' + dockSection;
       if (active) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
