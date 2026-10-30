@@ -245,32 +245,9 @@ function statsForDrafts(q,picks){
   ['Team','Selections'],groups.map(x=>resultRow([name(x.id),x.count],teamHref(x.id))));
 }
 async function ask(q){
- // Prefer the genuine, read-only SQL analytics agent. Never silently fall back to a fixed metric.
+ // No fixed-metric fallback. Every response must come from a verified SQL calculation.
  if(root.boekmuseDynamic?.ask)return root.boekmuseDynamic.ask(q);
- // The legacy engine remains loadable for historical site tests and compatibility.
- // The free AI layer converts natural language into a validated, deterministic plan.
- // Until the Worker URL is configured, preserve the existing offline keyword search.
- if(root.figAskAi?.ask){const result=await root.figAskAi.ask(q);if(result)return result;}
- const s=clean(q);
- if(s.length<3)return {ok:false,message:'Ask a complete question about league history.'};
- if(/\b(trade|trades|traded)\b/.test(s))return statsForTrades(q,await load('trades'));
- if(/\b(draft|drafted|drafts|drafting)\b/.test(s))return statsForDrafts(q,await load('drafts'));
- if(/\b(superflex|bench|roster value|win probability|projected|future odds|streak|strength of schedule|all.play|rushing yards|receiving yards|touchdowns|passing yards|season total|season record|single.season|per season|each season)\b/.test(s))
-  return {ok:false,message:'That question needs a data source this search does not support yet.'};
- const games=await load('games');
- const playerIntent=/\b(player|players|starter|starters|started|starts|qb|rb|wr|te|quarterback|wide receiver|running back|tight end)\b/.test(s);
- if(playerIntent){return statsForPlayers(q,await load('players'),games);}
- if(/\b(point|points|ppg|scored|scoring|score|average)\b/.test(s)){
-  const players=await load('players');
-  const seen=new Set();
-  const hasPlayer=players.some(x=>{const id=String(x.player_id);if(seen.has(id))return false;seen.add(id);
-   return x.player_name&&(' '+s+' ').includes(' '+clean(x.player_name)+' ');
-  });
-  if(hasPlayer)return statsForPlayers(q,players,games);
- }
- if(!/\b(win|wins|won|loss|losses|lost|record|points|point|ppg|score|scored|scoring|games|weeks|blowout|blowouts|championship|championships|titles|average|margin|matchup|matchups)\b/.test(s))
-  return {ok:false,message:'This question does not match a supported statistic.'};
- return statsForGames(q,games);
+ return {ok:false,message:'The verified BoekMuse SQL engine is unavailable. No substitute statistic was returned.'};
 }
 const url=q=>'#/boekmuse/'+encodeURIComponent(q);
 function form(q,id){
