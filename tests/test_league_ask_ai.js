@@ -149,5 +149,21 @@ async function workerTests(){
  eq(low.min_points,null);
  eq(low.max_points,174.999);
  eq(low.minimum_games,undefined);
+ const td=await handler.fetch(request(origin,'How many non qb tds does Boek have in every game in 2026'),
+  {...env,AI:{run:async()=>({response:{dataset:'games',metric:'count',group_by:'week',team_id:1,season_from:2026,season_to:2026}})}});
+ eq(td.status,200);
+ const tdp=(await td.json()).plan;
+ eq(tdp.dataset,'player_touchdowns');
+ eq(tdp.metric,'touchdowns');
+ eq(tdp.team_id,1);
+ eq(tdp.group_by,'week');
+ eq(tdp.season_from,2026);
+ eq(tdp.season_to,2026);
+ eq(tdp.limit,18);
+ const ambiguous=await handler.fetch(request(origin,'How many touchdowns does Boek have in 2026?'),
+  {...env,AI:{run:async()=>({response:{dataset:'games',metric:'count',group_by:'none'}})}});
+ const ambigu=(await ambiguous.json()).plan;
+ eq(ambigu.dataset,'unsupported');
+ assert.match(ambigu.reason,/non-QB/);
 }
 workerTests().then(()=>console.log('League Ask AI: query validation, real dataset calculations, Cloudflare CORS and rate-limit checks passed')).catch(err=>{console.error(err);process.exitCode=1;});
