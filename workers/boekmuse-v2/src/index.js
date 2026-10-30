@@ -21,6 +21,7 @@ const SCHEMA= [
  'Examples: Who had 3 starting WRs with 20+ points in a week? SELECT team_id,season,week,COUNT(*) AS qualifying_wrs FROM starts WHERE position=\'WR\' AND fantasy_points>=20 GROUP BY team_id,season,week HAVING COUNT(*)>=3 ORDER BY qualifying_wrs DESC,season,week.',
  'How many non-QB offensive TDs did Boek starters have each 2026 week? SELECT s.week,SUM(s.td) AS touchdowns,COUNT(*) AS non_qb_starts FROM starts s JOIN td_coverage c ON c.season=s.season AND c.week=s.week AND c.game_type=s.game_type AND c.team_id=s.team_id WHERE s.team_id=1 AND s.season=2026 AND s.game_type=\'Regular Season\' AND s.position IN (\'RB\',\'WR\',\'TE\',\'FB\') GROUP BY s.week ORDER BY s.week.',
  'Use td_coverage JOIN for any non-QB touchdown calculation, AND ensure sum only non-QB RB/WR/TE/FB. Exclude QB passing TDs. TDs for players without verified coverage must NOT be presented as complete.',
+'When a user asks for TOTAL touchdowns, include SUM(s.td) AS touchdowns as an explicit numeric result column, even if you also show rushing and receiving breakdowns separately. The total must be visible without mental addition.',
  'Which team has most wins against Hayden? SELECT team_id,COUNT(*) AS wins FROM games WHERE opponent_id=6 AND win=1 AND game_type=\'Regular Season\' GROUP BY team_id ORDER BY wins DESC.',
  'Use a LIMIT of 50 or less, unless the question needs all weeks (max 100 output rows). Use sensible column aliases.',
  'RETURN JSON with supported:boolean, sql:string, title:string, understood:string, reason:string. SQL SELECT only. No markdown fences.'
