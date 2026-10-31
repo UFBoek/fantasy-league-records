@@ -1,0 +1,225 @@
+/* FIG Hall of Fame / Charter II — a permanent museum, not a weekly leaderboard.
+   Loads after archival base styles; every rule is scoped to the Hall. */
+.fig-hof-v2{--hof-gold:#d5b174;--hof-gold-light:#f2d8a4;--hof-accent:#a98145}
+.fig-hof-v2 .fig-hof-site-head{border-bottom:1px solid #4b422f}
+.fig-hof-v2 .fig-hof-nav a{padding-inline:20px}
+.fig-hof-v2 .fig-hof-v2-hero{background:
+ radial-gradient(ellipse at 75% 44%,rgba(206,166,91,.21),transparent 38%),
+ radial-gradient(ellipse at 10% 93%,rgba(69,99,124,.15),transparent 48%),
+ linear-gradient(112deg,#111a23 1%,#0a121d 70%)}
+.fig-hof-v2 .fig-hof-v2-hero h1{font-size:clamp(76px,8.7vw,124px)}
+.fig-hof-v2 .fig-hof-v2-hero .fig-hof-hero-text>p{max-width:478px}
+.fig-hof-v2-crest{height:290px;width:265px;color:#dfb97e;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ border:1px solid rgba(226,195,145,.42);outline:7px solid rgba(226,195,145,.07);outline-offset:12px;
+ background:radial-gradient(ellipse at center,#3a3024 0%,#202834 65%,#121d27 100%);
+ font:180px/.75 Georgia,serif;text-shadow:0 0 44px rgba(217,181,116,.14);box-shadow:0 18px 40px #0005}
+.fig-hof-v2-crest span{font:700 15px Inter,Arial,sans-serif;letter-spacing:.28em;margin-top:30px;color:#e1d6bc}
+.fig-hof-v2-crest strong{font:400 25px Georgia,serif;letter-spacing:.13em;margin-top:12px}
+.fig-hof-v2 .fig-hof-stat-bar{grid-template-columns:repeat(4,1fr)}
+.fig-hof-v2 .fig-hof-number span{line-height:1.5}
+.fig-hof-v2-founders{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fig-hof-v2-inductee{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;
+ border:1px solid rgba(228,190,123,.38);background:
+ radial-gradient(ellipse at 50% 29%,rgba(155,117,70,.18),transparent 50%),
+ linear-gradient(155deg,#27303b,#141f29 74%);box-shadow:inset 0 0 0 7px rgba(10,16,22,.37);
+ transition:border-color .2s,transform .2s,box-shadow .2s;min-height:370px}
+.fig-hof-v2-inductee:hover{transform:translateY(-5px);border-color:#f0c982;box-shadow:inset 0 0 0 7px rgba(10,16,22,.37),0 23px 38px rgba(0,0,0,.28)}
+.fig-hof-v2-inductee:after{content:"";position:absolute;inset:9px;border:1px solid rgba(222,184,121,.1);pointer-events:none}
+.fig-hof-v2-inductee-top{display:flex;gap:7px;justify-content:space-between;padding:22px 19px 0;font-size:9px;font-weight:800;letter-spacing:.11em;color:#dfc28f;position:relative;z-index:1}
+.fig-hof-v2-inductee-top span:last-child{color:#a8b1b6;text-align:right}
+.fig-hof-v2-inductee-art{display:flex;justify-content:center;align-items:center;min-height:164px;padding:15px 12px 10px;position:relative}
+.fig-hof-v2-owner,.fig-hof-v2-nfl{position:relative;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;
+ background:radial-gradient(ellipse at 43% 32%,#706249,#303a44 73%);border:2px solid rgba(219,175,112,.55);
+ box-shadow:0 0 0 7px rgba(222,182,115,.05),0 13px 25px #0004;flex:none}
+.fig-hof-v2-owner{width:64px;height:64px;border-radius:50%}
+.fig-hof-v2-nfl{width:118px;height:130px;border-radius:4px 4px 0 0}
+.fig-hof-v2-owner img,.fig-hof-v2-nfl img{position:absolute;inset:0;width:100%;height:100%;z-index:2;object-fit:cover;object-position:50% 20%}
+.fig-hof-v2-owner i,.fig-hof-v2-nfl i{font:400 45px Georgia,serif;color:#f4e2c0;font-style:normal}
+.fig-hof-v2-nfl i{font-size:22px;font-family:Inter,Arial,sans-serif;font-weight:800}
+.fig-hof-v2-inductee-art .fig-hof-v2-owner{width:126px;height:126px;border-width:3px}
+.fig-hof-v2-inductee-art .fig-hof-v2-owner i{font-size:70px}
+.fig-hof-v2-inductee-info{position:relative;z-index:1;padding:13px 19px 21px;margin-top:auto;background:linear-gradient(transparent,rgba(10,17,25,.58))}
+.fig-hof-v2-serial{font-size:8px;color:#d0b17a;letter-spacing:.18em;font-weight:850}
+.fig-hof-v2-inductee-info h3{font:400 clamp(22px,2.6vw,31px)/1.07 Georgia,serif;color:#fff3df;letter-spacing:-.035em;margin:10px 0}
+.fig-hof-v2-inductee-info>p{font-size:10px;line-height:1.7;color:#b5bdc0;margin:0 0 16px;min-height:51px}
+.fig-hof-v2-cardfoot{border-top:1px solid #74604170;padding-top:13px;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.fig-hof-v2-cardfoot span{font-size:9px;color:#c2c5c3}
+.fig-hof-v2-cardfoot b{color:#e5c288;font-size:9px;white-space:nowrap}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5){grid-column:span 4;min-height:240px;display:grid;grid-template-columns:minmax(0,1fr) 210px minmax(0,1.3fr);align-items:center}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-top{align-self:start;flex-direction:column;justify-content:start;gap:9px;padding:28px}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-top span:last-child{text-align:left}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info{background:transparent;margin-top:0;padding:28px}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info h3{font-size:39px}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info>p{max-width:360px}
+.fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-art{min-height:180px}
+.fig-hof-v2-factbar{padding:20px 23px;margin:8px 0 31px;border-top:1px solid #896e42;border-bottom:1px solid #896e42;
+ display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.fig-hof-v2-factbar span{font-size:10px;color:#d4b17a;font-weight:800;letter-spacing:.15em}
+.fig-hof-v2-factbar strong{font:400 21px Georgia,serif;color:#f3e4c8}
+.fig-hof-v2-factbar a{font-size:9px;font-weight:800;color:#e0b777}
+.fig-hof-v2-season-honors{display:grid;grid-template-columns:1fr}
+.fig-hof-v2-season-honors>.fig-hof-v2-inductee{min-height:230px;display:grid;grid-template-columns:1fr 180px 1.6fr}
+.fig-hof-v2-season-honors .fig-hof-v2-inductee-top{flex-direction:column;justify-content:start;gap:10px;padding:35px}
+.fig-hof-v2-season-honors .fig-hof-v2-inductee-top span:last-child{text-align:left}
+.fig-hof-v2-season-honors .fig-hof-v2-inductee-info{background:none;padding:30px;align-self:center}
+.fig-hof-v2-season-honors .fig-hof-v2-inductee-info>p{min-height:0}
+.fig-hof-v2-feature{margin:78px 0 15px;padding:clamp(28px,5vw,58px);border:1px solid #74593a;position:relative;overflow:hidden;
+ background:radial-gradient(circle at 78% 50%,rgba(183,136,68,.16),transparent 36%),linear-gradient(115deg,#1e2b35,#131d28)}
+.fig-hof-v2-feature h2{font:400 clamp(47px,5vw,73px)/1.02 Georgia,serif;letter-spacing:-.045em;margin:23px 0 19px}
+.fig-hof-v2-feature h2 em{color:#edc687}
+.fig-hof-v2-feature>p{font-size:13px;line-height:1.85;color:#bbc3c5;max-width:540px;margin:0 0 24px;position:relative;z-index:1}
+.fig-hof-v2-feature-number{position:absolute;right:40px;bottom:-31px;font:400 clamp(108px,15vw,200px) Georgia,serif;letter-spacing:-.08em;color:rgba(230,189,123,.10);pointer-events:none}
+.fig-hof-v2-feature-number span{font-size:.5em}
+.fig-hof-v2-legacy-preview{margin-top:65px}
+.fig-hof-v2-preview-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fig-hof-v2-preview-row>a{display:flex;align-items:center;gap:12px;padding:17px 16px;border:1px solid #3d454b;background:#17242e;transition:border-color .2s}
+.fig-hof-v2-preview-row>a:hover{border-color:#c69b61}
+.fig-hof-v2-preview-row>a>span:nth-child(2){display:flex;flex-direction:column;gap:6px;min-width:0}
+.fig-hof-v2-preview-row small{font-size:8px;color:#c8aa78;font-weight:750;letter-spacing:.1em}
+.fig-hof-v2-preview-row strong{font:400 23px Georgia,serif}
+.fig-hof-v2-preview-row b{font:400 27px Georgia,serif;margin-left:auto;color:#e9c78f}
+.fig-hof-v2-preview-row b small{font:700 8px Inter,Arial,sans-serif}
+.fig-hof-v2-preview-row i{color:#e4c189;font-style:normal}
+.fig-hof-v2-next-class{margin-top:42px;padding:36px 39px;border:1px solid #65523a;background:linear-gradient(125deg,#1a2a35,#172029)}
+.fig-hof-v2-next-class h3{font:400 clamp(29px,3.6vw,42px)/1.15 Georgia,serif;letter-spacing:-.035em;margin:16px 0;color:#fff0d7}
+.fig-hof-v2-next-class p{font-size:13px;line-height:1.85;color:#b8c0c3;max-width:800px;margin:0}
+.fig-hof-v2-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.fig-hof-v2-record{border:1px solid #544a3c;min-height:312px;display:flex;flex-direction:column;
+ padding:31px;background:linear-gradient(160deg,#1d2b36,#101a24);transition:border-color .2s,transform .2s}
+.fig-hof-v2-record:hover{border-color:#e0b57a;transform:translateY(-3px)}
+.fig-hof-v2-record.is-prime{background:radial-gradient(ellipse at 70% 30%,rgba(208,165,102,.15),transparent 48%),#1d2a34}
+.fig-hof-v2-record-header{display:flex;justify-content:space-between;gap:15px;font-size:9px;letter-spacing:.15em;color:#d7b47e;font-weight:800}
+.fig-hof-v2-record-header b{color:#9aa5ae}
+.fig-hof-v2-record-metric{font:400 clamp(43px,5vw,68px) Georgia,serif;letter-spacing:-.055em;margin:25px 0 4px;color:#f1d1a0}
+.fig-hof-v2-record h3{font:400 29px Georgia,serif;margin:4px 0 16px}
+.fig-hof-v2-record>p{font-size:12px;line-height:1.8;color:#bac1c4;margin:0 0 26px}
+.fig-hof-v2-record-foot{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #5a504370;padding-top:18px;margin-top:auto;font-size:10px;letter-spacing:.06em;color:#a9b0b2;font-weight:800}
+.fig-hof-v2-record-foot b{color:#dfbb84}
+.fig-hof-v2-ledger-intro{display:grid;grid-template-columns:170px 1fr auto;align-items:center;gap:22px;border-top:1px solid #846c46;border-bottom:1px solid #846c46;padding:22px 5px;margin-bottom:16px}
+.fig-hof-v2-ledger-intro p{font-size:12px;line-height:1.75;color:#b9c1c5;margin:0}
+.fig-hof-v2-ledger-intro a{color:#e5c084;font-size:9px;font-weight:800;white-space:nowrap}
+.fig-hof-v2-legacy-list{border-top:1px solid #4f5050}
+.fig-hof-v2-legacy-list>a{display:grid;grid-template-columns:37px 55px minmax(92px,1fr) 1.2fr 90px 20px;
+ gap:17px;align-items:center;min-height:97px;padding:16px 9px;border-bottom:1px solid #35414a;transition:background .2s}
+.fig-hof-v2-legacy-list>a:hover{background:#192a37}
+.fig-hof-v2-legacy-rank{font:400 29px Georgia,serif;color:#bba075}
+.fig-hof-v2-legacy-list strong{font:400 28px Georgia,serif;letter-spacing:-.03em}
+.fig-hof-v2-legacy-sub{font-size:9px;font-weight:700;letter-spacing:.07em;color:#aab2b7}
+.fig-hof-v2-legacy-list b{font:400 28px Georgia,serif;color:#eac789;text-align:right}
+.fig-hof-v2-legacy-list b small{font:800 8px Inter,Arial,sans-serif}
+.fig-hof-v2-open{font-size:19px;color:#e9c98f}
+.fig-hof-v2-back{display:inline-block;font-size:10px;letter-spacing:.1em;font-weight:800;color:#d9b57e!important;margin-bottom:40px}
+.fig-hof-v2-legacy-profile{display:grid;grid-template-columns:126px 1fr auto;gap:29px;align-items:center}
+.fig-hof-v2-legacy-profile>.fig-hof-v2-owner{width:120px;height:120px}
+.fig-hof-v2-legacy-profile>.fig-hof-v2-owner i{font-size:63px}
+.fig-hof-v2-legacy-profile h1{font:400 clamp(52px,6vw,82px) Georgia,serif;letter-spacing:-.055em;margin:11px 0}
+.fig-hof-v2-legacy-profile p{font-size:12px;line-height:1.7;color:#b4c0c4;margin:0 0 19px}
+.fig-hof-v2-legacy-total{font:400 clamp(48px,6vw,82px) Georgia,serif;color:#e7c28a;display:flex;flex-direction:column;gap:7px;text-align:right}
+.fig-hof-v2-legacy-total span{font:800 9px Inter,Arial,sans-serif;letter-spacing:.16em;color:#aab2b7}
+.fig-hof-v2-legacy-awards{border-top:1px solid #414a52}
+.fig-hof-v2-legacy-awards>a{display:grid;grid-template-columns:60px 1fr 60px 70px;gap:13px;align-items:center;border-bottom:1px solid #343e47;padding:19px 5px;transition:background .2s}
+.fig-hof-v2-legacy-awards>a:hover{background:#1b2c38}
+.fig-hof-v2-legacy-awards span{font:400 19px Georgia,serif;color:#d7b681}
+.fig-hof-v2-legacy-awards strong{font-size:13px;font-weight:600}
+.fig-hof-v2-legacy-awards b{font:400 24px Georgia,serif;color:#e4c189;text-align:right}
+.fig-hof-v2-legacy-awards small{font-size:9px;font-weight:800;color:#c4a172;text-align:right}
+.fig-hof-v2-plaque{display:grid;grid-template-columns:250px 1fr;align-items:center;gap:53px;background:linear-gradient(120deg,#24313d,#111b25);
+ border:1px solid #9c7945;padding:clamp(24px,4vw,45px);min-height:320px}
+.fig-hof-v2-plaque-art{height:238px;display:flex;align-items:center;justify-content:center;border:1px solid #8e6e48;background:#2b343b}
+.fig-hof-v2-plaque-art .fig-hof-v2-owner{width:164px;height:164px}
+.fig-hof-v2-plaque-art .fig-hof-v2-nfl{height:216px;width:192px}
+.fig-hof-v2-plaque-art .fig-hof-v2-owner i{font-size:85px}
+.fig-hof-v2-plaque-copy h1{font:400 clamp(51px,5.7vw,84px) Georgia,serif;letter-spacing:-.055em;line-height:1.05;margin:19px 0;color:#f5e8d4}
+.fig-hof-v2-plaque-copy>p{font-size:13px;line-height:1.9;color:#b7c1c5;margin:0 0 23px}
+.fig-hof-v2-plaque-metrics{display:grid;grid-template-columns:repeat(4,1fr);margin:25px 0 15px;border:1px solid #66533b;background:#192632}
+.fig-hof-v2-standard{padding:28px;border:1px solid #776144;background:linear-gradient(115deg,#24303a,#17242e);margin-top:2px}
+.fig-hof-v2-standard strong{font-size:10px;letter-spacing:.15em;color:#e5c08b}
+.fig-hof-v2-standard p{font-size:13px;line-height:1.9;color:#c0c7c9;margin:13px 0 0}
+.fig-hof-v2-receipts{border-top:1px solid #53606b}
+.fig-hof-v2-receipts a{display:grid;grid-template-columns:160px 1fr 160px;align-items:center;gap:15px;padding:20px 8px;border-bottom:1px solid #3a464f}
+.fig-hof-v2-receipts a:hover{background:#20303b}
+.fig-hof-v2-receipts b{font:400 19px Georgia,serif;color:#ddb982}
+.fig-hof-v2-receipts span{color:#b4c0c5;font-size:12px}
+.fig-hof-v2-receipts strong{color:#e1bc80;font-size:11px;white-space:nowrap;text-align:right}
+.fig-hof-v2-charter{border-top:1px solid #6f5b41}
+.fig-hof-v2-rule{display:grid;grid-template-columns:66px 1fr;gap:20px;padding:26px 3px;border-bottom:1px solid #3d4953}
+.fig-hof-v2-rule>span{font:400 31px Georgia,serif;color:#c9a774}
+.fig-hof-v2-rule h3{font-size:13px;letter-spacing:.13em;font-weight:800;color:#e7c792;margin:5px 0 13px}
+.fig-hof-v2-rule p{font-size:13px;line-height:1.95;color:#b9c3c8;margin:0}
+@media(max-width:1050px){
+ .fig-hof-v2-founders{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5){grid-column:span 2}
+ .fig-hof-v2-preview-row{grid-template-columns:1fr}
+ .fig-hof-v2-ledger-intro{grid-template-columns:1fr;gap:10px}
+}
+@media(max-width:699px){
+ .fig-hof-v2 .fig-hof-v2-hero h1{font-size:clamp(61px,12vw,83px)}
+ .fig-hof-v2 .fig-hof-v2-hero{min-height:655px}
+ .fig-hof-v2-crest{height:170px;width:160px;font-size:102px;outline-width:4px;outline-offset:7px}
+ .fig-hof-v2-crest span{font-size:9px;margin-top:16px}
+ .fig-hof-v2-crest strong{font-size:17px}
+ .fig-hof-v2 .fig-hof-stat-bar{grid-template-columns:repeat(2,1fr)}
+ .fig-hof-v2-founders{gap:11px}
+ .fig-hof-v2-inductee{min-height:325px}
+ .fig-hof-v2-inductee-top{padding:17px 12px 0;flex-direction:column;gap:5px;font-size:8px}
+ .fig-hof-v2-inductee-top span:last-child{text-align:left}
+ .fig-hof-v2-inductee-info{padding:11px 13px 17px}
+ .fig-hof-v2-inductee-info h3{font-size:clamp(20px,5.1vw,29px)}
+ .fig-hof-v2-inductee-info>p{min-height:78px;font-size:9px;line-height:1.6}
+ .fig-hof-v2-inductee-art{min-height:140px;padding:10px}
+ .fig-hof-v2-nfl{width:90px;height:105px}
+ .fig-hof-v2-cardfoot{flex-wrap:wrap}
+ .fig-hof-v2-cardfoot span,.fig-hof-v2-cardfoot b{font-size:8px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5){grid-template-columns:125px 1fr;min-height:240px;gap:0}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-top{grid-column:1/-1;padding:20px 18px 5px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-art{min-height:120px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-art .fig-hof-v2-owner{width:92px;height:92px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info{padding:12px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info h3{font-size:25px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info>p{font-size:9px;min-height:0}
+ .fig-hof-v2-season-honors>.fig-hof-v2-inductee{grid-template-columns:110px 1fr;min-height:215px}
+ .fig-hof-v2-season-honors .fig-hof-v2-inductee-top{grid-column:1/-1;padding:18px 16px 4px}
+ .fig-hof-v2-season-honors .fig-hof-v2-inductee-info{padding:14px}
+ .fig-hof-v2-record-grid{grid-template-columns:1fr;gap:13px}
+ .fig-hof-v2-record{padding:25px;min-height:270px}
+ .fig-hof-v2-feature{margin-top:50px;padding:27px 22px}
+ .fig-hof-v2-feature h2{font-size:49px}
+ .fig-hof-v2-feature-number{right:10px;font-size:110px;bottom:-10px}
+ .fig-hof-v2-next-class{padding:25px 22px;margin-top:30px}
+ .fig-hof-v2-factbar{padding:17px 5px;align-items:flex-start}
+ .fig-hof-v2-factbar strong{font-size:18px}
+ .fig-hof-v2-legacy-list>a{grid-template-columns:24px 43px minmax(85px,1fr) 66px 14px;gap:8px;min-height:76px;padding:12px 1px}
+ .fig-hof-v2-legacy-list .fig-hof-v2-owner{width:42px;height:42px}
+ .fig-hof-v2-legacy-list strong{font-size:20px}
+ .fig-hof-v2-legacy-sub{display:none}
+ .fig-hof-v2-legacy-list b{font-size:21px}
+ .fig-hof-v2-legacy-rank{font-size:22px}
+ .fig-hof-v2-legacy-profile{grid-template-columns:89px 1fr;gap:14px}
+ .fig-hof-v2-legacy-profile>.fig-hof-v2-owner{width:84px;height:84px}
+ .fig-hof-v2-legacy-profile h1{font-size:52px}
+ .fig-hof-v2-legacy-total{grid-column:1/-1;align-items:flex-start;text-align:left;font-size:60px}
+ .fig-hof-v2-plaque{grid-template-columns:1fr;gap:22px;padding:22px}
+ .fig-hof-v2-plaque-art{height:175px}
+ .fig-hof-v2-plaque-art .fig-hof-v2-nfl{height:155px;width:138px}
+ .fig-hof-v2-plaque-art .fig-hof-v2-owner{height:135px;width:135px}
+ .fig-hof-v2-plaque-copy h1{font-size:51px}
+ .fig-hof-v2-plaque-metrics{grid-template-columns:repeat(2,1fr)}
+ .fig-hof-v2-plaque-metrics .fig-hof-number:nth-child(2){border-right:0}
+ .fig-hof-v2-plaque-metrics .fig-hof-number:nth-child(-n+2){border-bottom:1px solid #65523c}
+ .fig-hof-v2-legacy-awards>a{grid-template-columns:52px minmax(0,1fr) 40px;gap:7px}
+ .fig-hof-v2-legacy-awards small{display:none}
+ .fig-hof-v2-legacy-awards strong{font-size:11px}
+ .fig-hof-v2-receipts a{grid-template-columns:92px 1fr;gap:8px}
+ .fig-hof-v2-receipts a strong{grid-column:1/-1;text-align:left}
+ .fig-hof-v2-rule{grid-template-columns:35px 1fr;gap:10px}
+ .fig-hof-v2-rule p{font-size:12px}
+}
+@media(max-width:350px){
+ .fig-hof-v2-inductee-top{font-size:7px}
+ .fig-hof-v2-cardfoot b{font-size:7px}
+ .fig-hof-v2-cardfoot span{font-size:7px}
+ .fig-hof-v2-inductee-info h3{font-size:19px}
+ .fig-hof-v2-founders>.fig-hof-v2-inductee:nth-child(5) .fig-hof-v2-inductee-info h3{font-size:22px}
+ .fig-hof-v2-legacy-list strong{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){.fig-hof-v2 *{transition:none!important;animation:none!important}}

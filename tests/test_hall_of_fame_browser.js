@@ -3,45 +3,48 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
- const origin='http://127.0.0.1:8765';
- const bad=[];
+ const origin='http://127.0.0.1:8765',bad=[];
+ async function go(page,route,selector){
+  await page.goto(origin+'/#/hall-of-fame'+route,{waitUntil:'domcontentloaded'});
+  await page.locator(selector).first().waitFor({timeout:30000});
+ }
  try{
   for(const [label,width,height] of [['desktop',1440,900],['mobile',390,844],['small-mobile',320,700]]){
    const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
    page.on('pageerror',e=>bad.push({label,error:String(e)}));
-   await page.goto(origin+'/#/hall-of-fame',{waitUntil:'domcontentloaded'});
-   await page.locator('.fig-hof-hero h1').waitFor({timeout:30000});
-   assert.match(await page.locator('.fig-hof-hero h1').innerText(),/Immortalize/);
-   assert.deepEqual(await page.locator('.fig-hof-member-grid .fig-hof-member h3').allInnerTexts(),['Hayden','Boek','Sack']);
-   assert.deepEqual(await page.locator('.fig-hof-stat-bar .fig-hof-number strong').allInnerTexts(),['3','3','12','3']);
+   await go(page,'','.fig-hof-v2-hero h1');
+   assert.match(await page.locator('.fig-hof-v2-hero h1').innerText(),/Greatness/);
+   assert.equal(await page.locator('.fig-hof-v2-founders .fig-hof-v2-inductee').count(),5);
+   assert.deepEqual(await page.locator('.fig-hof-stat-bar .fig-hof-number strong').allInnerTexts(),['5','4','1','3']);
    const dims=await page.evaluate(()=>({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth}));
-   assert.ok(dims.sw<=dims.cw+3,'Unexpected horizontal overflow '+label+': '+JSON.stringify(dims));
+   assert.ok(dims.sw<=dims.cw+3,'Horizontal page overflow '+label+': '+JSON.stringify(dims));
    await page.screenshot({path:'hof-'+label+'.png',fullPage:true});
-   await page.locator('.fig-hof-nav a[href="#/hall-of-fame/franchises"]').click();
-   await page.locator('.fig-hof-ballot a').first().waitFor();
-   assert.equal(await page.locator('.fig-hof-ballot a').count(),10);
-   await page.locator('.fig-hof-ballot a[href="#/hall-of-fame/franchise/6"]').click();
-   await page.locator('.fig-hof-profile-hero h1').waitFor();
-   assert.equal(await page.locator('.fig-hof-profile-hero h1').innerText(),'Hayden');
-   await page.locator('.fig-hof-nav a[href="#/hall-of-fame/players"]').click();
-   await page.locator('.fig-hof-player').first().waitFor();
-   assert.equal(await page.locator('.fig-hof-player').count(),12);
-   await page.locator('.fig-hof-filter a[href="#/hall-of-fame/players/QB"]').click();
-   await page.waitForFunction(()=>document.querySelectorAll('.fig-hof-player').length===3,{timeout:10000});
-   assert.equal(await page.locator('.fig-hof-player').count(),3);
-   await page.locator('.fig-hof-player').first().click();
-   await page.locator('.fig-hof-profile-hero h1').waitFor();
-   await page.locator('.fig-hof-nav a[href="#/hall-of-fame/moments"]').click();
-   await page.locator('.fig-hof-game').first().waitFor();
-   assert.ok(await page.locator('.fig-hof-game').count()>=6);
-   await page.locator('.fig-hof-nav a[href="#/hall-of-fame/seasons"]').click();
-   await page.locator('.fig-hof-season').first().waitFor();
-   assert.equal(await page.locator('.fig-hof-season').count(),8);
+   await go(page,'/hall','.fig-hof-v2-inductee');
+   assert.equal(await page.locator('.fig-hof-v2-inductee').count(),5);
+   assert.deepEqual((await page.locator('.fig-hof-v2-inductee-info h3').allInnerTexts()).slice(0,4),
+     ['Josh Allen','Christian McCaffrey',"Ja'Marr Chase",'Trey McBride']);
+   await go(page,'/inductee/player/4984','.fig-hof-v2-plaque h1');
+   assert.equal(await page.locator('.fig-hof-v2-plaque h1').innerText(),'Josh Allen');
+   assert.ok(await page.locator('.fig-hof-v2-receipts a').count()>=5);
+   await go(page,'/inductee/season/6/2025','.fig-hof-v2-plaque h1');
+   assert.equal(await page.locator('.fig-hof-v2-plaque h1').innerText(),'Hayden · 2025');
+   await go(page,'/legacy','.fig-hof-v2-legacy-list a');
+   assert.equal(await page.locator('.fig-hof-v2-legacy-list a').count(),10);
+   await go(page,'/legacy/1','.fig-hof-v2-legacy-profile h1');
+   assert.equal(await page.locator('.fig-hof-v2-legacy-profile h1').innerText(),'Boek');
+   assert.ok(await page.locator('.fig-hof-v2-legacy-awards a').count()>0);
+   await go(page,'/records','.fig-hof-v2-record');
+   assert.equal(await page.locator('.fig-hof-v2-record').count(),4);
+   await go(page,'/charter','.fig-hof-v2-rule');
+   assert.equal(await page.locator('.fig-hof-v2-rule').count(),10);
+   await go(page,'/franchises','.fig-hof-v2-legacy-list a');
+   await go(page,'/players','.fig-hof-v2-inductee');
+   await go(page,'/moments','.fig-hof-v2-record');
    await page.goto(origin+'/#/more');
    await page.locator('a[href="#/hall-of-fame"]').first().waitFor();
-   console.log('Passed',label,'full route test');
+   console.log('Hall v241: all exhibits, profiles, charter, legacy, old links and no overflow:',label);
    await page.close();
   }
-  assert.deepEqual(bad,[],'No JavaScript exceptions');
+  assert.deepEqual(bad,[],'Unhandled errors on Hall of Fame routes');
  }finally{await browser.close();}
-})().catch(e=>{console.error(e);process.exitCode=1});
+})().catch(e=>{console.error(e);process.exitCode=1;});
