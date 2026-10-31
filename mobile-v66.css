@@ -1,4 +1,4 @@
-/* FIG League v66 — phone-first readability, visual density and accessible stats.
+/* FIG League v66 – phone-first readability, visual density and accessible stats.
    This stylesheet is loaded ONLY on screens below 700px; desktop stays untouched. */
 @media (max-width: 699px) {
   :root { --phone-space:14px; --phone-radius:18px; --phone-ink:#1b2220; }
