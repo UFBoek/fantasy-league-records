@@ -1,4 +1,4 @@
-/* BoekMuse v2 — dynamic read-only SQL on a versioned Cloudflare D1 league mirror.
+/* BoekMuse v2 – dynamic read-only SQL on a versioned Cloudflare D1 league mirror.
    AI proposes a SELECT. D1, never the model, calculates every numeric result.
    Sync runs only against public, finalized, published JSON. */
 const MODEL='@cf/meta/llama-3.3-70b-instruct-fp8-fast'; // fallback when Gemini is unconfigured or unavailable
