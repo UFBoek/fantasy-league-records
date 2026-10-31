@@ -159,7 +159,7 @@ function lobby(m){
  '<div class="fig-hof-v2-founders fig-hof-242-grid">'+members.map(hcard).join('')+'</div>'+
  '<div class="fig-hof-section-end"><span>PERMANENT CLASS OF 2026 · HISTORICAL PERIOD 2023–2025</span><a href="#/hall-of-fame/charter">HOW WE SELECT THE HALL ↗</a></div>'+
  immortalSeasonCard(m)+
- '<div class="fig-hof-v2-next-class"><span class="fig-hof-eyebrow">II / THE FUTURE OF THE HALL</span><h3>Built for the next twenty years.</h3>'+
+ '<div class="fig-hof-v2-next-class"><span class="fig-hof-eyebrow">III / THE FUTURE OF THE HALL</span><h3>Built for the next twenty years.</h3>'+
  '<p>New classes require explicit historical review. No automatic induction and no annual quota. The Hall will continue to honor exceptional player careers and the rarest individual franchise seasons.</p></div>'+
  '</section>';
 }
