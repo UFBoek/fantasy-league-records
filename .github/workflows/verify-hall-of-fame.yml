@@ -26,8 +26,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
       - name: Hall of Fame syntax and archive verification
         run: |
           node --check hall-of-fame-v240.js
           node --check app.js
           node tests/test_hall_of_fame.js
+      - name: Browser smoke tests (desktop and mobile)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/fig-hof-http.log 2>&1 &
+          sleep 3
+          node tests/test_hall_of_fame_browser.js
+      - name: Upload visual regression previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fig-hall-of-fame-screenshots
+          path: hof-*.png
+          if-no-files-found: ignore
