@@ -225,11 +225,11 @@ async function synchronizeArchive(env,maxSources=20){
 async function archiveStatus(db){
  const manifest=await fetchJson('manifest').catch(()=>({}));
  const total=archiveDatasetNames(manifest).length;
- const row=await db.prepare('SELECT COUNT(*) AS sources,COALESCE(SUM(item_count),0) AS records,COALESCE(SUM(chunk_count),0) AS chunks FROM archive_source_meta').first();
+ const row=await db.prepare('SELECT COUNT(*) AS sources,COALESCE(SUM(item_count),0) AS records,COALESCE(SUM(chunk_count),0) AS chunks FROM archive_source_meta').first().catch(()=>null);
  return {sources:Number(row?.sources||0),total,records:Number(row?.records||0),chunks:Number(row?.chunks||0)};
 }
 async function archiveSchemaPrompt(db,question){
- const list=await db.prepare('SELECT dataset,section,format,item_count,fields,sample FROM archive_catalog ORDER BY dataset,section').all();
+ const list=await db.prepare('SELECT dataset,section,format,item_count,fields,sample FROM archive_catalog ORDER BY dataset,section').all().catch(()=>({results:[]}));
  const rows=list.results||[];
  const all=[...new Set(rows.map(x=>x.dataset))];
  // Give all available source names and their sections. Highlight relevant field
@@ -518,7 +518,7 @@ export default {
   const url=new URL(request.url),origin=originAllowed(request,env);
   if(url.pathname==='/health'){
    if(!env.DB)return reply({ok:false,ready:false,error:'Database binding missing'},503,origin);
-   try{await ensureSchema(env.DB);await ensureArchiveSchema(env.DB);const meta=await env.DB.prepare(
+   try{const meta=await env.DB.prepare(
     'SELECT generation,version,finished_at FROM sync_meta WHERE id=1').first();
     const archive=await archiveStatus(env.DB);
     return reply({ok:true,ready:!!meta?.generation,version:meta?.version||null,
@@ -552,7 +552,8 @@ export default {
    return reply({ok:false,error:'Question must be 4–250 characters'},400,origin);
   if(!env.DB||!env.AI||!env.RATE||!env.GLOBAL_RATE)
    return reply({ok:false,error:'AI service or database not configured'},503,origin);
-  await ensureArchiveSchema(env.DB);
+  // Read-only requests must not perform schema writes. If the daily D1 write
+  // quota is exhausted, existing historical search must keep working.
   const meta=await env.DB.prepare('SELECT generation,version FROM sync_meta WHERE id=1').first();
   if(!meta?.generation)return reply({ok:false,error:'League SQL index is initializing. Retry after the next refresh.'},503,origin);
   const client=request.headers.get('cf-connecting-ip')||'anonymous';
