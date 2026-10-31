@@ -2820,6 +2820,17 @@ async function breakdown(kind,...parts){
    app.innerHTML=hero('RECORD BREAKDOWN',`${esc(owner)} • ${season} ${esc(category)}`,`${history.count} qualifying regular-season weeks. Select a week to view the matchup and lineups.`)+
     section('EVERY QUALIFYING WEEK',history.html);return;
   }
+  // Milestone record links show qualifying games rather than the entire season.
+  const milestone=category.match(/^(150|175|200|225|250)\+ Point Games$/);
+  if(milestone||category==='Highest Weekly Score'){
+   const all=gamesForFranchise(fid,'Regular Season',season),threshold=milestone?Number(milestone[1]):null;
+   const maximum=Math.max(0,...all.map(x=>x.pf));
+   const qualifying=all.filter(x=>threshold===null?Math.abs(x.pf-maximum)<0.000001:x.pf>=threshold);
+   app.innerHTML=hero('RECORD BREAKDOWN',esc(owner)+' • '+season+' '+esc(category),
+    threshold===null?'Highest-scoring game of this regular season.':qualifying.length+' qualifying regular-season games.')+
+    section('QUALIFYING GAMES',sortableTable([{label:'#',key:'n'},{label:'SEASON',key:'season'},{label:'WEEK',key:'week'},{label:'OPPONENT',key:'opp'},{label:'PF',key:'pf'},{label:'PA',key:'pa'},{label:'DIFF',key:'diff'},{label:'RESULT',key:'result'},{label:'',key:'open'}],gameRowsTable(qualifying)));
+   return;
+  }
   const games=gamesForFranchise(fid,'Regular Season',season);const seasonRow=(DATA.teamSeasonMaster||[]).find(x=>+x.franchise_id===fid&&String(x.season)===String(season));
   const metricRow=(DATA.singleSeasonRecords||[]).find(x=>x.record_category===category&&+x.franchise_id===fid&&String(x.season)===String(season));
   const summary=metricRow?`Official value: ${money(metricRow.value)}.`:'';

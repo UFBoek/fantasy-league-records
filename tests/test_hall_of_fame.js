@@ -27,25 +27,17 @@ assert.equal(historical.record.points_for,3000.13);
 assert.equal(historical.record.weekly_high_scores,7);
 assert.equal(historical.championship.winner_franchise_id,6);
 assert.equal(historical.url,'#/hall-of-fame/inductee/season/6/2025');
-const records=historical.honors.records,streaks=historical.honors.streaks;
-assert.equal(records.length,7,'All seven published top-three single-season records are highlighted');
-assert.deepEqual(records.map(r=>r.rank).sort(),[1,1,1,1,1,1,3]);
-assert.deepEqual(records.map(r=>r.category).sort(),[
- 'All-Play Win Percentage','Max PF','Point Differential','Points For',
- 'Weekly High Scores','Weekly Top-3 Finishes','Wins'].sort());
-assert.ok(streaks.length>=10,'All eligible career-game streaks overlapping 2025 are shown');
-assert.ok(streaks.every(x=>x.startYear<=2025&&x.endYear>=2025),'Cross-year streaks must overlap enshrined season');
-assert.ok(streaks.every(x=>!['100+ Points','125+ Points','150+ Points'].includes(x.type)));
-assert.ok(streaks.every(x=>!['Losing','Below Median'].includes(x.type)));
-assert.ok(streaks.some(x=>x.type==='175+ Points'&&x.length===16&&x.startYear===2024&&x.endYear===2025));
-assert.ok(streaks.some(x=>x.type==='175+ Points'&&x.active&&x.endYear===2026),
- 'Active streaks extending beyond the enshrined season must count');
-assert.ok(streaks.some(x=>x.type==='Above Median'&&x.active&&x.endYear===2026));
-const additionalStreak={franchise_id:6,streak_mode:'Career Games',streak_type:'225+ Points',
- length:5,start_season:'2025',start_week:12,end_season:'2026',end_week:9,active:true};
-const altered=api.model({...data,websiteStreaks:[...data.websiteStreaks,additionalStreak]});
-assert.ok(altered.enshrinedSeasons[0].honors.streaks.some(x=>x.type==='225+ Points'&&x.active&&x.endWeek===9),
- 'New verified ongoing streaks must flow into the enshrined exhibit');
+const records=historical.honors.records, get=cat=>records.find(x=>x.category===cat);
+assert.ok(records.length>=16,'All positive top-three season honors appear');
+for(const [cat,rank,n,tie] of [['40 BOMBS',1,7,true],['50 BOMBS',1,5,false],['30 BOMBS',1,19,true],['20 BOMBS',3,40,true],['200+ Point Games',2,8,false],['225+ Point Games',1,5,true],['250+ Point Games',1,3,true],['Highest Weekly Score',1,290.25,false]]){
+ const r=get(cat);assert.ok(r,cat);assert.deepEqual([r.rank,r.value,r.tied],[rank,n,tie],cat);
+}
+assert.ok(!('streaks' in historical.honors));
+assert.ok(records.every(r=>r.rank<=3&&r.value>0));
+assert.ok(!get('Losses'));
+const altered=api.model({...data,playerLog:[...data.playerLog,
+ {season:'2025',week:13,franchise_id:6,game_type:'Regular Season',starter_points:55}]});
+assert.equal(altered.enshrinedSeasons[0].honors.records.find(r=>r.category==='50 BOMBS').value,6);
 assert.deepEqual(altered.inductees.map(x=>x.id),m.inductees.map(x=>x.id));
 for(const id of ids){const r=m.inductees.find(x=>x.id===id);assert.ok(r?.url.endsWith('/'+id));}
 const saved=m.inductees.map(x=>({id:x.id,year:x.inductionYear}));
@@ -63,11 +55,11 @@ const css=fs.readFileSync(path.join(root,'hall-of-fame-v244.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'hall-of-fame-v244.js'),'utf8');
 const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
-assert.match(html,/hall-of-fame-v244\.js\?v=244/);
-assert.match(html,/hall-of-fame-v244\.css\?v=244/);
-assert.match(sw,/fig-league-shell-v244/);
-assert.match(sw,/hall-of-fame-v244\.js\?v=244/);
-assert.match(sw,/hall-of-fame-v244\.css\?v=244/);
+assert.match(html,/hall-of-fame-v244\.js\?v=245/);
+assert.match(html,/hall-of-fame-v244\.css\?v=245/);
+assert.match(sw,/fig-league-shell-v245/);
+assert.match(sw,/hall-of-fame-v244\.js\?v=245/);
+assert.match(sw,/hall-of-fame-v244\.css\?v=245/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
 assert.doesNotMatch(js,/function legacy\(/);
 assert.doesNotMatch(js,/function vault\(/);
@@ -75,12 +67,14 @@ assert.doesNotMatch(js,/function recordsPage\(/);
 assert.doesNotMatch(js,/function legacyPage\(/);
 assert.doesNotMatch(js,/starts>=28|p\.avg>=30|p\.avg>=24|p\.points>=950/);
 assert.match(css,/fig-hof-244-record-grid/);
+assert.doesNotMatch(css,/fig-hof-244-streak-list/);
 assert.match(css,/@media\(max-width:699px\)/);
 assert.doesNotMatch(js,/Greatness is not a leaderboard\./);
 assert.doesNotMatch(js,/VIEW THE FOUNDING CLASS/);
 assert.doesNotMatch(js,/fig-hof-242-stats/);
 assert.match(js,/immortalSeasonCard\(m\)/);
 assert.match(js,/seasonHonorsSections\(e\)/);
+assert.doesNotMatch(js,/THE STREAK LEDGER/);
 assert.doesNotMatch(js,/—/);
 assert.doesNotMatch(fs.readFileSync(path.join(root,'app.js'),'utf8'),/—/);
 assert.doesNotMatch(html,/—/);

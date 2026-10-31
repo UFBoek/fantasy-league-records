@@ -21830,6 +21830,45 @@ team_season_master_df = (
 
 
 # ============================================================
+# 20C. REGULAR-SEASON TEAM SCORING MILESTONES
+# ============================================================
+
+season_score_games_df = regular_season_games_team_df[
+    ["season", "franchise_id", points_for_col]
+].copy()
+normalize_int_column(season_score_games_df, "season")
+normalize_int_column(season_score_games_df, "franchise_id")
+season_score_games_df["record_points"] = pd.to_numeric(
+    season_score_games_df[points_for_col], errors="coerce"
+)
+for threshold in (150, 175, 200, 225, 250):
+    season_score_games_df[f"games_{threshold}"] = (
+        season_score_games_df["record_points"] >= threshold
+    ).astype(int)
+
+season_score_aggregations = {
+    "highest_weekly_score": ("record_points", "max"),
+    **{
+        f"games_{threshold}": (f"games_{threshold}", "sum")
+        for threshold in (150, 175, 200, 225, 250)
+    },
+}
+season_score_summary_df = (
+    season_score_games_df
+    .groupby(["season", "franchise_id"], as_index=False)
+    .agg(**season_score_aggregations)
+)
+team_season_master_df = team_season_master_df.merge(
+    season_score_summary_df,
+    on=["season", "franchise_id"],
+    how="left",
+    validate="one_to_one",
+)
+for col in season_score_aggregations:
+    team_season_master_df[col] = team_season_master_df[col].fillna(0)
+
+
+# ============================================================
 # 21. SINGLE-SEASON RECORD DEFINITIONS
 # ============================================================
 
@@ -21877,6 +21916,36 @@ candidate_metrics = [
     (
         "Weekly Top-3 Finishes",
         "weekly_top_3_finishes"
+    ),
+
+    (
+        "Highest Weekly Score",
+        "highest_weekly_score"
+    ),
+
+    (
+        "150+ Point Games",
+        "games_150"
+    ),
+
+    (
+        "175+ Point Games",
+        "games_175"
+    ),
+
+    (
+        "200+ Point Games",
+        "games_200"
+    ),
+
+    (
+        "225+ Point Games",
+        "games_225"
+    ),
+
+    (
+        "250+ Point Games",
+        "games_250"
     )
 ]
 

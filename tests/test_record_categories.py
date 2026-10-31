@@ -18,6 +18,10 @@ class RemovedScoringAverageRecords(unittest.TestCase):
                 rows = json.loads((ROOT / 'data' / name).read_text())
                 categories = {row.get(key) for row in rows}
                 self.assertFalse(excluded & categories)
+                if name == 'single_season_records.json':
+                    for limit in (200, 225, 250):
+                        self.assertIn(f'{limit}+ Point Games', categories)
+                    self.assertIn('Highest Weekly Score', categories)
                 if name == 'records.json':
                     self.assertIn('Career Points Scored', categories)
                     self.assertIn('NFL Player Career Average', categories)

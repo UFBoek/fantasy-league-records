@@ -111,50 +111,56 @@ function hcard(e){
  peak?'SIGNATURE SEASON '+peak.year+' · '+fmt(peak.points/peak.starts,1)+' PTS / FIG START':'INDUCTED 2026')+
  '</span><b>OPEN EXHIBIT ↗</b></div></div></a>';
 }
-/* Records and streaks are extracted directly from published FIG record books.
-   Top-three season records use the official rankings; streaks can overlap the
-   season and continue into future years when their weekly scores are official. */
-const NO_STREAK_CATEGORIES=new Set(['125+ Points','150+ Points','100+ Points']);
+/* Rank every positive season honor against completed seasons only. */
+const HALL_BOMBS=[['20 BOMBS','b20'],['30 BOMBS','b30'],['40 BOMBS','b40'],['50 BOMBS','b50']];
+function hallSeasonBombRows(d,complete){
+ const board=new Map();
+ for(const t of d.teamSeasonMaster||[])if(complete.has(String(t.season)))
+  board.set(String(t.season)+'|'+String(t.franchise_id),{season:value(t.season),franchise_id:value(t.franchise_id),b20:0,b30:0,b40:0,b50:0});
+ for(const x of d.playerLog||[]){
+  if(x.game_type!=='Regular Season'||!complete.has(String(x.season)))continue;
+  const row=board.get(String(x.season)+'|'+String(x.franchise_id)),p=Number(x.starter_points);
+  if(!row||!Number.isFinite(p))continue;
+  if(p>=50)row.b50++;else if(p>=40)row.b40++;else if(p>=30)row.b30++;else if(p>=20)row.b20++;
+ }
+ const out=[];
+ for(const row of board.values())for(const [record_category,metric] of HALL_BOMBS)
+  out.push({record_category,metric,season:row.season,franchise_id:row.franchise_id,value:row[metric]});
+ return out;
+}
 function seasonHonors(d,season,franchiseId){
- const same=x=>value(x.franchise_id)===franchiseId&&value(x.season)===season;
- const records=(d.singleSeasonRecords||[]).filter(x=>same(x)&&
-  value(x.rank)>=1&&value(x.rank)<=3)
-  .map(x=>({category:String(x.record_category),rank:value(x.rank),metric:String(x.metric||''),
-   value:value(x.value)}))
-  .sort((a,b)=>a.rank-b.rank||a.category.localeCompare(b.category));
- const streaks=(d.websiteStreaks||[]).filter(x=>value(x.franchise_id)===franchiseId&&
-  x.streak_mode==='Career Games'&&value(x.start_season)<=season&&
-  value(x.end_season)>=season&&!NO_STREAK_CATEGORIES.has(String(x.streak_type))&&
-  !['Losing','Below Median'].includes(String(x.streak_type))&&value(x.length)>=2)
-  .map(x=>({type:String(x.streak_type),length:value(x.length),
-   startYear:value(x.start_season),startWeek:value(x.start_week),
-   endYear:value(x.end_season),endWeek:value(x.end_week),
-   active:x.active===true}))
-  .sort((a,b)=>b.length-a.length||a.type.localeCompare(b.type)||b.endYear-a.endYear||b.endWeek-a.endWeek);
- return {records,streaks};
+ const complete=new Set((d.teamSeasonMaster||[]).filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').map(x=>String(x.season)));
+ const raw=[...(d.singleSeasonRecords||[]),...hallSeasonBombRows(d,complete)]
+  .filter(x=>complete.has(String(x.season))&&Number.isFinite(Number(x.value))&&value(x.value)>0&&
+   !['Losses','5 BOMBS'].includes(String(x.record_category))&&
+   !/^(100|125|180|190)\+ Point Games$/.test(String(x.record_category)));
+ const groups=new Map();for(const x of raw){const cat=String(x.record_category||'');if(!cat)continue;if(!groups.has(cat))groups.set(cat,[]);groups.get(cat).push(x);}
+ const records=[];
+ for(const [category,rows] of groups){
+  rows.sort((a,b)=>value(b.value)-value(a.value)||value(b.season)-value(a.season)||value(a.franchise_id)-value(b.franchise_id));
+  let last=null,rank=0;
+  rows.forEach((r,i)=>{
+   const v=value(r.value);if(last===null||Math.abs(last-v)>0.000001)rank=i+1;last=v;
+   if(rank>3||value(r.season)!==season||value(r.franchise_id)!==franchiseId)return;
+   records.push({category,rank,metric:String(r.metric||''),value:v,
+    tied:rows.some(other=>other!==r&&Math.abs(value(other.value)-v)<0.000001)});
+  });
+ }
+ return {records:records.sort((a,b)=>a.rank-b.rank||a.category.localeCompare(b.category))};
 }
 function displayRecordValue(r){
  if(r.metric==='all_play_win_pct'||r.metric==='win_pct')return fmt(r.value,2)+'%';
- if(r.metric==='weekly_high_scores'||r.metric==='weekly_top_3_finishes'||r.metric==='wins'||r.metric==='losses')
+ if(/^(games_\d+|b\d+)$/.test(r.metric)||r.metric==='weekly_high_scores'||r.metric==='weekly_top_3_finishes'||r.metric==='wins'||r.metric==='losses')
   return fmt(r.value);
  return fmt(r.value,2);
 }
 function seasonHonorsSections(e){
- const h=e.honors;
- const recordCards=h.records.map(r=>'<a class="fig-hof-244-honor fig-hof-244-record" href="#/records">'+
-  '<div class="fig-hof-244-honor-top"><span>ALL-TIME SINGLE-SEASON</span><b>RANK '+r.rank+' OF ALL FRANCHISE SEASONS</b></div>'+
+ const cards=e.honors.records.map(r=>'<a class="fig-hof-244-honor fig-hof-244-record" href="#/breakdown/season/'+slug(r.category)+'/'+e.franchiseId+'/'+e.year+'">'+
+  '<div class="fig-hof-244-honor-top"><span>ALL-TIME SINGLE-SEASON</span><b>'+(r.tied?'TIED ':'')+'#'+r.rank+' IN LEAGUE HISTORY</b></div>'+
   '<h3>'+esc(r.category)+'</h3><strong>'+displayRecordValue(r)+'</strong>'+
-  '<small>OFFICIAL FIG RECORD BOOK ↗</small></a>').join('');
- const streakCards=h.streaks.map(r=>'<a class="fig-hof-244-streak" href="#/streaks">'+
-  '<div class="fig-hof-244-streak-number"><strong>'+fmt(r.length)+'</strong><span>CONSECUTIVE GAMES</span></div>'+
-  '<div class="fig-hof-244-streak-copy"><h3>'+esc(r.type)+'</h3>'+
-  '<p>'+r.startYear+' WK '+r.startWeek+' to '+r.endYear+' WK '+r.endWeek+'</p>'+
-  '<span class="fig-hof-244-streak-status '+(r.active?'is-active':'')+'">'+
-  (r.active?'● ACTIVE STREAK':'COMPLETED STREAK')+'</span></div><span class="fig-hof-244-streak-open">↗</span></a>').join('');
- return heading('III / THE HISTORICAL RECORD','All-time season records.','Every category where this campaign currently ranks among the top three franchise seasons in the published FIG record book.')+
-  '<div class="fig-hof-244-record-grid">'+recordCards+'</div>'+
-  heading('IV / THE STREAK LEDGER','Runs that defined the year.','Verified positive scoring and performance streaks that overlapped this season, including streaks that continued into later years. The 125+ and 150+ categories are intentionally excluded.')+
-  '<div class="fig-hof-244-streak-list">'+streakCards+'</div>';
+  '<small>EXPLORE THIS RECORD ↗</small></a>').join('');
+ return heading('III / THE HISTORICAL RECORD','All-time season records.','All top-three single-season marks, ranked against completed franchise seasons throughout league history.')+
+  '<div class="fig-hof-244-record-grid">'+cards+'</div>';
 }
 function immortalSeasonCard(m){
  const e=m.enshrinedSeasons[0];
@@ -270,7 +276,7 @@ const footer=()=>'<footer class="fig-hof-footer"><div>'+logo()+'<p>THE STANDARD 
  '<a href="#/hall-of-fame/hall">THE ENSHRINED ↗</a><a href="#/hall-of-fame/charter">THE CHARTER ↗</a>'+
  '<a href="#/more">BACK TO FIG ↗</a></div><span>FROMM IS GARBAGE · THE FIG HISTORICAL INSTITUTION</span></footer>';
 async function page(ctx,view,arg,sub,year){
- await ctx.load(['league','games','playerLog','teamSeasonMaster','singleSeasonRecords','websiteStreaks']);
+ await ctx.load(['league','games','playerLog','teamSeasonMaster','singleSeasonRecords']);
  const m=model(ctx.DATA);
  const isPlayer=(view==='inductee'&&arg==='player')||view==='player';
  const isSeason=view==='inductee'&&arg==='season';

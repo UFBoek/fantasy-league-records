@@ -23,13 +23,13 @@ Verified 2025 records: 3,000.13 regular-season points, 214.30 points per game, 8
 
 The distinction is intentional: the founding *player* class remains exactly Allen, Gibbs, Puka and McBride, while the enshrined team season is recognized in a separate category.
 
-## Enshrined Season historical records and streaks
+## Enshrined Season historical records
 
-Each enshrined franchise-season profile now includes two verified galleries that update from the league's published data.
+The separate streak gallery has been removed. Every positive single-season record where the enshrined team ranks in the all-time top three among completed FIG franchise seasons appears in its exhibit, with accurate tie rankings. The regular-season record book also includes the highest weekly team score and 150+, 175+, 200+, 225+, and 250+ point-game counts. The existing 20, 30, 40, and 50 BOMB starter-performance categories are calculated using exclusive scoring bands, consistent with the main record pages.
 
-**Top-three single-season records** come from `data/single_season_records.json`. The Hall shows every category in which the specific franchise-season ranks first, second, or third in the official FIG single-season record book. For Hayden 2025, the current archive lists seven: All-Play Win Percentage, Max PF, Point Differential, Points For, Weekly High Scores, Weekly Top-3 Finishes, and Wins. Rankings reflect the published record book and may change as additional records are added.
+Hayden 2025: seven 40 BOMBS (tied #1), five 50 BOMBS (#1), eight 200+ team games (#2), five 225+ games (tied #1), and three 250+ games (tied #1). Each Hall record opens its verified game or player-performance breakdown. Losses and unfinished seasons are not presented as historical honors.
 
-**Streaks established or continued during that season** are drawn from `data/website_streaks.json`, the career-game streak archive. Each positive, qualifying streak must overlap the enshrined season (`start_season <= season <= end_season`). Active and cross-season streaks are included, with the actual recorded start/end weeks and explicit ACTIVE or COMPLETED status. The 100+, 125+, and 150+ scoring categories, as well as negative losing or below-median categories, are deliberately omitted. The exhibit links to FIG's official records and streaks pages. No additional seasons, records, or streaks are invented or independently predicted.
+The Python backend regenerates milestone categories on every data update. The Hall recalculates all-time rankings from completed seasons only.
 
 ## Website typography rule
 
