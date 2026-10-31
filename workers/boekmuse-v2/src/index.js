@@ -201,7 +201,7 @@ async function archiveSyncOne(env,name,knownHash){
  await db.prepare('DELETE FROM archive_catalog_all WHERE dataset=? AND generation!=?').bind(name,generation).run();
  return {dataset:name,changed:true,items,chunks:prepared.chunks.length};
 }
-async function synchronizeArchive(env,maxSources=12){
+async function synchronizeArchive(env,maxSources=20){
  await ensureArchiveSchema(env.DB);
  const manifest=await fetchJson('manifest'),names=archiveDatasetNames(manifest);
  const state=await env.DB.prepare('SELECT dataset,content_hash,synced_at FROM archive_source_meta').all();
