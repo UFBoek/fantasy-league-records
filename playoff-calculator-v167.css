@@ -1,4 +1,4 @@
-/* Playoff Lab v167 — light editorial UI, responsive, touch-friendly. */
+/* Playoff Lab v167 – light editorial UI, responsive, touch-friendly. */
 .page-wrap .pcl {--pcl-ink:#25282a;--pcl-green:#178e70;color:var(--pcl-ink);max-width:100%;margin-top:17px}
 .page-wrap .pcl *{box-sizing:border-box}
 .page-wrap .pcl button,.page-wrap .pcl select,.page-wrap .pcl input{font:inherit}
@@ -332,7 +332,7 @@
  .page-wrap .pcl-other-impact-swing{grid-column:2/-1;text-align:right}
 }
 
-/* v174 — distinguish hypothetical W-L from finalized standings. */
+/* v174 – distinguish hypothetical W-L from finalized standings. */
 .page-wrap .pcl-scenario-record{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;vertical-align:middle}
 .page-wrap .pcl-scenario-record strong{font-weight:900;color:#116748;font-variant-numeric:tabular-nums}
 .page-wrap .pcl-scenario-record small{display:block;font:850 9px Inter,sans-serif;color:#378466;white-space:nowrap}
@@ -340,7 +340,7 @@
 @media(max-width:699px){.page-wrap .pcl-scenario-record small{font-size:8px}}
 
 
-/* v175 — championship odds and the interactive postseason bracket. */
+/* v175 – championship odds and the interactive postseason bracket. */
 .page-wrap .pcl-title-odds strong{color:#126b51}
 .page-wrap .pcl-quick-stats{grid-template-columns:repeat(6,minmax(0,1fr))}
 .page-wrap .pcl-route-chances{grid-template-columns:repeat(5,minmax(0,1fr))}
