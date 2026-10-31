@@ -88,6 +88,21 @@ async function ensureSchema(db){
    ' FROM '+name+'_all WHERE generation=(SELECT generation FROM sync_meta WHERE id=1)').run();
  }
  for(const sql of PRIMARY_INDEX)await db.prepare(sql).run();
+ // Upgrade older installations from a global generation to per-table versions.
+ // This lets unchanged history tables retain their rows when a live snapshot
+ // refreshes, staying inside D1 Free's 100k daily row-write allowance.
+ await db.prepare('CREATE TABLE IF NOT EXISTS core_table_meta (name TEXT PRIMARY KEY,generation INTEGER NOT NULL,content_hash TEXT NOT NULL)').run();
+ await db.prepare('CREATE TABLE IF NOT EXISTS core_schema_settings (name TEXT PRIMARY KEY,version INTEGER NOT NULL)').run();
+ const migration=await db.prepare("SELECT version FROM core_schema_settings WHERE name='views'").first();
+ if(!migration||migration.version<2){
+  for(const [name,columns] of Object.entries(TABLE_COLUMNS)){
+   await db.prepare('INSERT OR IGNORE INTO core_table_meta(name,generation,content_hash) VALUES(?,(SELECT generation FROM sync_meta WHERE id=1),\'\')').bind(name).run();
+   await db.prepare('DROP VIEW IF EXISTS '+name).run();
+   await db.prepare('CREATE VIEW '+name+' AS SELECT '+columns.slice(1).join(',')+
+    ' FROM '+name+'_all WHERE generation=(SELECT generation FROM core_table_meta WHERE name=\''+name+'\')').run();
+  }
+  await db.prepare("INSERT OR REPLACE INTO core_schema_settings(name,version) VALUES('views',2)").run();
+ }
 }
 
 /* Complete published archive index. JSON chunks preserve every original field,
@@ -343,14 +358,28 @@ async function synchronize(env){
  if(!Array.isArray(data.player_weekly_touchdowns?.records))throw Error('Missing touchdown archive');
  const generation=Date.now();
  const rows=snapshotRows(data,generation);
- for(const [name,items] of Object.entries(rows))await storeRows(env.DB,name,items);
- // Only publish the new generation when ALL inserts have completed.
- await env.DB.prepare('UPDATE sync_meta SET generation=?,version=?,finished_at=? WHERE id=1')
-  .bind(generation,version,new Date().toISOString()).run();
- // Old snapshots are cleaned only after the new one is active.
- for(const name of Object.keys(rows))await env.DB.prepare(
+ const meta=await env.DB.prepare('SELECT name,generation,content_hash FROM core_table_meta').all();
+ const known=new Map((meta.results||[]).map(x=>[x.name,x]));
+ const changed=[];
+ for(const [name,items] of Object.entries(rows)){
+  // A generation timestamp is not part of a content hash.
+  const hash=await contentDigest(JSON.stringify(items.map(row=>row.slice(1))));
+  if(hash===known.get(name)?.content_hash)continue;
+  await storeRows(env.DB,name,items);
+  changed.push({name,hash,count:items.length});
+ }
+ // No table becomes visible until every changed table was written. D1 batch
+ // applies the switch atomically, while old generations remain queryable.
+ const switchStatements=changed.map(x=>env.DB.prepare(
+  'INSERT INTO core_table_meta(name,generation,content_hash) VALUES(?,?,?) ON CONFLICT(name) DO UPDATE SET generation=excluded.generation,content_hash=excluded.content_hash'
+ ).bind(x.name,generation,x.hash));
+ switchStatements.push(env.DB.prepare('UPDATE sync_meta SET generation=?,version=?,finished_at=? WHERE id=1')
+  .bind(generation,version,new Date().toISOString()));
+ await env.DB.batch(switchStatements);
+ for(const {name} of changed)await env.DB.prepare(
   'DELETE FROM '+name+'_all WHERE generation!=?').bind(generation).run();
- return {updated:true,version,counts:Object.fromEntries(Object.entries(rows).map(([k,v])=>[k,v.length]))};
+ return {updated:true,version,changed:changed.map(x=>x.name),
+  counts:Object.fromEntries(changed.map(x=>[x.name,x.count]))};
 }
 function sqlClean(input){
  if(typeof input!=='string'||input.length<10||input.length>4500)throw Error('Invalid SQL length');
@@ -359,7 +388,7 @@ function sqlClean(input){
  if(!/^(SELECT|WITH)\b/i.test(scrub))throw Error('Only SELECT or nonrecursive WITH queries allowed');
  if(/;|--|\/\*|\*\/|#/.test(scrub))throw Error('SQL comments or multiple statements not permitted');
  if(/\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|PRAGMA|ATTACH|DETACH|REPLACE|VACUUM|REINDEX|ANALYZE|TRIGGER|RECURSIVE|INTO|RETURNING|LOAD_EXTENSION|RANDOMBLOB|ZEROBLOB)\b/i.test(scrub))throw Error('Write, recursive, or unsafe SQL denied');
- if(/\b(sqlite_|sync_meta|archive_source_meta|_all\b)/i.test(scrub))throw Error('Internal tables not available');
+ if(/\b(sqlite_|sync_meta|archive_source_meta|core_table_meta|core_schema_settings|_all\b)/i.test(scrub))throw Error('Internal tables not available');
  if((scrub.match(/\bJOIN\b/gi)||[]).length>8)throw Error('Too many table joins');
  if(!/\b(games|starts|td_coverage|team_seasons|trades|trade_participants|trade_assets|draft_picks|archive_chunks|archive_catalog)\b/i.test(scrub))
   throw Error('Query must read published league tables');
