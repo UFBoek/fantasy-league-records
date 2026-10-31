@@ -189,7 +189,7 @@ function seasonTopScoringGames(d,year,franchiseId){
  scores.sort((a,b)=>b.points-a.points||a.year-b.year||a.week-b.week||a.id-b.id);
  let last=null,rank=0;
  return scores.map((g,i)=>{if(last===null||Math.abs(g.points-last)>.000001)rank=i+1;last=g.points;return {...g,rank};})
-  .filter(g=>g.rank<=10&&g.year===year&&g.id===franchiseId);
+  .filter(g=>g.rank<=25&&g.year===year&&g.id===franchiseId);
 }
 function seasonPlayoffResult(d,year,franchiseId){
  const games=(d.games||[]).filter(g=>value(g.season)===year&&g.game_type==='Playoffs'&&
@@ -209,7 +209,7 @@ function notableSeasonRecords(e){return e.honors.records.filter(r=>r.rank<=3&&r.
 function topGameSummary(e){
  const games=e.topGames||[];
  if(!games.length)return '';
- return games.length+' top-10 all-time scoring game'+(games.length===1?'':'s')+': '+
+ return games.length+' top-25 all-time scoring game'+(games.length===1?'':'s')+': '+
   games.map(g=>'Week '+g.week+' ('+fmt(g.points,2)+' pts, #'+g.rank+')').join(', ');
 }
 function seasonRecap(e){
@@ -260,7 +260,7 @@ function immortalSeasonPlaque(m,franchiseId,season){
  '<div class="fig-hof-243-season-proof">'+
  '<a href="#/teamseason/'+e.franchiseId+'/'+e.year+'"><span>THE FULL '+e.year+' SEASON</span><strong>EXAMINE THE RECORD ↗</strong></a>'+
  (gameHref?'<a href="'+gameHref+'"><span>WEEK '+g.week+' · '+esc(e.playoff.label.toUpperCase())+'</span><strong>VIEW PLAYOFF GAME ↗</strong></a>':'')+'</div>'+
- (e.topGames.length?'<div class="fig-hof-247-game-section"><div class="fig-hof-247-game-head"><span class="fig-hof-eyebrow">ALL-TIME WEEKLY SCORING</span><h2>Top-10 scoring games</h2><p>All FIG regular-season and playoff games, including completed weeks of the current season.</p></div><div class="fig-hof-247-game-grid">'+e.topGames.map(x=>
+ (e.topGames.length?'<div class="fig-hof-247-game-section"><div class="fig-hof-247-game-head"><span class="fig-hof-eyebrow">ALL-TIME WEEKLY SCORING</span><h2>Top-25 scoring games</h2><p>All FIG regular-season and playoff games, including completed weeks of the current season.</p></div><div class="fig-hof-247-game-grid">'+e.topGames.map(x=>
  '<a href="#/game/'+x.year+'/'+x.week+'/'+x.matchupId+'"><span>#'+x.rank+' ALL TIME</span><strong>'+fmt(x.points,2)+'</strong><small>'+x.year+' · WEEK '+x.week+(x.playoffs?' · PLAYOFFS':'')+'</small><b>VIEW BOX SCORE ↗</b></a>').join('')+'</div></div>':'')+
  seasonHonorsSections(e)+'</section>';
 }

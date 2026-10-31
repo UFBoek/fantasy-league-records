@@ -69,9 +69,21 @@ assert.equal(historical.playoff.summary,'Won the FIG championship');
 const rankedGames=data.games.filter(g=>['Regular Season','Playoffs'].includes(g.game_type))
  .flatMap(g=>[1,2].map(side=>({points:Number(g['score_'+side]),id:Number(g['franchise_'+side]),year:Number(g.season),week:Number(g.week)})))
  .filter(g=>g.points>0).sort((a,b)=>b.points-a.points);
-const expectedTop=rankedGames.slice(0,10).filter(g=>g.year===2025&&g.id===6).map(g=>[g.week,g.points]);
-assert.deepEqual(historical.topGames.map(g=>[g.week,g.points]),expectedTop);
-assert.ok(historical.topGames.every(g=>g.rank<=10));
+let previousPoints=null,scoringRank=0;
+const allRanked=rankedGames.map((g,i)=>{
+ if(previousPoints===null||Math.abs(g.points-previousPoints)>0.000001)scoringRank=i+1;
+ previousPoints=g.points;return {...g,rank:scoringRank};
+});
+const expectedTop=allRanked.filter(g=>g.rank<=25&&g.year===2025&&g.id===6);
+assert.deepEqual(historical.topGames.map(g=>[g.week,g.points,g.rank]),
+ expectedTop.map(g=>[g.week,g.points,g.rank]),
+ 'Immortal season must include every all-time top-25 weekly score, including ties');
+assert.ok(historical.topGames.every(g=>g.rank<=25));
+assert.equal(historical.topGames.some(g=>g.rank>10),expectedTop.some(g=>g.rank>10),
+ 'Scores ranked outside the old top 10 must remain in the top-25 exhibit');
+assert.equal(historical.topGames.some(g=>g.week===17&&g.playoffs),
+ expectedTop.some(g=>g.week===17),
+ 'Championship-week scores must be included whenever they rank in the top 25');
 assert.ok(!get('150+ Point Games'),'150+ is a team scoring statistic, not a single-season record');
 const altered=api.model({...data,playerLog:[...data.playerLog,
  {season:'2025',week:13,franchise_id:6,game_type:'Regular Season',starter_points:55}]});
@@ -93,9 +105,9 @@ const css=fs.readFileSync(path.join(root,'hall-of-fame-v244.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'hall-of-fame-v244.js'),'utf8');
 const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
-assert.match(html,/hall-of-fame-v244\.js\?v=251/);
+assert.match(html,/hall-of-fame-v244\.js\?v=252/);
 assert.match(html,/hall-of-fame-v244\.css\?v=248/);
-assert.match(sw,/fig-league-shell-v251/);
+assert.match(sw,/fig-league-shell-v252/);
 assert.match(sw,/hall-of-fame-v244\.js\?v=251/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=248/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
@@ -110,6 +122,8 @@ assert.match(css,/fig-hof-247-game-grid/);
 assert.doesNotMatch(js,/THE CASE FOR ENSHRINEMENT/);
 assert.doesNotMatch(js,/THE SEASON LEGACY/);
 assert.match(js,/seasonTopScoringGames/);
+assert.match(js,/Top-25 scoring games/);
+assert.match(js,/top-25 all-time scoring game/);
 assert.match(js,/scoring_view==='All-Time Combined'/);
 assert.match(js,/COMBINED CAREER PPG/);
 assert.match(js,/COMBINED PPG/);
