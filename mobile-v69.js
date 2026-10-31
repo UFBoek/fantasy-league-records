@@ -136,7 +136,7 @@
       extras.find(i=>/^(STARTS|GAMES|GP|W|WINS)$/i.test(labels[i])),
       extras.find(i=>/^(PTS\/START|AVG|PPG|WIN %|L|LOSSES)$/i.test(labels[i]))
     ].filter(i=> i !== undefined);
-    const summaryIndices = [...new Set([...preferred,...extras])].slice(0,3);
+    let summaryIndices = [...new Set([...preferred,...extras])].slice(0,3);
     const controls = document.createElement('div');controls.className = 'fig-list-controls';
     const label = document.createElement('label');label.textContent = 'SORT LEADERS BY';
     const select = document.createElement('select');select.setAttribute('aria-label','Sort leaderboard');
@@ -145,7 +145,12 @@
     const sectionTitle=(tableSection?.querySelector('.section-head .section-title')?.textContent||'').trim().toUpperCase();
     const isPlayerStartLog=route==='player'&&sectionTitle==='START-BY-START LOG';
     const isPlayerSeasonHistory=route==='player'&&sectionTitle==='SEASON HISTORY';
-    if(isPlayerSeasonHistory)wrap.classList.add('fig-player-season-history');
+    if(isPlayerSeasonHistory){
+      wrap.classList.add('fig-player-season-history');
+      // Season cards show every metric in one consistent, compact grid.
+      // Do not strand the final statistic in a separate expanded row.
+      summaryIndices = [...new Set([...preferred,...extras])];
+    }
     const typeIndex = labels.findIndex(value => /^TYPE$/i.test(value));
     const lengthIndex = labels.findIndex(value => /^LENGTH$/i.test(value));
     const valueIndex = labels.findIndex(value => /^(VALUE|POINTS|COUNT|SCORE)$/i.test(value));
@@ -221,7 +226,7 @@
         };
         return priority(a)-priority(b)||a-b;
       });
-      const visibleExtras=otherIndices.slice(0,3);
+      const visibleExtras=isPlayerSeasonHistory?otherIndices:otherIndices.slice(0,3);
       for (const row of table.tBodies[0].rows) {
         const cells=[...row.cells];
         if (!cells[idx]) continue;
@@ -325,6 +330,7 @@
       if (!key || !metric) return;
       key.classList.add('fig-name');
       if (rank) rank.classList.add('fig-rank');
+      row.classList.add(rank ? 'fig-with-rank' : 'fig-without-rank');
       metric.classList.add('fig-primary');metric.dataset.caption=labels[metricIndex];
       const summary=document.createElement('td');summary.className='fig-mobile-substats';
       summary.setAttribute('aria-label','Key statistics');
