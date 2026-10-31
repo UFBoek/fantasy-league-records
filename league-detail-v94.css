@@ -1,4 +1,4 @@
-/* v94 — compact records, richer team seasons, actionable rosters, side-by-side lineups. */
+/* v94 – compact records, richer team seasons, actionable rosters, side-by-side lineups. */
 /* Player bomb breakdown no longer uses mobile transformed sortable-table ranks. */
 .page-wrap .fig-bomb-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;min-width:0;}
 .page-wrap .fig-bomb-entry {
