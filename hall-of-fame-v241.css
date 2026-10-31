@@ -1,4 +1,4 @@
-/* FIG Hall of Fame / Charter II — a permanent museum, not a weekly leaderboard.
+/* FIG Hall of Fame / Charter II – a permanent museum, not a weekly leaderboard.
    Loads after archival base styles; every rule is scoped to the Hall. */
 .fig-hof-v2{--hof-gold:#d5b174;--hof-gold-light:#f2d8a4;--hof-accent:#a98145}
 .fig-hof-v2 .fig-hof-site-head{border-bottom:1px solid #4b422f}
