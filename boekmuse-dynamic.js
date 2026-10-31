@@ -8,7 +8,7 @@
  const MAX_WAIT=55000;
  const isFollowup=q=>/^(?:and\b|what about\b|how about\b|of those\b|among them\b|now\b|which of them\b|for .* instead\b|same (?:thing|question)\b)/i.test(q.trim());
  function shown(k,v){
-  if(v===null||v===undefined)return '—';
+  if(v===null||v===undefined)return '–';
   if(['team_id','opponent_id','franchise_id','original_franchise_id','current_franchise_id','counterparty_franchise_id','drafting_team_id'].includes(k)&&NAMES[Number(v)])return NAMES[Number(v)];
   if(typeof v==='number')return Number(v).toLocaleString('en-US',{maximumFractionDigits:3});
   return String(v);
