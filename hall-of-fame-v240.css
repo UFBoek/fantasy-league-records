@@ -1,0 +1,290 @@
+/* FIG Hall of Fame — archival museum design. Fully isolated from the rest of FIG. */
+#app:has(.fig-hof){max-width:1240px;width:min(100%,1240px);padding:0!important;margin-inline:auto}
+.fig-hof{
+ --hof-bg:#0b111a;--hof-bg2:#101a26;--hof-panel:#17212c;--hof-ink:#f8f5ee;
+ --hof-muted:#a9a9a7;--hof-gold:#d9b67d;--hof-gold-light:#f2d6a2;--hof-line:#38414b;
+ color:var(--hof-ink);background:var(--hof-bg);
+ font-family:Inter,Arial,Helvetica,sans-serif;position:relative;isolation:isolate;
+ overflow:hidden;border:1px solid #27313c;min-height:80vh;
+ box-shadow:0 22px 75px rgba(0,0,0,.16)
+}
+.fig-hof *{box-sizing:border-box}
+.fig-hof a{color:inherit;text-decoration:none}
+.fig-hof a:focus-visible,.fig-hof button:focus-visible{outline:2px solid var(--hof-gold-light);outline-offset:4px}
+.fig-hof::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#a88c60,transparent);z-index:2}
+.fig-hof-site-head{
+ min-height:88px;padding:24px clamp(24px,5vw,72px);display:flex;align-items:center;justify-content:space-between;
+ border-bottom:1px solid rgba(222,195,151,.18);background:#0c121b
+}
+.fig-hof-site-head>span:last-child{font-size:10px;letter-spacing:.2em;font-weight:650;color:#99999a}
+.fig-hof-site-head b{color:var(--hof-gold);margin:0 9px}
+.fig-hof-seal{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:700;letter-spacing:-.05em;color:var(--hof-gold-light);white-space:nowrap}
+.fig-hof-seal span{font:700 9px Inter,Arial,sans-serif;letter-spacing:.24em;vertical-align:middle;margin-left:11px;position:relative;top:-2px;color:#ece6d9}
+.fig-hof-nav{display:flex;align-items:center;gap:0;padding:0 clamp(24px,5vw,72px);border-bottom:1px solid rgba(222,195,151,.15);background:#111922;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#5e5546 transparent}
+.fig-hof-nav a{font-size:10px;letter-spacing:.12em;font-weight:750;text-transform:uppercase;white-space:nowrap;padding:21px 19px;border-bottom:2px solid transparent;color:#b9b5b0;transition:color .18s,background .18s,border-color .18s}
+.fig-hof-nav a:first-child{padding-left:0}
+.fig-hof-nav a:hover{color:#fff8e8}
+.fig-hof-nav a[aria-current="page"]{color:var(--hof-gold-light);border-bottom-color:var(--hof-gold)}
+.fig-hof-hero{position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);min-height:540px;padding:80px clamp(28px,7vw,94px) 100px;gap:20px;overflow:hidden;background:
+ radial-gradient(ellipse at 80% 40%,rgba(190,141,72,.18),transparent 36%),
+ radial-gradient(ellipse at 10% 93%,rgba(80,101,127,.16),transparent 48%),
+ linear-gradient(115deg,#111b27 4%,#0a111b 66%)}
+.fig-hof-hero:before{content:"";position:absolute;inset:0;opacity:.24;background-image:repeating-linear-gradient(90deg,transparent 0,transparent 79px,rgba(224,199,158,.07) 80px),repeating-linear-gradient(0deg,transparent 0,transparent 79px,rgba(224,199,158,.045) 80px);pointer-events:none}
+.fig-hof-hero-stars{position:absolute;top:27px;right:50%;transform:translateX(50%);color:#826e55;font-size:12px;letter-spacing:22px;opacity:.58}
+.fig-hof-hero-text{position:relative;z-index:1;align-self:center}
+.fig-hof-kicker,.fig-hof-eyebrow{font-size:10px;color:var(--hof-gold);font-weight:800;letter-spacing:.25em;text-transform:uppercase}
+.fig-hof-hero h1{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.056em;font-size:clamp(64px,7.9vw,115px);line-height:.99;margin:29px 0 24px;color:#fcf8ec}
+.fig-hof h1 em,.fig-hof h2 em{font-weight:400;color:var(--hof-gold-light);font-style:italic}
+.fig-hof-hero-text>p{max-width:480px;font-size:14px;line-height:1.9;color:#bdc1c1;margin:0 0 29px}
+.fig-hof-hero-actions{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.fig-hof-gold-btn{background:linear-gradient(108deg,#e6c58d,#d1ac70);color:#1b2025!important;padding:17px 21px;font-size:10px;letter-spacing:.15em;font-weight:850;display:inline-flex;align-items:center;justify-content:space-between;gap:26px;min-height:48px;transition:background .18s,transform .18s;box-shadow:0 8px 26px rgba(2,7,10,.18)}
+.fig-hof-gold-btn:hover{background:#f4d6a2;transform:translateY(-2px)}
+.fig-hof-text-btn{color:var(--hof-gold-light)!important;font-size:10px;letter-spacing:.12em;font-weight:800;border-bottom:1px solid rgba(211,175,116,.42);padding:12px 0;transition:color .18s}
+.fig-hof-text-btn:hover{color:#fff!important}
+.fig-hof-hero-emblem{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;isolation:isolate;min-height:300px}
+.fig-hof-emblem-halo{position:absolute;z-index:-1;width:295px;height:295px;border-radius:50%;border:1px solid rgba(222,189,126,.22);box-shadow:0 0 0 25px rgba(222,189,126,.025),0 0 0 56px rgba(222,189,126,.018),inset 0 0 50px rgba(255,233,165,.05);background:radial-gradient(circle,#3c3024 0%,#18202a 62%,transparent 72%)}
+.fig-hof-crest{width:min(270px,70%);height:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.3));color:#e4be7c}
+.fig-hof-emblem-caption{margin-top:12px;display:flex;flex-direction:column;align-items:center;color:#af956f;gap:6px;letter-spacing:.2em;font-size:9px}
+.fig-hof-emblem-caption strong{font-family:Georgia,serif;color:var(--hof-gold-light);font-size:25px;font-weight:400;letter-spacing:.13em}
+.fig-hof-hero-foot{position:absolute;bottom:28px;left:clamp(28px,7vw,94px);right:clamp(28px,7vw,94px);display:flex;justify-content:space-between;color:#8c8f90;font-size:9px;font-weight:700;letter-spacing:.18em;border-top:1px solid rgba(220,185,127,.22);padding-top:19px}
+.fig-hof-stat-bar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #4a4236;border-bottom:1px solid #4a4236;background:linear-gradient(90deg,#222a33,#17212d)}
+.fig-hof-number{padding:26px 12px;text-align:center;display:flex;flex-direction:column;gap:6px;border-right:1px solid rgba(225,200,161,.17)}
+.fig-hof-number:last-child{border-right:0}
+.fig-hof-number strong{font-family:Georgia,serif;font-size:clamp(25px,3.1vw,39px);font-weight:400;color:#eac78e;line-height:1.1}
+.fig-hof-number span{font-size:9px;letter-spacing:.15em;color:#aeb3b6;font-weight:750}
+.fig-hof-content{padding:clamp(38px,6vw,78px) clamp(22px,6vw,76px) 75px;background:
+ radial-gradient(circle at 99% 2%,rgba(148,124,77,.06),transparent 34%),
+ radial-gradient(circle at 0 70%,rgba(77,98,119,.065),transparent 35%),#0c141e}
+.fig-hof-section-head{padding:12px 0 31px;position:relative}
+.fig-hof-section-head h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,4.5vw,58px);font-weight:400;letter-spacing:-.045em;line-height:1.08;margin:14px 0;color:#f9f3e7}
+.fig-hof-section-head>p{max-width:600px;color:#afb7b9;line-height:1.8;font-size:13px;margin:0}
+.fig-hof-section-head:not(:first-child){margin-top:63px}
+.fig-hof-member-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.fig-hof-member{position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;min-height:365px;border:1px solid rgba(217,182,125,.38);background:
+ radial-gradient(ellipse at 50% 25%,rgba(181,140,81,.22),transparent 57%),
+ repeating-linear-gradient(120deg,transparent,transparent 4px,rgba(255,255,255,.006) 5px),linear-gradient(160deg,#242c34,#111b25 80%);
+ transition:border-color .22s,transform .22s,box-shadow .22s}
+.fig-hof-member:hover{transform:translateY(-5px);border-color:#e0bd81;box-shadow:0 22px 40px rgba(0,0,0,.25)}
+.fig-hof-member:after{content:"";position:absolute;inset:8px;border:1px solid rgba(205,164,99,.19);pointer-events:none}
+.fig-hof-member-kicker{position:relative;z-index:1;font-size:9px;font-weight:800;letter-spacing:.16em;color:#dfc18d;padding:25px 22px 0}
+.fig-hof-member-portrait{flex:1;display:flex;align-items:center;justify-content:center;min-height:183px;padding:18px}
+.fig-hof-avatar,.fig-hof-player-photo{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden;background:#303a44;color:#dac08e;border:1px solid rgba(218,181,117,.28)}
+.fig-hof-avatar{width:43px;height:43px;border-radius:50%}
+.fig-hof-avatar img,.fig-hof-player-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.fig-hof-avatar-initial{font-family:Georgia,serif;font-size:18px;font-weight:500;position:relative;z-index:0}
+.fig-hof-member-portrait .fig-hof-avatar{width:146px;height:146px;border:3px solid rgba(213,178,111,.7);box-shadow:0 0 0 11px rgba(236,198,134,.06),0 13px 31px rgba(0,0,0,.26)}
+.fig-hof-member-portrait .fig-hof-avatar-initial{font-size:63px}
+.fig-hof-member-bottom{z-index:1;padding:6px 25px 24px;background:linear-gradient(transparent,rgba(5,12,21,.72))}
+.fig-hof-member-bottom h3{font-family:Georgia,serif;font-weight:500;font-size:35px;line-height:1;letter-spacing:-.035em;margin:0 0 10px}
+.fig-hof-member-bottom p{font-size:10px;letter-spacing:.15em;color:#e3bd83;margin:0 0 23px;font-weight:750}
+.fig-hof-member-line{display:flex;gap:10px;justify-content:space-between;border-top:1px solid rgba(202,181,141,.23);padding-top:14px;font-size:9px;font-weight:700;letter-spacing:.06em;color:#bcc1c3}
+.fig-hof-member-line span:last-child{color:#e3c28b}
+.fig-hof-section-end{margin:24px 0 8px;display:flex;gap:15px;justify-content:space-between;align-items:center;font-size:9px;font-weight:800;letter-spacing:.12em;color:#87919a;flex-wrap:wrap}
+.fig-hof-section-end a{color:#dfbf89;text-decoration:underline;text-decoration-color:#806d51;text-underline-offset:5px}
+.fig-hof-section-end a:hover{color:#fff3d8}
+.fig-hof-feature{margin:80px 0 54px;padding:clamp(25px,4vw,52px);display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center;border:1px solid rgba(212,179,119,.28);background:linear-gradient(117deg,#1b252f,#121e29 63%,#232528);position:relative}
+.fig-hof-feature:after{content:"✦";position:absolute;right:25px;top:17px;color:rgba(218,180,113,.27);font-size:22px}
+.fig-hof-feature h2{font-family:Georgia,serif;font-size:clamp(42px,5vw,69px);line-height:1.04;font-weight:400;letter-spacing:-.055em;margin:23px 0}
+.fig-hof-feature p{font-size:13px;line-height:1.85;color:#b1b8b9;max-width:330px;margin:0 0 16px}
+.fig-hof-title-list{border-top:1px solid rgba(218,180,113,.4)}
+.fig-hof-title-list>a{display:grid;grid-template-columns:55px 48px 1fr auto;align-items:center;gap:12px;border-bottom:1px solid rgba(218,180,113,.25);padding:17px 0;transition:background .2s}
+.fig-hof-title-list>a:hover{background:rgba(224,185,117,.06)}
+.fig-hof-title-list>a>span:first-child{font:400 24px Georgia,serif;color:#d7b47f}
+.fig-hof-title-list strong{font-size:17px}
+.fig-hof-title-list small{font-size:9px;letter-spacing:.11em;color:#bc9e72;font-weight:800}
+.fig-hof-player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fig-hof-player{display:flex;align-items:center;gap:17px;padding:21px;background:linear-gradient(115deg,#17232f,#101b27);border:1px solid #35404b;position:relative;min-width:0;transition:border-color .2s,transform .2s}
+.fig-hof-player:hover{transform:translateY(-3px);border-color:#af9166}
+.fig-hof-rank{position:absolute;left:16px;top:13px;font-size:8px;color:#d3b37c;font-weight:800;letter-spacing:.17em}
+.fig-hof-player-photo{width:78px;height:86px;border-radius:3px 3px 0 0;background:radial-gradient(circle at 50% 20%,#746954,#2c333d);margin-top:13px}
+.fig-hof-player-photo img{object-fit:cover;object-position:center top}
+.fig-hof-player-photo .fig-hof-avatar-initial{font-size:24px}
+.fig-hof-player-details{min-width:0;flex:1}
+.fig-hof-player h3{font:400 clamp(21px,2.6vw,29px) Georgia,serif;line-height:1.09;letter-spacing:-.025em;margin:0 0 10px}
+.fig-hof-player-details>p{color:#d5b77e;font-size:10px;letter-spacing:.06em;font-weight:750;margin:0 0 12px}
+.fig-hof-player-details>div{display:flex;flex-wrap:wrap;gap:14px;color:#9aa6ad;font-size:9px;font-weight:750;letter-spacing:.1em}
+.fig-hof-arrow{align-self:flex-end;color:#cba96e;font-size:20px}
+.fig-hof-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.fig-hof-game{border:1px solid #3e4851;background:linear-gradient(142deg,#182530,#111a24);padding:22px 23px;min-width:0;transition:border-color .2s,transform .2s}
+.fig-hof-game:hover{transform:translateY(-3px);border-color:#d8b781}
+.fig-hof-game-top{display:flex;justify-content:space-between;gap:12px;color:#e7c086;font-size:9px;font-weight:800;letter-spacing:.14em}
+.fig-hof-game-top span:last-child{color:#89969e}
+.fig-hof-game-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:11px;margin:31px 0}
+.fig-hof-game-teams>div:not(.fig-hof-game-score){display:flex;align-items:center;flex-direction:column;gap:9px;text-align:center;min-width:0}
+.fig-hof-game-teams strong{font:500 18px Georgia,serif;overflow-wrap:anywhere}
+.fig-hof-game-score{display:flex;align-items:center;gap:7px;font:500 clamp(16px,2.1vw,24px) Georgia,serif;white-space:nowrap;color:#f4eddf}
+.fig-hof-game-score small{font-family:Inter,Arial,sans-serif;font-size:12px;color:#947b57}
+.fig-hof-game-foot{border-top:1px solid rgba(198,174,134,.21);padding-top:15px;display:flex;gap:7px;justify-content:space-between;align-items:center}
+.fig-hof-game-foot span{font-size:10px;color:#aab3b7}
+.fig-hof-game-foot b{font-size:9px;color:#e3c188;white-space:nowrap}
+.fig-hof-inscription{padding:20px 25px;margin:4px 0 22px;border-top:1px solid #aa8551;border-bottom:1px solid #aa8551;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#cba971;letter-spacing:.14em;font-size:9px;font-weight:800}
+.fig-hof-inscription strong{font:400 23px Georgia,serif;letter-spacing:.02em;color:#fff2d6}
+.fig-hof-ballot{display:flex;flex-direction:column;border-top:1px solid #46505a}
+.fig-hof-ballot>a{display:grid;grid-template-columns:40px 43px minmax(90px,1fr) 1.2fr 83px 85px 20px;align-items:center;gap:14px;padding:14px 5px;border-bottom:1px solid #39444e;transition:background .2s}
+.fig-hof-ballot>a:hover{background:#1a2834}
+.fig-hof-ballot-rank{font:400 25px Georgia,serif;color:#c39e64}
+.fig-hof-ballot strong{font:500 21px Georgia,serif}
+.fig-hof-ballot>a>span:nth-child(4){font-size:10px;color:#afb8ba}
+.fig-hof-ballot b{color:#e6c38b;font-size:13px}
+.fig-hof-ballot small{font-size:9px;color:#b8b2a5;font-weight:800}
+.fig-hof-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:21px}
+.fig-hof-filter a{padding:12px 17px;font-size:10px;letter-spacing:.08em;border:1px solid #414951;color:#bac2c4;font-weight:800;transition:background .2s}
+.fig-hof-filter a[aria-current="true"]{background:#dfbd85;color:#1b2024;border-color:#dfbd85}
+.fig-hof-filter a:hover:not([aria-current="true"]){border-color:#d2ad76;color:#fff}
+.fig-hof-smallprint{font-size:11px;color:#99a4aa;margin:25px 0 0;line-height:1.9}
+.fig-hof-season-list{border-top:1px solid #46515b}
+.fig-hof-season{display:grid;grid-template-columns:45px minmax(160px,1.3fr) 1fr 1fr 20px;gap:16px;align-items:center;min-height:102px;padding:18px 4px;border-bottom:1px solid #37444c;transition:background .2s}
+.fig-hof-season:hover{background:#1a2834}
+.fig-hof-season-num{font:400 30px Georgia,serif;color:#a18a65}
+.fig-hof-season-team{display:flex;align-items:center;gap:13px;min-width:0}
+.fig-hof-season-team>span:last-child{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fig-hof-season-team small{font-size:9px;font-weight:750;letter-spacing:.08em;color:#bf9f70}
+.fig-hof-season-team strong{font:500 22px Georgia,serif}
+.fig-hof-season-stat{display:flex;flex-direction:column;gap:5px}
+.fig-hof-season-stat strong{font:500 25px Georgia,serif;color:#f0cf9b}
+.fig-hof-season-stat small{font-size:8px;letter-spacing:.1em;color:#a5aeb5;font-weight:750}
+.fig-hof-season-arrow{font-size:19px;color:#d6b47b}
+.fig-hof-note{display:grid;grid-template-columns:140px 1fr;align-items:start;gap:24px;margin-top:34px;background:#1a2731;border-left:2px solid #b5945c;padding:27px}
+.fig-hof-note>span{color:#e6c48e;font-size:10px;font-weight:800;letter-spacing:.15em}
+.fig-hof-note p{margin:0;font-size:12px;color:#b4bfc4;line-height:1.85}
+.fig-hof-back{display:inline-block;font-size:10px;font-weight:750;letter-spacing:.13em;color:#d9b580!important;margin-bottom:43px}
+.fig-hof-detail .fig-hof-section-head:not(:first-child){margin-top:48px}
+.fig-hof-profile-hero{display:grid;grid-template-columns:190px minmax(0,1fr);gap:45px;align-items:center}
+.fig-hof-profile-pic{width:190px;height:210px;border:1px solid #b59762;background:linear-gradient(145deg,#28313b,#151e28);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(190,156,94,.05)}
+.fig-hof-profile-pic .fig-hof-avatar{width:158px;height:158px;border:3px solid #bfa16b}
+.fig-hof-profile-pic .fig-hof-avatar-initial{font-size:68px}
+.fig-hof-profile-pic.is-player .fig-hof-player-photo{width:167px;height:188px;border:0;margin:0}
+.fig-hof-profile-hero h1{font:400 clamp(48px,7vw,86px) Georgia,serif;letter-spacing:-.055em;line-height:1;margin:17px 0}
+.fig-hof-profile-hero p{color:#b4bcc0;font-size:13px;line-height:1.7;margin:0 0 25px}
+.fig-hof-profile-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #4b453b;border-bottom:1px solid #4b453b;margin:48px 0 6px;background:#18242e}
+.fig-hof-profile-stats .fig-hof-number{padding:23px 10px}
+.fig-hof-accolades{display:flex;flex-wrap:wrap;gap:10px}
+.fig-hof-accolades span{border:1px solid #8c734d;background:#282c2c;color:#e4c084;font-size:10px;letter-spacing:.1em;font-weight:800;padding:14px 18px}
+.fig-hof-accolades p{color:#aab5bd}
+.fig-hof-ledger{border-top:1px solid #4b555e}
+.fig-hof-ledger>a{display:grid;grid-template-columns:130px 1fr 1fr 1fr auto;gap:14px;align-items:center;padding:21px 8px;border-bottom:1px solid #34404b;transition:background .2s}
+.fig-hof-ledger>a:hover{background:#182936}
+.fig-hof-ledger b{font:500 20px Georgia,serif;color:#e6c188}
+.fig-hof-ledger span{font-size:11px;color:#adb9bd}
+.fig-hof-ledger strong{font-size:9px;color:#d4af75;letter-spacing:.08em}
+.fig-hof-rules{border-top:1px solid #45515b}
+.fig-hof-rule{display:grid;grid-template-columns:58px 1fr;gap:25px;padding:26px 0;border-bottom:1px solid #3b464f}
+.fig-hof-rule>span{font:400 27px Georgia,serif;color:#cda96d}
+.fig-hof-rule h3{font-size:13px;color:#f0d6a8;letter-spacing:.12em;margin:4px 0 11px}
+.fig-hof-rule p{max-width:800px;font-size:13px;line-height:1.9;color:#b3bdc3;margin:0}
+.fig-hof-footer{padding:46px clamp(22px,6vw,76px) 30px;border-top:1px solid #67543a;background:#0b111a;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.fig-hof-footer .fig-hof-seal{font-size:27px}
+.fig-hof-footer p{font:400 17px/1.5 Georgia,serif;color:#9cabb3;letter-spacing:.03em;margin:22px 0 0}
+.fig-hof-footer>div:nth-child(2){display:flex;flex-direction:column;align-items:flex-end;gap:14px;font-size:10px;letter-spacing:.12em;font-weight:800;color:#e0bd81}
+.fig-hof-footer>span{grid-column:1/-1;border-top:1px solid #34404a;padding-top:20px;margin-top:8px;font-size:9px;letter-spacing:.14em;color:#8e9699}
+@media (prefers-reduced-motion:reduce){.fig-hof *{transition:none!important;animation:none!important}}
+@media (max-width:920px){
+ .fig-hof-hero{padding-top:57px;min-height:480px}
+ .fig-hof-hero h1{font-size:clamp(56px,8vw,90px)}
+ .fig-hof-hero-emblem .fig-hof-crest{width:220px}
+ .fig-hof-emblem-halo{width:245px;height:245px}
+ .fig-hof-game-score{font-size:17px}
+ .fig-hof-game{padding:18px 15px}
+ .fig-hof-ballot>a{grid-template-columns:34px 42px 1fr 77px 17px}
+ .fig-hof-ballot>a>span:nth-child(4),.fig-hof-ballot small{display:none}
+}
+@media (max-width:699px){
+ #app:has(.fig-hof){width:100%;padding:0!important}
+ .fig-hof{border-left:none;border-right:none}
+ .fig-hof-site-head{padding:20px 20px;min-height:72px}
+ .fig-hof-site-head>span:last-child{font-size:8px;letter-spacing:.11em}
+ .fig-hof-seal{font-size:26px}
+ .fig-hof-seal span{font-size:7px;letter-spacing:.1em;margin-left:6px}
+ .fig-hof-nav{padding:0 15px}
+ .fig-hof-nav a{padding:18px 16px;font-size:9px}
+ .fig-hof-hero{grid-template-columns:1fr;gap:0;min-height:650px;padding:55px 24px 84px;text-align:left}
+ .fig-hof-hero-text{align-self:start}
+ .fig-hof-hero h1{font-size:clamp(57px,12.5vw,77px);margin:21px 0}
+ .fig-hof-hero-text>p{font-size:12px;line-height:1.7;max-width:470px}
+ .fig-hof-hero-actions{gap:17px}
+ .fig-hof-gold-btn{padding:14px 16px;min-height:44px}
+ .fig-hof-hero-emblem{min-height:205px;margin-top:20px}
+ .fig-hof-crest{max-height:170px}
+ .fig-hof-hero-emblem .fig-hof-crest{width:175px}
+ .fig-hof-emblem-halo{width:200px;height:200px}
+ .fig-hof-emblem-caption{margin-top:-3px}
+ .fig-hof-emblem-caption strong{font-size:20px}
+ .fig-hof-hero-foot{left:24px;right:24px;bottom:19px;font-size:8px}
+ .fig-hof-stat-bar{grid-template-columns:repeat(2,1fr)}
+ .fig-hof-stat-bar .fig-hof-number:nth-child(2){border-right:0}
+ .fig-hof-stat-bar .fig-hof-number:nth-child(-n+2){border-bottom:1px solid #4a4236}
+ .fig-hof-stat-bar .fig-hof-number{padding:22px 10px}
+ .fig-hof-content{padding:43px 20px 60px}
+ .fig-hof-section-head{padding-bottom:24px}
+ .fig-hof-section-head h2{font-size:41px}
+ .fig-hof-section-head:not(:first-child){margin-top:49px}
+ .fig-hof-member-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .fig-hof-member-grid>.fig-hof-member:first-child{grid-column:1/-1}
+ .fig-hof-member-grid>.fig-hof-member:first-child .fig-hof-member-portrait{min-height:210px}
+ .fig-hof-member{min-height:300px}
+ .fig-hof-member-kicker{padding:17px 13px 0;font-size:8px}
+ .fig-hof-member-portrait{min-height:156px;padding:10px}
+ .fig-hof-member-portrait .fig-hof-avatar{width:107px;height:107px}
+ .fig-hof-member-portrait .fig-hof-avatar-initial{font-size:48px}
+ .fig-hof-member-bottom{padding:7px 14px 17px}
+ .fig-hof-member-bottom h3{font-size:28px}
+ .fig-hof-member-bottom p{font-size:8px;line-height:1.55;margin:0 0 13px}
+ .fig-hof-member-line{font-size:8px;flex-wrap:wrap}
+ .fig-hof-feature{grid-template-columns:1fr;gap:18px;margin:55px 0 35px;padding:25px 21px}
+ .fig-hof-feature h2{font-size:53px}
+ .fig-hof-title-list>a{grid-template-columns:52px 43px 1fr auto}
+ .fig-hof-player-grid,.fig-hof-game-grid{grid-template-columns:1fr}
+ .fig-hof-game-score{font-size:21px}
+ .fig-hof-inscription{padding:17px 10px;gap:6px;flex-wrap:wrap}
+ .fig-hof-inscription span{font-size:8px}
+ .fig-hof-inscription strong{font-size:19px}
+ .fig-hof-season{grid-template-columns:27px 1fr 80px 15px;gap:9px}
+ .fig-hof-season-num{font-size:22px}
+ .fig-hof-season-team .fig-hof-avatar{width:36px;height:36px}
+ .fig-hof-season-team strong{font-size:18px}
+ .fig-hof-season-stat:nth-of-type(4){display:none}
+ .fig-hof-season-stat strong{font-size:20px}
+ .fig-hof-season-stat small{font-size:7px;line-height:1.4}
+ .fig-hof-note{grid-template-columns:1fr;gap:9px;padding:19px}
+ .fig-hof-profile-hero{grid-template-columns:1fr;gap:25px}
+ .fig-hof-profile-pic{width:150px;height:163px}
+ .fig-hof-profile-pic .fig-hof-avatar{width:126px;height:126px}
+ .fig-hof-profile-pic.is-player .fig-hof-player-photo{width:140px;height:153px}
+ .fig-hof-profile-hero h1{font-size:60px}
+ .fig-hof-profile-stats{grid-template-columns:repeat(2,1fr);margin-top:35px}
+ .fig-hof-profile-stats .fig-hof-number:nth-child(2){border-right:0}
+ .fig-hof-profile-stats .fig-hof-number:nth-child(-n+2){border-bottom:1px solid #504c41}
+ .fig-hof-ledger>a{grid-template-columns:70px 1fr auto;gap:8px}
+ .fig-hof-ledger>a>span:nth-of-type(2),.fig-hof-ledger>a>span:nth-of-type(3){display:none}
+ .fig-hof-ledger b{font-size:15px}
+ .fig-hof-rule{gap:12px;grid-template-columns:36px 1fr}
+ .fig-hof-rule>span{font-size:23px}
+ .fig-hof-footer{grid-template-columns:1fr;padding:38px 23px 25px}
+ .fig-hof-footer>div:nth-child(2){align-items:flex-start}
+}
+@media (max-width:385px){
+ .fig-hof-site-head>span:last-child{display:none}
+ .fig-hof-hero h1{font-size:54px}
+ .fig-hof-hero{min-height:635px}
+ .fig-hof-player{gap:11px;padding:19px 12px}
+ .fig-hof-player-photo{width:65px;height:77px}
+ .fig-hof-player h3{font-size:22px}
+ .fig-hof-game-teams{gap:5px}
+ .fig-hof-game-score{font-size:17px}
+ .fig-hof-member-bottom h3{font-size:24px}
+ .fig-hof-ballot>a{gap:8px;grid-template-columns:25px 36px 1fr 64px 12px}
+ .fig-hof-ballot .fig-hof-avatar{width:36px;height:36px}
+ .fig-hof-ballot strong{font-size:18px}
+}
+/* The Hall entrance receives a distinct, ceremonial tile in More only. */
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"]{
+ background:linear-gradient(130deg,#1c2c3c,#0f1825 78%);
+ border:1px solid #9d7c4d;color:#f4e9d7;
+ box-shadow:inset 0 0 0 1px rgba(234,200,140,.10),0 14px 26px rgba(16,25,38,.11)
+}
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"] .avatar{
+ background:linear-gradient(120deg,#e8cb91,#be935b);color:#15202a;
+ box-shadow:0 0 0 4px rgba(214,173,110,.13)
+}
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"] .team-name{color:#f9edda}
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"] .fig-more-open{color:#e8c78d}
