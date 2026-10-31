@@ -8,6 +8,7 @@ on:
       - 'hall-of-fame-v242.*'
       - 'hall-of-fame-v243.*'
       - 'hall-of-fame-v244.*'
+      - 'hall-of-fame-v244.*'
       - 'app.js'
       - 'index.html'
       - 'sw.js'
@@ -19,6 +20,7 @@ on:
       - 'hall-of-fame-v241.*'
       - 'hall-of-fame-v242.*'
       - 'hall-of-fame-v243.*'
+      - 'hall-of-fame-v244.*'
       - 'hall-of-fame-v244.*'
       - 'app.js'
       - 'index.html'
@@ -44,6 +46,7 @@ jobs:
           node --check hall-of-fame-v241.js
           node --check hall-of-fame-v242.js
           node --check hall-of-fame-v243.js
+          node --check hall-of-fame-v244.js
           node --check hall-of-fame-v244.js
           node --check app.js
           node tests/test_hall_of_fame.js
