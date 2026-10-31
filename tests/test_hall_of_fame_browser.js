@@ -35,10 +35,21 @@ const {chromium}=require('playwright');
    const dims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
    assert.ok(dims.scrollWidth<=dims.clientWidth+3,'Unexpected horizontal overflow '+label+': '+JSON.stringify(dims));
    await page.screenshot({path:'hof-'+label+'.png',fullPage:true});
+   const combinedPeaks={'4984':'30.80','9221':'25.37','9493':'25.56','8130':'18.85'};
+   for(const [id,name] of [['4984','Josh Allen'],['9221','Jahmyr Gibbs'],['9493','Puka Nacua'],['8130','Trey McBride']]){
+    const card=page.locator('.fig-hof-242-card[href="#/hall-of-fame/inductee/player/'+id+'"]');
+    assert.ok((await card.innerText()).includes(combinedPeaks[id]+' COMBINED PPG'),
+     'Founding class card uses combined 2025 peak for '+name);
+   }
    for(const [id,name] of [['4984','Josh Allen'],['9221','Jahmyr Gibbs'],['9493','Puka Nacua'],['8130','Trey McBride']]){
     await go(page,'/inductee/player/'+id,'.fig-hof-242-plaque h1');
     assert.equal(await page.locator('.fig-hof-242-plaque h1').innerText(),name);
     assert.equal(await page.locator('.fig-hof-242-season-row').count(),3);
+    const exhibit=await page.locator('.fig-hof-242-profile').innerText();
+    assert.ok(exhibit.includes(combinedPeaks[id]+' PPG'),'Hall exhibit matches precise combined archive PPG for '+name);
+    assert.ok(exhibit.includes('COMBINED CAREER PPG'),'Combined career average labeled '+name);
+    assert.match(exhibit,/ALL-TIME COMBINED/);
+    assert.match(exhibit,/regular-season and playoff FIG starting-lineup appearances/);
     assert.ok(await page.locator('.fig-hof-242-receipts a').count()>=5);
     assert.match(await page.locator('.fig-hof-242-data-note').innerText(),/not measure bench performances/);
    }

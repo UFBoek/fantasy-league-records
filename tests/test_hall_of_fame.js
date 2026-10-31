@@ -4,6 +4,7 @@ const root=path.resolve(__dirname,'..');
 const read=p=>JSON.parse(fs.readFileSync(path.join(root,'data',p+'.json'),'utf8'));
 const api=new Function('window',fs.readFileSync(path.join(root,'hall-of-fame-v244.js'),'utf8')+'\nreturn window.figHallOfFameModel;')({});
 const data={league:read('league_history'),games:read('games'),playerLog:read('player_game_log'),
+ playerSeasons:read('player_seasons'),
  teamSeasonMaster:read('team_season_master'),singleSeasonRecords:read('single_season_records'),
  websiteStreaks:read('website_streaks')};
 const m=api.model(data);
@@ -19,6 +20,29 @@ assert.ok(m.inductees.every(x=>x.inductionYear===2026));
 assert.ok(m.inductees.every(x=>x.career.seasons.some(s=>s.year===2025&&s.starts>0)));
 assert.ok(m.inductees.every(x=>x.career.seasons.length===3));
 assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the induction case, not an auto-generated weighted point formula');
+// Hall season averages must match the published All-Time Combined player archive
+// exactly, including postseason starts and the original rounding convention.
+const historicalPlayers=api.playerCareers(data,m.foundingYears).byId;
+for(const playerId of [...ids,'4034']){
+ const p=historicalPlayers.get(playerId);
+ assert.ok(p,'Player available for historical scoring audit: '+playerId);
+ for(const s of p.seasons){
+  const official=data.playerSeasons.find(x=>String(x.player_id)===playerId&&
+   Number(x.season)===s.year&&x.scoring_view==='All-Time Combined');
+  assert.ok(official,'All-Time Combined archive season exists: '+p.name+' '+s.year);
+  assert.equal(s.starts,official.starts,p.name+' '+s.year+' total starts include playoffs');
+  assert.ok(Math.abs(s.points-official.total_points)<0.02,p.name+' '+s.year+' combined points');
+  assert.equal(s.ppg,official.average_points,p.name+' '+s.year+' precise combined PPG');
+ }
+}
+const cmc=historicalPlayers.get('4034');
+assert.equal(cmc.seasons.find(s=>s.year===2025).ppg,28.58);
+assert.equal(cmc.seasons.find(s=>s.year===2023).ppg,26.31);
+assert.equal(m.inductees.find(x=>x.id==='9493').career.seasons.find(s=>s.year===2024).ppg,20.94,
+ 'Published 2024 Puka average must not round to an inconsistent 20.95');
+assert.ok(data.playerSeasons.some(x=>String(x.player_id)==='4034'&&x.season==='2025'&&
+ x.scoring_view==='Regular Season'&&x.average_points===27.47),'Regular season remains a separate scoring view');
+
 assert.ok(!('legacy' in m)&&!('vault' in m),'Historic Feats and Legacy Points must be entirely removed from Hall model');
 assert.equal(m.enshrinedSeasons.length,1,'Exactly one independently curated immortal season');
 const historical=m.enshrinedSeasons[0];
@@ -69,10 +93,10 @@ const css=fs.readFileSync(path.join(root,'hall-of-fame-v244.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'hall-of-fame-v244.js'),'utf8');
 const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
-assert.match(html,/hall-of-fame-v244\.js\?v=248/);
+assert.match(html,/hall-of-fame-v244\.js\?v=251/);
 assert.match(html,/hall-of-fame-v244\.css\?v=248/);
-assert.match(sw,/fig-league-shell-v249/);
-assert.match(sw,/hall-of-fame-v244\.js\?v=248/);
+assert.match(sw,/fig-league-shell-v251/);
+assert.match(sw,/hall-of-fame-v244\.js\?v=251/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=248/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
 assert.doesNotMatch(js,/function legacy\(/);
@@ -86,6 +110,11 @@ assert.match(css,/fig-hof-247-game-grid/);
 assert.doesNotMatch(js,/THE CASE FOR ENSHRINEMENT/);
 assert.doesNotMatch(js,/THE SEASON LEGACY/);
 assert.match(js,/seasonTopScoringGames/);
+assert.match(js,/scoring_view==='All-Time Combined'/);
+assert.match(js,/COMBINED CAREER PPG/);
+assert.match(js,/COMBINED PPG/);
+assert.match(js,/STATISTICAL SCOPE · ALL-TIME COMBINED/);
+assert.ok(js.includes("playerLog','playerSeasons"),'Hall loads the canonical combined season archive');
 assert.ok(css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),'Spacious two-column Hall record layout');
 assert.ok(css.includes('min-height:260px'),'Roomy season record panels');
 assert.doesNotMatch(css,/fig-hof-244-streak-list/);

@@ -15,6 +15,14 @@ The main Hall is intentionally focused: a ceremonial entrance, four founding pla
 
 The **four names were explicitly selected** for the inaugural 2026 class. There is no mathematical top-N election or automatic yearly classes. Team seasons are independently curated and displayed separately from the founding player class. Other NFL players and historic franchise seasons may be considered in future classes without diminishing the founding four.
 
+## Player scoring scope: All-Time Combined
+
+All Hall of Fame player cards, season ledgers, career highlights, and signature-season PPG use **All-Time Combined** scoring, including verified FIG starting-lineup appearances in both the regular season and playoffs. This matches the default player archive's `data/player_seasons.json` rows where `scoring_view` is `All-Time Combined`.
+
+The Hall builds career and individual game receipts from `data/player_game_log.json` and, when totals and starts agree, uses the published combined season average directly. Season PPG is displayed to **two decimal places** and labeled clearly, avoiding mismatched rounding conventions. For example, Christian McCaffrey's canonical combined PPG was **26.31 in 2023** and **28.58 in 2025**, versus regular-season-only 26.99 and 27.47. He is a comparison player, not an inducted founding member. The founding four's combined 2025 PPG values are Josh Allen 30.80, Jahmyr Gibbs 25.37, Puka Nacua 25.56 and Trey McBride 18.85.
+
+Franchise single-season records, including Hayden's 2025 3,000.13 points, remain **regular-season** statistics where those categories are defined that way. Hall player scoring scope does not redefine team record books.
+
 ## Enshrined Season — Hayden 2025
 
 The original **Hayden 2025** season is restored as a dedicated **Enshrined Season** exhibit on the main Hall, replacing the former “Greatness is not a leaderboard” slogan panel.

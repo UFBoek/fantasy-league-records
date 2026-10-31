@@ -29,10 +29,13 @@ function seasonRows(d,years){const set=new Set(years);return(d.teamSeasonMaster|
   finish:value(s.regular_season_finish),games:value(s.games)
 }));}
 function playerCareers(d,years){
+ // All-Time Combined includes verified regular-season and playoff FIG starts.
+ // The player archive uses the same combined season scope.
  const accepted=new Set(years),map=new Map();
  for(const x of d.playerLog||[]){
   const year=value(x.season),position=String(x.position||'').toUpperCase(),id=String(x.player_id||'');
-  if(!accepted.has(year)||!POSITIONS.includes(position)||!id)continue;
+  if(!accepted.has(year)||!POSITIONS.includes(position)||!id||
+   !['Regular Season','Playoffs'].includes(String(x.game_type||'')))continue;
   let p=map.get(id);
   if(!p){p={id,position,name:String(x.player_name||'Unnamed'),points:0,starts:0,high:0,p20:0,p30:0,yrs:new Set(),teams:new Set(),weeks:[],bySeason:new Map()};map.set(id,p);}
   const pts=value(x.starter_points);
@@ -41,11 +44,19 @@ function playerCareers(d,years){
   p.weeks.push({year,week:value(x.week),team:value(x.franchise_id),pts});
   const s=p.bySeason.get(year)||{year,points:0,starts:0,high:0};s.points+=pts;s.starts++;s.high=Math.max(s.high,pts);p.bySeason.set(year,s);
  }
+ const official=new Map((d.playerSeasons||[])
+  .filter(x=>x.scoring_view==='All-Time Combined'&&accepted.has(value(x.season)))
+  .map(x=>[String(x.player_id)+'|'+value(x.season),x]));
  const all=[...map.values()].map(p=>({...p,avg:p.starts?p.points/p.starts:0,
    years:[...p.yrs].sort((a,b)=>a-b),teams:[...p.teams],seasons:[...p.bySeason.values()].sort((a,b)=>a.year-b.year),
    weeks:p.weeks.sort((a,b)=>b.pts-a.pts||a.year-b.year||a.week-b.week)}));
  const bestByYear=new Map();
  for(const p of all)for(const s of p.seasons){
+  // Match the two-decimal All-Time Combined figure from the player archive.
+  // Guard against a stale mismatch between the game log and season snapshot.
+  const source=official.get(p.id+'|'+s.year);
+  s.ppg=source&&value(source.starts)===s.starts&&Math.abs(value(source.total_points)-s.points)<0.02
+   ? value(source.average_points):Number((s.points/s.starts).toFixed(2));
   const key=s.year+'|'+p.position,old=bestByYear.get(key);
   if(!old||s.points>old.points)bestByYear.set(key,{id:p.id,points:s.points});
  }
@@ -101,13 +112,13 @@ const head=kind=>'<header class="fig-hof-site-head">'+logo()+'<span>EST. 2026 <b
 const heading=(n,t,s)=>'<div class="fig-hof-section-head"><div class="fig-hof-eyebrow">'+n+'</div><h2>'+t+'</h2><p>'+s+'</p></div>';
 const metric=(value,label)=>'<div class="fig-hof-number"><strong>'+value+'</strong><span>'+label+'</span></div>';
 function hcard(e){
- const p=e.career,peak=p.seasons.filter(x=>x.starts>=5).slice().sort((a,b)=>b.points/b.starts-a.points/a.starts)[0]||p.bestSeason;
+ const p=e.career,peak=p.seasons.filter(x=>x.starts>=5).slice().sort((a,b)=>b.ppg-a.ppg)[0]||p.bestSeason;
  return '<a class="fig-hof-v2-inductee fig-hof-242-card" href="'+e.url+'">'+
  '<div class="fig-hof-v2-inductee-top"><span>FOUNDING CLASS · '+e.inductionYear+'</span><span>'+esc(p.position)+' · LEGEND</span></div>'+
  '<div class="fig-hof-v2-inductee-art fig-hof-242-portrait">'+playerPhoto(p)+'</div>'+
  '<div class="fig-hof-v2-inductee-info"><span class="fig-hof-v2-serial">PERMANENTLY ENSHRINED</span><h3>'+esc(e.name)+'</h3>'+
  '<p>'+esc(e.case)+'</p><div class="fig-hof-v2-cardfoot"><span>'+(
- peak?'SIGNATURE SEASON '+peak.year+' · '+fmt(peak.points/peak.starts,1)+' PTS / FIG START':'INDUCTED 2026')+
+ peak?'SIGNATURE SEASON '+peak.year+' · '+fmt(peak.ppg,2)+' COMBINED PPG':'INDUCTED 2026')+
  '</span><b>OPEN EXHIBIT ↗</b></div></div></a>';
 }
 /* Rank every positive season honor against completed seasons only. */
@@ -274,12 +285,12 @@ function plaque(m,kind,id,year,d){
  const e=m.inductees.find(x=>x.kind==='player'&&x.id===id);
  if(!e)return'<section class="fig-hof-content"><a href="#/hall-of-fame">← BACK TO THE HALL</a><p>This exhibit is not part of the 2026 founding class.</p></section>';
  const p=e.career,eligible=p.seasons.filter(x=>x.starts>0);
- const ranked=eligible.slice().sort((a,b)=>b.points/b.starts-a.points/a.starts),peak=ranked[0];
+ const ranked=eligible.slice().sort((a,b)=>b.ppg-a.ppg),peak=ranked[0];
  const lines=[
-  ['BEST SEASON · '+peak.year,fmt(peak.points/peak.starts,1)+' PTS / START'],
-  ['HISTORICAL SEASONS',fmt(eligible.length)],
+  ['BEST COMBINED SEASON · '+peak.year,fmt(peak.ppg,2)+' PPG'],
+  ['COMBINED CAREER PPG',fmt(p.avg,2)],
   ['VERIFIED FIG STARTS',fmt(p.starts)],
-  ['STARTER POINTS',fmt(p.points,1)]
+  ['COMBINED STARTER POINTS',fmt(p.points,2)]
  ];
  const performances=p.weeks.slice(0,6).map(w=>{
   const g=(d.games||[]).find(x=>+x.season===w.year&&+x.week===w.week&&
@@ -289,9 +300,9 @@ function plaque(m,kind,id,year,d){
  }).join('');
  const seasonLines=eligible.map(s=>'<div class="fig-hof-242-season-row">'+
  '<div><small>SEASON</small><strong>'+s.year+'</strong></div>'+
- '<div><small>VERIFIED FIG STARTS</small><strong>'+s.starts+'</strong></div>'+
- '<div><small>STARTER PPG</small><strong>'+fmt(s.points/s.starts,1)+'</strong></div>'+
- '<div><small>STARTER POINTS</small><strong>'+fmt(s.points,1)+'</strong></div></div>').join('');
+ '<div><small>REG + PLAYOFF STARTS</small><strong>'+s.starts+'</strong></div>'+
+ '<div><small>COMBINED PPG</small><strong>'+fmt(s.ppg,2)+'</strong></div>'+
+ '<div><small>COMBINED POINTS</small><strong>'+fmt(s.points,2)+'</strong></div></div>').join('');
  return '<section class="fig-hof-content fig-hof-242-profile">'+
  '<a class="fig-hof-v2-back" href="#/hall-of-fame">← RETURN TO THE HALL</a>'+
  '<div class="fig-hof-v2-plaque fig-hof-242-plaque"><div class="fig-hof-v2-plaque-art">'+playerPhoto(p)+'</div>'+
@@ -302,11 +313,11 @@ function plaque(m,kind,id,year,d){
  heading('THE CASE FOR GREATNESS','A Hall-worthy legacy.','The case rests on extraordinary individual seasons, positional dominance and historical impact–not an arbitrary threshold of cumulative points or career PPG.')+
  '<div class="fig-hof-v2-standard"><strong>THE INDUCTION CASE</strong><p>'+esc(e.case)+'</p>'+
  '<p>Each season is evaluated on its own merits. A player cannot lose Hall recognition simply by getting older or by being placed on a fantasy bench.</p></div>'+
- heading('THE SEASONS THAT DEFINED HIM','The career, season by season.','The completed founding era, broken into individual years so a remarkable peak is never diluted by later seasons.')+
+ heading('THE SEASONS THAT DEFINED HIM','The career, season by season.','All-Time Combined scoring for each completed founding season, including regular-season and playoff FIG starts.')+
  '<div class="fig-hof-242-season-ledger">'+seasonLines+'</div>'+
  heading('THE PERFORMANCES','Signature FIG starts.','Six of the highest verified performances in the historical FIG starting lineup, with original box-score links.')+
  '<div class="fig-hof-v2-receipts fig-hof-242-receipts">'+performances+'</div>'+
- '<p class="fig-hof-242-data-note"><strong>STATISTICAL SCOPE</strong> These verified figures cover FIG starting-lineup appearances in completed 2023–2025 seasons. They do not measure bench performances. Starts and starter PPG illustrate a career; neither determines induction eligibility. Future archival expansion will incorporate rostered bench-game output.</p>'+
+ '<p class="fig-hof-242-data-note"><strong>STATISTICAL SCOPE · ALL-TIME COMBINED</strong> Every PPG and point total above includes verified regular-season and playoff FIG starting-lineup appearances from completed 2023–2025 seasons. Bench performances are not included. These statistics illustrate a career but do not determine induction eligibility.</p>'+
  '<div class="fig-hof-242-next"><a href="#/hall-of-fame/inductee/player/'+m.inductees[(m.inductees.indexOf(e)+1)%m.inductees.length].id+'">NEXT EXHIBIT · '+esc(m.inductees[(m.inductees.indexOf(e)+1)%m.inductees.length].name)+' ↗</a></div>'+
  '</section>';
 }
@@ -326,7 +337,7 @@ const footer=()=>'<footer class="fig-hof-footer"><div>'+logo()+'<p>THE STANDARD 
  '<a href="#/hall-of-fame/hall">THE ENSHRINED ↗</a><a href="#/hall-of-fame/charter">THE CHARTER ↗</a>'+
  '<a href="#/more">BACK TO FIG ↗</a></div><span>FROMM IS GARBAGE · THE FIG HISTORICAL INSTITUTION</span></footer>';
 async function page(ctx,view,arg,sub,year){
- await ctx.load(['league','games','playerLog','teamSeasonMaster','singleSeasonRecords']);
+ await ctx.load(['league','games','playerLog','playerSeasons','teamSeasonMaster','singleSeasonRecords']);
  const m=model(ctx.DATA);
  const isPlayer=(view==='inductee'&&arg==='player')||view==='player';
  const isSeason=view==='inductee'&&arg==='season';
@@ -340,5 +351,5 @@ async function page(ctx,view,arg,sub,year){
  document.title=isCharter?'Induction Philosophy – FIG Hall of Fame':'The Hall – Fromm is Garbage';
 }
 window.figHallOfFame=page;
-window.figHallOfFameModel={model,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
+window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
 })();
