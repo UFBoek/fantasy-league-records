@@ -3,7 +3,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.resolve(__dirname,'..');
 const read=p=>JSON.parse(fs.readFileSync(path.join(root,'data',p+'.json'),'utf8'));
 const api=new Function('window',fs.readFileSync(path.join(root,'hall-of-fame-v243.js'),'utf8')+'\nreturn window.figHallOfFameModel;')({});
-const data={league:read('league_history'),games:read('games'),playerLog:read('player_game_log')};
+const data={league:read('league_history'),games:read('games'),playerLog:read('player_game_log'),
+ teamSeasonMaster:read('team_season_master')};
 const m=api.model(data);
 const ids=['4984','9221','9493','8130'];
 assert.deepEqual(m.foundingYears,[2023,2024,2025],'Founding era is three completed seasons');
