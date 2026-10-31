@@ -1,7 +1,7 @@
 name: Verify FIG Hall of Fame
 on:
   push:
-    branches: [feature/fig-hall-of-fame, main]
+    branches: [feature/fig-hall-of-fame, feature/hof-lasting-legacy-standards, main]
     paths:
       - 'hall-of-fame-v240.*'
       - 'hall-of-fame-v241.*'
