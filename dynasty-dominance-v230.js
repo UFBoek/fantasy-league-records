@@ -1,4 +1,4 @@
-/* FIG Dynasty Dominance — responsive read-only scoring-strength research beta.
+/* FIG Dynasty Dominance – responsive read-only scoring-strength research beta.
  * Never present experimental season rank frequencies as validated probabilities.
  */
 (function(){
@@ -133,7 +133,7 @@
   const gap=current.boek.ppg-selectedScore.ppg;
   const observed=observedYear(),span=seasonStats();
   const generated=report.generated_at?
-   new Date(report.generated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+   new Date(report.generated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'–';
   const isTop=selected===current.leader.id;
   const title=isTop?'BOEK’S CLOSEST CHALLENGER':'BOEK VS '+esc(TEAMS[selected]).toUpperCase();
   node.innerHTML='<div class="dd-page dd-challenger-page">'+
@@ -261,7 +261,7 @@
       labels.map(p=>'<option value="'+p+'">'+(p==='ALL'?'All positions':p==='TBD'?'Future picks':p)+'</option>').join('')+
      '</select></label></div>'+
      '<div id="ddPlayerTable"></div>'+
-     '<p class="dd-player-note">Players without a RosterAudit market quote show — for PPG rather than invented scores. Scenario 10th–90th percentile ranges show sensitivity, not validated confidence intervals. Future rookie entries are unidentified draft-pick possibilities. Players are assumed to remain on their current dynasty franchise; the model does not simulate later trades.</p>'+
+     '<p class="dd-player-note">Players without a RosterAudit market quote show – for PPG rather than invented scores. Scenario 10th–90th percentile ranges show sensitivity, not validated confidence intervals. Future rookie entries are unidentified draft-pick possibilities. Players are assumed to remain on their current dynasty franchise; the model does not simulate later trades.</p>'+
    '</section>'+
    '<div class="dd-player-navigation"><a href="#/dynasty-dominance/'+id+'/'+year+'">← BACK TO '+esc(TEAMS[id]).toUpperCase()+' '+year+'</a>'+
     '<a href="#/team/'+id+'">CURRENT TEAM ROSTER ↗</a></div>'+
@@ -275,13 +275,13 @@
     const name=p.projected_rookie?
       '<span class="dd-player-future">'+esc(p.name)+'</span>':
       '<a class="dd-player-anchor" href="#/player/'+encodeURIComponent(p.id)+'">'+esc(p.name)+'</a>';
-    const value=p.current_market_value==null?'—':fmt(p.current_market_value,0);
+    const value=p.current_market_value==null?'–':fmt(p.current_market_value,0);
     return '<tr class="'+(p.projected_rookie?'is-projected-pick':'')+'">'+
      '<td class="dd-player-name"><span class="dd-player-rank">'+String(i+1).padStart(2,'0')+'</span>'+name+'</td>'+
      '<td><span class="dd-position">'+esc(p.pos||'TBD')+'</span></td>'+
      '<td>'+fmt(p.age)+'</td>'+
-     '<td class="dd-player-ppg">'+(p.ppg===null?'—':fmt(p.ppg))+'</td>'+ 
-     '<td class="dd-player-range">'+(p.p10===null||p.p90===null?'—':fmt(p.p10)+'–'+fmt(p.p90))+'</td>'+ 
+     '<td class="dd-player-ppg">'+(p.ppg===null?'–':fmt(p.ppg))+'</td>'+ 
+     '<td class="dd-player-range">'+(p.p10===null||p.p90===null?'–':fmt(p.p10)+'–'+fmt(p.p90))+'</td>'+ 
      '<td class="dd-market-2026">'+value+'</td></tr>';
    }).join('');
    table.innerHTML='<div class="dd-player-scroll"><table class="dd-player-table">'+
