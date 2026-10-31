@@ -14,8 +14,8 @@ assert.deepEqual(m.inductees.map(x=>x.name),['Josh Allen','Jahmyr Gibbs','Puka N
 assert.deepEqual(m.inductees.map(x=>x.position),['QB','RB','WR','TE']);
 assert.ok(m.inductees.every(x=>x.proof.ok),'Induction registry candidates must have verifiable founding-era historical records');
 assert.ok(m.inductees.every(x=>x.inductionYear===2026));
-assert.ok(m.inductees.every(x=>x.seasons.some(s=>s.year===2025&&s.starts>0)));
-assert.ok(m.inductees.every(x=>x.seasons.length===3));
+assert.ok(m.inductees.every(x=>x.career.seasons.some(s=>s.year===2025&&s.starts>0)));
+assert.ok(m.inductees.every(x=>x.career.seasons.length===3));
 assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the induction case, not an auto-generated weighted point formula');
 assert.ok(!('legacy' in m)&&!('vault' in m),'Historic Feats and Legacy Points must be entirely removed from Hall model');
 for(const id of ids){const r=m.inductees.find(x=>x.id===id);assert.ok(r?.url.endsWith('/'+id));}
@@ -48,6 +48,6 @@ assert.doesNotMatch(js,/starts>=28|p\.avg>=30|p\.avg>=24|p\.points>=950/);
 assert.match(css,/fig-hof-242-portrait/);
 assert.match(css,/@media\(max-width:699px\)/);
 console.log('FIG Hall founding-four verified',JSON.stringify({
- year:m.classes[0].year,founding:m.inductees.map(x=>[x.position,x.name,x.officialStarts]),years:m.foundingYears,
+ year:m.classes[0].year,founding:m.inductees.map(x=>[x.position,x.name,x.career.starts]),years:m.foundingYears,
  legacyRemoved:!('legacy' in m),historicFeatsRemoved:!('vault' in m)
 }));
