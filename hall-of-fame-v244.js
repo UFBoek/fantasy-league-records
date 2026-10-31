@@ -238,7 +238,7 @@ function immortalSeasonPlaque(m,franchiseId,season){
  '<a class="fig-hof-v2-back" href="#/hall-of-fame">← RETURN TO THE HALL</a>'+
  '<div class="fig-hof-243-season-profile-hero"><div class="fig-hof-243-season-profile-mark">'+esc(name(e.franchiseId)[0])+'<span>'+e.year+'</span></div>'+
  '<div><span class="fig-hof-eyebrow">IMMORTAL SEASON · CLASS OF '+e.inductionYear+'</span>'+
- '<h1>'+esc(e.title)+'</h1><p>'+esc(seasonRecap(e))+'</p>'+
+ '<h1>'+esc(e.title)+'</h1><p>'+esc(seasonRecap(e))+'</p>'+seasonNotableTags(e)+
  '<div class="fig-hof-243-season-profile-actions"><a class="fig-hof-gold-btn" href="#/teamseason/'+e.franchiseId+'/'+e.year+'">FULL TEAM SEASON ↗</a>'+
  (gameHref?'<a class="fig-hof-text-btn" href="'+gameHref+'">'+esc(e.playoff.label.toUpperCase())+' BOX SCORE ↗</a>':'')+'</div></div></div>'+
  '<div class="fig-hof-v2-plaque-metrics">'+
