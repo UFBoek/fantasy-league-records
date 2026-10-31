@@ -1,4 +1,4 @@
-/* v129 — All-rookie pick explorer and expanded yearly boards. */
+/* v129 – All-rookie pick explorer and expanded yearly boards. */
 .fig-draft-board-show{display:none}
 .fig-draft-rank-board:not([open]) .fig-draft-board-hide{display:none}
 .fig-draft-rank-board:not([open]) .fig-draft-board-show{display:inline}
