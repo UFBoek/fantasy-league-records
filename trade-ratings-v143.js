@@ -1,6 +1,6 @@
-/* Trade Ratings v153 — allocate multi-team net outcomes across rival managers. */
+/* Trade Ratings v153 – allocate multi-team net outcomes across rival managers. */
 function figTradeNetLabel(value,money){
- if(value===null||!Number.isFinite(value))return '—';
+ if(value===null||!Number.isFinite(value))return '–';
  return (value>0?'+':value<0?'−':'')+money(Math.abs(value));
 }
 // Allocate a trade's net value between its winning and losing managers.
@@ -255,12 +255,12 @@ function figTradeRatingsPage(model,helpers){
    '</details>';
  };
  const rankRow=(m,i)=>'<button type="button" class="fig-tr-rank-row" data-manager="'+m.id+'">'+
-  '<b class="fig-tr-rank-num">'+(m.provisional?'—':String(i+1))+'</b>'+
+  '<b class="fig-tr-rank-num">'+(m.provisional?'–':String(i+1))+'</b>'+
   avatar(m.id,'fig-tr-rank-avatar')+
   '<span class="fig-tr-rank-name"><strong>'+escape(m.name)+'</strong><small>'+m.rated+'/'+m.trades+
   ' rated · '+m.wins+'W '+m.losses+'L '+m.ties+'T'+(m.provisional?' · PROVISIONAL':'')+'</small></span>'+
   '<span class="fig-tr-rank-score '+(m.rated?(m.net>0?'positive':m.net<0?'negative':'even'):'pending')+'">'+
-  (m.rated?figTradeNetLabel(m.net,money):'—')+
+  (m.rated?figTradeNetLabel(m.net,money):'–')+
   '<small>'+(m.rated?(m.net>0?'VALUE GAINED':m.net<0?'VALUE LOST':'EVEN'):'UNRATED')+'</small></span></button>';
  const leaderboard='<section class="section fig-tr-leaderboard"><div class="section-head">'+
   '<h2 class="section-title">OVERALL TRADE RANKINGS</h2><div class="section-note">Total net value gained or lost · minimum 3 rated trades for ranking</div></div>'+
@@ -277,7 +277,7 @@ function figTradeRatingsPage(model,helpers){
    ' <span class="fig-tr-over">vs</span> '+escape(loser)+'</strong>'+
    '<small>'+p.trades+' SHARED '+(p.trades===1?'TRADE':'TRADES')+
    ' · '+p.rated+' VALUED</small></span>'+
-   '<span class="fig-tr-partnership-gap">'+(p.rated?'+ '+money(Math.abs(p.netA)):'—')+
+   '<span class="fig-tr-partnership-gap">'+(p.rated?'+ '+money(Math.abs(p.netA)):'–')+
    '<small>'+(p.rated?p.netA===0?'EVEN':'NET ADVANTAGE':'UNRATED')+'</small></span></button>';
  };
  let partnershipsExpanded=false;
@@ -372,7 +372,7 @@ function figTradeRatingsPage(model,helpers){
      '<span class="fig-tr-opponent-head">'+avatar(opp.id,'fig-tr-photo')+
      '<strong>'+escape(opp.name)+'</strong></span>'+
      '<b class="'+(value>0?'positive':value<0?'negative':'even')+'">'+
-     (p&&p.rated?figTradeNetLabel(value,money):'—')+'</b>'+
+     (p&&p.rated?figTradeNetLabel(value,money):'–')+'</b>'+
      '<small>'+(p?p.trades+' SHARED · '+p.rated+' VALUED':'NO SHARED TRADES')+'</small></button>';
    }).join('');
    return '<section class="fig-tr-manager-board"><div class="fig-tr-manager-head">'+
