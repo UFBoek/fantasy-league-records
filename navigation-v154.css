@@ -1,4 +1,4 @@
-/* Complete league menu — two balanced desktop rows, existing mobile grid retained. */
+/* Complete league menu – two balanced desktop rows, existing mobile grid retained. */
 @media (min-width:901px) {
   .page-wrap .app-menu-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
   .page-wrap .app-tile-label { font-size:14px; }
