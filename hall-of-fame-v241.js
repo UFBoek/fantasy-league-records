@@ -1,4 +1,4 @@
-/* FIG Hall of Fame / Charter II — fixed, evidence-backed induction classes.
+/* FIG Hall of Fame / Charter II – fixed, evidence-backed induction classes.
    Franchises earn legacy points, but are never automatically enshrined. */
 (function(){
 'use strict';
@@ -103,7 +103,7 @@ function vault(d,years,fin,seasons){
  if(h&&h.points>=3000&&fin.some(f=>f.year===2025&&f.champion===6))records.push({key:'3k',eyebrow:'THE 3,000-POINT SEASON',title:'The impossible total.',owner:h.id,year:h.year,metric:fmt(h.points,2),
   body:'Hayden crossed 3,000 regular-season points and finished the job with the FIG championship.',href:'#/teamseason/6/2025'});
  if(b&&h&&b.highs>=7&&h.highs>=7)records.push({key:'highs',eyebrow:'THE SEVEN-WEEK STANDARD',title:'A league at their mercy.',owner:null,year:2025,metric:'7 + 7',
-  body:'Boek and Hayden each posted the league’s highest weekly score seven times in the same completed season—half the regular-season calendar.',href:'#/records'});
+  body:'Boek and Hayden each posted the league’s highest weekly score seven times in the same completed season–half the regular-season calendar.',href:'#/records'});
  const streak=streaks.filter(x=>x.streak_mode==='Career Games'&&x.streak_type==='175+ Points'&&value(x.end_season)<=FOUNDING_END&&value(x.length)>=16).sort((a,b)=>b.length-a.length)[0];
  if(streak)records.push({key:'streak',eyebrow:'THE CONSISTENCY MARATHON',title:'Sixteen weeks of fire.',owner:value(streak.franchise_id),year:+streak.end_season,metric:fmt(streak.length)+' STRAIGHT',
   body:name(streak.franchise_id)+' scored at least 175 points in '+fmt(streak.length)+' consecutive FIG games. A sustained threshold, not a lucky afternoon.',href:'#/streaks'});
@@ -257,7 +257,7 @@ async function page(ctx,view,arg,sub,year){
  else if(view==='player')content=plaque(m,'player',String(arg||''),null,ctx.DATA);
  else content=plaque(m,arg==='season'?'season':'player',String(sub||''),year,ctx.DATA);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2" id="figHallOfFame">'+head(active)+content+footer()+'</div>';
- document.title='Hall of Fame — Fromm is Garbage';
+ document.title='Hall of Fame – Fromm is Garbage';
 }
 window.figHallOfFame=page;
 window.figHallOfFameModel={model,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES};
