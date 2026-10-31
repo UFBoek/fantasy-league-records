@@ -1,4 +1,4 @@
-/* v75 — repair illegible feature + physically separate frozen and scrolling columns.
+/* v75 – repair illegible feature + physically separate frozen and scrolling columns.
    A fixed pane avoids WebKit sticky table-cell failures seen on iPhones. */
 .page-wrap .player-week-feature {
   display:flex!important;flex-direction:column!important;align-items:stretch!important;
