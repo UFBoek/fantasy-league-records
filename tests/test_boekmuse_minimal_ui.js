@@ -36,7 +36,7 @@ assert.match(error,/No verified answer available/);
 assert.doesNotMatch(error,/Answer details|verified SQL/);
 assert.match(html,/league-ask-v220\.js\?v=225/);
 assert.match(html,/league-ask-v220\.css\?v=225/);
-assert.match(sw,/fig-league-shell-v235/);
+assert.match(sw,/fig-league-shell-v236/);
 assert.match(sw,/dynasty-dominance-v230\.js\?v=235/);
 assert.match(sw,/league-ask-v220\.js\?v=225/);
 assert.match(sw,/league-ask-v220\.css\?v=225/);
