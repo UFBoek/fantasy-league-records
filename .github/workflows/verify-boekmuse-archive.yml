@@ -27,5 +27,6 @@ jobs:
         run: |
           node --check workers/boekmuse-v2/src/index.js
           node --check boekmuse-dynamic.js
-          node tests/test_boekmuse_gemini.js\n          node tests/test_boekmuse_full_archive.js
+          node tests/test_boekmuse_gemini.js
+          node tests/test_boekmuse_full_archive.js
           node tests/test_boekmuse_dynamic.js
