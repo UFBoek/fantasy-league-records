@@ -33,12 +33,12 @@ const {chromium}=require('playwright');
    await go(page,'/legacy/1','.fig-hof-v2-legacy-profile h1');
    assert.equal(await page.locator('.fig-hof-v2-legacy-profile h1').innerText(),'Boek');
    assert.ok(await page.locator('.fig-hof-v2-legacy-awards a').count()>0);
-   assert.match(await page.locator('.fig-hof-v2-legacy-awards').innerText(),/25\\+ consecutive 175-point games/,
+   assert.ok((await page.locator('.fig-hof-v2-legacy-awards').innerText()).includes('25+ consecutive 175-point games'),
      'A still-active streak must earn an official 25-game milestone');
    await go(page,'/records','.fig-hof-v2-record');
    assert.equal(await page.locator('.fig-hof-v2-record').count(),4);
    const record=page.locator('.fig-hof-v2-record').first();
-   assert.match(await record.locator('.fig-hof-v2-record-header').innerText(),/175\\+ STREAK RECORD/);
+   assert.ok((await record.locator('.fig-hof-v2-record-header').innerText()).includes('175+ STREAK RECORD'));
    assert.match(await record.locator('.fig-hof-v2-record-status').innerText(),/(ACTIVE THROUGH|FINAL)/);
    assert.match(await record.locator('.fig-hof-v2-record-metric').innerText(),/STRAIGHT/);
    await go(page,'/charter','.fig-hof-v2-rule');
