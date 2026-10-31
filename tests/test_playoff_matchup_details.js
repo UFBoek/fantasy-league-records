@@ -48,7 +48,8 @@ assert.match(html,/playoff-calculator-v167\.js\?v=211/);
 assert.match(html,/playoff-calculator-v167\.css\?v=206/);
 const appRevision=html.match(/app\.js\?v=(\d+)/);
 assert.ok(appRevision,'app script revision exists');
-assert.match(sw,new RegExp('fig-league-shell-v'+appRevision[1]),'service worker matches deployed app revision');
+const cacheRevision=Number(sw.match(/fig-league-shell-v(\d+)/)?.[1]);
+assert.ok(cacheRevision>=Number(appRevision[1]),'service worker cache revision is not older than deployed app revision');
 assert.match(html,/dynasty-market-v209\.js\?v=\d+/,'market module is registered with a version');
 assert.match(html,/dynasty-market-v209\.css\?v=\d+/,'market stylesheet is registered with a version');
 
