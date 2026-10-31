@@ -1,0 +1,71 @@
+/* FIG Hall of Fame — v243 entrance simplification & Immortal Seasons exhibit */
+.fig-hof-243 .fig-hof-243-hero{min-height:410px}
+.fig-hof-243 .fig-hof-v2-hero{min-height:440px;padding-top:64px;padding-bottom:65px}
+.fig-hof-243 .fig-hof-v2-hero .fig-hof-hero-text{align-self:center}
+.fig-hof-243 .fig-hof-v2-hero .fig-hof-hero-text h1{margin-bottom:0}
+.fig-hof-243 .fig-hof-v2-hero .fig-hof-hero-emblem{min-height:265px}
+.fig-hof-243 .fig-hof-242-main{padding-top:58px}
+.fig-hof-243-season-section{margin:78px 0 16px}
+.fig-hof-243-season-heading{padding:0 0 30px}
+.fig-hof-243-season-heading h2{font:400 clamp(41px,4.7vw,66px)/1.08 Georgia,"Times New Roman",serif;letter-spacing:-.05em;margin:14px 0 15px;color:#fbf1df}
+.fig-hof-243-season-heading p{font-size:13px;color:#b6bdc1;line-height:1.8;margin:0}
+.fig-hof-243-season-card{display:grid;grid-template-columns:minmax(225px,.75fr) minmax(0,1.65fr);min-height:330px;border:1px solid #a08357;background:radial-gradient(ellipse at 0 25%,rgba(213,174,103,.12),transparent 43%),linear-gradient(125deg,#24313c,#111c27 85%);overflow:hidden;position:relative;transition:border-color .22s,transform .22s,box-shadow .22s}
+.fig-hof-243-season-card:hover{transform:translateY(-4px);border-color:#f1d29b;box-shadow:0 18px 44px rgba(0,0,0,.32)}
+.fig-hof-243-season-card:after{position:absolute;content:"";inset:8px;border:1px solid rgba(232,196,134,.19);pointer-events:none}
+.fig-hof-243-season-card-art{position:relative;display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;padding:33px;background:radial-gradient(ellipse at 50% 40%,rgba(198,155,97,.21),transparent 66%),#1b2832;border-right:1px solid #755e3c}
+.fig-hof-243-season-monogram{width:162px;height:180px;display:flex;align-items:center;justify-content:center;border:3px double #b99661;background:radial-gradient(ellipse at 36% 19%,#806644,#3d3930 59%,#1d2b33);color:#e7c593;font:400 125px/.9 Georgia,serif;box-shadow:0 0 0 9px rgba(216,168,91,.04),0 17px 39px rgba(0,0,0,.34);text-shadow:1px 2px 2px #171c22,-1px -1px 1px #fff8e640}
+.fig-hof-243-season-card-art>span{font:800 9px Inter,Arial,sans-serif;color:#d8b57d;letter-spacing:.23em}
+.fig-hof-243-season-card-copy{display:flex;flex-direction:column;justify-content:center;padding:clamp(27px,4vw,50px);min-width:0}
+.fig-hof-243-season-card-copy h3{font:400 clamp(39px,5vw,68px)/1 Georgia,"Times New Roman",serif;letter-spacing:-.06em;color:#fff2da;margin:21px 0 19px}
+.fig-hof-243-season-card-copy p{font-size:13px;line-height:1.85;color:#bac3c8;max-width:580px;margin:0 0 22px}
+.fig-hof-243-season-card-metrics{display:flex;gap:20px;flex-wrap:wrap;margin:4px 0 25px}
+.fig-hof-243-season-card-metrics span{display:flex;flex-direction:column;gap:7px;border-left:1px solid #806746;padding-left:14px;font:800 8px Inter,Arial,sans-serif;letter-spacing:.07em;line-height:1.4;color:#9eacb2}
+.fig-hof-243-season-card-metrics strong{font:400 28px Georgia,serif;letter-spacing:-.02em;color:#e8c994}
+.fig-hof-243-season-action{align-self:flex-start;font:800 10px Inter,Arial,sans-serif;letter-spacing:.11em;color:#ebc78a;border-bottom:1px solid #9a7c53;padding-bottom:8px}
+.fig-hof-243-season-profile-hero{display:grid;grid-template-columns:230px minmax(0,1fr);gap:47px;align-items:center;padding:42px;background:radial-gradient(ellipse at 18% 29%,rgba(199,151,79,.20),transparent 49%),#202d39;border:1px solid #ac8955;box-shadow:inset 0 0 0 8px #0e192344}
+.fig-hof-243-season-profile-mark{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px double #bd9d6c;background:radial-gradient(circle at 35% 15%,#66543e,#2c353c 73%);font:400 151px/.9 Georgia,serif;color:#eed1a1;text-shadow:0 3px 7px #0007}
+.fig-hof-243-season-profile-mark>span{font:800 12px Inter,Arial,sans-serif;letter-spacing:.24em;color:#e2c394;margin-top:18px}
+.fig-hof-243-season-profile-hero h1{font:400 clamp(50px,6vw,88px)/1 Georgia,serif;letter-spacing:-.055em;margin:20px 0;color:#fef0d6}
+.fig-hof-243-season-profile-hero p{font-size:13px;line-height:1.85;color:#b9c4c8;max-width:630px}
+.fig-hof-243-season-profile-actions{display:flex;align-items:center;gap:27px;flex-wrap:wrap;margin-top:25px}
+.fig-hof-243-season-profile .fig-hof-v2-plaque-metrics{margin:25px 0 15px}
+.fig-hof-243-season-proof{margin-top:29px;border-top:1px solid #66583f}
+.fig-hof-243-season-proof a{display:flex;gap:20px;justify-content:space-between;align-items:center;padding:23px 11px;border-bottom:1px solid #3b4852;transition:background .2s}
+.fig-hof-243-season-proof a:hover{background:#1d2a35}
+.fig-hof-243-season-proof span{color:#b9c5c8;font-size:12px;font-weight:700}
+.fig-hof-243-season-proof strong{color:#e5c48d;font-size:10px;white-space:nowrap}
+@media(max-width:699px){
+ .fig-hof-243 .fig-hof-v2-hero{min-height:385px;grid-template-columns:minmax(0,1fr) 124px;gap:2px;padding:49px 20px 35px}
+ .fig-hof-243 .fig-hof-v2-hero h1{font-size:clamp(50px,11.3vw,76px)}
+ .fig-hof-243 .fig-hof-hero-emblem{min-height:180px;align-self:center}
+ .fig-hof-243 .fig-hof-emblem-halo{width:124px;height:124px}
+ .fig-hof-243 .fig-hof-v2-crest{height:128px;width:105px;font-size:68px;outline-width:3px;outline-offset:4px}
+ .fig-hof-243 .fig-hof-v2-crest span{font-size:8px;letter-spacing:.1em;margin-top:11px}
+ .fig-hof-243 .fig-hof-v2-crest strong{font-size:13px;margin-top:6px}
+ .fig-hof-243 .fig-hof-kicker{font-size:8px;line-height:1.6;letter-spacing:.14em}
+ .fig-hof-243 .fig-hof-242-main{padding-top:39px}
+ .fig-hof-243-season-section{margin-top:52px}
+ .fig-hof-243-season-heading h2{font-size:45px}
+ .fig-hof-243-season-card{grid-template-columns:1fr}
+ .fig-hof-243-season-card-art{min-height:205px;border-right:0;border-bottom:1px solid #755e3c;padding:25px;gap:13px}
+ .fig-hof-243-season-monogram{width:115px;height:126px;font-size:83px}
+ .fig-hof-243-season-card-copy{padding:27px 22px 32px}
+ .fig-hof-243-season-card-copy h3{font-size:49px;margin:16px 0}
+ .fig-hof-243-season-card-copy p{font-size:12px}
+ .fig-hof-243-season-card-metrics{gap:14px}
+ .fig-hof-243-season-card-metrics span{padding-left:10px}
+ .fig-hof-243-season-card-metrics strong{font-size:23px}
+ .fig-hof-243-season-profile-hero{grid-template-columns:1fr;padding:22px;gap:20px}
+ .fig-hof-243-season-profile-mark{min-height:165px;font-size:100px}
+ .fig-hof-243-season-profile-mark span{font-size:9px}
+ .fig-hof-243-season-profile-hero h1{font-size:55px}
+ .fig-hof-243-season-proof a{flex-wrap:wrap}
+}
+@media(max-width:380px){
+ .fig-hof-243 .fig-hof-v2-hero{grid-template-columns:minmax(0,1fr) 89px;padding:46px 16px 30px;min-height:340px}
+ .fig-hof-243 .fig-hof-v2-hero h1{font-size:clamp(43px,12vw,54px)}
+ .fig-hof-243 .fig-hof-hero-emblem{min-height:140px}
+ .fig-hof-243 .fig-hof-v2-crest{width:87px;height:108px;font-size:51px}
+ .fig-hof-243 .fig-hof-emblem-halo{height:105px;width:105px}
+ .fig-hof-243 .fig-hof-v2-crest span{font-size:7px}
+}
