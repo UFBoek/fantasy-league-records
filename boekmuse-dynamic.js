@@ -9,7 +9,7 @@
  const isFollowup=q=>/^(?:and\b|what about\b|how about\b|of those\b|among them\b|now\b|which of them\b|for .* instead\b|same (?:thing|question)\b)/i.test(q.trim());
  function shown(k,v){
   if(v===null||v===undefined)return '—';
-  if((k==='team_id'||k==='opponent_id')&&NAMES[Number(v)])return NAMES[Number(v)];
+  if(['team_id','opponent_id','franchise_id','original_franchise_id','current_franchise_id','counterparty_franchise_id','drafting_team_id'].includes(k)&&NAMES[Number(v)])return NAMES[Number(v)];
   if(typeof v==='number')return Number(v).toLocaleString('en-US',{maximumFractionDigits:3});
   return String(v);
  }
@@ -19,8 +19,9 @@
  }
  function link(row){
   if(row.player_id)return '#/player/'+encodeURIComponent(row.player_id);
-  if(row.team_id&&row.season)return '#/teamseason/'+Number(row.team_id)+'/'+Number(row.season);
-  if(row.team_id)return '#/team/'+Number(row.team_id);
+  const team=row.team_id||row.franchise_id||row.current_franchise_id||row.original_franchise_id;
+  if(team&&row.season)return '#/teamseason/'+Number(team)+'/'+Number(row.season);
+  if(team)return '#/team/'+Number(team);
   if(row.opponent_id)return '#/team/'+Number(row.opponent_id);
   return '';
  }
@@ -43,7 +44,10 @@
     method:'Calculated directly with a read-only SQL query against the published league database.'},
    columns:cols.map(displayColumn),
    rows:raw.map(r=>({values:cols.map(c=>shown(c,r[c])),href:link(r)})),
-   sql:data.sql,note:'Computed by Cloudflare D1 using published league records. The AI generated a read-only query; the numbers come from database results.'+
+   sql:data.sql,note:(data.source_type==='published_snapshot'?
+    'Computed from published league datasets. Some sources are live snapshots, dynasty valuations or model projections, not verified historical outcomes.':
+    'Computed by Cloudflare D1 using finalized published league records.')+
+    ' The AI generated a read-only query; numbers come from database results.'+
     (derivedTotal?' Total touchdowns = verified rushing + receiving TD columns.':'')};
  }
  async function ask(question){

@@ -5,7 +5,7 @@ const MODEL='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const BASE='https://ufboek.github.io/fantasy-league-records/data/';
 const TEAMS='1 Boek; 2 Fru; 3 Fromm; 4 Sack; 5 Leyton; 6 Hayden; 7 Line (Lionel); 8 Winston; 9 CamNol; 10 James';
 const SCHEMA= [
- 'THESE ARE THE ONLY SQL VIEWS YOU MAY QUERY. All rows represent published finalized games:',
+ 'THESE ARE THE ONLY SQL VIEWS YOU MAY QUERY. Core scoring views contain finalized games; archive views include published live snapshots, model projections and historical reference data:',
  'games(season INTEGER, week INTEGER, game_type TEXT, team_id INTEGER, opponent_id INTEGER, points REAL, opponent_points REAL, win INTEGER, loss INTEGER, tie INTEGER, margin REAL, game_url TEXT). One row PER TEAM PER GAME, not one row per matchup. game_type is "Regular Season" or "Playoffs".',
  'starts(season INTEGER, week INTEGER, game_type TEXT, team_id INTEGER, player_id TEXT, player_name TEXT, position TEXT, fantasy_points REAL, rush_td INTEGER, rec_td INTEGER, td INTEGER, td_verified INTEGER, player_url TEXT). One row per actual STARTED player. QB/non-QB counts by position. TD stats NULL if unavailable.',
  'td_coverage(season INTEGER, week INTEGER, game_type TEXT, team_id INTEGER). One row per team-game for which EVERY started non-QB offensive RB/WR/TE/FB has verified rushing+receiving TD records.',
@@ -14,6 +14,7 @@ const SCHEMA= [
  'trade_participants(trade_id TEXT, team_id INTEGER, received_count INTEGER, sent_count INTEGER, players_received INTEGER, players_sent INTEGER, picks_received INTEGER, picks_sent INTEGER). One row per team SIDE of a completed trade.',
  'trade_assets(trade_id TEXT, team_id INTEGER, direction TEXT, asset_name TEXT). One row per asset received or sent, direction "received" or "sent".',
  'draft_picks(season INTEGER, team_id INTEGER, draft_round INTEGER, pick_no INTEGER, player_id TEXT, player_name TEXT, position TEXT, draft_class TEXT). One row per drafted player.',
+ 'archive_catalog(dataset TEXT, section TEXT, format TEXT, item_count INTEGER, fields TEXT, sample TEXT) and archive_chunks(dataset TEXT, section TEXT, chunk_no INTEGER, format TEXT, payload TEXT) cover ALL other published league data. Use JSON1 json_each/json_extract for arbitrary records. See the live archive catalog below. Historical facts must not be confused with projections, values, injury annotations or incomplete live results.',
  'Team identifiers: '+TEAMS+'. Aliases Sak=Sack, Lionel=Line.',
  'Use standard SQLite SQL SELECT, JOIN, CTE, aggregates, CASE, subqueries, window functions; never write to a table.',
  'No ambiguous assumptions: state in "understood" which team, season, scoring metric and grouping were used.',
@@ -87,7 +88,182 @@ async function ensureSchema(db){
    ' FROM '+name+'_all WHERE generation=(SELECT generation FROM sync_meta WHERE id=1)').run();
  }
  for(const sql of PRIMARY_INDEX)await db.prepare(sql).run();
+ // Upgrade older installations from a global generation to per-table versions.
+ // This lets unchanged history tables retain their rows when a live snapshot
+ // refreshes, staying inside D1 Free's 100k daily row-write allowance.
+ await db.prepare('CREATE TABLE IF NOT EXISTS core_table_meta (name TEXT PRIMARY KEY,generation INTEGER NOT NULL,content_hash TEXT NOT NULL)').run();
+ await db.prepare('CREATE TABLE IF NOT EXISTS core_schema_settings (name TEXT PRIMARY KEY,version INTEGER NOT NULL)').run();
+ const migration=await db.prepare("SELECT version FROM core_schema_settings WHERE name='views'").first();
+ if(!migration||migration.version<2){
+  for(const [name,columns] of Object.entries(TABLE_COLUMNS)){
+   await db.prepare('INSERT OR IGNORE INTO core_table_meta(name,generation,content_hash) VALUES(?,(SELECT generation FROM sync_meta WHERE id=1),\'\')').bind(name).run();
+   await db.prepare('DROP VIEW IF EXISTS '+name).run();
+   await db.prepare('CREATE VIEW '+name+' AS SELECT '+columns.slice(1).join(',')+
+    ' FROM '+name+'_all WHERE generation=(SELECT generation FROM core_table_meta WHERE name=\''+name+'\')').run();
+  }
+  await db.prepare("INSERT OR REPLACE INTO core_schema_settings(name,version) VALUES('views',2)").run();
+ }
 }
+
+/* Complete published archive index. JSON chunks preserve every original field,
+   including nested source objects. Ordinary SQL remains available in D1 views.
+   Hashes prevent unnecessary D1 writes on the free tier. */
+const EXTRA_DATASETS=[
+ 'draft_pick_outcomes_audit','draft_pick_round_reconciliation',
+ 'dynasty_dominance_projection','dynasty_market_history','dynasty_nfl_history',
+ 'injury_candidate_leads','injury_candidates','injury_discovery_candidates',
+ 'injury_events_reviewed','injury_history','playoff_nfl_weekly_scores',
+ 'playoff_player_scores','player_weekly_touchdowns','published_weekly_scores',
+ 'rosteraudit_values','trade_lineage','verified_week_cutoffs','waiver_fa',
+ 'waiver_player_names'
+];
+const CHUNK_TARGET=44000;
+function archiveDatasetNames(manifest){
+ return [...new Set([...Object.keys(manifest||{}),...EXTRA_DATASETS])]
+  .filter(x=>/^[a-z][a-z0-9_]{1,80}$/.test(x)&&!['manifest','refresh_manifest'].includes(x))
+  .sort();
+}
+// Array rows are packed as JSON arrays; keyed source objects are packed as JSON
+// objects so json_each(chunk.payload) gives the original key and value.
+function createArchiveChunks(name,data){
+ const result=[],catalog=[];
+ function addSection(section,entries,format){
+  let batch=[],bytes=2,count=0,chunk=0,sample=null,fields=new Set();
+  function flush(){
+   if(!batch.length)return;
+   const payload=format==='array'?'['+batch.join(',')+']':'{'+batch.join(',')+'}';
+   result.push([name,section,chunk++,format,payload]);
+   batch=[];bytes=2;
+  }
+  for(const [key,item] of entries){
+   if(sample===null)sample=item;
+   if(item&&typeof item==='object'&&!Array.isArray(item))
+    Object.keys(item).slice(0,45).forEach(k=>fields.add(k));
+   const content=format==='array'?JSON.stringify(item):JSON.stringify(String(key))+':'+JSON.stringify(item);
+   if(content===undefined)continue;
+   if(batch.length&&bytes+content.length+1>CHUNK_TARGET)flush();
+   batch.push(content);bytes+=content.length+1;count++;
+  }
+  flush();
+  catalog.push([name,section,format,count,[...fields].join(',').slice(0,850),
+   JSON.stringify(sample===null?{}:sample).slice(0,700)]);
+ }
+ if(Array.isArray(data))addSection('root',data.map((x,i)=>[i,x]),'array');
+ else if(data&&typeof data==='object'){
+  const metadata={};
+  for(const [key,value] of Object.entries(data)){
+   if(Array.isArray(value))addSection(key,value.map((x,i)=>[i,x]),'array');
+   else if(value&&typeof value==='object')addSection(key,Object.entries(value),'object');
+   else metadata[key]=value;
+  }
+  if(Object.keys(metadata).length)addSection('__meta__',Object.entries(metadata),'object');
+ }else addSection('root',[[0,{value:data}]],'array');
+ return {chunks:result,catalog};
+}
+async function ensureArchiveSchema(db){
+ await db.prepare('CREATE TABLE IF NOT EXISTS archive_source_meta (dataset TEXT PRIMARY KEY, generation INTEGER NOT NULL, content_hash TEXT NOT NULL, synced_at TEXT NOT NULL, item_count INTEGER NOT NULL, chunk_count INTEGER NOT NULL)').run();
+ await db.prepare('CREATE TABLE IF NOT EXISTS archive_chunks_all (dataset TEXT NOT NULL, generation INTEGER NOT NULL, section TEXT NOT NULL, chunk_no INTEGER NOT NULL, format TEXT NOT NULL, payload TEXT NOT NULL)').run();
+ await db.prepare('CREATE INDEX IF NOT EXISTS idx_archive_chunk ON archive_chunks_all(dataset,generation,section,chunk_no)').run();
+ await db.prepare('CREATE TABLE IF NOT EXISTS archive_catalog_all (dataset TEXT NOT NULL, generation INTEGER NOT NULL, section TEXT NOT NULL, format TEXT NOT NULL, item_count INTEGER NOT NULL, fields TEXT NOT NULL, sample TEXT NOT NULL)').run();
+ await db.prepare('CREATE INDEX IF NOT EXISTS idx_archive_catalog ON archive_catalog_all(dataset,generation,section)').run();
+ await db.prepare('CREATE VIEW IF NOT EXISTS archive_chunks AS SELECT c.dataset,c.section,c.chunk_no,c.format,c.payload FROM archive_chunks_all c JOIN archive_source_meta m ON m.dataset=c.dataset AND m.generation=c.generation').run();
+ await db.prepare('CREATE VIEW IF NOT EXISTS archive_catalog AS SELECT c.dataset,c.section,c.format,c.item_count,c.fields,c.sample FROM archive_catalog_all c JOIN archive_source_meta m ON m.dataset=c.dataset AND m.generation=c.generation').run();
+}
+async function contentDigest(raw){
+ const bytes=new TextEncoder().encode(raw);
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function archiveSyncOne(env,name,knownHash){
+ const response=await fetch(BASE+name+'.json',{headers:{'cache-control':'no-cache'}});
+ if(!response.ok)throw Error('Archive source '+name+' HTTP '+response.status);
+ const raw=await response.text(),hash=await contentDigest(raw);
+ if(hash===knownHash)return {dataset:name,changed:false};
+ const parsed=JSON.parse(raw),prepared=createArchiveChunks(name,parsed),generation=Date.now();
+ const db=env.DB;
+ for(let i=0;i<prepared.chunks.length;i+=8){
+  const group=prepared.chunks.slice(i,i+8);
+  await db.batch(group.map(x=>db.prepare(
+   'INSERT INTO archive_chunks_all(dataset,section,chunk_no,format,payload,generation) VALUES(?,?,?,?,?,?)'
+  ).bind(x[0],x[1],x[2],x[3],x[4],generation)));
+ }
+ for(let i=0;i<prepared.catalog.length;i+=8){
+  const group=prepared.catalog.slice(i,i+8);
+  await db.batch(group.map(x=>db.prepare(
+   'INSERT INTO archive_catalog_all(dataset,section,format,item_count,fields,sample,generation) VALUES(?,?,?,?,?,?,?)'
+  ).bind(x[0],x[1],x[2],x[3],x[4],x[5],generation)));
+ }
+ const items=prepared.catalog.reduce((sum,x)=>sum+x[3],0);
+ // Publish the complete new dataset atomically. Failed partial writes are invisible.
+ await db.prepare('INSERT INTO archive_source_meta(dataset,generation,content_hash,synced_at,item_count,chunk_count) VALUES(?,?,?,?,?,?) ON CONFLICT(dataset) DO UPDATE SET generation=excluded.generation,content_hash=excluded.content_hash,synced_at=excluded.synced_at,item_count=excluded.item_count,chunk_count=excluded.chunk_count')
+  .bind(name,generation,hash,new Date().toISOString(),items,prepared.chunks.length).run();
+ await db.prepare('DELETE FROM archive_chunks_all WHERE dataset=? AND generation!=?').bind(name,generation).run();
+ await db.prepare('DELETE FROM archive_catalog_all WHERE dataset=? AND generation!=?').bind(name,generation).run();
+ return {dataset:name,changed:true,items,chunks:prepared.chunks.length};
+}
+async function synchronizeArchive(env,maxSources=20){
+ await ensureArchiveSchema(env.DB);
+ const manifest=await fetchJson('manifest'),names=archiveDatasetNames(manifest);
+ const state=await env.DB.prepare('SELECT dataset,content_hash,synced_at FROM archive_source_meta').all();
+ const previous=new Map((state.results||[]).map(r=>[r.dataset,r]));
+ // Prioritize never-indexed sources; then rotate old source checks to capture
+ // current rosters, valuations, simulations and historical refreshes.
+ names.sort((a,b)=>{
+  const x=previous.get(a),y=previous.get(b);
+  if(!x&&!y)return 0;
+  if(!x)return -1;if(!y)return 1;
+  return x.synced_at.localeCompare(y.synced_at);
+ });
+ const results=[];
+ for(const name of names.slice(0,maxSources)){
+  try{results.push(await archiveSyncOne(env,name,previous.get(name)?.content_hash||''));}
+  catch(e){console.error('Archive dataset '+name+':',String(e).slice(0,230));
+   results.push({dataset:name,error:String(e).slice(0,180)});}
+ }
+ return {indexed:previous.size,available:names.length,checked:results};
+}
+async function archiveStatus(db){
+ const manifest=await fetchJson('manifest').catch(()=>({}));
+ const total=archiveDatasetNames(manifest).length;
+ const row=await db.prepare('SELECT COUNT(*) AS sources,COALESCE(SUM(item_count),0) AS records,COALESCE(SUM(chunk_count),0) AS chunks FROM archive_source_meta').first();
+ return {sources:Number(row?.sources||0),total,records:Number(row?.records||0),chunks:Number(row?.chunks||0)};
+}
+async function archiveSchemaPrompt(db,question){
+ const list=await db.prepare('SELECT dataset,section,format,item_count,fields,sample FROM archive_catalog ORDER BY dataset,section').all();
+ const rows=list.results||[];
+ const all=[...new Set(rows.map(x=>x.dataset))];
+ // Give all available source names and their sections. Highlight relevant field
+ // definitions to keep inference inside free-tier input budgets.
+ const words=question.toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>3);
+ const hints=[
+  ['roster',['roster','bench','lineup','starter','slot','taxi','reserve']],
+  ['pick',['pick','draft','rookie']],
+  ['trade',['trade','asset','transaction','faab']],
+  ['injury',['injury','injured']],
+  ['projection',['projection','projected','future','forecast','dominance','challenger','simulation']],
+  ['value',['value','dynasty','market','rank']],
+  ['all_play',['allplay','all-play','all play','schedule','luck']],
+  ['streak',['streak','consecutive']],
+  ['record',['record','most','best','highest','worst']],
+  ['waiver',['waiver','free agent','add','drop']]
+ ];
+ const q=question.toLowerCase();
+ const matched=new Set(all.filter(name=>words.some(w=>name.includes(w)||w.includes(name))));
+ for(const [keyword,triggers] of hints)if(triggers.some(t=>q.includes(t)))
+  all.filter(name=>name.includes(keyword)).forEach(name=>matched.add(name));
+ let excerpts=rows.map(r=>{
+  const detail=matched.has(r.dataset)?' fields='+r.fields.slice(0,450)+
+   ' sample='+r.sample.slice(0,270):' fields='+r.fields.slice(0,130);
+  return r.dataset+'/'+r.section+' ('+r.format+', '+r.item_count+' entries)'+detail;
+ });
+ // Avoid cutting source names off: dataset list remains complete even if the
+ // per-section field catalog must be summarized.
+ if(excerpts.join('\n').length>12500)excerpts=excerpts.map(x=>x.slice(0,170));
+ return 'Indexed archive datasets: '+all.join(', ')+
+  '\nArchive dataset sections and sample JSON fields:\n'+excerpts.join('\n')+
+  '\nTo query a dataset: FROM archive_chunks c JOIN json_each(c.payload) j WHERE c.dataset=\'DATASET\' AND c.section=\'SECTION\'. For array section j.value is original JSON row. For object section j.key is original object key, j.value is its original value. Access fields with json_extract(j.value,\'$.field_name\') and CAST(... AS REAL/INTEGER) when needed. Never assume a field without checking the catalog. Current rosters, values, future projections, injury annotations and live snapshots are NOT necessarily finalized historical outcomes. Missing data must never become zero.';
+}
+
 const GET_KEYS=['refresh_manifest','games','player_game_log','player_weekly_touchdowns',
  'team_season_master','trades','trade_sides','draft_picks'];
 async function fetchJson(name){
@@ -182,14 +358,28 @@ async function synchronize(env){
  if(!Array.isArray(data.player_weekly_touchdowns?.records))throw Error('Missing touchdown archive');
  const generation=Date.now();
  const rows=snapshotRows(data,generation);
- for(const [name,items] of Object.entries(rows))await storeRows(env.DB,name,items);
- // Only publish the new generation when ALL inserts have completed.
- await env.DB.prepare('UPDATE sync_meta SET generation=?,version=?,finished_at=? WHERE id=1')
-  .bind(generation,version,new Date().toISOString()).run();
- // Old snapshots are cleaned only after the new one is active.
- for(const name of Object.keys(rows))await env.DB.prepare(
+ const meta=await env.DB.prepare('SELECT name,generation,content_hash FROM core_table_meta').all();
+ const known=new Map((meta.results||[]).map(x=>[x.name,x]));
+ const changed=[];
+ for(const [name,items] of Object.entries(rows)){
+  // A generation timestamp is not part of a content hash.
+  const hash=await contentDigest(JSON.stringify(items.map(row=>row.slice(1))));
+  if(hash===known.get(name)?.content_hash)continue;
+  await storeRows(env.DB,name,items);
+  changed.push({name,hash,count:items.length});
+ }
+ // No table becomes visible until every changed table was written. D1 batch
+ // applies the switch atomically, while old generations remain queryable.
+ const switchStatements=changed.map(x=>env.DB.prepare(
+  'INSERT INTO core_table_meta(name,generation,content_hash) VALUES(?,?,?) ON CONFLICT(name) DO UPDATE SET generation=excluded.generation,content_hash=excluded.content_hash'
+ ).bind(x.name,generation,x.hash));
+ switchStatements.push(env.DB.prepare('UPDATE sync_meta SET generation=?,version=?,finished_at=? WHERE id=1')
+  .bind(generation,version,new Date().toISOString()));
+ await env.DB.batch(switchStatements);
+ for(const {name} of changed)await env.DB.prepare(
   'DELETE FROM '+name+'_all WHERE generation!=?').bind(generation).run();
- return {updated:true,version,counts:Object.fromEntries(Object.entries(rows).map(([k,v])=>[k,v.length]))};
+ return {updated:true,version,changed:changed.map(x=>x.name),
+  counts:Object.fromEntries(changed.map(x=>[x.name,x.count]))};
 }
 function sqlClean(input){
  if(typeof input!=='string'||input.length<10||input.length>4500)throw Error('Invalid SQL length');
@@ -198,9 +388,9 @@ function sqlClean(input){
  if(!/^(SELECT|WITH)\b/i.test(scrub))throw Error('Only SELECT or nonrecursive WITH queries allowed');
  if(/;|--|\/\*|\*\/|#/.test(scrub))throw Error('SQL comments or multiple statements not permitted');
  if(/\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|PRAGMA|ATTACH|DETACH|REPLACE|VACUUM|REINDEX|ANALYZE|TRIGGER|RECURSIVE|INTO|RETURNING|LOAD_EXTENSION|RANDOMBLOB|ZEROBLOB)\b/i.test(scrub))throw Error('Write, recursive, or unsafe SQL denied');
- if(/\b(sqlite_|sync_meta|_all\b)/i.test(scrub))throw Error('Internal tables not available');
+ if(/\b(sqlite_|sync_meta|archive_source_meta|core_table_meta|core_schema_settings|_all\b)/i.test(scrub))throw Error('Internal tables not available');
  if((scrub.match(/\bJOIN\b/gi)||[]).length>8)throw Error('Too many table joins');
- if(!/\b(games|starts|td_coverage|team_seasons|trades|trade_participants|trade_assets|draft_picks)\b/i.test(scrub))
+ if(!/\b(games|starts|td_coverage|team_seasons|trades|trade_participants|trade_assets|draft_picks|archive_chunks|archive_catalog)\b/i.test(scrub))
   throw Error('Query must read published league tables');
  if(/\b(?:SLEEP|BENCH|USER_PASSWORD)\s*\(/i.test(scrub))throw Error('Unknown operation');
  return sql;
@@ -231,8 +421,8 @@ function questionGuard(question,sql){
    !/\btd_coverage\b/i.test(sql))
    throw Error('Touchdown questions require verified player TDs and complete-week coverage, not game counts');
  }
- if(/\b(?:rushing|receiving|passing)\s+yards?\b/.test(q))
-  throw Error('Raw rushing, receiving and passing yards are not in the indexed archive');
+ // Raw NFL yardage is answerable only when an indexed source actually contains it.
+ // The planner must never replace unavailable yards with fantasy points.
 }
 // Provenance gate: never claim a complete touchdown total if the published
 // starter-to-NFL-stat join lacks even one finalized team-week in the requested scope.
@@ -276,9 +466,9 @@ async function checkTdCompleteness(db,question){
  return null;
 }
 
-function prompt(question,previous,error){
+function prompt(question,previous,error,catalog){
  return [
-  {role:'system',content:'You are BoekMuse, the SQL planner for a fantasy football database. You must NOT invent results. '+SCHEMA},
+  {role:'system',content:'You are BoekMuse, the SQL planner for a fantasy football database. You must NOT invent results. '+SCHEMA+'\n'+catalog},
   ...(previous?[{role:'user',content:'Previous query: '+previous.question+'\nPrevious SQL: '+previous.sql+'\nCurrent follow-up: '+question}]:
    [{role:'user',content:question}]),
   ...(error?[{role:'assistant',content:'The last SQL failed verification.'},
@@ -290,10 +480,10 @@ function parsePlan(value){
  if(!output||typeof output!=='object'||typeof output.supported!=='boolean')throw Error('AI output invalid');
  return output;
 }
-async function interpret(env,question,previous,error){
+async function interpret(env,question,previous,error,catalog){
  const output=await env.AI.run(MODEL,{
-  messages:prompt(question,previous,error),response_format:{type:'json_schema',json_schema:QUERY_SCHEMA},
-  max_tokens:720,temperature:0
+  messages:prompt(question,previous,error,catalog),response_format:{type:'json_schema',json_schema:QUERY_SCHEMA},
+  max_tokens:1150,temperature:0
  });
  return parsePlan(output);
 }
@@ -303,9 +493,10 @@ function normalizeResult(row){
   Math.round(v*10000)/10000:v]));
 }
 async function runQuery(env,question,previous){
+ const catalog=await archiveSchemaPrompt(env.DB,question);
  let lastError='';
  for(let attempt=0;attempt<2;attempt++){
-  const plan=await interpret(env,question,previous,lastError);
+  const plan=await interpret(env,question,previous,lastError,catalog);
   if(!plan.supported)return {ok:false,unsupported:true,message:str(plan.reason||'The required data are not available.')};
   try{
    const sql=sqlClean(plan.sql);
@@ -315,7 +506,8 @@ async function runQuery(env,question,previous){
    const rows=(data.results||[]).map(normalizeResult);
    if(!rows.length)return {ok:false,unsupported:false,message:'No published records matched that query. The AI did not substitute another statistic.',sql};
    return {ok:true,version:'dynamic-sql-v2',title:str(plan.title).slice(0,120),
-    understood:str(plan.understood).slice(0,400),sql,source:'Cloudflare D1 · published finalized Sleeper league archive',
+    understood:str(plan.understood).slice(0,400),sql,source:/\barchive_chunks\b/i.test(sql)?'Cloudflare D1 · published league data (includes live/model snapshots)':'Cloudflare D1 · finalized Sleeper league archive',
+    source_type:/\barchive_chunks\b/i.test(sql)?'published_snapshot':'finalized_history',
     columns:Object.keys(rows[0]),rows,previous:{question,sql}};
   }catch(e){lastError=String(e?.message||e).slice(0,300);}
  }
@@ -326,15 +518,16 @@ export default {
   const url=new URL(request.url),origin=originAllowed(request,env);
   if(url.pathname==='/health'){
    if(!env.DB)return reply({ok:false,ready:false,error:'Database binding missing'},503,origin);
-   try{await ensureSchema(env.DB);const meta=await env.DB.prepare(
+   try{await ensureSchema(env.DB);await ensureArchiveSchema(env.DB);const meta=await env.DB.prepare(
     'SELECT generation,version,finished_at FROM sync_meta WHERE id=1').first();
+    const archive=await archiveStatus(env.DB);
     return reply({ok:true,ready:!!meta?.generation,version:meta?.version||null,
-     finished_at:meta?.finished_at||null,model:MODEL},200,origin);
+     finished_at:meta?.finished_at||null,archive,model:MODEL},200,origin);
    }catch(e){return reply({ok:false,error:'Database unavailable'},503,origin);}
   }
   // One-time initialization trigger; cannot be used to force repeated writes.
   if(url.pathname==='/bootstrap'&&request.method==='GET'){
-   await ensureSchema(env.DB);
+   await ensureSchema(env.DB);await ensureArchiveSchema(env.DB);
    const meta=await env.DB.prepare('SELECT generation FROM sync_meta WHERE id=1').first();
    if(meta?.generation)return reply({ok:true,ready:true,already_initialized:true},200,origin);
    try {
@@ -359,6 +552,7 @@ export default {
    return reply({ok:false,error:'Question must be 4–250 characters'},400,origin);
   if(!env.DB||!env.AI||!env.RATE||!env.GLOBAL_RATE)
    return reply({ok:false,error:'AI service or database not configured'},503,origin);
+  await ensureArchiveSchema(env.DB);
   const meta=await env.DB.prepare('SELECT generation,version FROM sync_meta WHERE id=1').first();
   if(!meta?.generation)return reply({ok:false,error:'League SQL index is initializing. Retry after the next refresh.'},503,origin);
   const client=request.headers.get('cf-connecting-ip')||'anonymous';
@@ -378,7 +572,12 @@ export default {
   }
  },
  async scheduled(event,env,ctx){
-  ctx.waitUntil(synchronize(env).then(x=>console.log('BoekMuse D1 sync',JSON.stringify(x)))
-   .catch(e=>console.error('BoekMuse D1 sync failed',String(e).slice(0,350))));
+  ctx.waitUntil((async()=>{
+   // Archive synchronization is independent of core game sync failures.
+   try{const x=await synchronize(env);console.log('BoekMuse D1 sync',JSON.stringify(x));}
+   catch(e){console.error('BoekMuse D1 sync failed',String(e).slice(0,350));}
+   try{const x=await synchronizeArchive(env);console.log('BoekMuse complete archive',JSON.stringify(x));}
+   catch(e){console.error('BoekMuse archive sync failed',String(e).slice(0,350));}
+  })());
  }
 };
