@@ -2,13 +2,13 @@
 
 ## Purpose
 
-BoekMuse now has an open-ended query architecture. The Cloudflare AI model translates ordinary English into **new SQLite SELECT queries**. Cloudflare D1 executes the query against a read-only, versioned league archive. This replaces the fixed-metric parser as the active public search engine; no new calculation needs to be hardcoded for each statistical question.
+BoekMuse now has an open-ended query architecture. The Gemini 3.8 Flash model (when configured) translates ordinary English into **new SQLite SELECT queries**. Cloudflare D1 executes the query against a read-only, versioned league archive. This replaces the fixed-metric parser as the active public search engine; no new calculation needs to be hardcoded for each statistical question.
 
-**Current AI:** Cloudflare Workers AI `@cf/meta/llama-3.3-70b-instruct-fp8-fast`. It remains eligible for the Cloudflare free daily allowance. No OpenAI or Google API key, paid account, or subscription was added. Public site users do not see API credentials.
+**Current AI configuration:** Gemini 3.8 Flash `gemini-3.8-flash` is the preferred SQL planner when the Cloudflare Worker has the **encrypted secret** `GEMINI_API_KEY`. Without that secret, or during Gemini API failures/429 quotas, BoekMuse continues to use the existing Workers AI `@cf/meta/llama-3.3-70b-instruct-fp8-fast`. Neither the website nor GitHub stores the API key. The query response includes `ai_provider` and `model` for verification. Cloudflare D1 remains the database; this change does not bypass its separate free write cap. Google states free-tier Gemini inputs may be used to improve its products.
 
 ## Architecture
 
-- `workers/boekmuse-v2/src/index.js`: Cloudflare Worker, D1 schema and versioned archive mirror, free Workers AI SQL planner, SQL-safety validation, exact D1 query execution, rate limiting, cron synchronization.
+- `workers/boekmuse-v2/src/index.js`: Cloudflare Worker, D1 schema and versioned archive mirror, Gemini-first SQL planner with Workers AI fallback, SQL-safety validation, exact D1 query execution, rate limiting, cron synchronization.
 - `workers/boekmuse-v2/wrangler.jsonc`: deploy config with D1 and Workers AI bindings.
 - `boekmuse-dynamic.js`: responsive UI response adapter, derived click-through links, basic follow-up context, exact query trace.
 - `league-ask-v220.js`: existing `#/boekmuse` page, now calls dynamic SQL engine only; if unavailable, **does not silently fall back** to keyword or fixed-metric answers.
@@ -16,7 +16,7 @@ BoekMuse now has an open-ended query architecture. The Cloudflare AI model trans
 - Cloudflare D1 database name: `boekmuse-league-analytics`. Workers deployment: `boekmuse-sql`.
 - Source: `https://ufboek.github.io/fantasy-league-records/data/` (only published, finalized snapshot).
 
-The D1 database holds a generation-controlled mirror of `games`, `starts`, `td_coverage`, `team_seasons`, `trades`, `trade_participants`, `trade_assets` and `draft_picks`. A scheduled sync runs every 30 minutes. It downloads sources into a new generation, validates them, writes all tables and only then switches the active generation; it removes old generations after success. **Failed syncs leave the previous complete generation active**. `/health` exposes the active source timestamp, and `/bootstrap` initializes an empty database.
+The D1 database holds a generation-controlled mirror of `games`, `starts`, `td_coverage`, `team_seasons`, `trades`, `trade_participants`, `trade_assets` and `draft_picks`. A scheduled sync runs every ten minutes. It downloads sources into a new generation, validates them, writes all tables and only then switches the active generation; it removes old generations after success. **Failed syncs leave the previous complete generation active**. `/health` exposes the active source timestamp, and `/bootstrap` initializes an empty database.
 
 ## Integrity guarantees and limits
 
@@ -54,3 +54,12 @@ BoekMuse now indexes **all 63 JSON datasets** published under `data/`, excluding
 **Status:** `GET /health` includes `archive.sources`, `archive.total`, `archive.records`, and `archive.chunks`. All sources are fully queryable only after `archive.sources === archive.total`. Cloudflare Worker changes require a separate deployment; GitHub commit alone does not update the deployed Worker.
 
 **Validation:** `node tests/test_boekmuse_full_archive.js`, `node tests/test_boekmuse_dynamic.js`. The original game and touchdown checks remain, with a new read-only SQL guard for internal metadata.
+
+## Enable Gemini 3.8 Flash (one-time secret setup)
+
+1. Create a **free Gemini API key** at https://aistudio.google.com/apikey for a project with Gemini 3.8 Flash enabled. Check the Google AI Studio rate limits for that project.
+2. In Cloudflare dashboard, go to **Workers & Pages → boekmuse-sql → Settings → Variables and Secrets → Add**. Create an encrypted **Secret** named `GEMINI_API_KEY`, paste the API key, save/deploy. Do **not** commit or send the key in chat, GitHub, or browser JavaScript.
+3. Load `https://boekmuse-sql.fig-league-archive.workers.dev/health`. `gemini_configured: true` means the secret is present, **not** proof it is valid. Perform a real query and check `ai_provider: "gemini"` and `model: "gemini-3.8-flash"` to verify a successful Gemini answer. `workers-ai-fallback` indicates Gemini couldn't complete the request.
+4. Deploying new Worker source via Cloudflare's multipart API must **inherit/preserve** `GEMINI_API_KEY` along with AI, DB, rate limiters and origins, or you'll revert to Workers AI.
+
+The website keeps its current `#/boekmuse` interface and SQL safety/verification. Gemini handles interpretation only; D1 computes all numerical answers. Gemini cannot answer unpublished league facts or data not yet indexed in D1. Queries may contain questions and public league source fields sent to Google. Tests: `node tests/test_boekmuse_gemini.js` and existing BoekMuse tests.
