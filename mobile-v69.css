@@ -1,4 +1,4 @@
-/* FIG League v69 — focused phone-only navigation, stat visibility and champions contrast.
+/* FIG League v69 – focused phone-only navigation, stat visibility and champions contrast.
    Does not touch desktop layout, league records or rankings. */
 @media(max-width:699px) {
   /* A real in-app back control for routes opened from lists or shared links. */
