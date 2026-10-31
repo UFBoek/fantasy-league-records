@@ -9,8 +9,7 @@ const PORTRAITS={1:'boek.webp',2:'fru.webp',3:'fromm.webp',4:'sack.webp',5:'leyt
    decision and evidence review, never a top-N query or an annual quota. */
 /* Inaugural induction is an explicit decision, not automatic scoring. */
 const ENSHRINED_SEASONS=[{year:2025,franchiseId:6,inductionYear:2026,
- title:'Hayden · 2025',honor:'A season beyond the ordinary',
- case:'A historic regular season followed by the league championship. Hayden crossed 3,000 points, posted seven weekly league-high totals, and finished with an 88.10% all-play win rate – a level of excellence sustained across an entire season.'}];
+ title:'Hayden · 2025',honor:'A season beyond the ordinary'}];
 const INDUCTION_CLASSES=[{year:2026,title:'The Founding Four',period:'2023–2025',entries:[
  {kind:'player',id:'4984',position:'QB',case:'The quarterback standard of the founding era: three consecutive elite seasons, extraordinary consistency and top-of-position production.'},
  {kind:'player',id:'9221',position:'RB',case:'An unmistakable ascent, from an impressive 2023 season to two outstanding years in 2024–2025, including an extraordinary 2025 peak.'},
@@ -86,8 +85,8 @@ function model(d){
   const championship=(d.games||[]).find(x=>value(x.season)===e.year&&
    x.game_type==='Playoffs'&&value(x.playoff_round)===3&&value(x.matchup_id)===1&&
    value(x.winner_franchise_id)===e.franchiseId);
-  return record&&championship?{...e,record,championship,
-   honors:seasonHonors(d,e.year,e.franchiseId),
+  return record?{...e,record,championship,playoff:seasonPlayoffResult(d,e.year,e.franchiseId),
+   honors:seasonHonors(d,e.year,e.franchiseId),topGames:seasonTopScoringGames(d,e.year,e.franchiseId),
    url:'#/hall-of-fame/inductee/season/'+e.franchiseId+'/'+e.year}:null;
  }).filter(Boolean);
  return {complete,foundingYears,classes,inductees,enshrinedSeasons};
@@ -132,7 +131,7 @@ function seasonHonors(d,season,franchiseId){
  const complete=new Set((d.teamSeasonMaster||[]).filter(x=>x.season_complete===true||String(x.season_complete).toLowerCase()==='true').map(x=>String(x.season)));
  const raw=[...(d.singleSeasonRecords||[]),...hallSeasonBombRows(d,complete)]
   .filter(x=>complete.has(String(x.season))&&Number.isFinite(Number(x.value))&&value(x.value)>0&&
-   !['Losses','5 BOMBS'].includes(String(x.record_category))&&
+   !['5 BOMBS'].includes(String(x.record_category))&&
    !/^(100|125|150|180|190)\+ Point Games$/.test(String(x.record_category)));
  const groups=new Map();for(const x of raw){const cat=String(x.record_category||'');if(!cat)continue;if(!groups.has(cat))groups.set(cat,[]);groups.get(cat).push(x);}
  const records=[];
@@ -141,7 +140,7 @@ function seasonHonors(d,season,franchiseId){
   let last=null,rank=0;
   rows.forEach((r,i)=>{
    const v=value(r.value);if(last===null||Math.abs(last-v)>0.000001)rank=i+1;last=v;
-   if(rank>3||value(r.season)!==season||value(r.franchise_id)!==franchiseId)return;
+   if(value(r.season)!==season||value(r.franchise_id)!==franchiseId)return;
    records.push({category,rank,metric:String(r.metric||''),value:v,
     tied:rows.some(other=>other!==r&&Math.abs(value(other.value)-v)<0.000001)});
   });
@@ -164,8 +163,53 @@ function seasonHonorsSections(e){
    '<div class="fig-hof-244-honor-measure"><strong>'+displayRecordValue(r)+'</strong><span>'+measure+'</span></div></div>'+
    '<div class="fig-hof-244-honor-foot"><span>VIEW HISTORICAL BREAKDOWN</span><span aria-hidden="true">↗</span></div></a>';
  }).join('');
- return heading('III / THE HISTORICAL RECORD','All-time season records.','Every top-three single-season achievement, ranked against completed franchise seasons throughout league history.')+
+ return heading('III / THE HISTORICAL RECORD','All-time season records.','Every single-season category from this year, including finishes outside the top three, ranked across completed franchise seasons.')+
   '<div class="fig-hof-244-record-grid">'+cards+'</div>';
+}
+/* Game rankings include completed regular-season and playoff box scores, including active seasons. */
+function seasonTopScoringGames(d,year,franchiseId){
+ const games=(d.games||[]).filter(g=>g.game_type==='Regular Season'||g.game_type==='Playoffs');
+ const scores=[];
+ for(const g of games)for(const side of [1,2]){
+  const score=Number(g['score_'+side]);
+  if(Number.isFinite(score)&&score>0)scores.push({year:value(g.season),week:value(g.week),matchupId:value(g.matchup_id),
+   id:value(g['franchise_'+side]),points:score,playoffs:g.game_type==='Playoffs'});
+ }
+ scores.sort((a,b)=>b.points-a.points||a.year-b.year||a.week-b.week||a.id-b.id);
+ let last=null,rank=0;
+ return scores.map((g,i)=>{if(last===null||Math.abs(g.points-last)>.000001)rank=i+1;last=g.points;return {...g,rank};})
+  .filter(g=>g.rank<=10&&g.year===year&&g.id===franchiseId);
+}
+function seasonPlayoffResult(d,year,franchiseId){
+ const games=(d.games||[]).filter(g=>value(g.season)===year&&g.game_type==='Playoffs'&&
+  (value(g.franchise_1)===franchiseId||value(g.franchise_2)===franchiseId))
+  .sort((a,b)=>value(a.playoff_round)-value(b.playoff_round)||value(a.week)-value(b.week));
+ const last=games[games.length-1];
+ if(!last)return {label:'No playoff appearance',summary:'Missed the playoffs',game:null};
+ const round=value(last.playoff_round),won=value(last.winner_franchise_id)===franchiseId;
+ const label=round===3?(won?'FIG Champion':'FIG Runner-up'):
+  round===2?(won?'Won the semifinal':'Semifinalist'):
+  round===1?(won?'Won the first round':'First-round playoff finish'):'Playoff participant';
+ const summary=round===3?(won?'Won the FIG championship':'Reached the FIG championship'):
+  round===2?'Reached the semifinals':round===1?'Reached the first round':'Reached the playoffs';
+ return {label,summary,game:last};
+}
+function notableSeasonRecords(e){return e.honors.records.filter(r=>r.rank<=3&&r.category!=='Losses');}
+function topGameSummary(e){
+ const games=e.topGames||[];
+ if(!games.length)return '';
+ return games.length+' top-10 all-time scoring game'+(games.length===1?'':'s')+': '+
+  games.map(g=>'Week '+g.week+' ('+fmt(g.points,2)+' pts, #'+g.rank+')').join(', ');
+}
+function seasonRecap(e){
+ return e.playoff.summary+'.'+(e.topGames.length?' '+topGameSummary(e)+'.':'');
+}
+function seasonNotableTags(e){
+ const records=notableSeasonRecords(e);
+ return '<div class="fig-hof-247-notable"><span>NOTABLE SINGLE-SEASON RECORDS</span>'+
+  '<div class="fig-hof-247-notable-tags">'+records.map(r=>
+   '<span>'+esc(r.category)+' <b>'+displayRecordValue(r)+' · '+(r.tied?'T-':'')+'#'+r.rank+'</b></span>').join('')+
+  '</div></div>';
 }
 function immortalSeasonCard(m){
  const e=m.enshrinedSeasons[0];
@@ -177,35 +221,36 @@ function immortalSeasonCard(m){
  '<a class="fig-hof-243-season-card" href="'+e.url+'">'+
  '<div class="fig-hof-243-season-card-art" aria-hidden="true">'+
  '<div class="fig-hof-243-season-monogram">H</div><span>IMMORTAL SEASON</span></div>'+
- '<div class="fig-hof-243-season-card-copy"><span class="fig-hof-eyebrow">CLASS OF '+e.inductionYear+' · FIG CHAMPION</span>'+
- '<h3>'+esc(e.title)+'</h3><p>'+esc(e.case)+'</p>'+
+ '<div class="fig-hof-243-season-card-copy"><span class="fig-hof-eyebrow">CLASS OF '+e.inductionYear+' · '+esc(e.playoff.label)+'</span>'+
+ '<h3>'+esc(e.title)+'</h3><p>'+esc(seasonRecap(e))+'</p>'+seasonNotableTags(e)+
  '<div class="fig-hof-243-season-card-metrics"><span><strong>'+fmt(r.points_for,2)+'</strong> REGULAR-SEASON POINTS</span>'+
  '<span><strong>'+fmt(r.all_play_win_pct,2)+'%</strong> ALL-PLAY</span>'+
  '<span><strong>'+fmt(r.weekly_high_scores)+'</strong> LEAGUE-HIGH WEEKS</span>'+
- '<span><strong>'+fmt(e.honors.records.length)+'</strong> TOP-THREE RECORDS</span></div>'+
+ '<span><strong>'+fmt(notableSeasonRecords(e).length)+'</strong> TOP-THREE MARKS</span></div>'+
  '<b class="fig-hof-243-season-action">VIEW SEASON EXHIBIT ↗</b></div></a></section>';
 }
 function immortalSeasonPlaque(m,franchiseId,season){
  const e=m.enshrinedSeasons.find(x=>x.franchiseId===Number(franchiseId)&&x.year===Number(season));
  if(!e)return '<section class="fig-hof-content"><a class="fig-hof-v2-back" href="#/hall-of-fame">← RETURN TO THE HALL</a><p>This franchise season is not enshrined.</p></section>';
- const r=e.record,g=e.championship;
+ const r=e.record,g=e.playoff.game;
+ const gameHref=g?'#/game/'+e.year+'/'+g.week+'/'+g.matchup_id:null;
  return '<section class="fig-hof-content fig-hof-242-profile fig-hof-243-season-profile">'+
  '<a class="fig-hof-v2-back" href="#/hall-of-fame">← RETURN TO THE HALL</a>'+
- '<div class="fig-hof-243-season-profile-hero"><div class="fig-hof-243-season-profile-mark">H<span>MMXXV</span></div>'+
+ '<div class="fig-hof-243-season-profile-hero"><div class="fig-hof-243-season-profile-mark">'+esc(name(e.franchiseId)[0])+'<span>'+e.year+'</span></div>'+
  '<div><span class="fig-hof-eyebrow">IMMORTAL SEASON · CLASS OF '+e.inductionYear+'</span>'+
- '<h1>'+esc(e.title)+'</h1><p>'+esc(e.case)+'</p>'+
+ '<h1>'+esc(e.title)+'</h1><p>'+esc(seasonRecap(e))+'</p>'+
  '<div class="fig-hof-243-season-profile-actions"><a class="fig-hof-gold-btn" href="#/teamseason/'+e.franchiseId+'/'+e.year+'">FULL TEAM SEASON ↗</a>'+
- '<a class="fig-hof-text-btn" href="#/game/'+e.year+'/'+g.week+'/'+g.matchup_id+'">CHAMPIONSHIP BOX SCORE ↗</a></div></div></div>'+
+ (gameHref?'<a class="fig-hof-text-btn" href="'+gameHref+'">'+esc(e.playoff.label.toUpperCase())+' BOX SCORE ↗</a>':'')+'</div></div></div>'+
  '<div class="fig-hof-v2-plaque-metrics">'+
  metric(fmt(r.points_for,2),'REGULAR-SEASON POINTS')+
  metric(fmt(r.points_per_game,1),'POINTS PER GAME')+
  metric(fmt(r.all_play_win_pct,2)+'%','ALL-PLAY WIN RATE')+
  metric(fmt(r.weekly_high_scores),'WEEKLY HIGH SCORES')+'</div>'+
- heading('THE CASE FOR ENSHRINEMENT','A season that endured.','A dominant regular-season campaign and a championship finish, preserved together as a single historical accomplishment.')+
- '<div class="fig-hof-v2-standard"><strong>THE SEASON LEGACY</strong><p>'+esc(e.case)+'</p></div>'+
  '<div class="fig-hof-243-season-proof">'+
- '<a href="#/teamseason/'+e.franchiseId+'/'+e.year+'"><span>THE FULL 2025 SEASON</span><strong>EXAMINE THE RECORD ↗</strong></a>'+
- '<a href="#/game/'+e.year+'/'+g.week+'/'+g.matchup_id+'"><span>WEEK '+g.week+' · FIG CHAMPIONSHIP</span><strong>VIEW THE TITLE GAME ↗</strong></a></div>'+
+ '<a href="#/teamseason/'+e.franchiseId+'/'+e.year+'"><span>THE FULL '+e.year+' SEASON</span><strong>EXAMINE THE RECORD ↗</strong></a>'+
+ (gameHref?'<a href="'+gameHref+'"><span>WEEK '+g.week+' · '+esc(e.playoff.label.toUpperCase())+'</span><strong>VIEW PLAYOFF GAME ↗</strong></a>':'')+'</div>'+
+ (e.topGames.length?'<div class="fig-hof-247-game-section"><div class="fig-hof-247-game-head"><span class="fig-hof-eyebrow">ALL-TIME WEEKLY SCORING</span><h2>Top-10 scoring games</h2><p>All FIG regular-season and playoff games, including completed weeks of the current season.</p></div><div class="fig-hof-247-game-grid">'+e.topGames.map(x=>
+ '<a href="#/game/'+x.year+'/'+x.week+'/'+x.matchupId+'"><span>#'+x.rank+' ALL TIME</span><strong>'+fmt(x.points,2)+'</strong><small>'+x.year+' · WEEK '+x.week+(x.playoffs?' · PLAYOFFS':'')+'</small><b>VIEW BOX SCORE ↗</b></a>').join('')+'</div></div>':'')+
  seasonHonorsSections(e)+'</section>';
 }
 function lobby(m){

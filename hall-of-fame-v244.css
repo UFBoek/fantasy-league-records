@@ -15,3 +15,23 @@
 @media(max-width:900px){.fig-hof-244-record-grid{grid-template-columns:1fr;gap:17px}.fig-hof-244-honor{min-height:226px}}
 @media(max-width:699px){.fig-hof-244-record-grid{gap:13px;margin-top:20px}.fig-hof-244-honor{padding:24px 22px;min-height:225px}.fig-hof-244-honor-top{font-size:9px;margin-bottom:21px}.fig-hof-244-honor-top b{font-size:9px;padding:6px 9px}.fig-hof-244-honor h3{font-size:25px}.fig-hof-244-honor-measure strong{font-size:44px}.fig-hof-244-honor-foot{margin-top:23px;font-size:9px}}
 @media(max-width:370px){.fig-hof-244-honor{padding:22px 18px}.fig-hof-244-honor h3{font-size:23px}.fig-hof-244-honor-measure strong{font-size:40px}}
+
+/* 2027 Hall exhibit update: results, notable season marks and all-time scoring games */
+.fig-hof-247-notable{display:flex;flex-direction:column;gap:11px;margin:1px 0 25px}
+.fig-hof-247-notable>span{font:800 9px/1.4 Inter,Arial,sans-serif;letter-spacing:.12em;color:#e3c28c}
+.fig-hof-247-notable-tags{display:flex;flex-wrap:wrap;gap:8px}
+.fig-hof-247-notable-tags>span{display:inline-flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;border:1px solid rgba(216,181,122,.33);background:rgba(225,191,137,.055);font:600 10px/1.35 Inter,Arial,sans-serif;color:#d9e0df;letter-spacing:.005em}
+.fig-hof-247-notable-tags b{white-space:nowrap;color:#f1cc93;font-weight:800}
+.fig-hof-247-game-section{margin:39px 0 50px}
+.fig-hof-247-game-head{margin-bottom:22px}
+.fig-hof-247-game-head h2{font:400 clamp(31px,3.7vw,42px)/1.1 Georgia,serif;color:#fff0d8;letter-spacing:-.035em;margin:10px 0}
+.fig-hof-247-game-head p{font-size:12px;line-height:1.6;color:#b6c0c4;margin:0}
+.fig-hof-247-game-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.fig-hof-247-game-grid a{display:flex;flex-direction:column;gap:12px;min-width:0;padding:24px;border:1px solid rgba(222,182,119,.36);background:linear-gradient(145deg,#273440,#16242e);text-decoration:none;transition:transform .2s,border-color .2s}
+.fig-hof-247-game-grid a:hover,.fig-hof-247-game-grid a:focus-visible{transform:translateY(-2px);border-color:#e8c18b}
+.fig-hof-247-game-grid a>span{font:800 10px Inter,Arial,sans-serif;letter-spacing:.12em;color:#e5c18b}
+.fig-hof-247-game-grid a>strong{font:400 clamp(32px,4vw,45px)/1 Georgia,serif;color:#fff0d8;letter-spacing:-.04em}
+.fig-hof-247-game-grid a>small{font:700 10px Inter,Arial,sans-serif;letter-spacing:.08em;color:#b3c0c4}
+.fig-hof-247-game-grid a>b{margin-top:15px;padding-top:14px;border-top:1px solid rgba(222,182,119,.23);font:800 9px Inter,Arial,sans-serif;letter-spacing:.1em;color:#e3bd81}
+@media(max-width:850px){.fig-hof-247-game-grid{grid-template-columns:1fr}}
+@media(max-width:699px){.fig-hof-247-notable-tags{gap:6px}.fig-hof-247-notable-tags>span{padding:7px 9px;font-size:9px}.fig-hof-247-game-section{margin:29px 0 42px}.fig-hof-247-game-grid a{padding:22px}}

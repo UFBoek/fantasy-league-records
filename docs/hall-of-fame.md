@@ -25,9 +25,9 @@ The distinction is intentional: the founding *player* class remains exactly Alle
 
 ## Enshrined Season historical records
 
-The separate streak gallery has been removed. Each spacious, linked record panel highlights every positive single-season record where the enshrined team ranks in the all-time top three among completed FIG franchise seasons appears in its exhibit, with accurate tie rankings. The single-season record book includes the highest weekly team score and 175+, 200+, 225+, and 250+ point-game counts. The 150+ point-game count remains an ordinary team scoring statistic, not a single-season record category. The existing 20, 30, 40, and 50 BOMB starter-performance categories are calculated using exclusive scoring bands, consistent with the main record pages.
+The separate streak gallery and the redundant "Case for Enshrinement" chapter have been removed. The season exhibit shows **every single-season record category** recorded for that franchise-season, including marks outside the league's top three and the season loss count. Ranks are recomputed against completed franchise seasons and ties are reflected. The index still excludes 150+ point games as a record category, while keeping 175+, 200+, 225+, and 250+ games, Highest Weekly Score, and the exclusive starter-performance 20/30/40/50 BOMB categories.
 
-Hayden 2025: seven 40 BOMBS (tied #1), five 50 BOMBS (#1), eight 200+ team games (#2), five 225+ games (tied #1), and three 250+ games (tied #1). Each Hall record opens its verified game or player-performance breakdown. Losses and unfinished seasons are not presented as historical honors.
+The brief season description now derives its playoff result from official postseason box scores, and the landing-page enshrined-season card lists **every notable top-three season achievement**. The exhibit separately links every scoring performance ranked in the league's all-time top ten across regular-season and playoff games, including final games already logged for the active season. As of October 31, 2026, Hayden 2025 contributes 290.25 (Week 7, #1 overall), 260.24 (Week 10, #6 overall), and 255.99 (Week 12, #9 overall). These placements update automatically as verified game history grows.
 
 The Python backend regenerates milestone categories on every data update. The Hall recalculates all-time rankings from completed seasons only.
 

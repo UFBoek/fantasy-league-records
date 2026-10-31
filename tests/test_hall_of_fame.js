@@ -28,13 +28,26 @@ assert.equal(historical.record.weekly_high_scores,7);
 assert.equal(historical.championship.winner_franchise_id,6);
 assert.equal(historical.url,'#/hall-of-fame/inductee/season/6/2025');
 const records=historical.honors.records, get=cat=>records.find(x=>x.category===cat);
-assert.ok(records.length>=16,'All positive top-three season honors appear');
+assert.ok(records.length>=18,'Full season record profile includes ranks outside the top three');
 for(const [cat,rank,n,tie] of [['40 BOMBS',1,7,true],['50 BOMBS',1,5,false],['30 BOMBS',1,19,true],['20 BOMBS',3,40,true],['200+ Point Games',2,8,false],['225+ Point Games',1,5,true],['250+ Point Games',1,3,true],['Highest Weekly Score',1,290.25,false]]){
  const r=get(cat);assert.ok(r,cat);assert.deepEqual([r.rank,r.value,r.tied],[rank,n,tie],cat);
 }
 assert.ok(!('streaks' in historical.honors));
-assert.ok(records.every(r=>r.rank<=3&&r.value>0));
-assert.ok(!get('Losses'));
+assert.ok(records.every(r=>r.rank>=1&&r.value>0));
+assert.equal(get('Median Score').value,206.135);
+assert.ok(get('Median Score').rank>=1);
+assert.ok(get('Losses').rank>3,'All-season records include non-podium metrics');
+assert.ok(records.some(r=>r.rank>3),'Non-podium rankings are displayed');
+assert.ok(get('Losses'),'Full season history includes losses, though not in notable honors');
+assert.ok(get('Losses').rank>3);
+assert.equal(historical.playoff.label,'FIG Champion');
+assert.equal(historical.playoff.summary,'Won the FIG championship');
+const rankedGames=data.games.filter(g=>['Regular Season','Playoffs'].includes(g.game_type))
+ .flatMap(g=>[1,2].map(side=>({points:Number(g['score_'+side]),id:Number(g['franchise_'+side]),year:Number(g.season),week:Number(g.week)})))
+ .filter(g=>g.points>0).sort((a,b)=>b.points-a.points);
+const expectedTop=rankedGames.slice(0,10).filter(g=>g.year===2025&&g.id===6).map(g=>[g.week,g.points]);
+assert.deepEqual(historical.topGames.map(g=>[g.week,g.points]),expectedTop);
+assert.ok(historical.topGames.every(g=>g.rank<=10));
 assert.ok(!get('150+ Point Games'),'150+ is a team scoring statistic, not a single-season record');
 const altered=api.model({...data,playerLog:[...data.playerLog,
  {season:'2025',week:13,franchise_id:6,game_type:'Regular Season',starter_points:55}]});
@@ -58,7 +71,7 @@ const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
 assert.match(html,/hall-of-fame-v244\.js\?v=246/);
 assert.match(html,/hall-of-fame-v244\.css\?v=246/);
-assert.match(sw,/fig-league-shell-v246/);
+assert.match(sw,/fig-league-shell-v247/);
 assert.match(sw,/hall-of-fame-v244\.js\?v=246/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=246/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
@@ -68,6 +81,11 @@ assert.doesNotMatch(js,/function recordsPage\(/);
 assert.doesNotMatch(js,/function legacyPage\(/);
 assert.doesNotMatch(js,/starts>=28|p\.avg>=30|p\.avg>=24|p\.points>=950/);
 assert.match(css,/fig-hof-244-record-grid/);
+assert.match(css,/fig-hof-247-notable-tags/);
+assert.match(css,/fig-hof-247-game-grid/);
+assert.doesNotMatch(js,/THE CASE FOR ENSHRINEMENT/);
+assert.doesNotMatch(js,/THE SEASON LEGACY/);
+assert.match(js,/seasonTopScoringGames/);
 assert.ok(css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),'Spacious two-column Hall record layout');
 assert.ok(css.includes('min-height:260px'),'Roomy season record panels');
 assert.doesNotMatch(css,/fig-hof-244-streak-list/);
