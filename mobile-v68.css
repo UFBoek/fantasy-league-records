@@ -1,4 +1,4 @@
-/* FIG League v68 — mobile legibility, record controls, integrated dark surfaces.
+/* FIG League v68 – mobile legibility, record controls, integrated dark surfaces.
    Additive overrides only: desktop and original archive data remain unchanged. */
 @media(max-width:699px) {
   /* Record detail and streak detail: the value direction is the only sort. */
