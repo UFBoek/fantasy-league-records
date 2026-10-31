@@ -1,4 +1,4 @@
-/* v113 — Draft board first, individual franchise exploration second. */
+/* v113 – Draft board first, individual franchise exploration second. */
 .fig-draft-focus{max-width:1180px;margin:18px auto 48px;gap:14px;color:#243b2c}
 .fig-draft-focus-years{display:flex;flex-wrap:wrap;gap:8px;background:#fff;border:1px solid #d9e5dc;border-radius:14px;padding:14px}
 .fig-draft-focus-years a{flex:1 1 100px;display:flex;flex-direction:column;align-items:center;gap:4px;background:#edf5ef;border:1px solid #d4e4d9;border-radius:10px;padding:11px;color:#25563b;text-decoration:none}
