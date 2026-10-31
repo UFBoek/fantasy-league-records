@@ -27,7 +27,7 @@ const {chromium}=require('playwright');
    await page.locator('.fig-hof-player').first().waitFor();
    assert.equal(await page.locator('.fig-hof-player').count(),12);
    await page.locator('.fig-hof-filter a[href="#/hall-of-fame/players/QB"]').click();
-   await page.locator('.fig-hof-player').first().waitFor();
+   await page.waitForFunction(()=>document.querySelectorAll('.fig-hof-player').length===3,{timeout:10000});
    assert.equal(await page.locator('.fig-hof-player').count(),3);
    await page.locator('.fig-hof-player').first().click();
    await page.locator('.fig-hof-profile-hero h1').waitFor();
