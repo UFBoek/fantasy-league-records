@@ -35,3 +35,22 @@ Run local static tests with `node tests/test_boekmuse_dynamic.js`. The live test
 ## Deploying updates
 
 Source changes to Worker code **do not auto-deploy** from GitHub. Use Cloudflare API or Wrangler (from `workers/boekmuse-v2/`) to deploy the new Worker and ensure the D1 binding and cron schedule remain present. GitHub Pages deploys the frontend automatically from `main`.
+
+## v3 — complete published FIG dataset coverage (feature branch)
+
+BoekMuse now indexes **all 63 JSON datasets** published under `data/`, excluding only `manifest.json` and `refresh_manifest.json` (metadata). Coverage is determined from `data/manifest.json` plus the 19 additional advanced datasets that are published outside that manifest. The source list includes every live/historical league data file currently in the repository, notably:
+
+- Historical games, lineups, game logs, complete weekly rosters (including bench and lineup slots), player seasons/careers, matchups and all-play
+- Trades, individual transferred assets, transaction histories, startup and rookie drafts, graded pick outcomes and future pick ownership
+- Records, streaks, standings, playoff results, season accomplishments, injury annotations and waiver activity
+- Current rosters, RosterAudit values, dynasty market snapshots, dynasty-dominance and playoff projection files
+
+**How it works:** Existing curated SQL tables retain verified league scoring calculations. A second D1 layer stores each original public JSON source in ~44 KB SQL-queryable chunks. Objects keep their source keys, while nested arrays and objects remain intact. SQL can expand the raw records with SQLite `json_each` and extract existing fields using `json_extract`. The AI planner receives the live catalog of indexed dataset names, sections, fields and example structures. It can therefore create new queries against fields not previously hardcoded in BoekMuse.
+
+**Source integrity:** Future projections, current rosters, valuations and injury reviews are presented as published snapshots, not completed historical results. The existing finalized-game and verified touchdown gates remain. Read-only SQL restrictions apply to the new source views; internal sync tables are not exposed. This is access to **published** site data, not private Sleeper or Google Sheets records that have not been published.
+
+**Synchronization:** Cloudflare cron checks up to 20 datasets every ten minutes, prioritizing not-yet-indexed files, then oldest-checked sources. An initial full index is staged across multiple cron runs. Each source uses a content hash and an atomic generation pointer; unchanged JSON avoids D1 writes. The curated SQL tables now also use per-table content hashes and atomic generation switches, rather than rewriting every table whenever the manifest timestamp changes. This is important for Cloudflare D1's enforced free daily row-write limit.
+
+**Status:** `GET /health` includes `archive.sources`, `archive.total`, `archive.records`, and `archive.chunks`. All sources are fully queryable only after `archive.sources === archive.total`. Cloudflare Worker changes require a separate deployment; GitHub commit alone does not update the deployed Worker.
+
+**Validation:** `node tests/test_boekmuse_full_archive.js`, `node tests/test_boekmuse_dynamic.js`. The original game and touchdown checks remain, with a new read-only SQL guard for internal metadata.
