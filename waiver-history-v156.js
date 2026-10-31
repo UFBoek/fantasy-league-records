@@ -63,15 +63,15 @@ function figWaiverHistoryPage(id,model,ui){
  const host=ui.el('#teamTabBody');if(!host)return;
  const t=model.teams.find(t=>t.id===Number(id));if(!t)return;
  const esc=ui.escape,money=ui.money;
- const val=p=>p.value===null?'—':money(p.value);
+ const val=p=>p.value===null?'–':money(p.value);
  const years=[...new Set([...t.adds,...t.drops].map(e=>e.season))].sort((a,b)=>b-a);
  let q='',year='all',sort='value',mode='both';
  const stat=(label,v,sub)=>'<div class="fig-wv-stat"><small>'+label+'</small><strong>'+v+'</strong><span>'+sub+'</span></div>';
  host.innerHTML='<section class="fig-wv-page"><header class="fig-wv-title"><small>TRANSACTION ARCHIVE</small><h2>WAIVER HISTORY</h2></header>'+
  '<div class="fig-wv-stats">'+stat('ADDED PLAYERS',t.uniqueAdds.length,t.adds.length+' TRANSACTIONS')+
  stat('DROPPED PLAYERS',t.uniqueDrops.length,t.drops.length+' TRANSACTIONS')+
- stat('ADDED VALUE',t.addedValue===null?'—':money(t.addedValue),'CURRENT VALUE')+
- stat('DROPPED VALUE',t.droppedValue===null?'—':money(t.droppedValue),'CURRENT VALUE')+'</div>'+
+ stat('ADDED VALUE',t.addedValue===null?'–':money(t.addedValue),'CURRENT VALUE')+
+ stat('DROPPED VALUE',t.droppedValue===null?'–':money(t.droppedValue),'CURRENT VALUE')+'</div>'+
  '<div class="fig-wv-filters"><input id="figWvSearch" type="search" placeholder="Search players…" aria-label="Search waiver players">'+
  '<label>YEAR<select id="figWvYear"><option value="all">ALL YEARS</option>'+
  years.map(y=>'<option value="'+y+'">'+y+'</option>').join('')+'</select></label>'+
