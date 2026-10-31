@@ -360,11 +360,27 @@ async function synchronize(env){
  const rows=snapshotRows(data,generation);
  const meta=await env.DB.prepare('SELECT name,generation,content_hash FROM core_table_meta').all();
  const known=new Map((meta.results||[]).map(x=>[x.name,x]));
- const changed=[];
+ const changed=[],backfilled=[];
  for(const [name,items] of Object.entries(rows)){
   // A generation timestamp is not part of a content hash.
   const hash=await contentDigest(JSON.stringify(items.map(row=>row.slice(1))));
-  if(hash===known.get(name)?.content_hash)continue;
+  const prior=known.get(name);
+  let knownHash=prior?.content_hash;
+  // On first migration, compare with already-published D1 rows rather than
+  // rewriting the whole historical archive solely to establish hash state.
+  if(!knownHash&&prior?.generation){
+   const fields=TABLE_COLUMNS[name].slice(1);
+   const existing=await env.DB.prepare('SELECT '+fields.join(',')+' FROM '+name+
+    '_all WHERE generation=? ORDER BY rowid').bind(prior.generation).all();
+   if(Array.isArray(existing.results)){
+    const values=existing.results.map(x=>fields.map(col=>x[col]));
+    knownHash=await contentDigest(JSON.stringify(values));
+   }
+  }
+  if(hash===knownHash){
+   if(prior?.content_hash!==hash)backfilled.push({name,hash});
+   continue;
+  }
   await storeRows(env.DB,name,items);
   changed.push({name,hash,count:items.length});
  }
@@ -373,6 +389,8 @@ async function synchronize(env){
  const switchStatements=changed.map(x=>env.DB.prepare(
   'INSERT INTO core_table_meta(name,generation,content_hash) VALUES(?,?,?) ON CONFLICT(name) DO UPDATE SET generation=excluded.generation,content_hash=excluded.content_hash'
  ).bind(x.name,generation,x.hash));
+ for(const x of backfilled)switchStatements.push(env.DB.prepare(
+  'UPDATE core_table_meta SET content_hash=? WHERE name=?').bind(x.hash,x.name));
  switchStatements.push(env.DB.prepare('UPDATE sync_meta SET generation=?,version=?,finished_at=? WHERE id=1')
   .bind(generation,version,new Date().toISOString()));
  await env.DB.batch(switchStatements);
@@ -574,11 +592,13 @@ export default {
  },
  async scheduled(event,env,ctx){
   ctx.waitUntil((async()=>{
-   // Archive synchronization is independent of core game sync failures.
-   try{const x=await synchronize(env);console.log('BoekMuse D1 sync',JSON.stringify(x));}
-   catch(e){console.error('BoekMuse D1 sync failed',String(e).slice(0,350));}
+   // Prioritize the previously missing archive after the UTC free-tier reset.
+   // A core refresh must never consume the remaining D1 write allowance before
+   // the new archive can initialize. Either sync can fail independently.
    try{const x=await synchronizeArchive(env);console.log('BoekMuse complete archive',JSON.stringify(x));}
    catch(e){console.error('BoekMuse archive sync failed',String(e).slice(0,350));}
+   try{const x=await synchronize(env);console.log('BoekMuse D1 sync',JSON.stringify(x));}
+   catch(e){console.error('BoekMuse D1 sync failed',String(e).slice(0,350));}
   })());
  }
 };
