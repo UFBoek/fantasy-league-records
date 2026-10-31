@@ -218,7 +218,7 @@ function franchiseDetail(m,id){
  sectionTitle('YEAR BY YEAR','The Career Ledger','Open any season to explore its original roster and weekly history.')+
  '<div class="fig-hof-ledger">'+seasonLines.map(x=>'<a href="#/teamseason/'+p.id+'/'+num(x.season)+'"><b>'+num(x.season)+'</b><span>'+num(x.wins)+'–'+num(x.losses)+' REGULAR SEASON</span><span>'+fmt(x.points_per_game,1)+' PPG</span><span>'+fmt(x.all_play_win_pct,1)+'% ALL-PLAY</span><strong>OPEN ↗</strong></a>').join('')+'</div></section>';
 }
-function playerDetail(m,id){
+function playerDetail(m,id,data){
  const p=m.legends.find(x=>x.id===id);if(!p)return null;
  return '<section class="fig-hof-content fig-hof-detail">'+
  '<a class="fig-hof-back" href="#/hall-of-fame/players">← BACK TO PLAYER LEGENDS</a>'+
@@ -228,7 +228,12 @@ function playerDetail(m,id){
  '<a class="fig-hof-gold-btn" href="#/player/'+slug(p.id)+'">FULL PLAYER RECORD ↗</a></div></div>'+
  '<div class="fig-hof-profile-stats">'+number('STARTER POINTS',fmt(p.points,1))+number('STARTS',p.starts)+number('POINTS / START',fmt(p.avg,1))+number('20+ POINT GAMES',p.twenties)+'</div>'+
  sectionTitle('SIGNATURE PERFORMANCES','The Great Games','The five highest-scoring starts from the completed seasons in the Hall of Fame.')+
- '<div class="fig-hof-ledger">'+p.weeks.slice(0,5).map(w=>'<a href="#/teamseason/'+w.team+'/'+w.year+'"><b>'+w.year+' · WK '+w.week+'</b><span>'+esc(OWNERS[w.team]||'TEAM')+'</span><span>'+fmt(w.points,1)+' POINTS</span><strong>SEASON ↗</strong></a>').join('')+'</div></section>';
+ '<div class="fig-hof-ledger">'+p.weeks.slice(0,5).map(w=>{
+   const g=(data.games||[]).find(x=>num(x.season)===w.year&&num(x.week)===w.week&&
+    (num(x.franchise_1)===w.team||num(x.franchise_2)===w.team));
+   const href=g?'#/game/'+w.year+'/'+w.week+'/'+num(g.matchup_id):'#/teamseason/'+w.team+'/'+w.year;
+   return '<a href="'+href+'"><b>'+w.year+' · WK '+w.week+'</b><span>'+esc(OWNERS[w.team]||'TEAM')+'</span><span>'+fmt(w.points,1)+' POINTS</span><strong>'+(g?'BOX SCORE':'SEASON')+' ↗</strong></a>';
+  }).join('')+'</div></section>';
 }
 function methodology(m){
  return '<section class="fig-hof-content">'+sectionTitle('THE CHARTER','The Standard of Greatness','A transparent inaugural class, drawn exclusively from three completed years of official FIG league records.')+
@@ -252,7 +257,7 @@ async function page(ctx,view,sub){
  await load(['league','games','teamSeasonMaster','playerLog']);
  const m=model(DATA);
  const kind=['franchises','players','seasons','moments','methodology'].includes(view)?view:'overview';
- const content=view==='franchise'?franchiseDetail(m,sub):view==='player'?playerDetail(m,decodeURIComponent(sub||'')):
+ const content=view==='franchise'?franchiseDetail(m,sub):view==='player'?playerDetail(m,decodeURIComponent(sub||''),DATA):
  kind==='franchises'?franchiseWing(m):kind==='players'?playerWing(m,sub):kind==='seasons'?seasonsWing(m):
  kind==='moments'?momentsWing(m):kind==='methodology'?methodology(m):overview(m);
  app.innerHTML='<div class="fig-hof" id="figHallOfFame">'+header(view==='franchise'?'franchises':view==='player'?'players':kind)+
