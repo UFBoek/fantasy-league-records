@@ -13,6 +13,7 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/test_hall_of_fame.js'
+      - 'tests/test_hall_of_fame_browser.js'
       - '.github/workflows/verify-hall-of-fame.yml'
   pull_request:
     paths:
@@ -26,6 +27,7 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/test_hall_of_fame.js'
+      - 'tests/test_hall_of_fame_browser.js'
   workflow_dispatch:
 jobs:
   hall-validation:
