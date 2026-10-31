@@ -1,7 +1,9 @@
 /* BoekMuse v2 — dynamic read-only SQL on a versioned Cloudflare D1 league mirror.
    AI proposes a SELECT. D1, never the model, calculates every numeric result.
    Sync runs only against public, finalized, published JSON. */
-const MODEL='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const MODEL='@cf/meta/llama-3.3-70b-instruct-fp8-fast'; // fallback when Gemini is unconfigured or unavailable
+const GEMINI_MODEL='gemini-3.8-flash';
+const GEMINI_URL='https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent';
 const BASE='https://ufboek.github.io/fantasy-league-records/data/';
 const TEAMS='1 Boek; 2 Fru; 3 Fromm; 4 Sack; 5 Leyton; 6 Hayden; 7 Line (Lionel); 8 Winston; 9 CamNol; 10 James';
 const SCHEMA= [
@@ -495,15 +497,50 @@ function prompt(question,previous,error,catalog){
 }
 function parsePlan(value){
  const output=typeof value?.response==='string'?JSON.parse(value.response):value?.response;
- if(!output||typeof output!=='object'||typeof output.supported!=='boolean')throw Error('AI output invalid');
+ if(!output||typeof output!=='object'||typeof output.supported!=='boolean'||
+  typeof output.sql!=='string'||typeof output.title!=='string'||
+  typeof output.understood!=='string'||typeof output.reason!=='string')throw Error('AI output invalid');
  return output;
 }
+// The Gemini API key is only read server-side from a Cloudflare Worker secret.
+// Never put it in GitHub, the website JavaScript, the response, or logs.
+async function interpretGemini(env,question,previous,error,catalog){
+ const messages=prompt(question,previous,error,catalog);
+ const body={
+  systemInstruction:{parts:[{text:messages[0].content}]},
+  contents:[{role:'user',parts:[{text:messages.slice(1).map(m=>
+   m.role.toUpperCase()+': '+m.content).join('\n\n')}]}],
+  generationConfig:{
+   temperature:0,maxOutputTokens:2300,responseMimeType:'application/json',
+   responseSchema:QUERY_SCHEMA,thinkingConfig:{thinkingLevel:'low'}
+  }
+ };
+ const response=await fetch(GEMINI_URL,{
+  method:'POST',headers:{'content-type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
+  body:JSON.stringify(body),signal:AbortSignal.timeout(25000)
+ });
+ if(!response.ok)throw Error('Gemini API HTTP '+response.status);
+ const data=await response.json();
+ const output=(data.candidates?.[0]?.content?.parts||[])
+  .filter(p=>typeof p.text==='string').map(p=>p.text).join('');
+ if(!output)throw Error('Gemini returned no structured text');
+ return parsePlan({response:output});
+}
 async function interpret(env,question,previous,error,catalog){
+ if(env.GEMINI_API_KEY){
+  try{
+   const plan=await interpretGemini(env,question,previous,error,catalog);
+   return {plan,ai_provider:'gemini',model:GEMINI_MODEL};
+  }catch(e){
+   // Never return model-generated guesses or an API error body to the user.
+   console.error('BoekMuse Gemini unavailable; falling back:',String(e?.message||e).slice(0,180));
+  }
+ }
  const output=await env.AI.run(MODEL,{
   messages:prompt(question,previous,error,catalog),response_format:{type:'json_schema',json_schema:QUERY_SCHEMA},
   max_tokens:1150,temperature:0
  });
- return parsePlan(output);
+ return {plan:parsePlan(output),ai_provider:env.GEMINI_API_KEY?'workers-ai-fallback':'workers-ai',model:MODEL};
 }
 function normalizeResult(row){
  const entries=Object.entries(row);
@@ -514,17 +551,17 @@ async function runQuery(env,question,previous){
  const catalog=await archiveSchemaPrompt(env.DB,question);
  let lastError='';
  for(let attempt=0;attempt<2;attempt++){
-  const plan=await interpret(env,question,previous,lastError,catalog);
-  if(!plan.supported)return {ok:false,unsupported:true,message:str(plan.reason||'The required data are not available.')};
+  const {plan,ai_provider,model}=await interpret(env,question,previous,lastError,catalog);
+  if(!plan.supported)return {ok:false,unsupported:true,message:str(plan.reason||'The required data are not available.'),ai_provider,model};
   try{
    const sql=sqlClean(plan.sql);
    questionGuard(question,sql);
    const stmt=env.DB.prepare('SELECT * FROM ('+sql+') AS verified_result LIMIT 100');
    const data=await stmt.all();
    const rows=(data.results||[]).map(normalizeResult);
-   if(!rows.length)return {ok:false,unsupported:false,message:'No published records matched that query. The AI did not substitute another statistic.',sql};
+   if(!rows.length)return {ok:false,unsupported:false,message:'No published records matched that query. The AI did not substitute another statistic.',sql,ai_provider,model};
    return {ok:true,version:'dynamic-sql-v2',title:str(plan.title).slice(0,120),
-    understood:str(plan.understood).slice(0,400),sql,source:/\barchive_chunks\b/i.test(sql)?'Cloudflare D1 · published league data (includes live/model snapshots)':'Cloudflare D1 · finalized Sleeper league archive',
+    understood:str(plan.understood).slice(0,400),sql,ai_provider,model,source:/\barchive_chunks\b/i.test(sql)?'Cloudflare D1 · published league data (includes live/model snapshots)':'Cloudflare D1 · finalized Sleeper league archive',
     source_type:/\barchive_chunks\b/i.test(sql)?'published_snapshot':'finalized_history',
     columns:Object.keys(rows[0]),rows,previous:{question,sql}};
   }catch(e){lastError=String(e?.message||e).slice(0,300);}
@@ -540,7 +577,10 @@ export default {
     'SELECT generation,version,finished_at FROM sync_meta WHERE id=1').first();
     const archive=await archiveStatus(env.DB);
     return reply({ok:true,ready:!!meta?.generation,version:meta?.version||null,
-     finished_at:meta?.finished_at||null,archive,model:MODEL},200,origin);
+     finished_at:meta?.finished_at||null,archive,
+     ai_provider:env.GEMINI_API_KEY?'gemini':'workers-ai',
+     gemini_configured:!!env.GEMINI_API_KEY,
+     model:env.GEMINI_API_KEY?GEMINI_MODEL:MODEL},200,origin);
    }catch(e){return reply({ok:false,error:'Database unavailable'},503,origin);}
   }
   // One-time initialization trigger; cannot be used to force repeated writes.
