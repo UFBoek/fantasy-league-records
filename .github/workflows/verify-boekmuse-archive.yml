@@ -1,7 +1,7 @@
 name: Verify BoekMuse full archive
 on:
   push:
-    branches: [feature/boekmuse-full-league-archive]
+    branches: [main, feature/boekmuse-full-league-archive]
     paths:
       - 'workers/boekmuse-v2/**'
       - 'boekmuse-dynamic.js'
@@ -27,5 +27,5 @@ jobs:
         run: |
           node --check workers/boekmuse-v2/src/index.js
           node --check boekmuse-dynamic.js
-          node tests/test_boekmuse_full_archive.js
+          node tests/test_boekmuse_gemini.js\n          node tests/test_boekmuse_full_archive.js
           node tests/test_boekmuse_dynamic.js
