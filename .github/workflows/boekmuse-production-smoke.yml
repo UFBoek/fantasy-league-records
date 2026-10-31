@@ -1,0 +1,16 @@
+name: BoekMuse one-time production smoke
+on:
+  push:
+    paths:
+      - '.github/workflows/boekmuse-production-smoke.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/test_boekmuse_production_smoke.js
