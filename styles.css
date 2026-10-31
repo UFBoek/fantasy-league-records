@@ -133,7 +133,7 @@ body{background:#ece9e1}
 @media(max-width:560px){.compact-record-feature-grid{grid-template-columns:1fr}}
 
 /* ==========================================================
-   v13 — app-style visual system inspired by provided examples
+   v13 – app-style visual system inspired by provided examples
    ========================================================== */
 :root{
   --paper:#ffffff;
@@ -182,7 +182,7 @@ body{background:#fff;color:var(--ink);font-family:Inter,system-ui,-apple-system,
 .game-side{background:#dedede;border-radius:28px;padding:20px}.lineup-row{border-top:2px solid #c8c8c8}.slot{color:#777}
 .site-footer{background:#fff}
 
-/* Team profile — compact rounded dashboard */
+/* Team profile – compact rounded dashboard */
 .team-profile-shell{background:#dedede;border-radius:36px;padding:28px 34px 0;margin:18px 0 28px;overflow:hidden}
 .team-profile-top{display:flex;align-items:center;gap:22px;padding-bottom:22px;border-bottom:4px solid #b7b7b7}
 .team-profile-badge{width:112px;height:112px;border-radius:26px;background:#c9c9c9;border:6px solid #2f2f2f;display:grid;place-items:center;font:34px Archivo Black,sans-serif;color:#2f2f2f;flex:0 0 auto}
@@ -190,7 +190,7 @@ body{background:#fff;color:var(--ink);font-family:Inter,system-ui,-apple-system,
 .team-career-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:26px 0}
 .team-stat-tile{background:#fff;border-radius:24px;min-height:138px;padding:18px;text-align:center;display:flex;flex-direction:column;justify-content:space-between}.team-stat-tile span{font-size:12px;font-weight:900;letter-spacing:.04em;color:#4a4a4a}.team-stat-tile strong{font:clamp(28px,4vw,46px) Archivo Black,sans-serif;color:#303030}.team-profile-tabs{margin:0;border-bottom:0;border-top:4px solid #b7b7b7;justify-content:center;gap:32px}.team-profile-tabs button{padding:18px 0 15px}.team-profile-tabs button.active{border-color:#303030}
 
-/* Roster — one continuous Sleeper-like board */
+/* Roster – one continuous Sleeper-like board */
 .team-roster-panel{background:var(--navy);color:#fff;border-radius:30px;overflow:hidden;margin:28px 0 22px;box-shadow:0 10px 24px rgba(24,32,45,.16)}
 .roster-panel-title{display:flex;align-items:end;justify-content:space-between;padding:24px 26px 20px;border-bottom:1px solid var(--navy-line)}.roster-panel-title span{font-size:11px;font-weight:900;letter-spacing:.12em;color:#aebbd0}.roster-panel-title h2{margin:5px 0 0;font:30px Archivo Black,sans-serif}.roster-panel-title small{font-weight:800;color:#aebbd0}
 .sleeper-roster-stack{display:block}.sleeper-roster-section{padding:0}.sleeper-roster-section+.sleeper-roster-section{margin-top:24px;border-top:10px solid #222a37}.sleeper-roster-heading{padding:20px 22px 12px;font-size:15px;font-weight:900;letter-spacing:.04em;color:#fff;background:var(--navy)}
@@ -208,7 +208,7 @@ body{background:#fff;color:var(--ink);font-family:Inter,system-ui,-apple-system,
 
 
 /* ============================================================
-   v14 — richer app palette + franchise page rebuild
+   v14 – richer app palette + franchise page rebuild
    ============================================================ */
 :root{
   --paper:#f5f2ea;
@@ -425,14 +425,14 @@ tbody tr:hover{background:#edf8f4}
 @media(max-width:560px){.career-stats-title h2{font-size:18px}.team-stat-tile strong{font-size:26px!important}.record-index-holder{font-size:13px!important}}
 
 
-/* v21 — streak record ties + stronger streak labels */
+/* v21 – streak record ties + stronger streak labels */
 .compact-streak-records .streak-record-card .rank-line{font-size:12px}
 .compact-streak-records .streak-record-card .holder{font:20px/1.2 'Archivo Black',sans-serif;margin-top:16px}
 .compact-streak-records .streak-record-card .value{font-size:46px;line-height:1;margin-top:8px}
 .compact-streak-records .streak-record-card .streak-name{font:24px/1.08 'Archivo Black',sans-serif;color:var(--ink);margin-top:12px;letter-spacing:-.03em}
 @media(max-width:520px){.compact-streak-records .streak-record-card .streak-name{font-size:21px}.compact-streak-records .streak-record-card .holder{font-size:18px}}
 
-/* v22 — record snapshot completeness + resilient franchise number layout */
+/* v22 – record snapshot completeness + resilient franchise number layout */
 .team-stat-tile{min-width:0;container-type:inline-size;align-items:center;text-align:center;overflow:hidden}
 .team-stat-tile strong{display:block;width:100%;max-width:100%;white-space:nowrap;text-align:center;font-size:clamp(24px,10cqw,46px)!important;line-height:1.05;letter-spacing:-.035em;overflow:visible}
 .team-stat-tile span,.team-stat-tile em{width:100%;text-align:center}
@@ -451,7 +451,7 @@ tbody tr:hover{background:#edf8f4}
 
 .mobile-nav.app-dock a{line-height:1.05}.mobile-nav.app-dock a[href="#/players"]{font-size:9px}
 
-/* v30 — keep all five player bomb leaderboards on one desktop row + larger player names */
+/* v30 – keep all five player bomb leaderboards on one desktop row + larger player names */
 @media(min-width:1100px){
   .threshold-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:14px}
   .threshold-panel{min-width:0;padding:14px 15px}
@@ -480,7 +480,7 @@ tbody tr:hover{background:#edf8f4}
   .threshold-grid{grid-template-columns:1fr!important}
 }
 
-/* v31 — stronger player record typography + bomb drilldowns */
+/* v31 – stronger player record typography + bomb drilldowns */
 .threshold-panel,.threshold-panel *{font-family:"Fredoka",sans-serif;font-weight:700}
 .threshold-title{font-weight:800}
 .threshold-row{font-weight:700}
@@ -519,7 +519,7 @@ tbody tr:hover{background:#edf8f4}
 img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object-position:center;box-shadow:none}img.team-card-photo::after,img.team-profile-photo::after{content:none}
 
 
-/* v38 — James / Hayden head-to-head trade archive */
+/* v38 – James / Hayden head-to-head trade archive */
 .jh-archive{border:1px solid #deddda;border-radius:26px;background:#f8f8f7;overflow:hidden}
 .jh-header{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:28px 34px;background:#262626;color:#fff;flex-wrap:wrap}
 .jh-duo{display:flex;align-items:center;gap:25px;flex-wrap:wrap}
@@ -579,7 +579,7 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
 .jh-production small{display:block;font-size:10px;color:#7b827f}
 .jh-asset-note{font-size:11px;color:#666;margin-top:8px}
 
-/* v46 — RosterAudit market value integration */
+/* v46 – RosterAudit market value integration */
 .ra-eyebrow{color:#647569;font-size:10px;font-weight:950;letter-spacing:.13em;text-transform:uppercase;margin-bottom:8px}
 .ra-team-overview{margin:20px 0 30px;background:linear-gradient(135deg,#ecf9f3,#f3f7fd);border:1px solid #c8e2d5;border-radius:22px;padding:23px 25px}
 .ra-team-overview h2{font:clamp(27px,4vw,41px)/1.07 'Archivo Black',sans-serif;letter-spacing:-.035em;margin:0;color:#183a2a}
@@ -769,7 +769,7 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
  .jh-game-row select{grid-column:1/-1;grid-row:2;max-width:100%;font-size:13px;padding:10px 8px}
 }
 
-/* v56 — dedicated minigames hub and seven-item bottom dock */
+/* v56 – dedicated minigames hub and seven-item bottom dock */
 .jh-gap-teaser{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#e6f8ed;border:1px solid #bddfcb;border-radius:18px;padding:15px 20px;margin:14px 0 28px;color:#254b38;text-decoration:none;box-shadow:0 4px 14px rgba(35,68,49,.05)}
 .jh-gap-teaser span{display:flex;flex-direction:column;gap:5px}
 .jh-gap-teaser b{font:16px/1.2 'Archivo Black',sans-serif;letter-spacing:-.02em}
@@ -854,7 +854,7 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
   .compact-streak-records .streak-record-card { min-height:185px; padding:18px !important; }
 }
 
-/* v60 — transparent cumulative post-trade scoring + trade 12 league lore */
+/* v60 – transparent cumulative post-trade scoring + trade 12 league lore */
 .jh-overview-team{align-items:flex-start}
 .jh-overview-figures{flex:1}
 .jh-overview-production{border-top:1px solid #dfe6e2;margin-top:13px;padding-top:12px;display:flex;flex-direction:column;gap:5px}
@@ -868,7 +868,7 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
 .jh-rule-note a{font-weight:800;color:#155e3c;text-underline-offset:3px}
 @media(max-width:590px){.jh-overview-figures{width:100%}.jh-overview-production strong{font-size:29px}.jh-overall-scoring-note{font-size:11px}.jh-rule-note{padding:17px}.jh-rule-note p{font-size:12px}}
 
-/* v61 — collapsible, scannable James–Hayden archive */
+/* v61 – collapsible, scannable James–Hayden archive */
 .jh-trade-row{min-width:0;display:grid;gap:11px}
 .jh-trade-card{display:block}
 .jh-trade-card>.jh-trade-meta{
@@ -921,7 +921,7 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
   }
 }
 
-/* v176 — Independent, persistent Boek/Hayden exclusions for record leaderboards. */
+/* v176 – Independent, persistent Boek/Hayden exclusions for record leaderboards. */
 .fig-record-exclusions{
  display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px;
 }
@@ -952,7 +952,7 @@ img.team-card-photo,img.team-profile-photo{display:block;object-fit:cover;object
  .fig-record-toggle-indicator{width:19px;height:19px;flex-basis:19px;font-size:13px}
 }
 
-/* v177 — full franchise record book; distinct from the compact snapshot. */
+/* v177 – full franchise record book; distinct from the compact snapshot. */
 .fig-team-record-book{margin:22px 0 40px;color:#253040}
 .fig-tr-page-head{margin:0 0 14px;padding:22px 24px;background:#e2e5e8;border-radius:24px}
 .fig-tr-page-head .eyebrow{color:#526274;font-size:11px;letter-spacing:.12em;font-weight:900}
