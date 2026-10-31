@@ -49,6 +49,11 @@ const {chromium}=require('playwright');
    const texts=await recordCards.allInnerTexts();
    assert.ok(texts.some(s=>s.includes('40 BOMBS')&&s.includes('TIED #1')));
    assert.ok(texts.some(s=>s.includes('50 BOMBS')&&s.includes('#1')));
+   assert.ok(!texts.some(s=>s.includes('150+ Point Games')),'150+ must not appear among historical single-season records');
+   const columns=await page.locator('.fig-hof-244-record-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(' ').filter(Boolean).length);
+   assert.equal(columns,width>900?2:1,'Roomy record layout on '+label);
+   const firstRecord=await recordCards.first().boundingBox();
+   assert.ok(firstRecord&&firstRecord.height>=220,'Each record has sufficient space on '+label);
    for(const category of ['200+ Point Games','225+ Point Games','250+ Point Games'])
     assert.ok(texts.some(s=>s.includes(category)));
    assert.equal(await page.locator('.fig-hof-244-streak-list').count(),0);

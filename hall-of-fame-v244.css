@@ -1,27 +1,17 @@
-/* Enshrined season: historical single-season honors */
-.fig-hof-244-record-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:5px 0 42px}
-.fig-hof-244-honor{min-width:0;display:flex;flex-direction:column;padding:25px 22px;border:1px solid rgba(219,179,116,.35);
- background:linear-gradient(142deg,#26323d,#141f2a);transition:border-color .2s,transform .2s}
-.fig-hof-244-honor:hover{transform:translateY(-3px);border-color:#e5bf81}
-.fig-hof-244-honor-top{display:flex;justify-content:space-between;gap:10px;min-height:32px;color:#c6b08b;font:800 8px Inter,Arial,sans-serif;letter-spacing:.1em}
-.fig-hof-244-honor-top b{color:#e0bb7e;text-align:right;white-space:nowrap}
-.fig-hof-244-honor h3{font:400 23px/1.15 Georgia,serif;color:#f5ecd8;letter-spacing:-.025em;margin:21px 0 11px}
-.fig-hof-244-honor>strong{font:400 clamp(30px,3.7vw,43px) Georgia,serif;letter-spacing:-.04em;color:#edc58b;margin-top:auto}
-.fig-hof-244-honor>small{border-top:1px solid #735d3d6e;color:#d3b080;padding-top:14px;margin-top:22px;font:800 9px Inter,Arial,sans-serif;letter-spacing:.09em}
- padding:18px 17px;background:linear-gradient(115deg,#1c2c38,#111c27);transition:border-color .2s,transform .2s}
-@media(max-width:980px){
- .fig-hof-244-record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(max-width:699px){
- .fig-hof-244-record-grid{gap:9px}
- .fig-hof-244-honor{padding:19px 15px}
- .fig-hof-244-honor h3{font-size:20px}
- .fig-hof-244-honor-top{flex-direction:column;font-size:7px}
- .fig-hof-244-honor-top b{text-align:left}
- .fig-hof-244-honor>strong{font-size:30px}
- .fig-hof-244-honor>small{font-size:8px}
-}
-@media(max-width:370px){
- .fig-hof-244-record-grid{grid-template-columns:1fr}
- .fig-hof-244-honor{padding:22px}
-}
+/* Enshrined seasons: spacious, editorial historical record panels */
+.fig-hof-244-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:24px 0 54px}
+.fig-hof-244-honor{position:relative;box-sizing:border-box;min-width:0;min-height:260px;display:flex;flex-direction:column;gap:0;padding:31px 33px;border:1px solid rgba(219,179,116,.38);border-radius:5px;text-decoration:none;background:linear-gradient(145deg,#293642 0%,#1b2935 52%,#14212b 100%);box-shadow:0 10px 30px rgba(0,0,0,.08);transition:border-color .2s,transform .2s,box-shadow .2s}
+.fig-hof-244-honor:hover,.fig-hof-244-honor:focus-visible{transform:translateY(-3px);border-color:#e5bf81;box-shadow:0 15px 30px rgba(0,0,0,.18)}
+.fig-hof-244-honor:focus-visible{outline:2px solid #f2d6a3;outline-offset:3px}
+.fig-hof-244-honor-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;margin-bottom:26px;color:#c9b89b;font:800 10px/1.4 Inter,Arial,sans-serif;letter-spacing:.1em}
+.fig-hof-244-honor-top b{flex-shrink:0;display:inline-flex;align-items:center;padding:7px 11px;border:1px solid rgba(226,186,122,.58);border-radius:2px;background:rgba(226,186,122,.09);color:#f0cf97;font:800 10px/1.3 Inter,Arial,sans-serif;letter-spacing:.08em}
+.fig-hof-244-honor-main{display:flex;flex:1;flex-direction:column;justify-content:space-between;gap:18px}
+.fig-hof-244-honor h3{margin:0;color:#f7edd9;font:400 clamp(24px,2.6vw,30px)/1.18 Georgia,serif;letter-spacing:-.025em}
+.fig-hof-244-honor-measure{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 17px}
+.fig-hof-244-honor-measure strong{font:400 clamp(40px,4.2vw,54px)/1 Georgia,serif;letter-spacing:-.045em;color:#f1c98e}
+.fig-hof-244-honor-measure span{font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.095em;color:#bead93}
+.fig-hof-244-honor-foot{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:27px;padding-top:17px;border-top:1px solid rgba(208,171,113,.27);color:#e8c58e;font:800 10px/1.35 Inter,Arial,sans-serif;letter-spacing:.1em}
+.fig-hof-244-honor-foot span:last-child{font-size:20px;line-height:1}
+@media(max-width:900px){.fig-hof-244-record-grid{grid-template-columns:1fr;gap:17px}.fig-hof-244-honor{min-height:226px}}
+@media(max-width:699px){.fig-hof-244-record-grid{gap:13px;margin-top:20px}.fig-hof-244-honor{padding:24px 22px;min-height:225px}.fig-hof-244-honor-top{font-size:9px;margin-bottom:21px}.fig-hof-244-honor-top b{font-size:9px;padding:6px 9px}.fig-hof-244-honor h3{font-size:25px}.fig-hof-244-honor-measure strong{font-size:44px}.fig-hof-244-honor-foot{margin-top:23px;font-size:9px}}
+@media(max-width:370px){.fig-hof-244-honor{padding:22px 18px}.fig-hof-244-honor h3{font-size:23px}.fig-hof-244-honor-measure strong{font-size:40px}}

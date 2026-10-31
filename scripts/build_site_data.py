@@ -21923,10 +21923,6 @@ candidate_metrics = [
         "highest_weekly_score"
     ),
 
-    (
-        "150+ Point Games",
-        "games_150"
-    ),
 
     (
         "175+ Point Games",

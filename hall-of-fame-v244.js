@@ -133,7 +133,7 @@ function seasonHonors(d,season,franchiseId){
  const raw=[...(d.singleSeasonRecords||[]),...hallSeasonBombRows(d,complete)]
   .filter(x=>complete.has(String(x.season))&&Number.isFinite(Number(x.value))&&value(x.value)>0&&
    !['Losses','5 BOMBS'].includes(String(x.record_category))&&
-   !/^(100|125|180|190)\+ Point Games$/.test(String(x.record_category)));
+   !/^(100|125|150|180|190)\+ Point Games$/.test(String(x.record_category)));
  const groups=new Map();for(const x of raw){const cat=String(x.record_category||'');if(!cat)continue;if(!groups.has(cat))groups.set(cat,[]);groups.get(cat).push(x);}
  const records=[];
  for(const [category,rows] of groups){
@@ -155,11 +155,16 @@ function displayRecordValue(r){
  return fmt(r.value,2);
 }
 function seasonHonorsSections(e){
- const cards=e.honors.records.map(r=>'<a class="fig-hof-244-honor fig-hof-244-record" href="#/breakdown/season/'+slug(r.category)+'/'+e.franchiseId+'/'+e.year+'">'+
-  '<div class="fig-hof-244-honor-top"><span>ALL-TIME SINGLE-SEASON</span><b>'+(r.tied?'TIED ':'')+'#'+r.rank+' IN LEAGUE HISTORY</b></div>'+
-  '<h3>'+esc(r.category)+'</h3><strong>'+displayRecordValue(r)+'</strong>'+
-  '<small>EXPLORE THIS RECORD ↗</small></a>').join('');
- return heading('III / THE HISTORICAL RECORD','All-time season records.','All top-three single-season marks, ranked against completed franchise seasons throughout league history.')+
+ const cards=e.honors.records.map(r=>{
+  const measure=/^games_[0-9]+$/.test(r.metric)?'QUALIFYING GAMES':/^b[0-9]+$/.test(r.metric)?'STARTER PERFORMANCES':
+   r.metric==='highest_weekly_score'?'SINGLE-GAME HIGH':r.metric==='points_for'?'REGULAR-SEASON POINTS':'SEASON MARK';
+  return '<a class="fig-hof-244-honor fig-hof-244-record" href="#/breakdown/season/'+slug(r.category)+'/'+e.franchiseId+'/'+e.year+'">'+
+   '<div class="fig-hof-244-honor-top"><span>'+e.year+' SEASON RECORD</span><b>'+(r.tied?'TIED ':'')+'#'+r.rank+' ALL TIME</b></div>'+
+   '<div class="fig-hof-244-honor-main"><h3>'+esc(r.category)+'</h3>'+
+   '<div class="fig-hof-244-honor-measure"><strong>'+displayRecordValue(r)+'</strong><span>'+measure+'</span></div></div>'+
+   '<div class="fig-hof-244-honor-foot"><span>VIEW HISTORICAL BREAKDOWN</span><span aria-hidden="true">↗</span></div></a>';
+ }).join('');
+ return heading('III / THE HISTORICAL RECORD','All-time season records.','Every top-three single-season achievement, ranked against completed franchise seasons throughout league history.')+
   '<div class="fig-hof-244-record-grid">'+cards+'</div>';
 }
 function immortalSeasonCard(m){

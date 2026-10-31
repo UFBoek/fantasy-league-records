@@ -98,7 +98,7 @@ const bombLabelForScore=s=>num(s)>=50?'50 BOMBS':num(s)>=40?'40 BOMBS':num(s)>=3
 // Career and season scoring-average records duplicate the corresponding total
 // points leaderboards for completed, equal-length seasons. Keep underlying
 // averages available as ordinary stats, but not as record-book categories.
-const excludedSingleSeasonRecord=x=>String(x?.record_category||'')==='All-Play Wins';
+const excludedSingleSeasonRecord=x=>['All-Play Wins','150+ Point Games'].includes(String(x?.record_category||''));
 const redundantScoreAverageRecord=x=>['Career Scoring Average','Season Scoring Average','Scoring Average'].includes(String(x?.record_category||x?.category||''));
 function teamBombLeaderboard(view,season=null){
  const ids=DATA.standingsCareer||[];const out={};ids.forEach(x=>out[+x.franchise_id]={franchise_id:+x.franchise_id,owner_name:x.owner_name,b5:0,b20:0,b30:0,b40:0,b50:0});
@@ -1430,7 +1430,7 @@ async function records(){
  app.innerHTML=hero('THE HALL OF RECORDS','TEAM RECORDS','Regular-season, playoff and single-season records.')+
  hallBoard+`<section class="section"><div class="control-label">RECORD VIEW</div>${pills('recordView',[{value:'Regular Season',label:'REGULAR SEASON'},{value:'Playoffs',label:'PLAYOFFS'},{value:'Single Season',label:'SINGLE SEASON'}],view)}${figRecordToggleHtml()}<div id="recordBody" class="control-output"></div></section>`+
  figWatchSection('records',figBuildTeamRecordWatch(),figWatchLatestWeek(DATA.games,[]))+
- figSingleSeasonWatchSection(figBuildSingleSeasonWatch(DATA.teamSeasonMaster,DATA.singleSeasonRecords,DATA.leagueSettings,singleSeasonBombRows(),teamBombLeaderboard));
+ figSingleSeasonWatchSection(figBuildSingleSeasonWatch(DATA.teamSeasonMaster,DATA.singleSeasonRecords.filter(x=>!excludedSingleSeasonRecord(x)),DATA.leagueSettings,singleSeasonBombRows(),teamBombLeaderboard));
  figWireWatch('figRecordWatch');
  figWireWatch('figSeasonRecordWatch');
  const gamesForView=()=>DATA.games.filter(g=>view==='Regular Season'?g.game_type==='Regular Season':view==='Playoffs'?g.game_type!=='Regular Season':false);

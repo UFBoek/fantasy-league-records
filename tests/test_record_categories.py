@@ -19,7 +19,8 @@ class RemovedScoringAverageRecords(unittest.TestCase):
                 categories = {row.get(key) for row in rows}
                 self.assertFalse(excluded & categories)
                 if name == 'single_season_records.json':
-                    for limit in (200, 225, 250):
+                    self.assertNotIn('150+ Point Games', categories)
+                    for limit in (175, 200, 225, 250):
                         self.assertIn(f'{limit}+ Point Games', categories)
                     self.assertIn('Highest Weekly Score', categories)
                 if name == 'records.json':
@@ -35,6 +36,7 @@ class RemovedScoringAverageRecords(unittest.TestCase):
             self.assertNotIn('"' + name + '"', source)
         self.assertNotIn('"Scoring Average",\n        "points_per_game"', source)
         self.assertIn('"Career Points Scored"', source)
+        self.assertNotIn('"150+ Point Games",\n        "games_150"', source)
 
     def test_manifest_matches_record_count(self):
         manifest = json.loads((ROOT / 'data' / 'manifest.json').read_text())

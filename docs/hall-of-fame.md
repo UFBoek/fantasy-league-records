@@ -25,7 +25,7 @@ The distinction is intentional: the founding *player* class remains exactly Alle
 
 ## Enshrined Season historical records
 
-The separate streak gallery has been removed. Every positive single-season record where the enshrined team ranks in the all-time top three among completed FIG franchise seasons appears in its exhibit, with accurate tie rankings. The regular-season record book also includes the highest weekly team score and 150+, 175+, 200+, 225+, and 250+ point-game counts. The existing 20, 30, 40, and 50 BOMB starter-performance categories are calculated using exclusive scoring bands, consistent with the main record pages.
+The separate streak gallery has been removed. Each spacious, linked record panel highlights every positive single-season record where the enshrined team ranks in the all-time top three among completed FIG franchise seasons appears in its exhibit, with accurate tie rankings. The single-season record book includes the highest weekly team score and 175+, 200+, 225+, and 250+ point-game counts. The 150+ point-game count remains an ordinary team scoring statistic, not a single-season record category. The existing 20, 30, 40, and 50 BOMB starter-performance categories are calculated using exclusive scoring bands, consistent with the main record pages.
 
 Hayden 2025: seven 40 BOMBS (tied #1), five 50 BOMBS (#1), eight 200+ team games (#2), five 225+ games (tied #1), and three 250+ games (tied #1). Each Hall record opens its verified game or player-performance breakdown. Losses and unfinished seasons are not presented as historical honors.
 
