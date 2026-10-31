@@ -51,7 +51,7 @@ const {chromium}=require('playwright');
     assert.match(exhibit,/ALL-TIME COMBINED/);
     assert.match(exhibit,/regular-season and playoff FIG starting-lineup appearances/);
     assert.ok(await page.locator('.fig-hof-242-receipts a').count()>=5);
-    assert.match(await page.locator('.fig-hof-242-data-note').innerText(),/not measure bench performances/);
+    assert.match(await page.locator('.fig-hof-242-data-note').innerText(),/Bench performances are not included/);
    }
    await go(page,'/inductee/season/6/2025','.fig-hof-243-season-profile-hero h1');
    assert.equal(await page.locator('.fig-hof-243-season-profile-hero h1').innerText(),'Hayden · 2025');
