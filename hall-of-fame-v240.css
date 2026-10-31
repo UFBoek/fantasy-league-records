@@ -276,3 +276,15 @@
  .fig-hof-ballot .fig-hof-avatar{width:36px;height:36px}
  .fig-hof-ballot strong{font-size:18px}
 }
+/* The Hall entrance receives a distinct, ceremonial tile in More only. */
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"]{
+ background:linear-gradient(130deg,#1c2c3c,#0f1825 78%);
+ border:1px solid #9d7c4d;color:#f4e9d7;
+ box-shadow:inset 0 0 0 1px rgba(234,200,140,.10),0 14px 26px rgba(16,25,38,.11)
+}
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"] .avatar{
+ background:linear-gradient(120deg,#e8cb91,#be935b);color:#15202a;
+ box-shadow:0 0 0 4px rgba(214,173,110,.13)
+}
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"] .team-name{color:#f9edda}
+.fig-more-grid a.fig-more-item[href="#/hall-of-fame"] .fig-more-open{color:#e8c78d}
