@@ -1,4 +1,4 @@
-/* v184 — Refinements to player, season, roster, streak and lineup detail views.
+/* v184 – Refinements to player, season, roster, streak and lineup detail views.
    Keeps all original archive and live-data calculations intact. */
 .page-wrap .fig-bomb-entry {
  grid-template-columns:42px minmax(0,1fr) max-content!important;
