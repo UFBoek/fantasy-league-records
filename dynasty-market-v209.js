@@ -7,7 +7,7 @@
  var fmt=function(n){return Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});};
  var signed=function(n){return (n>0?'+':'')+fmt(n);};
  var percent=function(n){return Number(n||0).toFixed(1)+'%';};
- var ts=function(date){var s=String(date||'');return s?new Date(s+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}):'—';};
+ var ts=function(date){var s=String(date||'');return s?new Date(s+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}):'–';};
  var firstId=function(obj){return Number(obj.franchise_id);};
  var dataHistory=[];
  var entries=[];

@@ -1,4 +1,4 @@
-/* FIG League v69 — connected back navigation, live sort metrics, and streamlined record histories on phones.
+/* FIG League v69 – connected back navigation, live sort metrics, and streamlined record histories on phones.
    Enhances the actual archive tables; does not change league data or desktop rendering. */
 (() => {
   'use strict';
@@ -235,7 +235,7 @@
           summary.replaceChildren();
           visibleExtras.forEach(i=>{
             const value=(cells[i]?.textContent||'').replace(/\s+/g,' ').trim();
-            if(!value || value==='—') return;
+            if(!value || value==='–') return;
             const stat=document.createElement('span');
             if (/^(POS|POSITION)$/i.test(labels[i])) stat.className='fig-pos-tag';
             const caption=document.createElement('span');caption.textContent=labels[i]+' ';
@@ -249,7 +249,7 @@
           for (const i of otherIndices.filter(i=>!visibleExtras.includes(i))) {
             const item=document.createElement('span');
             const caption=document.createElement('small');caption.textContent=labels[i];
-            const value=document.createElement('span');value.innerHTML=cells[i]?.innerHTML||'—';
+            const value=document.createElement('span');value.innerHTML=cells[i]?.innerHTML||'–';
             item.append(caption,value);detail.append(item);
           }
           const toggle=row.querySelector('.fig-expand-button');
@@ -330,7 +330,7 @@
       summary.setAttribute('aria-label','Key statistics');
       summaryIndices.forEach(idx => {
         const text=(cells[idx]?.textContent||'').replace(/\s+/g,' ').trim();
-        if (!text || text==='—') return;
+        if (!text || text==='–') return;
         const stat=document.createElement('span');
         if (/^(POS|POSITION)$/i.test(labels[idx])) stat.className='fig-pos-tag';
         const prefix=document.createElement('span');prefix.textContent=labels[idx] + ' ';
@@ -345,7 +345,7 @@
         const caption=document.createElement('small');caption.textContent=labels[idx];
         stat.append(caption);
         const value=document.createElement('span');
-        value.innerHTML=cells[idx]?.innerHTML || '—';
+        value.innerHTML=cells[idx]?.innerHTML || '–';
         stat.append(value);detail.append(stat);
       });
       if (detail.children.length) {

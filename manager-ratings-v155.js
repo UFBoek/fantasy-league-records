@@ -1,4 +1,4 @@
-/* FIG Manager Ratings v155 — draft + trade + completed-week lineup efficiency. */
+/* FIG Manager Ratings v155 – draft + trade + completed-week lineup efficiency. */
 (function(){
 'use strict';
 const weights={draft:.35,trade:.35,lineup:.20,waiver:.10};
@@ -90,10 +90,10 @@ function figManagerRatingModel(data,tradeModel,helpers){
 }
 function figManagerRatingsPage(model,helpers,managerId){
  const {el,html,escape,money,avatar}=helpers;
- const n=number=>number===null||number===undefined?'—':String(number);
+ const n=number=>number===null||number===undefined?'–':String(number);
  const signed=number=>(number>0?'+':number<0?'−':'')+money(Math.abs(number));
- const score=number=>number===null?'—':number+'/100';
- const p=number=>number===null?'—':percent(number);
+ const score=number=>number===null?'–':number+'/100';
+ const p=number=>number===null?'–':percent(number);
  const card=(label,val,sub)=>'<div class="fig-mr-kpi"><span>'+label+'</span><strong>'+val+'</strong><small>'+sub+'</small></div>';
  const bars=r=>[
   ['DRAFT',r.draftScore,'#19a788'],
@@ -109,7 +109,7 @@ function figManagerRatingsPage(model,helpers,managerId){
   '<p><b>Waiver Value 10%</b>: Current value of the ten most valuable unique players added from free agency or waivers. Duplicate pickups only count once. Commissioner moves, trades and the 2023-12-17 restoration batch are excluded. Drops remain visible in team histories but are not subtracted from pickup value.</p>'+ 
   '<p>Each category is graded from 1–100 against the other managers in this league, then combined with the weights above. Scores are relative league ratings, not universal NFL fantasy-manager grades. Draft and trade values reflect the current RosterAudit snapshot and will change as player values change.</p></details>';
  const row=r=>'<a class="fig-mr-rank-row" href="#/manager/'+r.id+'">'+
-  '<span class="fig-mr-place">'+(r.rank===null?'—':'#'+r.rank)+'</span>'+
+  '<span class="fig-mr-place">'+(r.rank===null?'–':'#'+r.rank)+'</span>'+
   avatar(r.id,'fig-mr-avatar')+
   '<span class="fig-mr-manager"><b>'+escape(r.name)+'</b><small>'+r.grade.valued+' rookie picks · '+r.trade.rated+' rated trades'+
   (r.provisional?' · provisional trades':'')+'</small></span>'+
@@ -124,11 +124,11 @@ function figManagerRatingsPage(model,helpers,managerId){
  if(team){
   const head='<div class="fig-mr-profile-head"><a class="fig-mr-back" href="#/manager-ratings">← ALL MANAGER RATINGS</a>'+
    '<div class="fig-mr-profile-identity">'+avatar(team.id,'fig-mr-profile-avatar')+
-   '<div><span>ALL-TIME MANAGER RATING</span><h2>'+escape(team.name)+'</h2><small>LEAGUE RANK '+(team.rank===null?'—':'#'+team.rank)+'</small></div>'+
+   '<div><span>ALL-TIME MANAGER RATING</span><h2>'+escape(team.name)+'</h2><small>LEAGUE RANK '+(team.rank===null?'–':'#'+team.rank)+'</small></div>'+
    '<strong>'+n(team.rating)+'<small>/ 100</small></strong></div></div>';
   const details='<div class="fig-mr-profile-cols">'+
    statList('DRAFT RATING',card('DRAFT SCORE',score(team.draftScore),'35% OF RATING')+
-    card('ROOKIE RETURN',team.grade.ratio===null?'—':Math.round(team.grade.ratio*100)+'%',
+    card('ROOKIE RETURN',team.grade.ratio===null?'–':Math.round(team.grade.ratio*100)+'%',
      team.grade.valued+' / '+team.grade.eligible+' PICKS GRADED')+
     card('PICK GRADE',escape(team.grade.letter),'AVERAGE LETTER GRADE')+
     '<a class="fig-mr-panel-link" href="#/draft/team/'+team.id+'">FULL DRAFT BREAKDOWN →</a>')+
@@ -142,7 +142,7 @@ function figManagerRatingsPage(model,helpers,managerId){
       money(team.actual)+' OF '+money(team.optimal)+' POSSIBLE')+
     '<a class="fig-mr-panel-link" href="#/team/'+team.id+'">TEAM HISTORY →</a>')+
    statList('WAIVER VALUE',card('WAIVER SCORE',score(team.waiverScore),'10% OF RATING')+
-    card('TOP 10 PICKUPS',team.waiver.top10Value===null?'—':money(team.waiver.top10Value),'CURRENT ROSTERAUDIT VALUE')+
+    card('TOP 10 PICKUPS',team.waiver.top10Value===null?'–':money(team.waiver.top10Value),'CURRENT ROSTERAUDIT VALUE')+
     card('UNIQUE ADDS',team.waiver.uniqueAdds.length,team.waiver.adds.length+' RECORDED MOVES')+
     '<a class="fig-mr-panel-link" href="#/team/'+team.id+'/waivers">WAIVER HISTORY →</a>')+'</div>';
   const years='<div class="fig-mr-year-list">'+team.seasons.map(s=>'<div class="fig-mr-year-row">'+

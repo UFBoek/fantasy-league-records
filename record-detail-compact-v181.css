@@ -1,4 +1,4 @@
-/* FIG v181 — compact, readable record detail layouts only.
+/* FIG v181 – compact, readable record detail layouts only.
    Scoped to drilldown routes; main record galleries and team snapshots are untouched. */
 #app.fig-record-detail-page{
   max-width:1080px;

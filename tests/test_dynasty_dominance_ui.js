@@ -112,7 +112,7 @@ assert.equal(typeof context.window.figDynastyDominance,'function');
  assert.match(playerTable.innerHTML,/14\.5–28\.1/);
  assert.match(playerTable.innerHTML,/12,000/);
  assert.match(playerTable.innerHTML,/Future|original pick/i);
- assert.match(playerTable.innerHTML,/—/,'Do not invent a future rookie market valuation');
+ assert.match(playerTable.innerHTML,/–/,'Do not invent a future rookie market valuation');
  positionFilter.handlers.change({target:{value:'QB'}});
  assert.match(playerTable.innerHTML,/Josh Allen/);
  assert.doesNotMatch(playerTable.innerHTML,/Player Two/);

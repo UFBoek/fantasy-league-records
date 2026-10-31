@@ -1,12 +1,14 @@
 name: Verify FIG Hall of Fame
 on:
   push:
-    branches: [feature/fig-hall-of-fame, feature/hof-lasting-legacy-standards, feature/hof-founding-four, feature/hof-simplified-hayden-season, main]
+    branches: [feature/fig-hall-of-fame, feature/hof-lasting-legacy-standards, feature/hof-founding-four, feature/hof-simplified-hayden-season, feature/hof-season-records-no-em-dashes, main]
     paths:
       - 'hall-of-fame-v240.*'
       - 'hall-of-fame-v241.*'
       - 'hall-of-fame-v242.*'
       - 'hall-of-fame-v243.*'
+      - 'hall-of-fame-v244.*'
+      - 'hall-of-fame-v244.*'
       - 'app.js'
       - 'index.html'
       - 'sw.js'
@@ -18,6 +20,8 @@ on:
       - 'hall-of-fame-v241.*'
       - 'hall-of-fame-v242.*'
       - 'hall-of-fame-v243.*'
+      - 'hall-of-fame-v244.*'
+      - 'hall-of-fame-v244.*'
       - 'app.js'
       - 'index.html'
       - 'sw.js'
@@ -42,6 +46,8 @@ jobs:
           node --check hall-of-fame-v241.js
           node --check hall-of-fame-v242.js
           node --check hall-of-fame-v243.js
+          node --check hall-of-fame-v244.js
+          node --check hall-of-fame-v244.js
           node --check app.js
           node tests/test_hall_of_fame.js
       - name: Browser smoke tests (desktop and mobile)

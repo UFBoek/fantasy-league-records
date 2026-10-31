@@ -577,10 +577,10 @@
    var next=s.opp.slice(0,3).map(function(x){return '<span class="pcl-opponent">W'+x.week+' '+safe(name(x.id))+'</span>';}).join('');
    wrap.innerHTML='<div class="pcl-quick-outlook"><div class="pcl-detail-head">'+img(selectedTeam,'pcl-detail-avatar')+
      '<div><strong>'+safe(name(selectedTeam))+'</strong><span>'+s.team.wins+'–'+s.team.losses+' · '+fmt(s.team.pf)+' PF</span></div></div>'+
-     '<div class="pcl-quick-stats"><span><small>PLAYOFFS</small><b>'+(r?pc(r.playoffs):'—')+'</b></span>'+
-     '<span><small>TOP-3 BYE</small><b>'+(r?pc(r.bye):'—')+'</b></span>'+
-     '<span><small>1 SEED</small><b>'+(r?pc(r.one):'—')+'</b></span>'+ 
-      '<span><small>CHAMPION</small><b>'+(r?pc(r.champ):'—')+'</b></span>'+ 
+     '<div class="pcl-quick-stats"><span><small>PLAYOFFS</small><b>'+(r?pc(r.playoffs):'–')+'</b></span>'+
+     '<span><small>TOP-3 BYE</small><b>'+(r?pc(r.bye):'–')+'</b></span>'+
+     '<span><small>1 SEED</small><b>'+(r?pc(r.one):'–')+'</b></span>'+ 
+      '<span><small>CHAMPION</small><b>'+(r?pc(r.champ):'–')+'</b></span>'+ 
       '<span><small>LAST 3 AVG</small><b>'+fmt(s.model.recent)+'</b></span>'+
      '<span><small>ALL-PLAY</small><b>'+pc(s.model.allPlay)+'</b></span></div>'+
      '<a class="pcl-path-link" href="#/playoff-calculator/team/'+selectedTeam+'">FULL PLAYOFF PATH →</a></div>'+
@@ -646,9 +646,9 @@
        if(enough&&playoffs>=.5&&likely===null){likely=w;likelyProb=playoffs;}
        if(!mostCommon||(p&&p.samples>mostCommon.samples))mostCommon={w:w,samples:p?p.samples:0};
        pathRows+='<tr><td><b>'+w+'</b> of '+remaining+'</td><td>'+(t.wins+w)+'–'+(t.losses+remaining-w)+'</td>'+
-         '<td>'+(p?pc(p.samples/N):'—')+'</td>'+
-         '<td>'+(enough?'<span class="pcl-route-likelihood">'+pc(playoffs)+'<i style="width:'+Math.round(playoffs*100)+'%"></i></span>':'—')+'</td>'+
-         '<td>'+(enough?pc(p.bye/p.samples):'—')+'</td></tr>';
+         '<td>'+(p?pc(p.samples/N):'–')+'</td>'+
+         '<td>'+(enough?'<span class="pcl-route-likelihood">'+pc(playoffs)+'<i style="width:'+Math.round(playoffs*100)+'%"></i></span>':'–')+'</td>'+
+         '<td>'+(enough?pc(p.bye/p.samples):'–')+'</td></tr>';
      }
    }
    var insights=r?'<div class="pcl-road-insights">'+
@@ -691,12 +691,12 @@
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>ROAD TO THE PLAYOFFS</h2><span>'+remaining+' GAMES LEFT · FIVE TEAMS QUALIFY</span></div>'+
      insights+
      (r?'<div class="pcl-route-table-wrap"><table class="pcl-table pcl-route-table"><thead><tr><th>WINS FROM HERE</th><th>FINAL RECORD</th><th>CHANCE OF RECORD</th><th>PLAYOFF ODDS</th><th>TOP-3 BYE</th></tr></thead><tbody>'+pathRows+'</tbody></table></div>'+
-     '<p class="pcl-caption">Odds by final record are conditional estimates. “—” indicates fewer than 15 simulated finishes, not elimination or an official clinch.</p>':
+     '<p class="pcl-caption">Odds by final record are conditional estimates. “–” indicates fewer than 15 simulated finishes, not elimination or an official clinch.</p>':
      '<p class="pcl-caption">Complete the missing schedule in the main What-If Calculator to see the path by final record.</p>')+
      '<div class="pcl-route-actions"><button data-path="win">SIMULATE WINNING OUT</button><button data-path="lose">SIMULATE LOSING OUT</button><button data-path="reset">RESET '+safe(t.name).toUpperCase()+' MATCHUPS</button></div></section>'+
      impactSection+
      '<section class="section pcl-section"><div class="pcl-section-head"><h2>REMAINING SCHEDULE</h2><span>CHOOSE WIN · LOSS · AUTO DIRECTLY BELOW</span></div>'+
-     '<div class="pcl-route-summary"><span>OPPONENT AVG <b>'+(s.opp.length?fmt(s.oppAvg):'—')+'</b></span><span>LEAGUE AVG <b>'+fmt(leagueAvg)+'</b></span>'+
+     '<div class="pcl-route-summary"><span>OPPONENT AVG <b>'+(s.opp.length?fmt(s.oppAvg):'–')+'</b></span><span>LEAGUE AVG <b>'+fmt(leagueAvg)+'</b></span>'+
      '<span>MODEL POINTS/WK <b>'+fmt(s.model.mean)+'</b></span>'+
      (firstWeek<=END?'<span>W'+firstWeek+' STARTERS <b>'+(Number.isFinite(s.model.weekMean)?fmt(s.model.weekMean)+' ('+(s.model.lineupDelta>=0?'+':'')+fmt(s.model.lineupDelta)+')':'NOT APPLIED')+'</b></span>':'')+'</div>'+
      '<div class="pcl-route-games">'+(schedule||'<div class="pcl-caption">No confirmed future matchups available.</div>')+'</div></section>'+
@@ -796,9 +796,9 @@
                ' · '+Math.round(100*actual.progress)+'% GAME ELAPSED':''):
            fallback?'NO '+year+' NFL GAMES · SLEEPER FORECAST':
            present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
-         '<div class="pcl-model-player-averages"><span>LAST '+(Number(score.games)>0?Math.min(8,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last8_avg):'—')+'</b></span>'+
-         '<span>LAST '+(Number(score.games)>0?Math.min(3,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last3_avg):'—')+'</b></span></div>'+
-         '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'—')+'</b><small>'+(actualNow?
+         '<div class="pcl-model-player-averages"><span>LAST '+(Number(score.games)>0?Math.min(8,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last8_avg):'–')+'</b></span>'+
+         '<span>LAST '+(Number(score.games)>0?Math.min(3,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last3_avg):'–')+'</b></span></div>'+
+         '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'–')+'</b><small>'+(actualNow?
            (actual.phase==='FINAL'?'FINAL POINTS':'LIVE EST. FINAL'):
            fallback?'SLEEPER PROJ.':'PROJECTED')+'</small>'+
          '<span class="pcl-model-player-bar"><i style="width:'+clamp(share,0,100).toFixed(2)+'%"></i></span>'+
@@ -812,12 +812,12 @@
        '<div><strong>'+safe(name(id))+'</strong>'+status+'</div></div>';
      var stats='<div class="pcl-model-summary pcl-model-summary-compact'+(pregame?' pcl-model-pregame':' pcl-model-live-only')+'">'+
        '<span class="pcl-model-score-card pcl-model-score-primary"><small>EXPECTED STARTER TOTAL</small>'+
-       '<b>'+(valid?fmt(sum):'—')+'</b><em>Used for Week '+firstWeek+' win odds'+(actuals?' · '+actuals+' games started':'')+'</em></span>'+
+       '<b>'+(valid?fmt(sum):'–')+'</b><em>Used for Week '+firstWeek+' win odds'+(actuals?' · '+actuals+' games started':'')+'</em></span>'+
        (pregame?
          '<span class="pcl-model-score-card"><small>SIMULATED WEEK '+firstWeek+' PPG</small>'+
          '<b>'+fmt(forecast)+'</b><em>Historical team-adjusted estimate</em></span>'+
          '<span class="pcl-model-score-card"><small>USUAL LINEUP</small>'+
-         '<b>'+(valid?fmt(adjustment.typicalTotal):'—')+'</b><em>Previous starters comparison</em></span>'+
+         '<b>'+(valid?fmt(adjustment.typicalTotal):'–')+'</b><em>Previous starters comparison</em></span>'+
          '<details class="pcl-model-method" data-math-id="'+id+'"'+(expandedMath[id]?' open':'')+'>'+
          '<summary>HOW IT IS CALCULATED</summary>'+
          '<div class="pcl-model-method-stats">'+

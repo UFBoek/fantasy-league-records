@@ -48,7 +48,7 @@
         const value = score(row);
         const lead = pair && value !== null && value === high && group.filter(other => score(other) === high).length === 1;
         return '<div class="fig-live-side' + (lead ? ' fig-live-leading' : '') + '">' + label +
-          '<span class="fig-live-score">' + (value == null ? '—' : value.toFixed(2)) + '</span></div>';
+          '<span class="fig-live-score">' + (value == null ? '–' : value.toFixed(2)) + '</span></div>';
       }).join('');
       const week = Number(leagueMeta.settings.leg);
       const detail = pair && week <= 14
@@ -174,10 +174,10 @@
       return {roster:Number(row.roster_id), starters, scored, starterPoints, bench, total:score(row)};
     });
     const player = (side, id, points) => {
-      if (!side || !id || id === '0') return '<div class="fig-live-lineup-empty">—</div>';
+      if (!side || !id || id === '0') return '<div class="fig-live-lineup-empty">–</div>';
       const info = names.get(String(id)) || {};
       const name = info.name || 'Player ' + id;
-      const value = points == null || points === '' || !Number.isFinite(Number(points)) ? '—' : Number(points).toFixed(2);
+      const value = points == null || points === '' || !Number.isFinite(Number(points)) ? '–' : Number(points).toFixed(2);
       const headshot = typeof window.playerHeadshot === 'function'
         ? window.playerHeadshot(id, name, 'fig-live-nfl-photo') : '';
       return '<div class="fig-live-slot-player">' + headshot +
@@ -187,7 +187,7 @@
     };
     const maxStarters = Math.max(positions.length, ...sides.map(x=>x.starters.length), 0);
     const heading = side => side ? '<a href="#/team/' + side.roster + '" class="fig-live-lineup-team">' +
-      teamLabel(side.roster) + '<strong>' + (side.total === null ? '—' : side.total.toFixed(2)) + '</strong></a>' :
+      teamLabel(side.roster) + '<strong>' + (side.total === null ? '–' : side.total.toFixed(2)) + '</strong></a>' :
       '<span class="fig-live-lineup-team">NO OPPONENT</span>';
     const starters = Array.from({length:maxStarters},(_,i) => {
       const left=sides[0], right=sides[1];
@@ -244,7 +244,7 @@
       if (activeDetail() !== detail) return;
       if (leagueMeta.status !== 'in_season' || Number(leagueMeta.settings?.leg) !== week) {
         detail.innerHTML = '<div class="fig-live-empty">This is no longer the active Sleeper week. View finalized scores and lineups in the <a href="#/games">Game Archive</a>.</div>';
-        if (status) status.textContent = 'Historical week — not live';
+        if (status) status.textContent = 'Historical week – not live';
         return;
       }
       const res = await fetch(API + id + '/matchups/' + week, {cache:'no-store'});

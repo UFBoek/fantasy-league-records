@@ -113,7 +113,7 @@
   color:#137e62!important;font:900 11px/1.25 Inter,sans-serif!important;
 }
 
-/* Official brackets — use one consistent light palette instead of legacy navy
+/* Official brackets – use one consistent light palette instead of legacy navy
    headers combined with the new page background. */
 .page-wrap .playoff-podium {
   display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;

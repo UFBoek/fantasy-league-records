@@ -1,4 +1,4 @@
-/* v104 — provisional injury research, readable on phones.
+/* v104 – provisional injury research, readable on phones.
    The audit does not claim to be a complete historical injury leaderboard. */
 .fig-injury-entry{margin:10px 0 18px}
 .fig-injury-entry a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 17px;border:1px solid #b8d5c5;background:#eaf4ed;border-radius:13px;color:#183b2a;text-decoration:none;flex-wrap:wrap}

@@ -1,4 +1,4 @@
-/* FIG Hall of Fame — archival museum design. Fully isolated from the rest of FIG. */
+/* FIG Hall of Fame – archival museum design. Fully isolated from the rest of FIG. */
 #app:has(.fig-hof){max-width:1240px;width:min(100%,1240px);padding:0!important;margin-inline:auto}
 .fig-hof{
  --hof-bg:#0b111a;--hof-bg2:#101a26;--hof-panel:#17212c;--hof-ink:#f8f5ee;

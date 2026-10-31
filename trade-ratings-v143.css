@@ -1,4 +1,4 @@
-/* v153: Trade Ratings — per-opponent balanced net attribution. */
+/* v153: Trade Ratings – per-opponent balanced net attribution. */
 .fig-tr-page {display:grid;gap:16px;min-width:0}
 .fig-tr-page .section {margin:0!important;min-width:0}
 .fig-tr-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}

@@ -23,6 +23,18 @@ Verified 2025 records: 3,000.13 regular-season points, 214.30 points per game, 8
 
 The distinction is intentional: the founding *player* class remains exactly Allen, Gibbs, Puka and McBride, while the enshrined team season is recognized in a separate category.
 
+## Enshrined Season historical records and streaks
+
+Each enshrined franchise-season profile now includes two verified galleries that update from the league's published data.
+
+**Top-three single-season records** come from `data/single_season_records.json`. The Hall shows every category in which the specific franchise-season ranks first, second, or third in the official FIG single-season record book. For Hayden 2025, the current archive lists seven: All-Play Win Percentage, Max PF, Point Differential, Points For, Weekly High Scores, Weekly Top-3 Finishes, and Wins. Rankings reflect the published record book and may change as additional records are added.
+
+**Streaks established or continued during that season** are drawn from `data/website_streaks.json`, the career-game streak archive. Each positive, qualifying streak must overlap the enshrined season (`start_season <= season <= end_season`). Active and cross-season streaks are included, with the actual recorded start/end weeks and explicit ACTIVE or COMPLETED status. The 100+, 125+, and 150+ scoring categories, as well as negative losing or below-median categories, are deliberately omitted. The exhibit links to FIG's official records and streaks pages. No additional seasons, records, or streaks are invented or independently predicted.
+
+## Website typography rule
+
+**No em dashes** are permitted anywhere in the public website's displayed text. Existing frontend JavaScript, HTML, CSS, manifest, and published data have been audited, and a repository regression test (`tests/test_no_em_dashes.js`) enforces the rule against future reintroduction.
+
 ## Philosophy
 
 Hall cases should be built around the **quality of individual seasons**, not cumulative career totals or averages diluted by late-career decline. Four factors guide consideration:
@@ -53,7 +65,7 @@ The Hall intentionally contains **one institution**, not a separate Legacy Point
 
 The 2026 founding class and 2025 team-season selection cover completed seasons 2023–2025. Incomplete 2026 results do not change the founding class, and younger players have no future-performance bonus.
 
-Implementation: `hall-of-fame-v243.js`, `hall-of-fame-v243.css`, `hall-of-fame-v242.css`, existing `hall-of-fame-v240.css` and `v241.css` museum foundations, `index.html`, and the service-worker app shell. The public route remains `#/hall-of-fame`, individual inductee routes remain `#/hall-of-fame/inductee/player/:id`, and legacy Hall routes gracefully return to the main Hall.
+Implementation: `hall-of-fame-v244.js`, `hall-of-fame-v244.css`, `hall-of-fame-v243.css`, `hall-of-fame-v242.css`, existing `hall-of-fame-v240.css` and `v241.css` museum foundations, `index.html`, and the service-worker app shell. The public route remains `#/hall-of-fame`, individual inductee routes remain `#/hall-of-fame/inductee/player/:id`, and legacy Hall routes gracefully return to the main Hall.
 
 Testing: `node tests/test_hall_of_fame.js` and browser smoke testing in `tests/test_hall_of_fame_browser.js` at desktop, standard mobile and narrow mobile widths.
 

@@ -1,4 +1,4 @@
-/* FIG League v67 — shared dark app navigation and native-density statistics on phones.
+/* FIG League v67 – shared dark app navigation and native-density statistics on phones.
    Enhances the actual archive tables; does not change league data or desktop rendering. */
 (() => {
   'use strict';
@@ -133,7 +133,7 @@
       summary.setAttribute('aria-label','Key statistics');
       summaryIndices.forEach(idx => {
         const text=(cells[idx]?.textContent||'').replace(/\s+/g,' ').trim();
-        if (!text || text==='—') return;
+        if (!text || text==='–') return;
         const stat=document.createElement('span');
         if (/^(POS|POSITION)$/i.test(labels[idx])) stat.className='fig-pos-tag';
         const prefix=document.createElement('span');prefix.textContent=labels[idx] + ' ';
@@ -148,7 +148,7 @@
         const caption=document.createElement('small');caption.textContent=labels[idx];
         stat.append(caption);
         const value=document.createElement('span');
-        value.innerHTML=cells[idx]?.innerHTML || '—';
+        value.innerHTML=cells[idx]?.innerHTML || '–';
         stat.append(value);detail.append(stat);
       });
       if (detail.children.length) {

@@ -1,4 +1,4 @@
-/* FIG v77 — compact data grids, readable trade archive, top-three record lists.
+/* FIG v77 – compact data grids, readable trade archive, top-three record lists.
    Maintains two-pane frozen column geometry: left and right rows use equal heights. */
 
 /* Shared compact sizing outside of the physically frozen leaderboards. */

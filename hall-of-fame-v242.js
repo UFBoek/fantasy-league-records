@@ -1,4 +1,4 @@
-/* FIG Hall of Fame / Charter II — fixed, evidence-backed induction classes.
+/* FIG Hall of Fame / Charter II – fixed, evidence-backed induction classes.
    Franchises earn legacy points, but are never automatically enshrined. */
 (function(){
 'use strict';
@@ -149,7 +149,7 @@ function plaque(m,kind,id,year,d){
  '<h1>'+esc(p.name)+'</h1><p>'+esc(e.case)+'</p>'+
  '<a class="fig-hof-gold-btn" href="#/player/'+slug(p.id)+'">EXPLORE THE FIG PLAYER ARCHIVE ↗</a></div></div>'+
  '<div class="fig-hof-v2-plaque-metrics">'+lines.map(k=>metric(k[1],k[0])).join('')+'</div>'+
- heading('THE CASE FOR GREATNESS','A Hall-worthy legacy.','The case rests on extraordinary individual seasons, positional dominance and historical impact—not an arbitrary threshold of cumulative points or career PPG.')+
+ heading('THE CASE FOR GREATNESS','A Hall-worthy legacy.','The case rests on extraordinary individual seasons, positional dominance and historical impact–not an arbitrary threshold of cumulative points or career PPG.')+
  '<div class="fig-hof-v2-standard"><strong>THE INDUCTION CASE</strong><p>'+esc(e.case)+'</p>'+
  '<p>Each season is evaluated on its own merits. A player cannot lose Hall recognition simply by getting older or by being placed on a fantasy bench.</p></div>'+
  heading('THE SEASONS THAT DEFINED HIM','The career, season by season.','The completed founding era, broken into individual years so a remarkable peak is never diluted by later seasons.')+
@@ -183,7 +183,7 @@ async function page(ctx,view,arg,sub,year){
  const content=isProfile?plaque(m,'player',id,year,ctx.DATA):lobby(m);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2 fig-hof-242" id="figHallOfFame">'+
   head(isProfile?'overview':view==='charter'?'charter':'overview')+content+footer()+'</div>';
- document.title='The Hall — Fromm is Garbage';
+ document.title='The Hall – Fromm is Garbage';
  if(view==='charter'){const el=ctx.app.querySelector('.fig-hof-242-charter');if(el)el.scrollIntoView({block:'start'});}
 }
 window.figHallOfFame=page;

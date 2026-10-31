@@ -1,4 +1,4 @@
-/* FIG Hall of Fame — inaugural historical exhibit. All honors are computed
+/* FIG Hall of Fame – inaugural historical exhibit. All honors are computed
    from completed Sleeper seasons, never AI predictions or live results. */
 (function(){
 'use strict';
@@ -131,7 +131,7 @@ function gameCard(item){
  return '<a class="fig-hof-game" href="#/game/'+num(g.season)+'/'+num(g.week)+'/'+num(g.matchup_id)+'">'+
  '<div class="fig-hof-game-top"><span>'+esc(item.label)+'</span><span>'+num(g.season)+' · WK '+num(g.week)+'</span></div>'+
  '<div class="fig-hof-game-teams"><div>'+ownerImage(a)+'<strong>'+esc(OWNERS[a]||'Team '+a)+'</strong></div>'+
- '<div class="fig-hof-game-score">'+fmt(g.score_1,2)+'<small>—</small>'+fmt(g.score_2,2)+'</div>'+
+ '<div class="fig-hof-game-score">'+fmt(g.score_1,2)+'<small>–</small>'+fmt(g.score_2,2)+'</div>'+
  '<div>'+ownerImage(b)+'<strong>'+esc(OWNERS[b]||'Team '+b)+'</strong></div></div>'+
  '<div class="fig-hof-game-foot"><span>'+esc(item.sub)+'</span><b>OPEN BOX SCORE ↗</b></div></a>';
 }
@@ -153,7 +153,7 @@ function featureHero(m){
  '<a class="fig-hof-text-btn" href="#/hall-of-fame/methodology">HOW INDUCTION WORKS ↗</a></div></div>'+
  '<div class="fig-hof-hero-emblem"><div class="fig-hof-emblem-halo"></div>'+medallion()+
  '<div class="fig-hof-emblem-caption"><span>INSTITUTED</span><strong>'+INDUCTION_YEAR+'</strong><span>LEAGUE HERITAGE</span></div></div>'+
- '<div class="fig-hof-hero-foot"><span>INAUGURAL CLASS · '+INDUCTION_YEAR+'</span><span>ARCHIVE '+m.years[0]+' — '+m.years.at(-1)+'</span></div></section>'+
+ '<div class="fig-hof-hero-foot"><span>INAUGURAL CLASS · '+INDUCTION_YEAR+'</span><span>ARCHIVE '+m.years[0]+' – '+m.years.at(-1)+'</span></div></section>'+
  '<div class="fig-hof-stat-bar">'+number('HISTORICAL SEASONS',m.years.length)+number('INAUGURAL FRANCHISES',3)+
  number('PLAYER LEGENDS',m.legends.length)+number('TITLE GAMES',m.finals.length)+'</div>';
 }
@@ -263,7 +263,7 @@ async function page(ctx,view,sub){
  app.innerHTML='<div class="fig-hof" id="figHallOfFame">'+header(view==='franchise'?'franchises':view==='player'?'players':kind)+
  (content||'<section class="fig-hof-content"><p>Exhibit not found. <a href="#/hall-of-fame">Return to the Hall →</a></p></section>')+
  footer(m)+'</div>';
- document.title='Hall of Fame — Fromm is Garbage';
+ document.title='Hall of Fame – Fromm is Garbage';
 }
 window.figHallOfFame=page;
 window.figHallOfFameModel={model,franchises,legends,seasonLegends,moments,completedYears,finalsFor};

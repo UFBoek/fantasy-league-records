@@ -44,6 +44,16 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('.fig-hof-243-season-profile-hero h1').innerText(),'Hayden · 2025');
    assert.equal(await page.locator('.fig-hof-243-season-proof a').count(),2);
    assert.match(await page.locator('.fig-hof-243-season-profile').innerText(),/3,000\.13/);
+   const recordCards=page.locator('.fig-hof-244-record');
+   assert.equal(await recordCards.count(),7,'All top-three single-season records must appear');
+   assert.ok((await recordCards.first().innerText()).includes('RANK 1'));
+   const streakCards=page.locator('.fig-hof-244-streak');
+   assert.ok(await streakCards.count()>=10);
+   assert.equal(await page.locator('.fig-hof-244-streak h3', {hasText:'125+ Points'}).count(),0);
+   assert.equal(await page.locator('.fig-hof-244-streak h3', {hasText:'150+ Points'}).count(),0);
+   assert.ok(await page.locator('.fig-hof-244-streak-status.is-active').count()>=1,
+    'Official active streaks must appear on the enshrined season profile');
+   assert.match(await page.locator('.fig-hof-244-streak-list').innerText(),/2026 WK/);
    await go(page,'/charter','.fig-hof-242-charter');
    assert.equal(await page.locator('.fig-hof-v2-rule').count(),4);
    assert.equal(await page.locator('.fig-hof-242-grid').count(),0,

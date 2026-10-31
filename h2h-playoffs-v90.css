@@ -1,4 +1,4 @@
-/* H2H v90 — distinguish regular-season vs eligible playoff comparisons. */
+/* H2H v90 – distinguish regular-season vs eligible playoff comparisons. */
 .page-wrap .fig-h2h-week-head,
 .page-wrap .fig-h2h-week {
   grid-template-columns:64px minmax(0,1fr) minmax(0,1fr) 35px!important;

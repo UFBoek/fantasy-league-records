@@ -53,6 +53,7 @@ jobs:
           node-version: '22'
       - name: Check interface behavior without blocking Sleeper updates
         run: |
+          node tests/test_no_em_dashes.js
           bash scripts/check_website_tests.sh
           python -m unittest discover -s tests -p 'test_css_bundle.py'
           python -m unittest discover -s tests -p 'test_dynasty_market_history.py'
