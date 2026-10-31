@@ -112,11 +112,13 @@ function vault(d,years,fin,seasons){
 function model(d){
  const complete=completedYears(d),foundingYears=complete.filter(y=>y<=FOUNDING_END),historical=finals(d,foundingYears),allFinals=finals(d,complete);
  const completedSeasons=seasonRows(d,complete),p=playerCareers(d,foundingYears);
- const classes=INDUCTION_CLASSES.map(cls=>({...cls,entries:cls.entries.map(e=>{
-  if(e.kind==='player'){const career=p.byId.get(e.id),proof=verifyPlayer(career);return{...e,career,proof,name:career?.name||'Unavailable player',url:'#/hall-of-fame/inductee/player/'+slug(e.id)};}
+ const classes=INDUCTION_CLASSES.map(cls=>{
+  const classCareer=cls.year===CHARTER_YEAR?p:playerCareers(d,complete.filter(y=>y<cls.year));
+  return {...cls,entries:cls.entries.map(e=>{
+  if(e.kind==='player'){const career=classCareer.byId.get(e.id),proof=verifyPlayer(career);return{...e,career,proof,name:career?.name||'Unavailable player',url:'#/hall-of-fame/inductee/player/'+slug(e.id)};}
   const [teamId,year]=e.id.split(':').map(Number),season=completedSeasons.find(s=>s.id===teamId&&s.year===year),proof=verifySeason(season,allFinals);
   return{...e,season,proof,name:name(teamId)+' · '+year,url:'#/hall-of-fame/inductee/season/'+teamId+'/'+year};
- })}));
+ })};});
  const inductees=classes.flatMap(c=>c.entries.filter(e=>e.proof.ok).map(e=>({...e,inductionYear:c.year})));
  return{complete,foundingYears,finals:allFinals,seasons:completedSeasons,classes,inductees,
   legacy:legacy(d,complete,allFinals,completedSeasons),
