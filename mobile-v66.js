@@ -1,4 +1,4 @@
-/* FIG League v66 — responsive stat-card renderer. Original tables and sorting remain intact. */
+/* FIG League v66 – responsive stat-card renderer. Original tables and sorting remain intact. */
 (() => {
   const isPhone = window.matchMedia('(max-width: 699px)');
   const app = document.getElementById('app');
