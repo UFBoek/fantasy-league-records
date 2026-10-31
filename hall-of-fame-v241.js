@@ -84,9 +84,20 @@ function legacy(d,years,fin,seasons){
    if(s.points>=3000)add(80,'3,000+ regular-season points',s.year,'#/teamseason/'+id+'/'+s.year);
    if(s.highs>=7)add(55,'Seven or more weekly high scores',s.year,'#/teamseason/'+id+'/'+s.year);
   }
-  const eligible=streaks.filter(x=>value(x.franchise_id)===id&&completed.has(value(x.end_season))&&value(x.start_season)<=value(x.end_season)&&x.streak_mode==='Career Games');
-  if(eligible.some(x=>x.streak_type==='175+ Points'&&value(x.length)>=16))add(60,'16+ consecutive 175-point games',Math.min(...eligible.filter(x=>x.streak_type==='175+ Points'&&x.length>=16).map(x=>+x.end_season)),'#/streaks');
-  if(eligible.some(x=>x.streak_type==='200+ Points'&&value(x.length)>=4))add(45,'Four consecutive 200-point games',Math.min(...eligible.filter(x=>x.streak_type==='200+ Points'&&x.length>=4).map(x=>+x.end_season)),'#/streaks');
+  // Season awards require a completed season, but an official weekly streak is
+  // already earned as soon as each individual game finalizes. Do not exclude
+  // active streaks just because the present league season isn't complete.
+  const eligible=streaks.filter(x=>value(x.franchise_id)===id&&
+   value(x.start_season)<=value(x.end_season)&&x.streak_mode==='Career Games'&&
+   value(x.length)>0);
+  const milestone=(type,min,pts,label)=>{
+   const qualifying=eligible.filter(x=>x.streak_type===type&&value(x.length)>=min)
+    .sort((a,b)=>value(b.length)-value(a.length)||value(b.end_season)-value(a.end_season));
+   if(qualifying.length)add(pts,label,value(qualifying[0].end_season),'#/streaks');
+  };
+  milestone('175+ Points',16,60,'16+ consecutive 175-point games');
+  milestone('175+ Points',25,100,'25+ consecutive 175-point games');
+  milestone('200+ Points',4,45,'Four consecutive 200-point games');
   return{id,name:nameText,pts:honors.reduce((a,b)=>a+b.pts,0),titles:fin.filter(x=>x.champion===id).length,
    runnerUps:fin.filter(x=>x.runner===id).length,awards:honors.sort((a,b)=>b.year-a.year||b.pts-a.pts),
    seasons:member,allPlay:member.length?member.reduce((a,b)=>a+b.allPlay,0)/member.length:0};
@@ -104,9 +115,29 @@ function vault(d,years,fin,seasons){
   body:'Hayden crossed 3,000 regular-season points and finished the job with the FIG championship.',href:'#/teamseason/6/2025'});
  if(b&&h&&b.highs>=7&&h.highs>=7)records.push({key:'highs',eyebrow:'THE SEVEN-WEEK STANDARD',title:'A league at their mercy.',owner:null,year:2025,metric:'7 + 7',
   body:'Boek and Hayden each posted the league’s highest weekly score seven times in the same completed season—half the regular-season calendar.',href:'#/records'});
- const streak=streaks.filter(x=>x.streak_mode==='Career Games'&&x.streak_type==='175+ Points'&&value(x.end_season)<=FOUNDING_END&&value(x.length)>=16).sort((a,b)=>b.length-a.length)[0];
- if(streak)records.push({key:'streak',eyebrow:'THE CONSISTENCY MARATHON',title:'Sixteen weeks of fire.',owner:value(streak.franchise_id),year:+streak.end_season,metric:fmt(streak.length)+' STRAIGHT',
-  body:name(streak.franchise_id)+' scored at least 175 points in '+fmt(streak.length)+' consecutive FIG games. A sustained threshold, not a lucky afternoon.',href:'#/streaks'});
+ // Historic weekly results remain valid during the current season. The
+ // longest verified streak (active or ended) must hold the feature, not merely
+ // the longest one that happened to end in a finished season.
+ const streak=streaks.filter(x=>x.streak_mode==='Career Games'&&
+  x.streak_type==='175+ Points'&&value(x.length)>=16)
+  .sort((a,b)=>value(b.length)-value(a.length)||
+   Number(b.active===true)-Number(a.active===true)||
+   value(b.end_season)-value(a.end_season)||value(b.end_week)-value(a.end_week))[0];
+ if(streak){
+  const active=streak.active===true,owner=value(streak.franchise_id),length=value(streak.length),
+   endYear=value(streak.end_season),endWeek=value(streak.end_week);
+  const status=active?'ACTIVE THROUGH '+endYear+' · WEEK '+endWeek:
+   'FINAL · '+endYear+' WEEK '+endWeek;
+  records.unshift({key:'streak',eyebrow:'ALL-TIME 175+ STREAK RECORD',
+   title:active?'The streak that won’t stop.':'The endurance record.',
+   owner,year:endYear,active,status,length,metric:fmt(length)+' STRAIGHT',
+   body:name(owner)+' has scored at least 175 points in '+fmt(length)+
+    ' consecutive FIG career games. '+(active?'The record is still active. ':
+     'This completed run remains the all-time mark. ')+
+    'Verified through '+endYear+' Week '+endWeek+
+    '; the count updates when further league games become official.',
+   href:'#/streaks'});
+ }
  return records;
 }
 function model(d){
@@ -155,10 +186,12 @@ function lobby(m){
  '<section class="fig-hof-content">'+heading('I / THE ENSHRINED','The Founding Five','Four historically extraordinary individual careers. One championship season that rewrote the record. The standard will never be lowered to fill a class.')+
  '<div class="fig-hof-v2-founders">'+members.map((e,i)=>hcard(e,i===0)).join('')+'</div>'+
  '<div class="fig-hof-section-end"><span>2026 INAUGURAL CLASS · VERIFIED 2023–2025</span><a href="#/hall-of-fame/hall">ENTER THE COMPLETE HALL ↗</a></div>'+
- '<section class="fig-hof-v2-feature"><span class="fig-hof-eyebrow">II / HISTORIC ACCOMPLISHMENTS</span><h2>Some records<br><em>change the sport.</em></h2>'+
- '<p>Not every great season belongs in the Hall. But the greatest records, streaks, and achievements deserve a permanent place in FIG history.</p>'+
+ '<section class="fig-hof-v2-feature"><span class="fig-hof-eyebrow">II / HISTORIC ACCOMPLISHMENTS</span><h2>History is<br><em>still being made.</em></h2>'+
+ '<p>Official streaks can become historic before a season ends. The longest verified 175+ point run belongs to '+esc(name((m.vault.find(x=>x.key==='streak')||{}).owner||1))+
+ ': '+fmt((m.vault.find(x=>x.key==='streak')||{}).length)+' consecutive games'+
+ ((m.vault.find(x=>x.key==='streak')||{}).active?' and counting.':'.')+'</p>'+
  '<a class="fig-hof-gold-btn" href="#/hall-of-fame/records">EXPLORE THE FEATS ↗</a>'+
- '<div class="fig-hof-v2-feature-number">90.48<span>%</span></div></section>'+
+ '<div class="fig-hof-v2-feature-number">'+fmt((m.vault.find(x=>x.key==='streak')||{}).length)+'<span>+</span></div></section>'+
  '<section class="fig-hof-v2-legacy-preview">'+heading('III / THE FRANCHISE LEDGER','Legacy Is Earned','Managers accumulate points for documented titles, records and exceptional seasons. Legacy points are not Hall of Fame votes.')+
  '<div class="fig-hof-v2-preview-row">'+m.legacy.slice(0,3).map(r=>'<a href="#/hall-of-fame/legacy/'+r.id+'">'+personPhoto(r.id)+'<span><small>ALL-TIME FRANCHISE '+r.rank+'</small><strong>'+esc(r.name)+'</strong></span><b>'+fmt(r.pts)+' <small>PTS</small></b><i>↗</i></a>').join('')+'</div>'+
  '<div class="fig-hof-section-end"><span>OPEN TO ALL FRANCHISES</span><a href="#/hall-of-fame/legacy">VIEW THE LEGACY LEDGER ↗</a></div></section></section>';
@@ -175,6 +208,7 @@ function recordsPage(m){
  return '<section class="fig-hof-content">'+heading('THE ARCHIVE OF THE EXCEPTIONAL','Historic Feats','An intentionally small selection of feats with exceptional documented difficulty. This is a record gallery, not a Hall of Fame waiting list.')+
  '<div class="fig-hof-v2-record-grid">'+m.vault.map((r,i)=>'<a class="fig-hof-v2-record '+(i===0?'is-prime':'')+'" href="'+r.href+'">'+
  '<div class="fig-hof-v2-record-header"><span>'+esc(r.eyebrow)+'</span><b>'+r.year+'</b></div>'+
+ (r.status?'<div class="fig-hof-v2-record-status '+(r.active?'is-active':'')+'">'+esc(r.status)+'</div>':'')+
  '<div class="fig-hof-v2-record-metric">'+esc(r.metric)+'</div><h3>'+esc(r.title)+'</h3>'+
  '<p>'+esc(r.body)+'</p><div class="fig-hof-v2-record-foot"><span>'+(r.owner?esc(name(r.owner)):'BOEK & HAYDEN')+'</span><b>EXPLORE EVIDENCE ↗</b></div></a>').join('')+'</div>'+
  '<div class="fig-hof-v2-next-class"><span class="fig-hof-eyebrow">A RECORD IS NOT AN INDUCTION</span><h3>Greatness has different forms.</h3><p>An extraordinary streak or season belongs in this gallery without automatically enshrining its manager or every player involved. New feats are added only when they clear a published standard.</p></div></section>';
@@ -229,8 +263,8 @@ function charter(m){
  ['05','WIDE RECEIVER STANDARD','At least 35 official starts, 950+ starter points, eight games scoring 30+, and at least one WR season scoring title.'],
  ['06','TIGHT END STANDARD','At least 30 official starts, a 16.5+ career PPG average, a 280+ point TE season, and the strongest TE season of the founding period.'],
  ['07','IMMORTAL TEAM SEASONS','To enter the Hall, a franchise season must win the FIG championship, score at least 3,000 regular-season points, average at least 210 PPG, win 85% or more of its all-play decisions, and lead weekly scoring at least six times.'],
- ['08','THE LEGACY POINTS SYSTEM','Franchise points are separate from induction: 200 title, 80 finalist, 45 for each regular-season first seed / scoring leader / all-play leader. Rare feats: 80 for 90%+ all-play, 80 for 3,000+ points, 55 for seven weekly-high scores, 60 for a 16-game 175+ streak, and 45 for a four-game 200+ streak. Each streak milestone is awarded once, not once per overlapping entry.'],
- ['09','HISTORIC FEATS','This gallery exhibits specifically qualified achievements, not the top N results in arbitrary categories. Every exhibit links to its real league record. A record does not itself grant Hall admission.'],
+ ['08','THE LEGACY POINTS SYSTEM','Franchise points are separate from induction: 200 title, 80 finalist, 45 for each regular-season first seed / scoring leader / all-play leader. Rare feats: 80 for 90%+ all-play, 80 for 3,000+ points, 55 for seven weekly-high scores, 60 for 16 straight 175+ games, another 100 for 25 straight 175+ games, and 45 for four straight 200+ games. An earned streak milestone counts while active, even if its season is unfinished. Each milestone is awarded once.'],
+ ['09','HISTORIC FEATS','This gallery exhibits specifically qualified achievements, not the top N results in arbitrary categories. Streaks are drawn from finalized weekly scores and include active runs, updated as games finalize. Other season-long honors still require a completed season. A record does not itself grant Hall admission.'],
  ['10','NEW ERAS','The frozen founding standards do not automatically elect future inductees. When FIG grows, future classes can adopt published era-adjusted standards to account for league settings and scoring changes; founding honors remain permanent.']
  ];
  return '<section class="fig-hof-content">'+heading('THE FIG INDUCTION CHARTER','Excellence Without Compromise','The Hall must mean more in 2046 than it does today. Here is the complete, auditable standard.')+
