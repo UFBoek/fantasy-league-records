@@ -5,7 +5,7 @@ const MODEL='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const BASE='https://ufboek.github.io/fantasy-league-records/data/';
 const TEAMS='1 Boek; 2 Fru; 3 Fromm; 4 Sack; 5 Leyton; 6 Hayden; 7 Line (Lionel); 8 Winston; 9 CamNol; 10 James';
 const SCHEMA= [
- 'THESE ARE THE ONLY SQL VIEWS YOU MAY QUERY. All rows represent published finalized games:',
+ 'THESE ARE THE ONLY SQL VIEWS YOU MAY QUERY. Core scoring views contain finalized games; archive views include published live snapshots, model projections and historical reference data:',
  'games(season INTEGER, week INTEGER, game_type TEXT, team_id INTEGER, opponent_id INTEGER, points REAL, opponent_points REAL, win INTEGER, loss INTEGER, tie INTEGER, margin REAL, game_url TEXT). One row PER TEAM PER GAME, not one row per matchup. game_type is "Regular Season" or "Playoffs".',
  'starts(season INTEGER, week INTEGER, game_type TEXT, team_id INTEGER, player_id TEXT, player_name TEXT, position TEXT, fantasy_points REAL, rush_td INTEGER, rec_td INTEGER, td INTEGER, td_verified INTEGER, player_url TEXT). One row per actual STARTED player. QB/non-QB counts by position. TD stats NULL if unavailable.',
  'td_coverage(season INTEGER, week INTEGER, game_type TEXT, team_id INTEGER). One row per team-game for which EVERY started non-QB offensive RB/WR/TE/FB has verified rushing+receiving TD records.',
@@ -359,7 +359,7 @@ function sqlClean(input){
  if(!/^(SELECT|WITH)\b/i.test(scrub))throw Error('Only SELECT or nonrecursive WITH queries allowed');
  if(/;|--|\/\*|\*\/|#/.test(scrub))throw Error('SQL comments or multiple statements not permitted');
  if(/\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|PRAGMA|ATTACH|DETACH|REPLACE|VACUUM|REINDEX|ANALYZE|TRIGGER|RECURSIVE|INTO|RETURNING|LOAD_EXTENSION|RANDOMBLOB|ZEROBLOB)\b/i.test(scrub))throw Error('Write, recursive, or unsafe SQL denied');
- if(/\b(sqlite_|sync_meta|_all\b)/i.test(scrub))throw Error('Internal tables not available');
+ if(/\b(sqlite_|sync_meta|archive_source_meta|_all\b)/i.test(scrub))throw Error('Internal tables not available');
  if((scrub.match(/\bJOIN\b/gi)||[]).length>8)throw Error('Too many table joins');
  if(!/\b(games|starts|td_coverage|team_seasons|trades|trade_participants|trade_assets|draft_picks|archive_chunks|archive_catalog)\b/i.test(scrub))
   throw Error('Query must read published league tables');
@@ -477,7 +477,8 @@ async function runQuery(env,question,previous){
    const rows=(data.results||[]).map(normalizeResult);
    if(!rows.length)return {ok:false,unsupported:false,message:'No published records matched that query. The AI did not substitute another statistic.',sql};
    return {ok:true,version:'dynamic-sql-v2',title:str(plan.title).slice(0,120),
-    understood:str(plan.understood).slice(0,400),sql,source:'Cloudflare D1 · published finalized Sleeper league archive',
+    understood:str(plan.understood).slice(0,400),sql,source:/\barchive_chunks\b/i.test(sql)?'Cloudflare D1 · published league data (includes live/model snapshots)':'Cloudflare D1 · finalized Sleeper league archive',
+    source_type:/\barchive_chunks\b/i.test(sql)?'published_snapshot':'finalized_history',
     columns:Object.keys(rows[0]),rows,previous:{question,sql}};
   }catch(e){lastError=String(e?.message||e).slice(0,300);}
  }
