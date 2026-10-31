@@ -238,19 +238,22 @@ function charter(m){
 const footer=()=>'<footer class="fig-hof-footer"><div>'+logo()+'<p>THE STANDARD ENDURES.<br>THE RECORD REMEMBERS.</p></div><div>'+
  '<a href="#/hall-of-fame/hall">THE ENSHRINED ↗</a><a href="#/hall-of-fame/charter">THE CHARTER ↗</a>'+
  '<a href="#/more">BACK TO FIG ↗</a></div><span>FROMM IS GARBAGE · THE FIG HISTORICAL INSTITUTION</span></footer>';
-async function page(ctx,view,arg,more){
+async function page(ctx,view,arg,sub,year){
  await ctx.load(['league','games','teamSeasonMaster','playerLog','websiteStreaks']);
  const m=model(ctx.DATA);
  const remaps={franchises:'legacy',franchise:'legacy',players:'hall',player:'inductee',seasons:'records',moments:'records',methodology:'charter'};
  let kind=remaps[view]||view||'overview';
- if(kind==='inductee'&&view==='player'){more=arg;arg='player';}
- if(kind==='legacy'&&view==='franchise')arg=arg;
  const supported=['overview','hall','records','legacy','charter','inductee'];
  if(!supported.includes(kind))kind='overview';
  const active=kind==='inductee'?'hall':kind;
- const content=kind==='overview'?lobby(m):kind==='hall'?hall(m):kind==='records'?recordsPage(m):
- kind==='legacy'?legacyPage(m,arg):kind==='charter'?charter(m):
- plaque(m,arg==='season'?'season':'player',arg==='season'?String(more)+':'+String(arguments[4]):String(more),arguments[4],ctx.DATA);
+ let content;
+ if(kind==='overview')content=lobby(m);
+ else if(kind==='hall')content=hall(m);
+ else if(kind==='records')content=recordsPage(m);
+ else if(kind==='legacy')content=legacyPage(m,arg);
+ else if(kind==='charter')content=charter(m);
+ else if(view==='player')content=plaque(m,'player',String(arg||''),null,ctx.DATA);
+ else content=plaque(m,arg==='season'?'season':'player',String(sub||''),year,ctx.DATA);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2" id="figHallOfFame">'+head(active)+content+footer()+'</div>';
  document.title='Hall of Fame — Fromm is Garbage';
 }
