@@ -1,4 +1,4 @@
-/* v108 — team-first injury book; robust against inherited mobile dark overrides */
+/* v108 – team-first injury book; robust against inherited mobile dark overrides */
 .page-wrap .fig-team-injury-shell{max-width:1180px;margin:0 auto 50px;display:grid;gap:15px;color:#243e30}
 .page-wrap .fig-team-injury-shell .fig-injury-notice{margin:0}
 .page-wrap .fig-team-injury-overview,.page-wrap .fig-team-injury-season,.page-wrap .fig-injury-incident{
