@@ -1,4 +1,4 @@
-/* v92 — Keep the full final score inside each mobile Game Archive card.
+/* v92 – Keep the full final score inside each mobile Game Archive card.
    The winner badge and score are one fixed-width content group; only the
    manager name shrinks/wraps. No widths depend on raw score lengths. */
 .page-wrap .fig-archive-game,
