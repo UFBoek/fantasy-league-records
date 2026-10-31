@@ -2,6 +2,8 @@
 
 The FIG Hall of Fame is a permanent institution for exceptional fantasy performances within Fromm Is Garbage, accessible from **More → Hall of Fame**, `#/hall-of-fame`.
 
+The main Hall is intentionally focused: a ceremonial entrance, four founding player plaques, one separately enshrined team season, and a short future-facing message. The four-count summary bar, introductory hero paragraph, linked founding-class hero button, and inline philosophy chapter have been removed. The induction philosophy is now a standalone destination: `#/hall-of-fame/charter`.
+
 ## 2026 Inaugural Class — The Founding Four
 
 | Position | Inductee | FIG player ID | Historical case |
@@ -11,7 +13,15 @@ The FIG Hall of Fame is a permanent institution for exceptional fantasy performa
 | WR | Puka Nacua | 9493 | A meaningful three-season contribution and exceptional 2025 production |
 | TE | Trey McBride | 8130 | Two-year positional emergence culminating in historically high 2025 TE production |
 
-The **four names were explicitly selected** for the inaugural 2026 class. There is no mathematical top-N election, requirement for a franchise-season induction, and no automatic yearly classes. Other NFL players and historic franchise seasons may be considered in future classes without diminishing the founding four.
+The **four names were explicitly selected** for the inaugural 2026 class. There is no mathematical top-N election or automatic yearly classes. Team seasons are independently curated and displayed separately from the founding player class. Other NFL players and historic franchise seasons may be considered in future classes without diminishing the founding four.
+
+## Enshrined Season — Hayden 2025
+
+The original **Hayden 2025** season is restored as a dedicated **Enshrined Season** exhibit on the main Hall, replacing the former “Greatness is not a leaderboard” slogan panel.
+
+Verified 2025 records: 3,000.13 regular-season points, 214.30 points per game, 88.10% all-play winning rate, seven weekly-high scores, and a FIG championship victory (2025 Week 17 against Boek). The season has its own exhibit at `#/hall-of-fame/inductee/season/6/2025` and links directly to its team-season archive and championship box score.
+
+The distinction is intentional: the founding *player* class remains exactly Allen, Gibbs, Puka and McBride, while the enshrined team season is recognized in a separate category.
 
 ## Philosophy
 
@@ -32,7 +42,7 @@ The founding class is a permanent editorial designation. New data may enhance ex
 
 ## Site structure
 
-The Hall intentionally contains **one institution**, not a separate Legacy Points competition, historic-feats leaderboard or manager induction ranking. The core Hall page contains the ceremonial entry, the four founding plaques and a concise induction philosophy. Each player has an expanded exhibit containing:
+The Hall intentionally contains **one institution**, not a separate Legacy Points competition, historic-feats leaderboard or manager induction ranking. The core Hall page contains the ceremonial entry, four founding plaques and the Hayden 2025 enshrined-season exhibit. The induction philosophy appears only at `#/hall-of-fame/charter`. Each player has an expanded exhibit containing:
 
 - Bronze-relief styled portrait framing (an aesthetic treatment of player photographs, not a fabricated 3D likeness)
 - A distinct induction case and position
@@ -41,9 +51,9 @@ The Hall intentionally contains **one institution**, not a separate Legacy Point
 - Signature verified lineup performances with links to original game pages
 - Links to the existing league's detailed player history
 
-The 2026 founding class covers completed seasons 2023–2025. Incomplete 2026 results do not change the founding class, and younger players have no future-performance bonus.
+The 2026 founding class and 2025 team-season selection cover completed seasons 2023–2025. Incomplete 2026 results do not change the founding class, and younger players have no future-performance bonus.
 
-Implementation: `hall-of-fame-v242.js`, `hall-of-fame-v242.css`, existing `hall-of-fame-v240.css` and `v241.css` museum foundations, `index.html`, and the service-worker app shell. The public route remains `#/hall-of-fame`, individual inductee routes remain `#/hall-of-fame/inductee/player/:id`, and legacy Hall routes gracefully return to the main Hall.
+Implementation: `hall-of-fame-v243.js`, `hall-of-fame-v243.css`, `hall-of-fame-v242.css`, existing `hall-of-fame-v240.css` and `v241.css` museum foundations, `index.html`, and the service-worker app shell. The public route remains `#/hall-of-fame`, individual inductee routes remain `#/hall-of-fame/inductee/player/:id`, and legacy Hall routes gracefully return to the main Hall.
 
 Testing: `node tests/test_hall_of_fame.js` and browser smoke testing in `tests/test_hall_of_fame_browser.js` at desktop, standard mobile and narrow mobile widths.
 
