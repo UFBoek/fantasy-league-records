@@ -536,7 +536,7 @@ function raTeamData(id){
 function raTeamPanel(id){
  if(!raReady())return `<section class="ra-team-overview ra-loading"><div class="ra-eyebrow">DYNASTY MARKET VALUE</div><h2>Awaiting RosterAudit sync</h2><p>Run the daily data workflow once after deploying v46. ${raCredit()}</p></section>`;
  const z=raTeamData(id);
- return `<section class="ra-team-overview"><div class="ra-header-row"><div><div class="ra-eyebrow">DYNASTY MARKET VALUE · ${esc(raFormat())}</div><h2>${money(z.knownTotal)} <span>tracked value</span></h2></div><a href="#/dynasty" class="ra-board-link">LEAGUE RANKINGS →</a></div><div class="ra-team-figures"><div><span>PLAYERS</span><strong>${money(z.playerValue)}</strong><small>${z.playersMatched} of ${z.roster.length} matched</small></div><div><span>FUTURE PICKS</span><strong>${z.picksMatched?money(z.pickValue):'—'}</strong><small>${z.picksMatched} of ${z.picks.length} priced</small></div></div><p>Updated ${esc(raDate())} · ${raCredit()}</p></section>`;
+ return `<section class="ra-team-overview"><div class="ra-header-row"><div><div class="ra-eyebrow">DYNASTY MARKET VALUE · ${esc(raFormat())}</div><h2>${money(z.knownTotal)} <span>tracked value</span></h2></div><a href="#/dynasty" class="ra-board-link">LEAGUE RANKINGS →</a></div><div class="ra-team-figures"><div><span>PLAYERS</span><strong>${money(z.playerValue)}</strong><small>${z.playersMatched} of ${z.roster.length} matched</small></div><div><span>FUTURE PICKS</span><strong>${z.picksMatched?money(z.pickValue):'–'}</strong><small>${z.picksMatched} of ${z.picks.length} priced</small></div></div><p>Updated ${esc(raDate())} · ${raCredit()}</p></section>`;
 }
 
 function renderTradeGapGame(difference){
@@ -564,7 +564,7 @@ function renderTradeGapGame(difference){
    const chosen=new Set(gamePicked.filter(Boolean));
    document.querySelector('#jhGameSlots').innerHTML=gameSlots.map((slot,i)=>{
     const options=gamePool.filter(p=>gameEligible(slot,p.pos)&&(!gameSearch||p.name.toLowerCase().includes(gameSearch)||p.id===gamePicked[i])).map(p=>`<option value="${esc(p.id)}" ${gamePicked[i]===p.id?'selected':''} ${chosen.has(p.id)&&gamePicked[i]!==p.id?'disabled':''}>${esc(p.name)} · ${esc(p.pos)} · ${money(p.value)}</option>`).join('');
-    return `<label class="jh-game-row"><span>${slot==='SUPER_FLEX'?'SFLX (QB ONLY)':esc(slot)} <small>${i+1}</small></span><select data-jh-slot="${i}" aria-label="${esc(slot)} slot ${i+1}"><option value="">CHOOSE PLAYER</option>${options}</select><span class="jh-game-row-price">${gamePicked[i]?money(gameById.get(gamePicked[i])?.value||0):'—'}</span></label>`;
+    return `<label class="jh-game-row"><span>${slot==='SUPER_FLEX'?'SFLX (QB ONLY)':esc(slot)} <small>${i+1}</small></span><select data-jh-slot="${i}" aria-label="${esc(slot)} slot ${i+1}"><option value="">CHOOSE PLAYER</option>${options}</select><span class="jh-game-row-price">${gamePicked[i]?money(gameById.get(gamePicked[i])?.value||0):'–'}</span></label>`;
    }).join('');
    const total=spent(),filled=gamePicked.filter(Boolean).length,remaining=GAME_BUDGET-total;
    root.querySelector('#jhGameSpent').textContent=money(total);
@@ -751,17 +751,17 @@ function jamesHaydenTradeArchive(mode='archive'){
  if(mode==='gap')return Math.abs(overallMarket(HAYDEN_ID).value-overallMarket(JAMES_ID).value);
  const overview=(id)=>{
   const z=overallMarket(id),field=overallProduction(id);
-  return `<div class="jh-overview-team">${ownerAvatar(id,'jh-overview-avatar')}<div class="jh-overview-figures"><div class="jh-overview-label">${id===JAMES_ID?'JAMES':'HAYDEN'} · ALL ${tradeRows.length} TRADES</div><strong>${z.priced?money(z.value):'—'}</strong><span>CUMULATIVE RECEIVED MARKET VALUE</span><small>${z.priced} of ${z.count} assets valued</small><div class="jh-overview-production"><span>ACCUMULATED LINEUP POINTS</span><strong>${money(field.pts)}</strong><small>${field.starts} starts · ${money(field.benchPts)} bench pts (separate)</small></div></div></div>`;
+  return `<div class="jh-overview-team">${ownerAvatar(id,'jh-overview-avatar')}<div class="jh-overview-figures"><div class="jh-overview-label">${id===JAMES_ID?'JAMES':'HAYDEN'} · ALL ${tradeRows.length} TRADES</div><strong>${z.priced?money(z.value):'–'}</strong><span>CUMULATIVE RECEIVED MARKET VALUE</span><small>${z.priced} of ${z.count} assets valued</small><div class="jh-overview-production"><span>ACCUMULATED LINEUP POINTS</span><strong>${money(field.pts)}</strong><small>${field.starts} starts · ${money(field.benchPts)} bench pts (separate)</small></div></div></div>`;
  };
  const column=(t,id)=>{
   const rows=received(t,id),sum=totals(t,id),market=marketTotal(t,id);
   const coverage=`${market.priced} of ${market.count} assets valued`;
-  return `<div class="jh-receives"><div class="jh-receives-label">${id===JAMES_ID?'JAMES':'HAYDEN'} RECEIVED <span>${rows.length} ASSETS</span></div><div class="jh-market-total"><div><span class="jh-market-heading">CURRENT MARKET VALUE</span><strong>${market.priced?money(market.total):'—'}</strong><small>${coverage}${market.priced<market.count?' · unvalued assets excluded':''}</small></div></div><div class="jh-column-total"><b>${money(sum.pts)}</b><span>lineup pts · ${sum.starts} starts</span></div><ul class="jh-assets">${rows.length?rows.map(a=>item(t,id,a)).join(''):'<li class="jh-item">No assets recorded</li>'}</ul></div>`;
+  return `<div class="jh-receives"><div class="jh-receives-label">${id===JAMES_ID?'JAMES':'HAYDEN'} RECEIVED <span>${rows.length} ASSETS</span></div><div class="jh-market-total"><div><span class="jh-market-heading">CURRENT MARKET VALUE</span><strong>${market.priced?money(market.total):'–'}</strong><small>${coverage}${market.priced<market.count?' · unvalued assets excluded':''}</small></div></div><div class="jh-column-total"><b>${money(sum.pts)}</b><span>lineup pts · ${sum.starts} starts</span></div><ul class="jh-assets">${rows.length?rows.map(a=>item(t,id,a)).join(''):'<li class="jh-item">No assets recorded</li>'}</ul></div>`;
  };
  // Trade cards remain keyboard-accessible and collapsed by default.
  const card=(t,i)=>{
   const j=marketTotal(t,JAMES_ID),h=marketTotal(t,HAYDEN_ID);
-  return `<div class="jh-trade-row"><details class="jh-trade-card" id="jh-trade-${esc(t.transaction_id)}"><summary class="jh-trade-meta"><span class="jh-trade-identity"><strong>TRADE ${String(tradeRows.length-i).padStart(2,'0')}</strong><span>${esc(t.season)} · WEEK ${esc(t.week)}</span></span><span class="jh-trade-preview"><span>James <b>${j.priced?money(j.total):'—'}</b></span><span>Hayden <b>${h.priced?money(h.total):'—'}</b></span></span><span class="jh-trade-action"><span class="jh-trade-action-text">DETAILS</span><span class="jh-toggle-symbol" aria-hidden="true">⌄</span></span></summary><div class="jh-trade-columns">${column(t,JAMES_ID)}${column(t,HAYDEN_ID)}</div></details></div>`;
+  return `<div class="jh-trade-row"><details class="jh-trade-card" id="jh-trade-${esc(t.transaction_id)}"><summary class="jh-trade-meta"><span class="jh-trade-identity"><strong>TRADE ${String(tradeRows.length-i).padStart(2,'0')}</strong><span>${esc(t.season)} · WEEK ${esc(t.week)}</span></span><span class="jh-trade-preview"><span>James <b>${j.priced?money(j.total):'–'}</b></span><span>Hayden <b>${h.priced?money(h.total):'–'}</b></span></span><span class="jh-trade-action"><span class="jh-trade-action-text">DETAILS</span><span class="jh-toggle-symbol" aria-hidden="true">⌄</span></span></summary><div class="jh-trade-columns">${column(t,JAMES_ID)}${column(t,HAYDEN_ID)}</div></details></div>`;
  };
  const shell=`<div class="jh-archive"><div class="jh-header"><div class="jh-duo">${person(JAMES_ID,'JAMES')}<span class="jh-versus">↔</span>${person(HAYDEN_ID,'HAYDEN')}</div><div class="jh-summary"><strong>${tradeRows.length}</strong><span>DIRECT TRADES</span></div></div><div class="jh-overall"><div class="jh-overall-title">ALL-TIME TRADE VALUE RECEIVED <small>${tradeRows.length} DEALS · CURRENT DYNASTY VALUES</small></div><div class="jh-overall-grid">${overview(JAMES_ID)}${overview(HAYDEN_ID)}</div></div>${renderTradeGapGame(Math.abs(overallMarket(HAYDEN_ID).value-overallMarket(JAMES_ID).value))}<div class="jh-toolbar"><div class="jh-filters" id="jhYears"><button type="button" class="jh-year active" data-year="all">ALL ${tradeRows.length}</button>${years.map(y=>`<button type="button" class="jh-year" data-year="${esc(y)}">${esc(y)}</button>`).join('')}</div><div class="jh-toolbar-right"><span class="jh-count" id="jhShown"></span><button type="button" class="jh-expand-all" id="jhExpandAll">EXPAND ALL</button></div></div><div class="ra-trade-context">${raReady()?`Market values · ${esc(raDate())}`:"Market values pending"} · ${raCredit()}</div><div class="jh-list" id="jhTradeList"></div></div>`;
  setTimeout(()=>{const root=document.querySelector('.jh-archive');if(!root)return;const draw=year=>{const rows=year==='all'?tradeRows:tradeRows.filter(t=>String(t.season)===year);root.querySelector('#jhTradeList').innerHTML=rows.length?rows.map(t=>card(t,tradeRows.indexOf(t))).join(''):'<div class="jh-empty">No trades for this year.</div>';root.querySelector('#jhShown').textContent=`${rows.length} ${rows.length===1?'TRADE':'TRADES'}`};root.querySelectorAll('.jh-year').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('.jh-year').forEach(x=>x.classList.toggle('active',x===b));draw(b.dataset.year)}));root.addEventListener('click',e=>{const source=e.target.closest('[data-jh-target]');if(!source)return;const id=source.dataset.jhTarget;if(!tradeRows.some(t=>String(t.transaction_id)===id))return;const all=root.querySelector('.jh-year[data-year="all"]');if(all){root.querySelectorAll('.jh-year').forEach(x=>x.classList.toggle('active',x===all));draw('all')}const target=document.getElementById(`jh-trade-${id}`);if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'start'})}});const allBtn=root.querySelector('#jhExpandAll');const updateAllBtn=()=>{const cards=[...root.querySelectorAll('.jh-trade-card')];allBtn.textContent=cards.length&&cards.every(c=>c.open)?'COLLAPSE ALL':'EXPAND ALL'};allBtn.addEventListener('click',()=>{const cards=[...root.querySelectorAll('.jh-trade-card')];const opening=!cards.every(c=>c.open);cards.forEach(c=>{c.open=opening});updateAllBtn()});root.addEventListener('toggle',e=>{if(e.target.matches?.('.jh-trade-card'))updateAllBtn()},true);root.querySelectorAll('.jh-year').forEach(b=>b.addEventListener('click',updateAllBtn));draw('all')},0);
@@ -818,8 +818,8 @@ async function champions(){
   const result=playoffSeasonResults(y),champ=result.champion;
   const standing=(DATA.standingsSeasons||[]).find(x=>String(x.season)===y&&+x.franchise_id===+champ);
   const portrait=champ?ownerAvatar(champ,'fig-champion-portrait'):'';
-  const pts=standing&&num(standing.games)>0?money(num(standing.points_for)/num(standing.games)):'—';
-  const record=standing?`${num(standing.wins)}–${num(standing.losses)}`:'—';
+  const pts=standing&&num(standing.games)>0?money(num(standing.points_for)/num(standing.games)):'–';
+  const record=standing?`${num(standing.wins)}–${num(standing.losses)}`:'–';
   return `<a class="champion-season-card champion-season-link fig-championship-poster" href="#/playoffbracket/${y}">
     <div class="champion-year">${y}</div>
     <div class="champion-label">CHAMPION</div>
@@ -947,9 +947,9 @@ function figTeamRecordBookMarkup(fid){
   {id:+g.franchise_2,season:String(g.season),week:+g.week,type:g.game_type,score:num(g.score_2),against:num(g.score_1),matchup_id:g.matchup_id}
  ]);
  const gameHref=x=>`#/game/${x.season}/${x.week}/${x.matchup_id}`;
- const mark=v=>typeof v==='number'?money(v):esc(v??'—');
+ const mark=v=>typeof v==='number'?money(v):esc(v??'–');
  const isTrue=x=>x===true||String(x).toLowerCase()==='true';
- const rankLabel=(rank,tied)=>rank?(tied?'T':'#')+rank:'—';
+ const rankLabel=(rank,tied)=>rank?(tied?'T':'#')+rank:'–';
  const placement=(rows,item,key='value')=>{
   if(!item||!num(item[key]))return {rank:null,tied:false};
   const sorted=[...rows].filter(x=>num(x[key])!==0).sort((a,b)=>num(b[key])-num(a[key]));
@@ -1141,7 +1141,7 @@ function figTeamRecordBookMarkup(fid){
   const historyMarkup=showHistory?`<div class="fig-tr-history-heading">${esc(x.unit)}</div><div class="fig-tr-history">${rows}</div>`:'';
   return `<article class="fig-tr-card fig-tr-${tone}${showHistory?'':' fig-tr-compact'}">
    <div class="fig-tr-card-head"><span>${esc(x.scope)}</span><span class="${x.rank===1?'fig-tr-leader':''}">${x.rank?'LEAGUE '+rankLabel(x.rank,x.tied):'UNRANKED'}</span></div>
-   <div class="fig-tr-primary">${ownerAvatar(id,'fig-tr-photo')}<div class="fig-tr-primary-copy"><h3>${esc(x.title)}</h3><strong>${x.value===null?'—':mark(x.value)}${x.value===null?'':x.suffix||''}</strong><small>${x.value===null?'NO QUALIFYING RECORD':esc(primaryLabel)}</small></div></div>
+   <div class="fig-tr-primary">${ownerAvatar(id,'fig-tr-photo')}<div class="fig-tr-primary-copy"><h3>${esc(x.title)}</h3><strong>${x.value===null?'–':mark(x.value)}${x.value===null?'':x.suffix||''}</strong><small>${x.value===null?'NO QUALIFYING RECORD':esc(primaryLabel)}</small></div></div>
    ${historyMarkup}
    <a class="fig-tr-open" href="${esc(x.href)}">VIEW FULL LEADERBOARD <span aria-hidden="true">→</span></a>
   </article>`;
@@ -1269,11 +1269,11 @@ async function team(id,selectedTab,selectedDraftYear){
    return [...rows].sort((a,b)=>(order[a.position]||99)-(order[b.position]||99)||String(a.player_name).localeCompare(String(b.player_name)));
  };
  const bool=v=>v===true||String(v).toLowerCase()==='true';
- const slotLabel=x=>{const raw=String(x.lineup_slot||x.position||'').toUpperCase();if(raw==='FLEX')return'FLEX';if(raw==='SUPER_FLEX'||raw==='SUPERFLEX')return'SFLX';return raw||'—'};
+ const slotLabel=x=>{const raw=String(x.lineup_slot||x.position||'').toUpperCase();if(raw==='FLEX')return'FLEX';if(raw==='SUPER_FLEX'||raw==='SUPERFLEX')return'SFLX';return raw||'–'};
  const slotClass=x=>{const raw=String(x.lineup_slot||x.position||'bn').toLowerCase().replace('_','-');return `slot-${raw}`};
  const rosterGroup=(title,rows,kind)=>{
    const ordered=kind==='starters'?[...rows].sort((a,b)=>num(a.lineup_order)-num(b.lineup_order)):rosterSort(rows);
-   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'UNKNOWN')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'—'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
+   return `<div class="sleeper-roster-section ${kind}"><div class="sleeper-roster-heading">${title}</div>${ordered.length?ordered.map(x=>`<a class="sleeper-player-row" href="#/player/${x.player_id}"><span class="sleeper-slot ${slotClass(x)}">${kind==='bench'?'BN':kind==='reserve'?'IR':kind==='taxi'?'TX':esc(slotLabel(x))}</span><span class="sleeper-player-main">${playerHeadshot(x.player_id,x.player_name)}<span class="fig-roster-player-copy"><b>${esc(x.player_name||x.player_id)}</b><small>${esc(x.position||'UNKNOWN')}</small></span></span><span class="sleeper-player-tag">${raPlayer(x.player_id)!==null?`<b class="ra-roster-val">${money(raPlayer(x.player_id))}</b>`:bool(x.is_reserve)?'IR':bool(x.is_taxi)?'TAXI':'–'}</span></a>`).join(''):'<div class="sleeper-empty">Empty</div>'}</div>`;
  };
 
  const renderRoster=()=>{
@@ -1374,7 +1374,7 @@ async function team(id,selectedTab,selectedDraftYear){
    const z=DATA.teamSeasonMaster.find(x=>+x.franchise_id===id&&+x.season===year)||{};
    return `<a class="fig-season-preview" href="#/teamseason/${id}/${year}">
     <div class="fig-season-preview-head"><strong>${year}</strong><span>${z.season_complete?'FINAL':'IN PROGRESS'}</span></div>
-    <div class="fig-season-preview-lead"><strong>${num(z.wins)}–${num(z.losses)}</strong><span>WIN % ${pct(z.win_pct)} · FINISH #${z.regular_season_finish||'—'}</span></div>
+    <div class="fig-season-preview-lead"><strong>${num(z.wins)}–${num(z.losses)}</strong><span>WIN % ${pct(z.win_pct)} · FINISH #${z.regular_season_finish||'–'}</span></div>
     <div class="fig-season-preview-metrics"><div><small>POINTS FOR</small><b>${money(z.points_for)}</b></div><div><small>MAX PF</small><b>${money(z.max_pf)}</b></div><div><small>ALL-PLAY</small><b>${num(z.all_play_wins)}–${num(z.all_play_losses)}${num(z.all_play_ties)?'–'+num(z.all_play_ties):''}</b></div><div><small>HIGH WEEKS</small><b>${num(z.weekly_high_scores)}</b></div><div><small>AVG SCORE</small><b>${money(z.points_per_game)}</b></div><div><small>POINT DIFF</small><b>${num(z.point_differential)>0?'+':''}${money(z.point_differential)}</b></div></div>
     <div class="fig-season-preview-open">VIEW SEASON, OPPONENTS & GAMES →</div></a>`;
   }).join('');
@@ -1956,7 +1956,7 @@ async function matchupHistory(a,b){
  app.innerHTML=hero('RIVALRY ARCHIVE',`${esc(nameA.toUpperCase())} VS ${esc(nameB.toUpperCase())}`,'Historical records from the first team’s perspective. All-play includes regular-season weeks and playoff weeks when both teams played.')+
   `<section class="section fig-h2h-detail"><a class="fig-h2h-back" href="#/h2h">← ALL HEAD-TO-HEAD RIVALRIES</a>${summary}</section>`+
   section('ALL-PLAY BY SEASON',`<div class="fig-h2h-seasons">${seasons}</div>`,'Compare shared regular-season weeks and playoff weeks when both teams played, even if they did not meet directly.')+
-  section('ACTUAL MATCHUP HISTORY',`<div class="fig-h2h-game-legend"><b>${esc(nameA)}</b> score <span>—</span> <b>${esc(nameB)}</b> score</div><div class="fig-h2h-games">${matches||'<p>No official meetings yet.</p>'}</div>`,'');
+  section('ACTUAL MATCHUP HISTORY',`<div class="fig-h2h-game-legend"><b>${esc(nameA)}</b> score <span>–</span> <b>${esc(nameB)}</b> score</div><div class="fig-h2h-games">${matches||'<p>No official meetings yet.</p>'}</div>`,'');
 }
 
 
@@ -2007,7 +2007,7 @@ function figDraftPersonRow(pick,originals,includeTeam=false){
   '<div class="fig-draft-selection-num"><strong>'+esc(figDraftPickLabel(pick))+'</strong><span>OVERALL #'+esc(pick.pick_no)+'</span></div>'+
   '<div class="fig-draft-selection-main">'+
     playerLink(String(pick.player_id||''),player,'fig-draft-player-link')+
-    '<div class="fig-draft-selection-meta">'+esc(pick.position||pick.draft_position||'—')+
+    '<div class="fig-draft-selection-meta">'+esc(pick.position||pick.draft_position||'–')+
     ' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+
     (different?' · <span class="fig-draft-pick-traded">ORIG. '+esc(OWNER_DISPLAY_BY_ID[original])+'</span>':'')+
     (includeTeam?' · SELECTED BY '+esc(OWNER_DISPLAY_BY_ID[by]):'')+
@@ -2033,7 +2033,7 @@ function figDraftSlotValue(pick){
  return FIG_ROOKIE_SLOT_VALUES[round-1][slot-1];
 }
 function figDraftGradeLetter(current,slot,pick){
- if(current===null||slot===null||!Number.isFinite(current)||!Number.isFinite(slot))return '—';
+ if(current===null||slot===null||!Number.isFinite(current)||!Number.isFinite(slot))return '–';
  const gain=current-slot,ratio=slot>0?current/slot:0;
  const lateRookie=String(pick?.draft_class||'').toLowerCase()==='rookie'&&+pick.round>=3&&+pick.round<=4;
  if(current>=6500&&gain>=3000)return 'S';
@@ -2060,8 +2060,8 @@ function figDraftGradeStrip(pick){
  return '<div class="fig-draft-grade-strip '+(valid?'grade-'+z.letter.toLowerCase():'grade-unknown')+'">'+
   '<span class="fig-draft-grade-letter"><b>'+esc(z.letter)+'</b><small>FIG GRADE</small></span>'+
   '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE</small></span>'+
-  '<span><b>'+(valid?money(z.current):'—')+'</b><small>CURRENT VALUE</small></span>'+
-  '<span><b>'+(valid?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE CHANGE</small></span>'+
+  '<span><b>'+(valid?money(z.current):'–')+'</b><small>CURRENT VALUE</small></span>'+
+  '<span><b>'+(valid?(z.delta>0?'+':'')+money(z.delta):'–')+'</b><small>VALUE CHANGE</small></span>'+
   '<span class="fig-draft-grade-ratio"><b>'+(valid?Math.round(z.ratio*100)+'%':'PENDING')+'</b><small>RETURN %</small></span></div>';
 }
 function figDraftGradeSummary(picks){
@@ -2071,7 +2071,7 @@ function figDraftGradeSummary(picks){
  const counts={S:0,A:0,B:0,C:0,D:0,F:0};
  valued.forEach(x=>counts[x.letter]++);
  const score=valued.length?valued.reduce((sum,x)=>sum+FIG_GRADE_POINTS[x.letter],0)/valued.length:null;
- const letter=score===null?'—':score>=4.5?'S':score>=3.5?'A':score>=2.5?'B':score>=1.5?'C':score>=.5?'D':'F';
+ const letter=score===null?'–':score>=4.5?'S':score>=3.5?'A':score>=2.5?'B':score>=1.5?'C':score>=.5?'D':'F';
  return {eligible:scoped.length,valued:valued.length,slot,current,ratio,delta,counts,score,letter};
 }
 function figDraftGradeOverview(picks,label){
@@ -2079,7 +2079,7 @@ function figDraftGradeOverview(picks,label){
  if(!z.eligible)return '';
  return '<div class="fig-draft-grade-overview"><div class="fig-draft-grade-overview-intro">'+
   '<span>FIG ROOKIE DRAFT RETURNS</span><h3>'+esc(label)+'</h3></div>'+
-  '<div class="fig-draft-grade-overview-score"><strong class="fig-return-pct">'+(z.ratio===null?'—':Math.round(z.ratio*100)+'%')+'</strong><span>RETURN %</span>'+
+  '<div class="fig-draft-grade-overview-score"><strong class="fig-return-pct">'+(z.ratio===null?'–':Math.round(z.ratio*100)+'%')+'</strong><span>RETURN %</span>'+
   '<small>TOTAL VALUE / SLOT COST</small></div>'+
   '<div class="fig-draft-grade-overview-stats"><span><b>'+money(z.slot)+'</b> SLOT VALUE</span>'+
   '<span><b>'+money(z.current)+'</b> CURRENT VALUE</span>'+
@@ -2171,7 +2171,7 @@ function figDraftFranchiseHistory(id,preferredYear){
      '<h3>'+year+' · '+esc(OWNER_DISPLAY_BY_ID[+id])+'</h3></div><a href="#/draft/'+year+'">FULL '+year+' BOARD ↗</a></div>'+
     '<div class="fig-team-draft-year-figures"><span><b>'+yearPicks.length+'</b> selections</span><span><b>'+acquired.length+'</b> acquired picks</span>'+
      '<span><b>'+starts+'</b> franchise starts</span><span><b>'+money(pts)+'</b> points produced</span>'+ 
-     (startup?'':'<span class="fig-draft-year-grade"><b>'+(yearGrade.ratio===null?'—':Math.round(yearGrade.ratio*100)+'%')+'</b> RETURN % · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED</span>')+'</div>'+
+     (startup?'':'<span class="fig-draft-year-grade"><b>'+(yearGrade.ratio===null?'–':Math.round(yearGrade.ratio*100)+'%')+'</b> RETURN % · '+yearGrade.valued+'/'+yearGrade.eligible+' VALUED</span>')+'</div>'+
     (rounds.map(round=>'<div class="fig-team-draft-round"><h4>ROUND '+round+'</h4>'+
       yearPicks.filter(x=>+x.round===round).map(pick=>{
        const key=String(pick.draft_id)+'|'+String(pick.pick_no),prod=valueMap.get(key)||{};
@@ -2182,7 +2182,7 @@ function figDraftFranchiseHistory(id,preferredYear){
         '<small>OVERALL '+esc(pick.pick_no)+'</small></div>'+
         '<div class="fig-team-draft-pick-player">'+playerLink(pick.player_id,figDraftPlayerName(pick),'fig-draft-player-link')+
         '<span>'+esc(pick.position||pick.draft_position||'')+' · '+esc(pick.draft_nfl_team||'')+note+'</span></div>'+
-        '<div class="fig-team-draft-pick-values">'+(startup?'':'<div><b>'+(raValue!=null&&Number.isFinite(+raValue)?money(raValue):'—')+'</b><small>RA CURRENT VALUE</small></div>')+
+        '<div class="fig-team-draft-pick-values">'+(startup?'':'<div><b>'+(raValue!=null&&Number.isFinite(+raValue)?money(raValue):'–')+'</b><small>RA CURRENT VALUE</small></div>')+
         '<div><b>'+money(prod.franchise_starter_points||0)+'</b><small>FRANCHISE PTS</small></div>'+
         '<div><b>'+num(prod.franchise_starts||0)+'</b><small>FANTASY STARTS</small></div></div>'+figDraftGradeStrip(pick)+'</article>';
       }).join('')+'</div>').join('')||'<p class="fig-team-draft-none">No selections in this draft.</p>')+
@@ -2227,7 +2227,7 @@ async function draft(selectedYear){
   return z.valued?z.current:-Infinity;
  };
  const sortLabel=(z,key)=>{
-  if(!z.valued)return '—';
+  if(!z.valued)return '–';
   if(key==='gain')return (z.delta>0?'+':'')+money(z.delta);
   if(key==='return')return Math.round(z.ratio*100)+'%';
   return money(z.current);
@@ -2245,9 +2245,9 @@ async function draft(selectedYear){
     '<span class="fig-draft-rank-info"><strong>'+esc(t.name)+'</strong>'+
      '<small>'+t.picks+' picks · '+z.valued+' valued'+(z.counts.S?' · '+z.counts.S+' S':'')+(z.counts.A?' · '+z.counts.A+' A':'')+'</small></span>'+
     '<span class="fig-draft-rank-metrics">'+
-     '<span><b>'+ (visible?money(z.current):'—')+'</b><small>VALUE NOW</small></span>'+
-     '<span><b>'+ (visible?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>VALUE GAIN</small></span>'+
-     '<span><b class="fig-draft-rank-return-pct">'+(z.ratio===null?'—':Math.round(z.ratio*100)+'%')+'</b><small>RETURN %</small></span>'+
+     '<span><b>'+ (visible?money(z.current):'–')+'</b><small>VALUE NOW</small></span>'+
+     '<span><b>'+ (visible?(z.delta>0?'+':'')+money(z.delta):'–')+'</b><small>VALUE GAIN</small></span>'+
+     '<span><b class="fig-draft-rank-return-pct">'+(z.ratio===null?'–':Math.round(z.ratio*100)+'%')+'</b><small>RETURN %</small></span>'+
     '</span>'+
     '<span class="fig-draft-rank-feature"><strong>'+esc(sortLabel(z,sort))+'</strong><small>'+esc(metricOptions.find(x=>x[0]===sort)[1])+'</small></span>'+
     '<span class="fig-draft-rank-open" aria-hidden="true">›</span></a>';
@@ -2263,7 +2263,7 @@ async function draft(selectedYear){
     return '<article class="fig-draft-focus-pick">'+
      '<div class="fig-draft-focus-pick-no"><b>'+esc(figDraftPickLabel(pick))+'</b><small>#'+esc(pick.pick_no)+' OVERALL</small></div>'+
      '<div class="fig-draft-focus-person">'+playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
-      '<small>'+esc(pick.position||pick.draft_position||'—')+' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
+      '<small>'+esc(pick.position||pick.draft_position||'–')+' · '+esc(pick.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
      '<div class="fig-draft-focus-pick-owner">'+ownerAvatar(id,'fig-draft-focus-owner-avatar')+
       '<span><a href="#/draft/team/'+id+'/'+encodeURIComponent(year)+'">'+esc(OWNER_DISPLAY_BY_ID[id]||'Team '+id)+' ↗</a>'+
       '<small>'+(origin&&origin!==id?'Originally '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'Drafting franchise')+'</small></span></div>'+
@@ -2290,7 +2290,7 @@ async function draft(selectedYear){
     '<span class="fig-draft-explorer-total">'+explorerRows.length+' PICKS</span></div>'+
    '<div class="fig-draft-explorer-controls">'+
     '<label class="fig-draft-explorer-search">SEARCH PICKS<input id="figDraftExplorerSearch" type="search" placeholder="Player, team, pick, position..." autocomplete="off"></label>'+
-    '<label>GRADE<select id="figDraftExplorerGrade">'+optionList([['all','All grades'],...['S','A','B','C','D','F','—'].map(x=>[x,x==='—'?'Not valued':x])])+'</select></label>'+
+    '<label>GRADE<select id="figDraftExplorerGrade">'+optionList([['all','All grades'],...['S','A','B','C','D','F','–'].map(x=>[x,x==='–'?'Not valued':x])])+'</select></label>'+
     '<label>RETURN %<select id="figDraftExplorerReturn">'+optionList([['all','Any return'],['200+','200%+'],['100-199','100–199%'],['80-99','80–99%'],['1-79','Above 0%, below 80%'],['0','0%'],['pending','Not valued']])+'</select></label>'+
     '<label>YEAR<select id="figDraftExplorerYear">'+optionList([['all','All years'],...years.map(y=>[y,y])])+'</select></label>'+
     '<label>ROUND<select id="figDraftExplorerRound">'+optionList([['all','All rounds'],['1','Round 1'],['2','Round 2'],['3','Round 3'],['4','Round 4']])+'</select></label>'+
@@ -2336,18 +2336,18 @@ async function draft(selectedYear){
    count.textContent='Showing '+visible.length+' of '+filtered.length+' matching picks';
    list.innerHTML=visible.length?visible.map(x=>{
     const p=x.pick,z=x.grade,id=+p.franchise_id,valued=z.current!==null;
-    const gradeClass='grade-'+(z.letter==='—'?'unknown':z.letter.toLowerCase());
+    const gradeClass='grade-'+(z.letter==='–'?'unknown':z.letter.toLowerCase());
     return '<article class="fig-draft-explorer-pick">'+
      '<div class="fig-draft-explorer-spot"><strong>'+esc(x.label)+'</strong><small>'+esc(p.draft_season)+'</small></div>'+
      '<div class="fig-draft-explorer-player">'+playerLink(String(p.player_id||''),x.player,'fig-draft-player-link')+
-      '<small>'+esc(p.position||p.draft_position||'—')+' · '+esc(p.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
+      '<small>'+esc(p.position||p.draft_position||'–')+' · '+esc(p.draft_nfl_team||'NFL TEAM UNKNOWN')+'</small></div>'+
      '<a class="fig-draft-explorer-team" href="#/draft/team/'+id+'/'+encodeURIComponent(p.draft_season)+'">'+esc(x.team)+' ↗</a>'+
      '<span class="fig-draft-explorer-grade '+gradeClass+'" aria-label="Draft grade '+esc(z.letter)+'">'+esc(z.letter)+'</span>'+
      '<div class="fig-draft-explorer-metrics">'+
       '<span><b>'+money(z.slot)+'</b><small>SLOT VALUE</small></span>'+
-      '<span><b>'+(valued?money(z.current):'—')+'</b><small>VALUE NOW</small></span>'+
-      '<span><b>'+(valued?(z.delta>0?'+':'')+money(z.delta):'—')+'</b><small>GAIN / LOSS</small></span>'+
-      '<span><b>'+(valued?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN %</small></span>'+
+      '<span><b>'+(valued?money(z.current):'–')+'</b><small>VALUE NOW</small></span>'+
+      '<span><b>'+(valued?(z.delta>0?'+':'')+money(z.delta):'–')+'</b><small>GAIN / LOSS</small></span>'+
+      '<span><b>'+(valued?Math.round(z.ratio*100)+'%':'–')+'</b><small>RETURN %</small></span>'+
      '</div></article>';
    }).join(''):'<div class="fig-draft-explorer-empty">No picks match these filters.</div>';
    more.hidden=filtered.length<=shown;
@@ -2386,22 +2386,22 @@ async function draftTeamRanking(teamId,requestedYear){
   '<a class="fig-draft-rank-year'+(year==='all'?' active':'')+'" href="#/draft/team/'+id+'">ALL ROOKIES</a>'+
   rookieYears.map(y=>'<a class="fig-draft-rank-year'+(year===y?' active':'')+'" href="#/draft/team/'+id+'/'+y+'">'+y+'</a>').join('')+'</nav>';
  const metrics=[
-  ['CURRENT VALUE',summary.valued?money(summary.current):'—'],
-  ['DRAFT SLOT COST',summary.valued?money(summary.slot):'—'],
-  ['VALUE GAIN',summary.valued?(summary.delta>0?'+':'')+money(summary.delta):'—'],
-  ['RETURN %',summary.ratio===null?'—':Math.round(summary.ratio*100)+'%'],
+  ['CURRENT VALUE',summary.valued?money(summary.current):'–'],
+  ['DRAFT SLOT COST',summary.valued?money(summary.slot):'–'],
+  ['VALUE GAIN',summary.valued?(summary.delta>0?'+':'')+money(summary.delta):'–'],
+  ['RETURN %',summary.ratio===null?'–':Math.round(summary.ratio*100)+'%'],
   ['PICKS VALUED',summary.valued+' / '+summary.eligible]
  ];
  const metricCards='<div class="fig-draft-team-kpis">'+metrics.map(([label,value])=>
   '<div class="fig-draft-team-kpi"><strong>'+esc(value)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>';
  const gradeOrder=['S','A','B','C','D','F'];
  const dist=gradeOrder.map(g=>'<div class="fig-draft-team-grade-item grade-'+g.toLowerCase()+'"><b>'+summary.counts[g]+'</b><span>'+g+'</span></div>').join('')+
-  '<div class="fig-draft-team-grade-item grade-unknown"><b>'+(summary.eligible-summary.valued)+'</b><span>—</span></div>';
+  '<div class="fig-draft-team-grade-item grade-unknown"><b>'+(summary.eligible-summary.valued)+'</b><span>–</span></div>';
  const yearStats=(year==='all'?rookieYears:[year]).map(y=>{
   const z=figDraftGradeSummary(teamPicks.filter(p=>String(p.draft_season)===y));
   return '<a class="fig-draft-team-season-card" href="#/draft/team/'+id+'/'+y+'"><strong>'+y+'</strong>'+
-   '<b>'+ (z.valued?money(z.current):'—')+'</b><span>'+z.valued+'/'+z.eligible+' valued</span>'+
-   '<small>'+(z.ratio===null?'—':Math.round(z.ratio*100)+'%')+' RETURN % · '+(z.valued?(z.delta>0?'+':'')+money(z.delta):'—')+' GAIN</small></a>';
+   '<b>'+ (z.valued?money(z.current):'–')+'</b><span>'+z.valued+'/'+z.eligible+' valued</span>'+
+   '<small>'+(z.ratio===null?'–':Math.round(z.ratio*100)+'%')+' RETURN % · '+(z.valued?(z.delta>0?'+':'')+money(z.delta):'–')+' GAIN</small></a>';
  }).join('');
  const valued=scores.filter(x=>x.grade&&x.grade.current!==null);
  const hits=valued.slice().sort((a,b)=>b.grade.delta-a.grade.delta||b.grade.current-a.grade.current).slice(0,3);
@@ -2411,10 +2411,10 @@ async function draftTeamRanking(teamId,requestedYear){
     '<strong>'+esc(figDraftPlayerName(x.pick))+'</strong>'+
     '<span>'+esc(x.pick.draft_season)+' · '+esc(figDraftPickLabel(x.pick))+'</span>'+
     '<b>'+(x.grade.delta>0?'+':'')+money(x.grade.delta)+'</b></a>').join('')||
-    '<p>—</p>')+'</div>';
+    '<p>–</p>')+'</div>';
  const features=valued.length?'<div class="fig-draft-team-feature-grid">'+highlight(hits,'BEST VALUE PICKS')+highlight(misses,'BIGGEST LOSSES')+'</div>':'';
  const sorts=[['gain','VALUE GAIN'],['value','CURRENT VALUE'],['grade','GRADE'],['pick','PICK ORDER']];
- const gradeFilters=['ALL',...gradeOrder,'—'].filter(g=>g==='ALL'||g==='—'&&summary.eligible>summary.valued||summary.counts[g]>0);
+ const gradeFilters=['ALL',...gradeOrder,'–'].filter(g=>g==='ALL'||g==='–'&&summary.eligible>summary.valued||summary.counts[g]>0);
  let sort='gain',filter='ALL';
  const pickCards=()=>{
   const filtered=scores.filter(x=>filter==='ALL'||x.grade?.letter===filter);
@@ -2429,18 +2429,18 @@ async function draftTeamRanking(teamId,requestedYear){
   return filtered.map(({pick,grade})=>{
    const z=grade||{},available=z.current!==null&&z.current!==undefined;
    const origin=figDraftOriginal(pick,origins);
-   const change=available?(z.delta>0?'+':'')+money(z.delta):'—';
+   const change=available?(z.delta>0?'+':'')+money(z.delta):'–';
    return '<article class="fig-draft-team-pick-item">'+
      '<span class="fig-draft-team-pick-spot"><b>'+esc(figDraftPickLabel(pick))+'</b><small>'+esc(pick.draft_season)+'</small></span>'+
      '<div class="fig-draft-team-pick-person">'+playerLink(String(pick.player_id||''),figDraftPlayerName(pick),'fig-draft-player-link')+
-       '<small>'+esc(pick.position||pick.draft_position||'—')+' · '+esc(pick.draft_nfl_team||'—')+
+       '<small>'+esc(pick.position||pick.draft_position||'–')+' · '+esc(pick.draft_nfl_team||'–')+
        (origin&&origin!==id?' · PICK FROM '+esc(OWNER_DISPLAY_BY_ID[origin]||'Team '+origin):'')+'</small></div>'+
      '<div class="fig-draft-team-pick-numbers">'+
-       '<span><b>'+ (z.slot!==null&&z.slot!==undefined?money(z.slot):'—')+'</b><small>SLOT</small></span>'+
-       '<span><b>'+ (available?money(z.current):'—')+'</b><small>NOW</small></span>'+
+       '<span><b>'+ (z.slot!==null&&z.slot!==undefined?money(z.slot):'–')+'</b><small>SLOT</small></span>'+
+       '<span><b>'+ (available?money(z.current):'–')+'</b><small>NOW</small></span>'+
        '<span><b class="'+(z.delta>0?'fig-draft-positive':z.delta<0?'fig-draft-negative':'')+'">'+change+'</b><small>GAIN</small></span>'+
-       '<span><b>'+ (available?Math.round(z.ratio*100)+'%':'—')+'</b><small>RETURN %</small></span>'+
-     '</div><span class="fig-draft-team-pick-grade grade-'+(available?String(z.letter).toLowerCase():'unknown')+'">'+esc(available?z.letter:'—')+'</span></article>';
+       '<span><b>'+ (available?Math.round(z.ratio*100)+'%':'–')+'</b><small>RETURN %</small></span>'+
+     '</div><span class="fig-draft-team-pick-grade grade-'+(available?String(z.letter).toLowerCase():'unknown')+'">'+esc(available?z.letter:'–')+'</span></article>';
   }).join('')||'<div class="fig-draft-team-empty">No matching picks.</div>';
  };
  const gradeTabs='<div class="fig-draft-team-filters">'+
@@ -2599,7 +2599,7 @@ async function teamSeason(teamId,year){
   {label:'ALL-PLAY WIN %',value:pct(allplayPct)},
   {label:'WEEKLY HIGHS',value:summary.weekly_high_scores??0},
   {label:'TOP-3 WEEKS',value:summary.weekly_top_3_finishes??0},
-  {label:'REGULAR FINISH',value:summary.regular_season_finish?'#'+summary.regular_season_finish:'—'}
+  {label:'REGULAR FINISH',value:summary.regular_season_finish?'#'+summary.regular_season_finish:'–'}
  ];
  const statsHtml=`<div class="fig-season-metrics">${stats.map(x=>`<div class="fig-season-metric"><span>${esc(x.label)}</span><strong>${esc(x.value)}</strong></div>`).join('')}</div>`;
  const pairCards=matchups.map(x=>{
@@ -2632,7 +2632,7 @@ async function teamSeason(teamId,year){
  }
  const topPlayers=[...playerTotals.values()].sort((a,b)=>b.points-a.points).slice(0,5);
  const playerCards=topPlayers.map((p,i)=>`<a class="fig-season-player" href="#/player/${encodeURIComponent(p.id)}"><span class="fig-season-player-rank">${i+1}</span>${playerHeadshot(p.id,p.name)}<span class="fig-season-player-name"><b>${esc(p.name)}</b><small>${esc(p.pos)} · ${p.starts} STARTS</small></span><strong>${money(p.points)}<small>PTS</small></strong></a>`).join('');
- app.innerHTML=hero('TEAM SEASON',`${esc(displayOwnerName(team.owner_name,fid))} • ${esc(season)}`,`${summary.season_complete?'COMPLETED SEASON':'SEASON IN PROGRESS'} · #${summary.regular_season_finish||'—'} REGULAR-SEASON FINISH`)+
+ app.innerHTML=hero('TEAM SEASON',`${esc(displayOwnerName(team.owner_name,fid))} • ${esc(season)}`,`${summary.season_complete?'COMPLETED SEASON':'SEASON IN PROGRESS'} · #${summary.regular_season_finish||'–'} REGULAR-SEASON FINISH`)+
   `<div class="fig-season-back"><a href="#/team/${fid}">← BACK TO TEAM PROFILE</a></div>`+
   section('SEASON AT A GLANCE',statsHtml,'Official regular-season statistics. Playoffs appear in the game log below.')+
   section('ALL-PLAY VS EVERY TEAM',`<div class="fig-season-opponents">${pairCards}</div>`,'Regular season only')+
@@ -2667,7 +2667,7 @@ async function gameDetail(season,week,matchup){
  };
  const slots=[...new Set([...a,...b].map(x=>x._slot))].sort((x,y)=>slotOrder(x)-slotOrder(y)||x.localeCompare(y));
  const fmtPlayer=(x,side='left')=>{
-  if(!x)return '<div class="fig-lineup-empty">—</div>';
+  if(!x)return '<div class="fig-lineup-empty">–</div>';
   const pts=Number(x.fantasy_points||0);
   return `<a href="#/player/${encodeURIComponent(x.player_id)}" class="fig-lineup-player fig-lineup-${side}">
     ${playerHeadshot(x.player_id,x.player_name,'fig-lineup-headshot')}
@@ -2769,7 +2769,7 @@ function figArchivedGameForPlayerWeek(season,week,fid){
 }
 function figArchivedGameLink(season,week,fid,label='VIEW GAME →'){
  const game=figArchivedGameForPlayerWeek(season,week,fid);
- return game?`<a class="fig-record-open" href="#/game/${game.season}/${game.week}/${game.matchup_id}">${esc(label)}</a>`:'—';
+ return game?`<a class="fig-record-open" href="#/game/${game.season}/${game.week}/${game.matchup_id}">${esc(label)}</a>`:'–';
 }
 function figWeeklyRecordEntries(weeklyRanks,games,fid,high,season=null){
  const matchupByWeek=new Map();
@@ -2793,8 +2793,8 @@ function figWeeklyRecordHistory(fid,high,season=null){
   const href=g?`#/game/${g.season}/${g.week}/${g.matchup_id}`:null;
   return {n:i+1,season:x.season,week:`W${x.week}`,score:money(x.points_for),
    rank:'#'+x.weekly_score_rank,
-   opponent:oppId?ownerLink(oppName,oppId):'—',
-   open:href?`<a class="fig-record-open" href="${esc(href)}">VIEW GAME →</a>`:'—',
+   opponent:oppId?ownerLink(oppName,oppId):'–',
+   open:href?`<a class="fig-record-open" href="${esc(href)}">VIEW GAME →</a>`:'–',
    _href:href,
    _sort:{n:i+1,season:num(x.season),week:num(x.week),score:num(x.points_for),
     rank:num(x.weekly_score_rank),opponent:oppName}};
@@ -3001,7 +3001,7 @@ function figRecordDetailNavigation(kind){
  nav.append(link,locationLabel);
  app.insertBefore(nav,heroElement);
 }
-async function route(){document.title='Fromm is Garbage — League Archive';window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');
+async function route(){document.title='Fromm is Garbage – League Archive';window.scrollTo(0,0);const tn=$('#topNav');if(tn)tn.classList.remove('open');const parts=(location.hash.replace(/^#\//,'')||'home').split('/');
  const recordDetails=['breakdown','record','special','streak','playerweeks','playerbombrank','playerbomb'].includes(parts[0])||(parts[0]==='singleseasons'&&Boolean(parts[1]));
  app.classList.toggle('fig-record-detail-page',recordDetails);
  try{if(parts[0]==='home'){await home();}else if(parts[0]==='hall-of-fame'){navActive('');await window.figHallOfFame({load,DATA,app},parts[1],parts[2],parts[3],parts[4]);}else if(parts[0]==='boekmuse'){navActive('');await window.figLeagueSearch.render(parts.slice(1).join('/'));}else if(parts[0]==='ask'){location.replace('#/boekmuse'+(parts.length>1?'/'+parts.slice(1).join('/') : ''));return;}else if(parts[0]==='standings'){location.hash='#/home';return;}else if(parts[0]==='champions')await champions();else if(parts[0]==='playoff-calculator')await window.figPlayoffCalculator(parts[1],parts[2]);else if(parts[0]==='historical-predictions')await window.figHistoricalPredictions(parts[1],parts[2]);else if(parts[0]==='playoffbracket')await playoffBracket(parts[1]);else if(parts[0]==='teams')await teams();else if(parts[0]==='dynasty')await dynastyValues();else if(parts[0]==='dynasty-dominance')await window.figDynastyDominance(parts[1],parts[2],parts[3]);else if(parts[0]==='stock-market')await window.figDynastyMarket('market',parts[1]);else if(parts[0]==='championship-window'){location.replace('#/stock-market');return;}else if(parts[0]==='minigames')await minigames();else if(parts[0]==='team')await team(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='livematch')await liveMatchPage(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='teamseason')await teamSeason(parts[1],parts[2]);else if(parts[0]==='game')await gameDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='records')await records();else if(parts[0]==='record')await recordDetail(parts[1],parts[2],parts[3]);else if(parts[0]==='special')await specialRecord(parts[1],parts[2]);else if(parts[0]==='singleseasons')await singleSeasonRecords(parts[1]);else if(parts[0]==='breakdown')await breakdown(parts[1],...parts.slice(2));else if(parts[0]==='playerweeks')await playerWeeks();else if(parts[0]==='streaks')await streaks();else if(parts[0]==='streak')await streakDetail(parts[1],parts[2]);else if(parts[0]==='players')await players();else if(parts[0]==='playerbombrank')await playerBombLeaderboard(parts[1],parts[2],parts[3]);else if(parts[0]==='playerbomb')await playerBombBreakdown(parts[1],parts[2],parts[3],parts[4],parts[5]);else if(parts[0]==='player')await player(parts[1]);else if(parts[0]==='h2h')await h2h();else if(parts[0]==='matchup')await matchupHistory(parts[1],parts[2]);else if(parts[0]==='rivalry')await home();else if(parts[0]==='games')await gamesArchive();else if(parts[0]==='draft'){if(parts[1]==='team')await draftTeamRanking(parts[2],parts[3]);else await draft(parts[1]);}else if(parts[0]==='trades')await trades();else if(parts[0]==='manager-ratings')await managerRatings();else if(parts[0]==='manager')await managerRatings(parts[1]);else if(parts[0]==='more')await more();else await home();if(recordDetails)figRecordDetailNavigation(parts[0]);}catch(e){console.error(e);app.innerHTML=`<div class="empty"><strong>Could not load this page.</strong><br><br>${esc(e.message)}</div>`}}
