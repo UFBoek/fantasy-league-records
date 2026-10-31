@@ -22,8 +22,43 @@ assert.equal(x.legacy.find(r=>r.name==='Sack').titles,1);
 assert.equal(x.legacy.find(r=>r.name==='Boek').titles,0);
 assert.ok(!x.legacy.some(r=>r.inducted),'Legacy points are not franchise inductions');
 assert.ok(x.legacy.find(r=>r.name==='Boek').awards.some(a=>a.label==='90%+ all-play season'&&a.year===2025));
-assert.deepEqual(x.vault.map(r=>r.key),['allplay','3k','highs','streak']);
-assert.ok(x.vault.every(r=>!r.year||r.year<=2025),'Incomplete 2026 records cannot pollute founding gallery');
+// Weekly streaks are already official before their season finishes.
+assert.deepEqual(x.vault.map(r=>r.key),['streak','allplay','3k','highs']);
+const streak=x.vault.find(r=>r.key==='streak');
+const officialRuns=data.websiteStreaks.filter(r=>r.streak_mode==='Career Games'&&r.streak_type==='175+ Points');
+const longest=officialRuns.slice().sort((a,b)=>b.length-a.length)[0];
+assert.equal(streak.length,longest.length,'Show the longest verified run even if still active');
+assert.equal(streak.owner,longest.franchise_id);
+assert.equal(streak.active,longest.active);
+assert.equal(streak.year,Number(longest.end_season));
+assert.match(streak.status,new RegExp(String(longest.end_season)+'.*WEEK '+longest.end_week));
+assert.ok(x.vault.filter(r=>r.key!=='streak').every(r=>r.year<=2025),
+ 'Unfinished seasons must not receive season-long honors');
+const boek=x.legacy.find(r=>r.name==='Boek');
+const hayden=x.legacy.find(r=>r.name==='Hayden');
+assert.ok(boek.awards.some(r=>r.label==='16+ consecutive 175-point games'),
+ 'Credit milestone before current season finishes');
+assert.ok(boek.awards.some(r=>r.label==='25+ consecutive 175-point games'),
+ '25+ consecutive 175-point games is an additional rare achievement');
+assert.ok(!hayden.awards.some(r=>r.label==='25+ consecutive 175-point games'),
+ 'A completed 16-game run does not qualify for the 25-game milestone');
+// Recomputing after the next verified week must update the active record and
+// its displayed as-of date without touching the permanent induction class.
+const incoming={...data,websiteStreaks:data.websiteStreaks.map(r=>
+ Number(r.franchise_id)===1&&r.streak_type==='175+ Points'&&
+ r.streak_mode==='Career Games'&&r.active===true?
+ {...r,length:longest.length+1,end_week:Number(r.end_week)+1}:r)};
+const next=model.model(incoming);
+assert.equal(next.vault[0].length,longest.length+1);
+assert.match(next.vault[0].status,/ACTIVE/);
+assert.match(next.vault[0].body,new RegExp('Verified through '+longest.end_season+' Week '+(Number(longest.end_week)+1)));
+assert.deepEqual(next.inductees.map(r=>r.id),x.inductees.map(r=>r.id),
+ 'An ongoing streak cannot cause an automatic Hall induction');
+const completedRun={...data,websiteStreaks:data.websiteStreaks.map(r=>
+ Number(r.franchise_id)===1&&r.streak_type==='175+ Points'&&
+ r.streak_mode==='Career Games'&&r.active===true?{...r,active:false}:r)};
+assert.equal(model.model(completedRun).vault[0].active,false,
+ 'Finished record retains its place but loses its active label');
 const john=x.inductees.find(e=>e.id==='4984');assert.deepEqual(john.career.crowns,[2023,2025]);
 assert.ok(john.career.avg>=30);
 const rb=x.inductees.find(e=>e.id==='4034');assert.deepEqual(rb.career.crowns,[2023,2025]);
