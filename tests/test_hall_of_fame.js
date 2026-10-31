@@ -2,8 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=p=>JSON.parse(fs.readFileSync(path.join(root,'data',p+'.json'),'utf8'));
-const api=new Function('window',fs.readFileSync(path.join(root,'hall-of-fame-v242.js'),'utf8')+'\nreturn window.figHallOfFameModel;')({});
-const data={league:read('league_history'),games:read('games'),playerLog:read('player_game_log')};
+const api=new Function('window',fs.readFileSync(path.join(root,'hall-of-fame-v243.js'),'utf8')+'\nreturn window.figHallOfFameModel;')({});
+const data={league:read('league_history'),games:read('games'),playerLog:read('player_game_log'),
+ teamSeasonMaster:read('team_season_master')};
 const m=api.model(data);
 const ids=['4984','9221','9493','8130'];
 assert.deepEqual(m.foundingYears,[2023,2024,2025],'Founding era is three completed seasons');
@@ -18,6 +19,13 @@ assert.ok(m.inductees.every(x=>x.career.seasons.some(s=>s.year===2025&&s.starts>
 assert.ok(m.inductees.every(x=>x.career.seasons.length===3));
 assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the induction case, not an auto-generated weighted point formula');
 assert.ok(!('legacy' in m)&&!('vault' in m),'Historic Feats and Legacy Points must be entirely removed from Hall model');
+assert.equal(m.enshrinedSeasons.length,1,'Exactly one independently curated immortal season');
+const historical=m.enshrinedSeasons[0];
+assert.deepEqual([historical.franchiseId,historical.year,historical.inductionYear],[6,2025,2026]);
+assert.equal(historical.record.points_for,3000.13);
+assert.equal(historical.record.weekly_high_scores,7);
+assert.equal(historical.championship.winner_franchise_id,6);
+assert.equal(historical.url,'#/hall-of-fame/inductee/season/6/2025');
 for(const id of ids){const r=m.inductees.find(x=>x.id===id);assert.ok(r?.url.endsWith('/'+id));}
 const saved=m.inductees.map(x=>({id:x.id,year:x.inductionYear}));
 const future={...data,league:[...data.league,{season:2027,status:'complete'}],
@@ -30,23 +38,28 @@ const thin={...data,playerLog:data.playerLog.filter(x=>String(x.player_id)!=='92
 assert.equal(api.model(thin).inductees.find(x=>x.id==='9221')?.id,'9221',
  'An arbitrary number of fantasy lineup starts cannot be an eligibility gate');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const css=fs.readFileSync(path.join(root,'hall-of-fame-v242.css'),'utf8');
-const js=fs.readFileSync(path.join(root,'hall-of-fame-v242.js'),'utf8');
+const css=fs.readFileSync(path.join(root,'hall-of-fame-v243.css'),'utf8');
+const js=fs.readFileSync(path.join(root,'hall-of-fame-v243.js'),'utf8');
 const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
-assert.match(html,/hall-of-fame-v242\.js\?v=242/);
-assert.match(html,/hall-of-fame-v242\.css\?v=242/);
-assert.match(sw,/fig-league-shell-v242/);
-assert.match(sw,/hall-of-fame-v242\.js\?v=242/);
-assert.match(sw,/hall-of-fame-v242\.css\?v=242/);
+assert.match(html,/hall-of-fame-v243\.js\?v=243/);
+assert.match(html,/hall-of-fame-v243\.css\?v=243/);
+assert.match(sw,/fig-league-shell-v243/);
+assert.match(sw,/hall-of-fame-v243\.js\?v=243/);
+assert.match(sw,/hall-of-fame-v243\.css\?v=243/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
 assert.doesNotMatch(js,/function legacy\(/);
 assert.doesNotMatch(js,/function vault\(/);
 assert.doesNotMatch(js,/function recordsPage\(/);
 assert.doesNotMatch(js,/function legacyPage\(/);
 assert.doesNotMatch(js,/starts>=28|p\.avg>=30|p\.avg>=24|p\.points>=950/);
-assert.match(css,/fig-hof-242-portrait/);
+assert.match(css,/fig-hof-243-season-card/);
 assert.match(css,/@media\(max-width:699px\)/);
+assert.doesNotMatch(js,/Greatness is not a leaderboard\./);
+assert.doesNotMatch(js,/VIEW THE FOUNDING CLASS/);
+assert.doesNotMatch(js,/fig-hof-242-stats/);
+assert.match(js,/immortalSeasonCard\(m\)/);
+assert.match(js,/isCharter\?charter\(m\):lobby\(m\)/);
 console.log('FIG Hall founding-four verified',JSON.stringify({
  year:m.classes[0].year,founding:m.inductees.map(x=>[x.position,x.name,x.career.starts]),years:m.foundingYears,
  legacyRemoved:!('legacy' in m),historicFeatsRemoved:!('vault' in m)
