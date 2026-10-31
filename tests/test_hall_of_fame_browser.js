@@ -16,6 +16,18 @@ const {chromium}=require('playwright');
    assert.match(await page.locator('.fig-hof-242-hero h1').innerText(),/Immortals/);
    assert.equal(await page.locator('.fig-hof-242-grid .fig-hof-242-card').count(),4);
    assert.deepEqual(await page.locator('.fig-hof-242-grid h3').allInnerTexts(),['Josh Allen','Jahmyr Gibbs','Puka Nacua','Trey McBride']);
+   assert.equal(await page.locator('.fig-hof-242-hero .fig-hof-hero-text p').count(),0,
+    'No hero description below The Immortals');
+   assert.equal(await page.locator('.fig-hof-242-hero .fig-hof-hero-actions').count(),0,
+    'Remove founding-class action and other hero buttons');
+   assert.equal(await page.locator('.fig-hof-stat-bar').count(),0,
+    'No headline class and season counters');
+   assert.equal(await page.locator('.fig-hof-242-charter').count(),0,
+    'Induction philosophy must not appear on the Hall landing page');
+   assert.equal(await page.locator('.fig-hof-243-season-card').count(),1,
+    'Enshrined season replaces old slogan block');
+   assert.match(await page.locator('.fig-hof-243-season-card h3').innerText(),/Hayden · 2025/);
+   assert.equal(await page.locator('.fig-hof-242-inscription').count(),0);
    assert.ok(!(await page.locator('.fig-hof-nav').innerText()).includes('Legacy Points'));
    assert.ok(!(await page.locator('.fig-hof-nav').innerText()).includes('Historic Feats'));
    const dims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
@@ -28,8 +40,15 @@ const {chromium}=require('playwright');
     assert.ok(await page.locator('.fig-hof-242-receipts a').count()>=5);
     assert.match(await page.locator('.fig-hof-242-data-note').innerText(),/not measure bench performances/);
    }
+   await go(page,'/inductee/season/6/2025','.fig-hof-243-season-profile-hero h1');
+   assert.equal(await page.locator('.fig-hof-243-season-profile-hero h1').innerText(),'Hayden · 2025');
+   assert.equal(await page.locator('.fig-hof-243-season-proof a').count(),2);
+   assert.match(await page.locator('.fig-hof-243-season-profile').innerText(),/3,000\.13/);
    await go(page,'/charter','.fig-hof-242-charter');
    assert.equal(await page.locator('.fig-hof-v2-rule').count(),4);
+   assert.equal(await page.locator('.fig-hof-242-grid').count(),0,
+    'The standalone philosophy page must not duplicate the main Hall');
+   assert.equal(await page.locator('.fig-hof-243-season-card').count(),0);
    await go(page,'/hall','.fig-hof-242-grid .fig-hof-242-card');
    await go(page,'/legacy','.fig-hof-242-grid .fig-hof-242-card');
    await go(page,'/records','.fig-hof-242-grid .fig-hof-242-card');
