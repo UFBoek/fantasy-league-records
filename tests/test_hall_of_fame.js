@@ -71,7 +71,7 @@ const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
 assert.match(html,/hall-of-fame-v244\.js\?v=248/);
 assert.match(html,/hall-of-fame-v244\.css\?v=248/);
-assert.match(sw,/fig-league-shell-v248/);
+assert.match(sw,/fig-league-shell-v249/);
 assert.match(sw,/hall-of-fame-v244\.js\?v=248/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=248/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
