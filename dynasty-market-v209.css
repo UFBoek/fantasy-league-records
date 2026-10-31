@@ -1,4 +1,4 @@
-/* FIG Dynasty Stock Market — styling for market history, league and team shortcuts. */
+/* FIG Dynasty Stock Market – styling for market history, league and team shortcuts. */
 .dm-page{max-width:1180px;margin:0 auto;padding:5px 0 32px;color:#243544;font-family:Inter,system-ui,sans-serif}
 .dm-page *{box-sizing:border-box}
 .dm-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 22px}
