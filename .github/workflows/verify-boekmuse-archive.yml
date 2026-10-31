@@ -1,0 +1,31 @@
+name: Verify BoekMuse full archive
+on:
+  push:
+    branches: [feature/boekmuse-full-league-archive]
+    paths:
+      - 'workers/boekmuse-v2/**'
+      - 'boekmuse-dynamic.js'
+      - 'tests/test_boekmuse_*.js'
+      - '.github/workflows/verify-boekmuse-archive.yml'
+  pull_request:
+    paths:
+      - 'workers/boekmuse-v2/**'
+      - 'boekmuse-dynamic.js'
+      - 'tests/test_boekmuse_*.js'
+      - '.github/workflows/verify-boekmuse-archive.yml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and complete archive coverage
+        run: |
+          node --check workers/boekmuse-v2/src/index.js
+          node --check boekmuse-dynamic.js
+          node tests/test_boekmuse_full_archive.js
+          node tests/test_boekmuse_dynamic.js
