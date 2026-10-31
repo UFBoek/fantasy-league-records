@@ -14,8 +14,8 @@ const {chromium}=require('playwright');
    page.on('pageerror',e=>bad.push({viewport:label,error:String(e)}));
    await go(page,'','.fig-hof-242-hero h1');
    assert.match(await page.locator('.fig-hof-242-hero h1').innerText(),/Immortals/);
-   assert.equal(await page.locator('.fig-hof-242-grid .fig-hof-242-card').count(),4);
-   assert.deepEqual(await page.locator('.fig-hof-242-grid h3').allInnerTexts(),['Josh Allen','Jahmyr Gibbs','Puka Nacua','Trey McBride']);
+   assert.equal(await page.locator('.fig-hof-242-grid .fig-hof-242-card').count(),2);
+   assert.deepEqual(await page.locator('.fig-hof-242-grid h3').allInnerTexts(),['Josh Allen','Puka Nacua']);
    assert.equal(await page.locator('.fig-hof-242-hero .fig-hof-hero-text p').count(),0,
     'No hero description below The Immortals');
    assert.equal(await page.locator('.fig-hof-242-hero .fig-hof-hero-actions').count(),0,
@@ -30,20 +30,26 @@ const {chromium}=require('playwright');
    assert.match(await page.locator('.fig-hof-243-season-card-copy p').innerText(),/FIG championship/);
    assert.ok(await page.locator('.fig-hof-243-season-card .fig-hof-247-notable-tags span').count()>=16);
    assert.equal(await page.locator('.fig-hof-242-inscription').count(),0);
-   assert.ok(!(await page.locator('.fig-hof-nav').innerText()).includes('Legacy Points'));
-   assert.ok(!(await page.locator('.fig-hof-nav').innerText()).includes('Historic Feats'));
+   assert.equal(await page.locator('.fig-hof-nav').count(),0,'Remove redundant Hall navigation with Induction Philosophy');
+   assert.equal(await page.locator('a[href="#/hall-of-fame/charter"]').count(),0,'No philosophy links remain');
+   assert.match(await page.locator('.fig-hof-242-grid .fig-hof-242-card').nth(1).innerText(),/THE LOGO/);
+   assert.match(await page.locator('.fig-hof-242-grid .fig-hof-242-card').nth(1).innerText(),/face of FIG/);
+   const classGrid=await page.locator('.fig-hof-242-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
+   assert.equal(classGrid,width<=699?1:2,'Two spacious founding cards on desktop and one per row on mobile');
    const dims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
    assert.ok(dims.scrollWidth<=dims.clientWidth+3,'Unexpected horizontal overflow '+label+': '+JSON.stringify(dims));
    await page.screenshot({path:'hof-'+label+'.png',fullPage:true});
-   const combinedPeaks={'4984':'30.80','9221':'25.37','9493':'25.56','8130':'18.85'};
-   for(const [id,name] of [['4984','Josh Allen'],['9221','Jahmyr Gibbs'],['9493','Puka Nacua'],['8130','Trey McBride']]){
+   const combinedPeaks={'4984':'30.80','9493':'25.56'};
+   for(const [id,name] of [['4984','Josh Allen'],['9493','Puka Nacua']]){
     const card=page.locator('.fig-hof-242-card[href="#/hall-of-fame/inductee/player/'+id+'"]');
     assert.ok((await card.innerText()).includes(combinedPeaks[id]+' COMBINED PPG'),
      'Founding class card uses combined 2025 peak for '+name);
    }
-   for(const [id,name] of [['4984','Josh Allen'],['9221','Jahmyr Gibbs'],['9493','Puka Nacua'],['8130','Trey McBride']]){
+   for(const [id,name] of [['4984','Josh Allen'],['9493','Puka Nacua']]){
     await go(page,'/inductee/player/'+id,'.fig-hof-242-plaque h1');
     assert.equal(await page.locator('.fig-hof-242-plaque h1').innerText(),name);
+    if(id==='9493')assert.match(await page.locator('.fig-hof-242-plaque-copy').innerText(),/THE LOGO/);
+    assert.equal(await page.locator('.fig-hof-v2-standard').count(),0,'Remove generic induction philosophy from plaques');
     assert.equal(await page.locator('.fig-hof-242-season-row').count(),3);
     const exhibit=await page.locator('.fig-hof-242-profile').innerText();
     assert.ok(exhibit.includes(combinedPeaks[id]+' PPG'),'Hall exhibit matches precise combined archive PPG for '+name);
@@ -100,17 +106,21 @@ const {chromium}=require('playwright');
    for(const category of ['200+ Point Games','225+ Point Games','250+ Point Games'])
     assert.ok(texts.some(s=>s.includes(category)));
    assert.equal(await page.locator('.fig-hof-244-streak-list').count(),0);
-   await go(page,'/charter','.fig-hof-242-charter');
-   assert.equal(await page.locator('.fig-hof-v2-rule').count(),4);
-   assert.equal(await page.locator('.fig-hof-242-grid').count(),0,
-    'The standalone philosophy page must not duplicate the main Hall');
-   assert.equal(await page.locator('.fig-hof-243-season-card').count(),0);
+   await go(page,'/charter','.fig-hof-242-grid .fig-hof-242-card');
+   assert.equal(await page.locator('.fig-hof-242-charter').count(),0,
+    'Retired induction philosophy route now shows the Hall');
+   assert.equal(await page.locator('.fig-hof-v2-rule').count(),0);
+   for(const id of ['9221','8130']){
+    await go(page,'/inductee/player/'+id,'.fig-hof-content');
+    assert.match(await page.locator('.fig-hof-content').first().innerText(),/not part of the 2026 founding class/i,
+     'Previously enshrined player '+id+' is not in the new founding class');
+   }
    await go(page,'/hall','.fig-hof-242-grid .fig-hof-242-card');
    await go(page,'/legacy','.fig-hof-242-grid .fig-hof-242-card');
    await go(page,'/records','.fig-hof-242-grid .fig-hof-242-card');
    await page.goto(origin+'/#/more');
    await page.locator('a[href="#/hall-of-fame"]').first().waitFor();
-   console.log('Hall founding four: verified all exhibits and no overflow on',label);
+   console.log('Hall founding two: verified all exhibits and no overflow on',label);
    await page.close();
   }
   assert.deepEqual(bad,[],'JavaScript errors on Hall routes');

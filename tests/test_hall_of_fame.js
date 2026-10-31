@@ -8,13 +8,19 @@ const data={league:read('league_history'),games:read('games'),playerLog:read('pl
  teamSeasonMaster:read('team_season_master'),singleSeasonRecords:read('single_season_records'),
  websiteStreaks:read('website_streaks')};
 const m=api.model(data);
-const ids=['4984','9221','9493','8130'];
+const ids=['4984','9493'];
 assert.deepEqual(m.foundingYears,[2023,2024,2025],'Founding era is three completed seasons');
 assert.equal(m.classes.length,1,'New classes are deliberate and must never be auto-created');
 assert.equal(m.classes[0].year,2026);
-assert.deepEqual(m.inductees.map(x=>x.id),ids,'Allen Gibbs Puka McBride founding four');
-assert.deepEqual(m.inductees.map(x=>x.name),['Josh Allen','Jahmyr Gibbs','Puka Nacua','Trey McBride']);
-assert.deepEqual(m.inductees.map(x=>x.position),['QB','RB','WR','TE']);
+assert.deepEqual(m.inductees.map(x=>x.id),ids,'Allen and Puka are the only founding inductees');
+assert.deepEqual(m.inductees.map(x=>x.name),['Josh Allen','Puka Nacua']);
+assert.deepEqual(m.inductees.map(x=>x.position),['QB','WR']);
+assert.equal(m.classes[0].title,'The Founding Two');
+assert.equal(m.inductees.find(x=>x.id==='9493').nickname,'THE LOGO');
+assert.match(m.inductees.find(x=>x.id==='9493').case,/face of FIG/);
+assert.match(m.inductees.find(x=>x.id==='4984').case,/30 combined PPG/);
+assert.ok(!m.inductees.some(x=>['9221','8130'].includes(x.id)),
+ 'Gibbs and McBride remain ordinary FIG player archive members, not enshrined');
 assert.ok(m.inductees.every(x=>x.proof.ok),'Induction registry candidates must have verifiable founding-era historical records');
 assert.ok(m.inductees.every(x=>x.inductionYear===2026));
 assert.ok(m.inductees.every(x=>x.career.seasons.some(s=>s.year===2025&&s.starts>0)));
@@ -95,20 +101,21 @@ const future={...data,league:[...data.league,{season:2027,status:'complete'}],
  playerLog:[...data.playerLog,{season:'2027',week:1,position:'RB',player_id:'123456',player_name:'Future star',starter_points:800,franchise_id:1}]};
 assert.deepEqual(api.model(future).inductees.map(x=>({id:x.id,year:x.inductionYear})),saved,
  'Future seasons and stars cannot rewrite the founding class');
-const selected=data.playerLog.filter(x=>String(x.player_id)==='9221'&&+x.season<=2025);
+const selected=data.playerLog.filter(x=>String(x.player_id)==='9493'&&+x.season<=2025);
 assert.ok(selected.length>20);
-const thin={...data,playerLog:data.playerLog.filter(x=>String(x.player_id)!=='9221'||(+x.season===2025&&+x.week===12))};
-assert.equal(api.model(thin).inductees.find(x=>x.id==='9221')?.id,'9221',
+const thin={...data,playerLog:data.playerLog.filter(x=>String(x.player_id)!=='9493'||(+x.season===2025&&+x.week===12))};
+assert.equal(api.model(thin).inductees.find(x=>x.id==='9493')?.id,'9493',
  'An arbitrary number of fantasy lineup starts cannot be an eligibility gate');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'hall-of-fame-v244.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'hall-of-fame-v244.js'),'utf8');
 const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
-assert.match(html,/hall-of-fame-v244\.js\?v=252/);
+assert.match(html,/hall-of-fame-v244\.js\?v=253/);
 assert.match(html,/hall-of-fame-v244\.css\?v=248/);
-assert.match(sw,/fig-league-shell-v252/);
-assert.match(sw,/hall-of-fame-v244\.js\?v=252/);
+assert.match(html,/hall-of-fame-v242\.css\?v=253/);
+assert.match(sw,/fig-league-shell-v253/);
+assert.match(sw,/hall-of-fame-v244\.js\?v=253/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=248/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
 assert.doesNotMatch(js,/function legacy\(/);
@@ -142,8 +149,14 @@ assert.doesNotMatch(js,/THE STREAK LEDGER/);
 assert.doesNotMatch(js,/—/);
 assert.doesNotMatch(fs.readFileSync(path.join(root,'app.js'),'utf8'),/—/);
 assert.doesNotMatch(html,/—/);
-assert.match(js,/isCharter\?charter\(m\):lobby\(m\)/);
-console.log('FIG Hall founding-four verified',JSON.stringify({
+assert.doesNotMatch(js,/function charter\(/);
+assert.doesNotMatch(js,/Induction Philosophy|THE FIG INDUCTION PHILOSOPHY|THE CHARTER|HOW WE SELECT THE HALL/i);
+assert.doesNotMatch(js,/#\/hall-of-fame\/charter/);
+assert.match(js,/nickname:'THE LOGO'/);
+const layout=fs.readFileSync(path.join(root,'hall-of-fame-v242.css'),'utf8');
+assert.match(layout,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+assert.match(layout,/grid-template-columns:1fr;max-width:490px/);
+console.log('FIG Hall founding-two verified',JSON.stringify({
  year:m.classes[0].year,founding:m.inductees.map(x=>[x.position,x.name,x.career.starts]),years:m.foundingYears,
  legacyRemoved:!('legacy' in m),historicFeatsRemoved:!('vault' in m)
 }));

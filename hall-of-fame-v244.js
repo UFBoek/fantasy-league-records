@@ -1,8 +1,7 @@
-/* FIG Hall of Fame / Charter II – fixed, evidence-backed induction classes.
-   Franchises earn legacy points, but are never automatically enshrined. */
+/* FIG Hall of Fame. Curated permanent player inductions and immortal franchise seasons. */
 (function(){
 'use strict';
-const CHARTER_YEAR=2026,FOUNDING_END=2025,POSITIONS=['QB','RB','WR','TE'];
+const FOUNDING_CLASS_YEAR=2026,FOUNDING_END=2025,POSITIONS=['QB','RB','WR','TE'];
 const OWNERS={1:'Boek',2:'Fru',3:'Fromm',4:'Sack',5:'Leyton',6:'Hayden',7:'Line',8:'Winston',9:'CamNol',10:'James'};
 const PORTRAITS={1:'boek.webp',2:'fru.webp',3:'fromm.webp',4:'sack.webp',5:'leyton.webp',6:'hayden-2026.svg',7:'line.webp',8:'winston.webp',9:'camnol.webp',10:'james.webp'};
 /* Curated historical inductees. Future classes require an explicit induction
@@ -10,11 +9,9 @@ const PORTRAITS={1:'boek.webp',2:'fru.webp',3:'fromm.webp',4:'sack.webp',5:'leyt
 /* Inaugural induction is an explicit decision, not automatic scoring. */
 const ENSHRINED_SEASONS=[{year:2025,franchiseId:6,inductionYear:2026,
  title:'Hayden · 2025',honor:'A season beyond the ordinary'}];
-const INDUCTION_CLASSES=[{year:2026,title:'The Founding Four',period:'2023–2025',entries:[
- {kind:'player',id:'4984',position:'QB',case:'The quarterback standard of the founding era: three consecutive elite seasons, extraordinary consistency and top-of-position production.'},
- {kind:'player',id:'9221',position:'RB',case:'An unmistakable ascent, from an impressive 2023 season to two outstanding years in 2024–2025, including an extraordinary 2025 peak.'},
- {kind:'player',id:'9493',position:'WR',case:'A founding-era difference maker with meaningful production in every completed season and an exceptional 2025 peak.'},
- {kind:'player',id:'8130',position:'TE',case:'A two-season positional emergence culminating in a historic 2025 tight-end season and uncommon separation at the position.'}
+const INDUCTION_CLASSES=[{year:2026,title:'The Founding Two',period:'2023–2025',entries:[
+ {kind:'player',id:'4984',position:'QB',case:'The quarterback standard of FIG. Three consecutive seasons above 30 combined PPG made Allen the defining statistical force of the founding era.'},
+ {kind:'player',id:'9493',position:'WR',nickname:'THE LOGO',case:'The Logo. The face of FIG and the player whose image represents the league. An icon of its identity with an elite three-season record and a historic 2025.'}
 ]}];
 const value=x=>Number.isFinite(Number(x))?Number(x):0;
 const fmt=(x,p=0)=>value(x).toLocaleString('en-US',{minimumFractionDigits:p,maximumFractionDigits:p});
@@ -81,7 +78,7 @@ function verifySeason(s,fin){
 function model(d){
  const complete=completedYears(d),foundingYears=complete.filter(y=>y<=FOUNDING_END);
  const classes=INDUCTION_CLASSES.map(cls=>{
-  const era=cls.year===CHARTER_YEAR?foundingYears:complete.filter(y=>y<cls.year);
+  const era=cls.year===FOUNDING_CLASS_YEAR?foundingYears:complete.filter(y=>y<cls.year);
   const byId=playerCareers(d,era).byId;
   return {...cls,entries:cls.entries.map(e=>{
    const career=byId.get(e.id),proof=verifyPlayer(career);
@@ -105,16 +102,13 @@ function model(d){
 const personPhoto=id=>'<span class="fig-hof-v2-owner"><img loading="lazy" src="assets/avatars/'+esc(PORTRAITS[id]||'')+'" alt="" onerror="this.remove()"><i>'+esc(name(id)[0])+'</i></span>';
 const playerPhoto=p=>'<span class="fig-hof-v2-nfl"><img loading="lazy" referrerpolicy="no-referrer" src="https://sleepercdn.com/content/nfl/players/thumb/'+slug(p.id)+'.jpg" alt="" onerror="this.remove()"><i>'+esc(p.position)+'</i></span>';
 const logo=()=>'<span class="fig-hof-seal">FIG <span>HALL OF FAME</span></span>';
-const navigation=route=>'<nav class="fig-hof-nav" aria-label="Hall of Fame navigation">'+[
- ['overview','The Hall'],['charter','Induction Philosophy']
- ].map(([id,label])=>'<a href="#/hall-of-fame'+(id==='overview'?'':'/'+id)+'" '+(route===id?'aria-current="page"':'')+'>'+label+'</a>').join('')+'</nav>';
-const head=kind=>'<header class="fig-hof-site-head">'+logo()+'<span>EST. 2026 <b>·</b> BUILT FOR THE AGES</span></header>'+navigation(kind);
+const head=()=>'<header class="fig-hof-site-head">'+logo()+'<span>EST. 2026 <b>·</b> BUILT FOR THE AGES</span></header>';
 const heading=(n,t,s)=>'<div class="fig-hof-section-head"><div class="fig-hof-eyebrow">'+n+'</div><h2>'+t+'</h2><p>'+s+'</p></div>';
 const metric=(value,label)=>'<div class="fig-hof-number"><strong>'+value+'</strong><span>'+label+'</span></div>';
 function hcard(e){
  const p=e.career,peak=p.seasons.filter(x=>x.starts>=5).slice().sort((a,b)=>b.ppg-a.ppg)[0]||p.bestSeason;
  return '<a class="fig-hof-v2-inductee fig-hof-242-card" href="'+e.url+'">'+
- '<div class="fig-hof-v2-inductee-top"><span>FOUNDING CLASS · '+e.inductionYear+'</span><span>'+esc(p.position)+' · LEGEND</span></div>'+
+ '<div class="fig-hof-v2-inductee-top"><span>FOUNDING CLASS · '+e.inductionYear+'</span><span>'+esc(e.nickname||p.position+' · LEGEND')+'</span></div>'+
  '<div class="fig-hof-v2-inductee-art fig-hof-242-portrait">'+playerPhoto(p)+'</div>'+
  '<div class="fig-hof-v2-inductee-info"><span class="fig-hof-v2-serial">PERMANENTLY ENSHRINED</span><h3>'+esc(e.name)+'</h3>'+
  '<p>'+esc(e.case)+'</p><div class="fig-hof-v2-cardfoot"><span>'+(
@@ -271,12 +265,12 @@ function lobby(m){
  '<div class="fig-hof-hero-emblem"><div class="fig-hof-emblem-halo"></div><div class="fig-hof-v2-crest">✦<span>F · I · G</span><strong>MMXXVI</strong></div></div>'+
  '</section>'+
  '<section class="fig-hof-content fig-hof-242-main">'+
- heading('I / THE FOUNDING CLASS','The Enshrined','Each inductee has his own case for greatness. These four were chosen deliberately, not by a career-average formula or a predetermined scoring threshold.')+
+ heading('I / THE FOUNDING CLASS','The Enshrined','Two names at the beginning of FIG immortality. Josh Allen, the statistical standard. Puka Nacua, The Logo.')+
  '<div class="fig-hof-v2-founders fig-hof-242-grid">'+members.map(hcard).join('')+'</div>'+
- '<div class="fig-hof-section-end"><span>PERMANENT CLASS OF 2026 · HISTORICAL PERIOD 2023–2025</span><a href="#/hall-of-fame/charter">HOW WE SELECT THE HALL ↗</a></div>'+
+ '<div class="fig-hof-section-end"><span>PERMANENT CLASS OF 2026 · HISTORICAL PERIOD 2023–2025</span></div>'+
  immortalSeasonCard(m)+
  '<div class="fig-hof-v2-next-class"><span class="fig-hof-eyebrow">III / THE FUTURE OF THE HALL</span><h3>Built for the next twenty years.</h3>'+
- '<p>New classes require explicit historical review. No automatic induction and no annual quota. The Hall will continue to honor exceptional player careers and the rarest individual franchise seasons.</p></div>'+
+ '<p>The legends of tomorrow will write the next chapter of FIG history.</p></div>'+
  '</section>';
 }
 function hall(m){return lobby(m);}
@@ -306,13 +300,10 @@ function plaque(m,kind,id,year,d){
  return '<section class="fig-hof-content fig-hof-242-profile">'+
  '<a class="fig-hof-v2-back" href="#/hall-of-fame">← RETURN TO THE HALL</a>'+
  '<div class="fig-hof-v2-plaque fig-hof-242-plaque"><div class="fig-hof-v2-plaque-art">'+playerPhoto(p)+'</div>'+
- '<div class="fig-hof-v2-plaque-copy"><span class="fig-hof-eyebrow">INAUGURAL INDUCTEE · '+esc(p.position)+' · CLASS OF '+e.inductionYear+'</span>'+
+ '<div class="fig-hof-v2-plaque-copy"><span class="fig-hof-eyebrow">'+(e.nickname?esc(e.nickname)+' · ':'')+'INAUGURAL INDUCTEE · '+esc(p.position)+' · CLASS OF '+e.inductionYear+'</span>'+
  '<h1>'+esc(p.name)+'</h1><p>'+esc(e.case)+'</p>'+
  '<a class="fig-hof-gold-btn" href="#/player/'+slug(p.id)+'">EXPLORE THE FIG PLAYER ARCHIVE ↗</a></div></div>'+
  '<div class="fig-hof-v2-plaque-metrics">'+lines.map(k=>metric(k[1],k[0])).join('')+'</div>'+
- heading('THE CASE FOR GREATNESS','A Hall-worthy legacy.','The case rests on extraordinary individual seasons, positional dominance and historical impact–not an arbitrary threshold of cumulative points or career PPG.')+
- '<div class="fig-hof-v2-standard"><strong>THE INDUCTION CASE</strong><p>'+esc(e.case)+'</p>'+
- '<p>Each season is evaluated on its own merits. A player cannot lose Hall recognition simply by getting older or by being placed on a fantasy bench.</p></div>'+
  heading('THE SEASONS THAT DEFINED HIM','The career, season by season.','All-Time Combined scoring for each completed founding season, including regular-season and playoff FIG starts.')+
  '<div class="fig-hof-242-season-ledger">'+seasonLines+'</div>'+
  heading('THE PERFORMANCES','Signature FIG starts.','Six of the highest verified performances in the historical FIG starting lineup, with original box-score links.')+
@@ -321,20 +312,8 @@ function plaque(m,kind,id,year,d){
  '<div class="fig-hof-242-next"><a href="#/hall-of-fame/inductee/player/'+m.inductees[(m.inductees.indexOf(e)+1)%m.inductees.length].id+'">NEXT EXHIBIT · '+esc(m.inductees[(m.inductees.indexOf(e)+1)%m.inductees.length].name)+' ↗</a></div>'+
  '</section>';
 }
-function charter(m){
- const rules=[
- ['01','EXCEPTIONAL SEASONS','A candidate is evaluated through individual seasons: elite production at his position, the distance from contemporaries and the significance of his best years. Decline near retirement does not erase earlier greatness.'],
- ['02','FANTASY LINEUPS ARE NOT AN ELIGIBILITY GATE','A deep FIG roster can bench an elite player. Official lineup starts and starter-only PPG do not determine a player’s eligibility. These stats are displayed as verified history while full rostered-game data is being integrated.'],
- ['03','MORE THAN ONE WAY TO BE GREAT','Multiple elite seasons are a powerful case. A genuinely generational single-season peak may also deserve consideration if its historical significance can be independently established.'],
- ['04','A DELIBERATE, PERMANENT DECISION','There is no automatic top-four selection, PPG cutoff, cumulative-points score or mandatory annual class. Each induction is individually reviewed, recorded and permanent.']
- ];
- return '<section class="fig-hof-content fig-hof-242-charter">'+
- heading('THE FIG INDUCTION PHILOSOPHY','Greatness, not arithmetic.','What makes an individual season extraordinary matters more than how many seasons a player managed to accumulate.')+
- '<div class="fig-hof-v2-charter">'+rules.map(([n,t,c])=>'<div class="fig-hof-v2-rule"><span>'+n+'</span><div><h3>'+t+'</h3><p>'+c+'</p></div></div>').join('')+'</div>'+
- '</section>';
-}
 const footer=()=>'<footer class="fig-hof-footer"><div>'+logo()+'<p>THE STANDARD ENDURES.<br>THE RECORD REMEMBERS.</p></div><div>'+
- '<a href="#/hall-of-fame/hall">THE ENSHRINED ↗</a><a href="#/hall-of-fame/charter">THE CHARTER ↗</a>'+
+ '<a href="#/hall-of-fame">THE ENSHRINED ↗</a>'+
  '<a href="#/more">BACK TO FIG ↗</a></div><span>FROMM IS GARBAGE · THE FIG HISTORICAL INSTITUTION</span></footer>';
 async function page(ctx,view,arg,sub,year){
  await ctx.load(['league','games','playerLog','playerSeasons','teamSeasonMaster','singleSeasonRecords']);
@@ -342,13 +321,11 @@ async function page(ctx,view,arg,sub,year){
  const isPlayer=(view==='inductee'&&arg==='player')||view==='player';
  const isSeason=view==='inductee'&&arg==='season';
  const id=view==='player'?String(arg||''):String(sub||'');
- const isCharter=view==='charter';
  const content=isPlayer?plaque(m,'player',id,year,ctx.DATA):
-  isSeason?immortalSeasonPlaque(m,sub,year):
-  isCharter?charter(m):lobby(m);
+  isSeason?immortalSeasonPlaque(m,sub,year):lobby(m);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2 fig-hof-242 fig-hof-243" id="figHallOfFame">'+
-  head(isCharter?'charter':'overview')+content+footer()+'</div>';
- document.title=isCharter?'Induction Philosophy – FIG Hall of Fame':'The Hall – Fromm is Garbage';
+  head()+content+footer()+'</div>';
+ document.title='The Hall – Fromm is Garbage';
 }
 window.figHallOfFame=page;
 window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};

@@ -1,4 +1,4 @@
-/* FIG HALL / Founding Four · original archival museum styling
+/* FIG HALL / Founding Two · original archival museum styling
    Additional bronze-relief portrait treatment and career-season exhibits. */
 .fig-hof-242 .fig-hof-site-head{background:linear-gradient(110deg,#101820,#16212b);border-bottom:1px solid #806743}
 .fig-hof-242 .fig-hof-nav{background:#131d28}
@@ -7,18 +7,18 @@
 .fig-hof-242 .fig-hof-242-hero .fig-hof-hero-text>p{font-size:15px;line-height:1.8;max-width:475px}
 .fig-hof-242 .fig-hof-242-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
 .fig-hof-242 .fig-hof-242-main{background:radial-gradient(ellipse at 50% 5%,rgba(187,146,90,.07),transparent 45%),#0c141e}
-.fig-hof-242 .fig-hof-242-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.fig-hof-242 .fig-hof-242-card{min-height:480px;position:relative;background:radial-gradient(ellipse at 50% 25%,rgba(184,145,89,.24),transparent 48%),linear-gradient(165deg,#29343f,#111a24 70%);border:1px solid #93744c;overflow:hidden;transition:transform .25s,box-shadow .25s,border-color .25s}
+.fig-hof-242 .fig-hof-242-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:1040px;margin-inline:auto}
+.fig-hof-242 .fig-hof-242-card{min-height:500px;position:relative;background:radial-gradient(ellipse at 50% 25%,rgba(184,145,89,.24),transparent 48%),linear-gradient(165deg,#29343f,#111a24 70%);border:1px solid #93744c;overflow:hidden;transition:transform .25s,box-shadow .25s,border-color .25s}
 .fig-hof-242 .fig-hof-242-card:hover{transform:translateY(-6px);border-color:#eac58c;box-shadow:0 20px 48px #0008,inset 0 0 0 1px #e0bb8050}
 .fig-hof-242 .fig-hof-242-card:after{inset:9px;border-color:#e4ba7760}
 .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-top{font-size:8px;letter-spacing:.13em}
 .fig-hof-242 .fig-hof-242-portrait{min-height:238px;align-items:center}
-.fig-hof-242 .fig-hof-242-portrait .fig-hof-v2-nfl{width:156px;height:200px;position:relative;border-radius:46% 46% 9px 9px;border:3px solid #b9955e;box-shadow:0 0 0 6px rgba(203,162,99,.09),0 0 0 11px rgba(205,164,100,.05),0 22px 38px #0009;background:linear-gradient(145deg,#a48960,#594731 55%,#222d34)}
+.fig-hof-242 .fig-hof-242-portrait .fig-hof-v2-nfl{width:180px;height:230px;position:relative;border-radius:46% 46% 9px 9px;border:3px solid #b9955e;box-shadow:0 0 0 6px rgba(203,162,99,.09),0 0 0 11px rgba(205,164,100,.05),0 22px 38px #0009;background:linear-gradient(145deg,#a48960,#594731 55%,#222d34)}
 .fig-hof-242 .fig-hof-v2-nfl img{filter:grayscale(1) sepia(.86) saturate(1.55) contrast(1.14) brightness(.90);object-position:50% top}
 .fig-hof-242 .fig-hof-v2-nfl:after{content:"";position:absolute;inset:0;background:linear-gradient(113deg,#fff0c428,transparent 39%,#6046272e 76%,#fff5d617);pointer-events:none;z-index:3;mix-blend-mode:screen}
 .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info{padding:15px 18px 23px;background:linear-gradient(0deg,#0d141ddc,#17212d22)}
-.fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info h3{font-size:clamp(24px,2.4vw,32px)}
-.fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info>p{min-height:89px;color:#bac0c0;font-size:10px;line-height:1.75}
+.fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info h3{font-size:clamp(28px,2.8vw,39px)}
+.fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info>p{min-height:70px;color:#bac0c0;font-size:12px;line-height:1.75}
 .fig-hof-242 .fig-hof-242-card .fig-hof-v2-cardfoot{align-items:flex-start;flex-direction:column;gap:11px}
 .fig-hof-242 .fig-hof-242-card .fig-hof-v2-cardfoot b{letter-spacing:.1em}
 .fig-hof-242 .fig-hof-242-card .fig-hof-v2-cardfoot span{line-height:1.5;color:#d6c3a3}
@@ -27,8 +27,6 @@
 .fig-hof-242-inscription strong{font:400 clamp(33px,4vw,55px)/1.1 Georgia,serif;letter-spacing:-.04em;color:#fff0d4}
 .fig-hof-242-inscription p{grid-column:2;font-size:13px;line-height:1.85;color:#b5bfc3;max-width:640px;margin:0}
 .fig-hof-242 .fig-hof-242-main .fig-hof-v2-next-class{margin-top:68px}
-.fig-hof-242 .fig-hof-242-charter{background:#111b25;padding-top:70px;border-top:1px solid #5e4932}
-.fig-hof-242 .fig-hof-242-charter .fig-hof-section-head{max-width:800px}
 .fig-hof-242 .fig-hof-242-profile{padding-bottom:86px}
 .fig-hof-242 .fig-hof-242-plaque{grid-template-columns:290px minmax(0,1fr);min-height:350px;background:radial-gradient(ellipse at 20% 28%,#3b3830 0%,#1d2934 60%,#121d28);border-color:#b39761;box-shadow:inset 0 0 0 8px #121b2580}
 .fig-hof-242 .fig-hof-242-plaque .fig-hof-v2-plaque-art{height:286px;background:radial-gradient(ellipse at 50% 20%,#675841 0%,#29333b 65%,#151d28);border:1px solid #ba9864}
@@ -57,20 +55,19 @@
 @media(max-width:699px){
  .fig-hof-242 .fig-hof-242-hero h1{font-size:clamp(60px,12vw,84px)}
  .fig-hof-242 .fig-hof-242-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
- .fig-hof-242 .fig-hof-242-grid{gap:11px}
- .fig-hof-242 .fig-hof-242-card{min-height:390px}
+ .fig-hof-242 .fig-hof-242-grid{grid-template-columns:1fr;max-width:490px;gap:16px}
+ .fig-hof-242 .fig-hof-242-card{min-height:420px}
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-top{font-size:8px}
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info{padding:11px 13px 17px}
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info h3{font-size:clamp(23px,5vw,29px)}
- .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info>p{min-height:104px;font-size:9px}
+ .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info>p{min-height:0;font-size:11px}
  .fig-hof-242 .fig-hof-242-portrait{min-height:166px;padding:13px}
- .fig-hof-242 .fig-hof-242-portrait .fig-hof-v2-nfl{width:106px;height:130px}
+ .fig-hof-242 .fig-hof-242-portrait .fig-hof-v2-nfl{width:138px;height:172px}
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-cardfoot span,.fig-hof-242 .fig-hof-242-card .fig-hof-v2-cardfoot b{font-size:8px}
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-cardfoot span{overflow-wrap:anywhere}
  .fig-hof-242-inscription{grid-template-columns:1fr;gap:15px;margin-top:50px;padding:25px 3px}
  .fig-hof-242-inscription strong{font-size:35px}
  .fig-hof-242-inscription p{grid-column:auto}
- .fig-hof-242 .fig-hof-242-charter{padding-top:43px}
  .fig-hof-242 .fig-hof-242-plaque{grid-template-columns:1fr;gap:18px;padding:22px}
  .fig-hof-242 .fig-hof-242-plaque .fig-hof-v2-plaque-art{height:192px}
  .fig-hof-242 .fig-hof-242-plaque .fig-hof-v2-nfl{height:170px;width:147px}
@@ -84,8 +81,8 @@
 }
 @media(max-width:355px){
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info h3{font-size:22px}
- .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info>p{min-height:125px}
- .fig-hof-242 .fig-hof-242-portrait .fig-hof-v2-nfl{width:90px;height:116px}
+ .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-info>p{min-height:0}
+ .fig-hof-242 .fig-hof-242-portrait .fig-hof-v2-nfl{width:128px;height:159px}
  .fig-hof-242 .fig-hof-242-card .fig-hof-v2-inductee-top{font-size:7px}
 }
 @media(prefers-reduced-motion:reduce){.fig-hof-242 *{transition:none!important}}
