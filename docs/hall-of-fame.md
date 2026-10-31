@@ -42,13 +42,13 @@ The prior Iconic Moments and broad Greatest Seasons leaderboard have been replac
 - **Boek 2025:** 90.48% all-play win rate.
 - **Hayden 2025:** 3,000.13 regular-season points and the FIG title.
 - **Boek and Hayden 2025:** both secured seven weekly high scores.
-- **Hayden:** 16 consecutive FIG games with at least 175 points, ending in 2025.
+- **All-time 175+ point streak:** The longest verified streak, including an active run during an unfinished season. At the October 31, 2026 archive snapshot, **Boek leads with 28 consecutive games, active through 2026 Week 7**, ahead of Hayden's completed 16-game run. The displayed holder, length, active/final status, and last verified week update from `website_streaks.json` after official games are published.
 
 These are historical records or achievements, **not** Hall inductions. Every card links to a season or streak archive. Further feats must be similarly extraordinary, verifiable and intentionally curated. The site does not describe any record as literally unbreakable.
 
 ## Franchise Legacy Points — living ledger
 
-The legacy ledger grows automatically as *completed* league seasons are published. Franchises are not Hall inductees, and **zero legacy points does not mean a franchise is ineligible for future records**. Every point is traceable to a published historical achievement.
+The legacy ledger grows automatically as *completed* league seasons are published. **The exception is official, finalized-game streaks:** streak milestones count even when the current season is ongoing, because each game in the run has already been recorded. Whole-season awards, such as scoring leaders or championship accomplishments, still require completed seasons. Franchises are not Hall inductees, and **zero legacy points does not mean a franchise is ineligible for future records**. Every point is traceable to a published historical achievement.
 
 | Event | Legacy points |
 | --- | ---: |
@@ -61,6 +61,7 @@ The legacy ledger grows automatically as *completed* league seasons are publishe
 | 3,000+ regular-season points | +80 |
 | Seven or more weekly high scores in a season | +55 |
 | 16 consecutive 175+ point career games | +60 (once) |
+| 25 consecutive 175+ point career games | +100 (once; separate rare milestone) |
 | Four consecutive 200+ point career games | +45 (once) |
 
 Different milestones may stack when earned independently. The system deliberately does not award points merely for volume of career games or beating easier opponents. It makes no claim that legacy points measure managerial skill, nor can points earn automatic induction.
@@ -68,7 +69,7 @@ Different milestones may stack when earned independently. The system deliberatel
 ## Scaling beyond the inaugural class
 
 - `INDUCTION_CLASSES` holds explicitly approved classes by induction year. The 2026 class references the completed 2023–2025 years forever.
-- `completedYears(data)` reads finalized league seasons dynamically, so franchise Legacy Points update when subsequent seasons finish.
+- `completedYears(data)` reads finalized league seasons dynamically, so franchise season honors update when subsequent seasons finish. **Official game streaks update separately during ongoing seasons**, with earned milestone points awarded at 16 and 25 consecutive 175+ games.
 - A future class can introduce published era-adjusted scoring/eligibility gates when league settings or average scoring change. Applying 2026's raw scoring thresholds uncritically to 2040 would not be fair.
 - New honors must have proof from the official archive; missing data is never filled by model projections.
 - Retired, non-included, or uninducted players can still appear in ordinary league statistics and the record book; those pages remain unchanged.
