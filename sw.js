@@ -1,5 +1,5 @@
 /* FIG League v235 – keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v249';
+const CACHE_NAME = 'fig-league-shell-v250';
 const APP_SHELL = [
   './',
   './index.html',
@@ -46,7 +46,7 @@ const APP_SHELL = [
   './playoff-calculator-v167.css?v=206',
   './historical-predictions-v189.css?v=189',
   './live-matchups.js?v=195',
-  './mobile-v69.js?v=222',
+  './mobile-v69.js?v=250',
   './record-break-watch-v133.js?v=176',
   './single-season-watch-v136.js?v=177',
   './trade-ratings-v143.js?v=153',
@@ -79,6 +79,7 @@ const APP_SHELL = [
   './hall-of-fame-v242.css?v=242',
   './hall-of-fame-v243.css?v=243',
   './hall-of-fame-v244.css?v=248',
+  './list-ui-v250.css?v=250',
   './hall-of-fame-v244.js?v=248',
   './app.js?v=249',
   './manifest.webmanifest?v=132',
