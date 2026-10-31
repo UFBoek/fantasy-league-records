@@ -48,7 +48,7 @@ const {chromium}=require('playwright');
    for(const [id,name] of [['4984','Josh Allen'],['9493','Puka Nacua']]){
     await go(page,'/inductee/player/'+id,'.fig-hof-242-plaque h1');
     assert.equal(await page.locator('.fig-hof-242-plaque h1').innerText(),name);
-    if(id==='9493')assert.match(await page.locator('.fig-hof-242-plaque-copy').innerText(),/THE LOGO/);
+    if(id==='9493')assert.match(await page.locator('.fig-hof-v2-plaque-copy').innerText(),/THE LOGO/);
     assert.equal(await page.locator('.fig-hof-v2-standard').count(),0,'Remove generic induction philosophy from plaques');
     assert.equal(await page.locator('.fig-hof-242-season-row').count(),3);
     const exhibit=await page.locator('.fig-hof-242-profile').innerText();
