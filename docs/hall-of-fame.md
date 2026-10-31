@@ -1,87 +1,50 @@
-# FIG Hall of Fame — Permanent Induction Charter
+# FIG Hall of Fame · Class of 2026
+
+The FIG Hall of Fame is a permanent institution for exceptional fantasy performances within Fromm Is Garbage, accessible from **More → Hall of Fame**, `#/hall-of-fame`.
+
+## 2026 Inaugural Class — The Founding Four
+
+| Position | Inductee | FIG player ID | Historical case |
+| --- | --- | --- | --- |
+| QB | Josh Allen | 4984 | Three seasons of remarkable quarterback consistency and positional excellence |
+| RB | Jahmyr Gibbs | 9221 | Sustained ascent culminating in an extraordinary 2025 peak |
+| WR | Puka Nacua | 9493 | A meaningful three-season contribution and exceptional 2025 production |
+| TE | Trey McBride | 8130 | Two-year positional emergence culminating in historically high 2025 TE production |
+
+The **four names were explicitly selected** for the inaugural 2026 class. There is no mathematical top-N election, requirement for a franchise-season induction, and no automatic yearly classes. Other NFL players and historic franchise seasons may be considered in future classes without diminishing the founding four.
 
 ## Philosophy
 
-The Hall of Fame is the most selective historical honor in the Fromm is Garbage dynasty league. **Induction is not an all-time points leaderboard, franchise power ranking, or an award the site automatically hands out every season.**
+Hall cases should be built around the **quality of individual seasons**, not cumulative career totals or averages diluted by late-career decline. Four factors guide consideration:
 
-The Hall enshrines individual NFL fantasy careers with genuinely exceptional FIG performances and specific *franchise seasons* that cleared an almost impossible standard. Managers themselves are **not** inducted. Every franchise has a separate **Legacy Points** ledger documenting its official achievements.
+1. **Peak excellence:** Historical quality of a player's strongest completed seasons.
+2. **Positional separation:** How extraordinary those seasons were against contemporaries at the same position.
+3. **Sustained significance:** Multiple truly exceptional seasons or a uniquely historic peak supported by additional evidence.
+4. **Historical meaning:** How those seasons shaped the story and expectations of FIG.
 
-When FIG reaches 20, 30, or more seasons, all first-class inductions remain unchanged. Future classes can be created only with an explicit, reviewed entry in `INDUCTION_CLASSES` in `hall-of-fame-v241.js`. There is **no annual quota**, and an induction candidate cannot pass merely by being the highest eligible player in a position.
+No minimum number of FIG lineup starts, fixed career PPG or career fantasy-points requirement determines admission. The manager's roster depth or weekly starting choices must not decide a player's greatness. In particular, an elite roster can bench equally elite players.
 
-## The 2026 inaugural Hall (2023–2025 completed seasons)
+## Evidence limitation
 
-### Player careers
+The currently integrated archived `data/player_game_log.json` contains the verified **official FIG lineup starts**, not every week that an owned player scored from the bench. The Hall's existing displayed PPG, season point totals and signature box scores are explicitly marked as **starter-only evidence**, and **are not induction gates**. Evaluating rostered bench performances fairly requires a separate validated reconstruction of historical roster snapshots and weekly NFL scoring. Do not present starter-only rankings as comprehensive evaluations of every rostered player.
 
-Each inductee must have at least 28 verified FIG starter appearances spanning two completed seasons. Additional position-specific standards ensure standout quality, positional dominance and sustained production:
+The founding class is a permanent editorial designation. New data may enhance exhibits, but it does not silently remove, add or recalculate class membership.
 
-| Position | Founding inductee | Strict evidence standard |
-| --- | --- | --- |
-| QB | Josh Allen | 40+ starts, 30+ points per start, and at least two QB season scoring titles |
-| RB | Christian McCaffrey | 30+ starts, 24+ points per start, and at least two RB season scoring titles |
-| WR | Ja'Marr Chase | 35+ starts, 950+ starter points, eight 30-point games, and a WR season scoring title |
-| TE | Trey McBride | 30+ starts, 16.5+ points per start, a 280+ point season, and the single-season TE mark for the founding period |
+## Site structure
 
-This is four **curated** players: the qualification gates are necessary but **not** an automatic election algorithm. The first three seasons were analyzed as FIG-started fantasy performances, not external NFL achievements. Each inducted player has a plaque with career summary, qualification evidence, and real starter-game links.
+The Hall intentionally contains **one institution**, not a separate Legacy Points competition, historic-feats leaderboard or manager induction ranking. The core Hall page contains the ceremonial entry, the four founding plaques and a concise induction philosophy. Each player has an expanded exhibit containing:
 
-### Franchise season
+- Bronze-relief styled portrait framing (an aesthetic treatment of player photographs, not a fabricated 3D likeness)
+- A distinct induction case and position
+- Individual completed seasons side by side
+- Historical FIG-start stats explicitly labeled as such
+- Signature verified lineup performances with links to original game pages
+- Links to the existing league's detailed player history
 
-**Hayden — 2025** is the sole inaugural season enshrinement. It cleared all of the following:
+The 2026 founding class covers completed seasons 2023–2025. Incomplete 2026 results do not change the founding class, and younger players have no future-performance bonus.
 
-- Won the FIG championship.
-- Scored at least 3,000 regular-season points (**3,000.13**).
-- Averaged at least 210 regular-season points per game (**214.30**).
-- Won at least 85% of all-play decisions (**88.10%**).
-- Recorded at least six league-high scoring weeks (**7**).
+Implementation: `hall-of-fame-v242.js`, `hall-of-fame-v242.css`, existing `hall-of-fame-v240.css` and `v241.css` museum foundations, `index.html`, and the service-worker app shell. The public route remains `#/hall-of-fame`, individual inductee routes remain `#/hall-of-fame/inductee/player/:id`, and legacy Hall routes gracefully return to the main Hall.
 
-A great scoring season **without** the combined standards is not automatically enshrined. The numbers are audited from completed team-season and championship-game records.
+Testing: `node tests/test_hall_of_fame.js` and browser smoke testing in `tests/test_hall_of_fame_browser.js` at desktop, standard mobile and narrow mobile widths.
 
-## Historic Feats / Greatest Accomplishments
-
-The prior Iconic Moments and broad Greatest Seasons leaderboard have been replaced by an intentionally restricted gallery. Founding exhibits currently include:
-
-- **Boek 2025:** 90.48% all-play win rate.
-- **Hayden 2025:** 3,000.13 regular-season points and the FIG title.
-- **Boek and Hayden 2025:** both secured seven weekly high scores.
-- **Hayden:** 16 consecutive FIG games with at least 175 points, ending in 2025.
-
-These are historical records or achievements, **not** Hall inductions. Every card links to a season or streak archive. Further feats must be similarly extraordinary, verifiable and intentionally curated. The site does not describe any record as literally unbreakable.
-
-## Franchise Legacy Points — living ledger
-
-The legacy ledger grows automatically as *completed* league seasons are published. Franchises are not Hall inductees, and **zero legacy points does not mean a franchise is ineligible for future records**. Every point is traceable to a published historical achievement.
-
-| Event | Legacy points |
-| --- | ---: |
-| Championship | +200 |
-| Championship runner-up | +80 |
-| Regular-season first-place finish | +45 |
-| Season scoring leader | +45 |
-| Season all-play leader | +45 |
-| 90%+ regular-season all-play | +80 |
-| 3,000+ regular-season points | +80 |
-| Seven or more weekly high scores in a season | +55 |
-| 16 consecutive 175+ point career games | +60 (once) |
-| Four consecutive 200+ point career games | +45 (once) |
-
-Different milestones may stack when earned independently. The system deliberately does not award points merely for volume of career games or beating easier opponents. It makes no claim that legacy points measure managerial skill, nor can points earn automatic induction.
-
-## Scaling beyond the inaugural class
-
-- `INDUCTION_CLASSES` holds explicitly approved classes by induction year. The 2026 class references the completed 2023–2025 years forever.
-- `completedYears(data)` reads finalized league seasons dynamically, so franchise Legacy Points update when subsequent seasons finish.
-- A future class can introduce published era-adjusted scoring/eligibility gates when league settings or average scoring change. Applying 2026's raw scoring thresholds uncritically to 2040 would not be fair.
-- New honors must have proof from the official archive; missing data is never filled by model projections.
-- Retired, non-included, or uninducted players can still appear in ordinary league statistics and the record book; those pages remain unchanged.
-- Historic links into the existing FIG team, player, game, season, and streak records remain enabled.
-
-## Technical implementation
-
-`hall-of-fame-v241.js` implements the standalone model, induction registry and view renderers. `hall-of-fame-v240.css` retains the visual museum foundation; `hall-of-fame-v241.css` adds the new induction, legacy, and achievement panels. The single-page app loads v241 from `index.html`, under **More → Hall of Fame**, and a newly versioned service worker caches the updated shell.
-
-Routes: `#/hall-of-fame`, `#/hall-of-fame/hall`, `#/hall-of-fame/inductee/player/4984`, `#/hall-of-fame/inductee/season/6/2025`, `#/hall-of-fame/records`, `#/hall-of-fame/legacy`, `#/hall-of-fame/legacy/1`, and `#/hall-of-fame/charter`. Old Hall links resolve to their closest new destinations.
-
-Published sources: `league_history`, `games`, `team_season_master`, `player_game_log`, `website_streaks`. No new cloud costs, AI providers, databases or sensitive credentials required.
-
-Tests: `node tests/test_hall_of_fame.js`, and `node tests/test_hall_of_fame_browser.js` with Playwright and a local static HTTP server. GitHub Actions executes the historical audit and desktop/phone browser tests.
-
-**FIG's Hall of Fame is an independent fantasy league project. It is not affiliated with the NFL or the Pro Football Hall of Fame.**
+The FIG Hall is an independent fantasy football project, not affiliated with the NFL or the Pro Football Hall of Fame.
