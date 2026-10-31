@@ -275,11 +275,11 @@ async function render(encoded){
  const app=document.getElementById('app');if(!app)return;
  let q='';try{q=decodeURIComponent(encoded||'');}catch(e){q='';}
  app.innerHTML='<section class="fig-ask-page"><div class="fig-ask-kicker">LEAGUE STAT SEARCH</div><h1>BoekMuse</h1>'+
- '<p>Ask a question about league history.</p>'+form(q,'fig-ask-input')+
+ '<p>Ask about league history, rosters, trades, drafts, dynasty values and projections.</p>'+form(q,'fig-ask-input')+
  '<div class="fig-ask-output" aria-live="polite"></div></section>';
  bind(app);
  if(!q){app.querySelector('input')?.focus();return;}
- const out=app.querySelector('.fig-ask-output');out.innerHTML='<p class="fig-ask-note">Searching finalized league data…</p>';
+ const out=app.querySelector('.fig-ask-output');out.innerHTML='<p class="fig-ask-note">Searching published league data…</p>';
  try{const result=await ask(q);if(out.isConnected)out.innerHTML=renderResult(result);}
  catch(e){console.error('FIG stats search error',e);if(out.isConnected)out.innerHTML=renderResult({ok:false,message:'League data could not be loaded.'});}
 }
