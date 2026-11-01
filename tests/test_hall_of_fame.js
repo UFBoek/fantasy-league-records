@@ -159,7 +159,7 @@ assert.doesNotMatch(js,/function vault\(/);
 assert.doesNotMatch(js,/function recordsPage\(/);
 assert.doesNotMatch(js,/function legacyPage\(/);
 assert.doesNotMatch(js,/starts>=28|p\.avg>=30|p\.avg>=24|p\.points>=950/);
-assert.ok(js.includes('function eligibilityPage()'),'Nomination standards have a dedicated Hall route');
+assert.ok(js.includes('function eligibilityPage(d)'),'Nomination standards have a dedicated Hall route');
 assert.ok(js.includes("view==='eligibility'?eligibilityPage()"),'Hall route renders eligibility separately from the lobby');
 assert.ok(js.includes('#/hall-of-fame/eligibility'),'Hall lobby links to nomination requirements');
 assert.ok(js.includes('Positional Supremacy'));
