@@ -75,8 +75,9 @@ function calculate(d){
    watched:WATCH.has(p.id),founder:FOUNDERS.has(p.id),eligible:total>=THRESHOLD};
  }).sort((a,b)=>b.total-a.total||b.season-a.season||a.name.localeCompare(b.name));
  all.forEach((p,i)=>p.rank=i+1);
+ const allScored=all.filter(p=>p.total>0); // Display only earned career Legacy Points; retain full archive for calculations.
  const season=all.reduce((n,p)=>n+p.season,0),games=all.reduce((n,p)=>n+p.games,0);
- return {all,watch:all.filter(p=>p.watched),season,games,ratio:season/(season+games||1),
+ return {all,allScored,watch:all.filter(p=>p.watched),season,games,ratio:season/(season+games||1),
   eligible:all.filter(p=>p.eligible),lastYear:Math.max(...complete)};
 }
 function pointsTable(rows,cls){
@@ -142,7 +143,7 @@ function html(m){
  m.eligible.length+' currently points-eligible.</p></header>'+
  '<div class="hoflp-controls"><div class="hoflp-tabs">'+
  '<button type="button" data-hoflp-scope="watch" aria-pressed="true" class="is-active">WATCHLIST ('+m.watch.length+')</button>'+
- '<button type="button" data-hoflp-scope="all" aria-pressed="false">ALL PLAYERS ('+m.all.length+')</button></div>'+
+ '<button type="button" data-hoflp-scope="all" aria-pressed="false">ALL PLAYERS ('+m.allScored.length+')</button></div>'+
  '<input type="search" data-hoflp-search aria-label="Search player" placeholder="Search players...">'+
  '<select data-hoflp-pos aria-label="Filter position"><option value="ALL">ALL POSITIONS</option>'+
  POSITIONS.map(p=>'<option>'+p+'</option>').join('')+'</select></div>'+
@@ -151,7 +152,7 @@ function html(m){
  '<th>TOTAL</th><th>TO '+THRESHOLD+'</th><th>2026 PENDING</th></tr></thead><tbody data-hoflp-rows>'+
  m.watch.map(playerRow).join('')+'</tbody></table></div>'+
  '<p class="hoflp-count" data-hoflp-count>SHOWING '+m.watch.length+' WATCHLIST PLAYERS</p>'+
- '<p class="hoflp-note">The watchlist preserves commissioner selections and exclusions. ALL PLAYERS includes everyone, even players removed from the watch. Incomplete 2026 PPG award previews are conditional on maintaining the average and reaching eight starts at season completion. Current game bonuses are earned immediately as verified results publish.</p></section>'+
+ '<p class="hoflp-note">The watchlist preserves commissioner selections and exclusions. ALL PLAYERS shows everyone who has earned more than zero career Legacy Points, including players excluded from the watch. Incomplete 2026 PPG award previews are conditional on maintaining the average and reaching eight starts at season completion. Current game bonuses are earned immediately as verified results publish.</p></section>'+
  '<p class="hoflp-note">SOURCE: FIG STARTED-PLAYER GAME LOG AND ALL-TIME COMBINED SEASON RECORDS. '+
  'COMPLETED-SEASON AWARDS THROUGH '+m.lastYear+'. PPG IS NEVER ROUNDED BEFORE EVALUATION.</p></section>';
 }
@@ -161,7 +162,7 @@ function activate(app,m){
   tbody=wrap.querySelector('[data-hoflp-rows]'),label=wrap.querySelector('[data-hoflp-count]');
  let mode='watch';
  function draw(){
-  const source=mode==='watch'?m.watch:m.all,term=input.value.trim().toLowerCase(),pos=position.value;
+  const source=mode==='watch'?m.watch:m.allScored,term=input.value.trim().toLowerCase(),pos=position.value;
   const found=source.filter(p=>(pos==='ALL'||p.position===pos)&&p.name.toLowerCase().includes(term));
   tbody.innerHTML=found.length?found.map(playerRow).join(''):'<tr><td colspan="7">NO MATCHING PLAYERS</td></tr>';
   label.textContent='SHOWING '+found.length+' OF '+source.length+' '+(mode==='watch'?'WATCHLIST PLAYERS':'PLAYERS');
