@@ -135,7 +135,7 @@ assert.ok(js.includes('average points per FIG start (PPG)'));
 assert.ok(js.includes('not their total points'));
 assert.ok(!js.includes('at least 10 verified FIG starts'));
 assert.match(css,/fig-hof-248-ranking-rule/);
-assert.match(css,/fig-hof-248-eligibility \\.fig-hof-248-table-wrap tbody tr:nth-child\\(even\\)/);
+assert.ok(css.includes('fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:nth-child(even)'),'Even positional rows must override global zebra backgrounds');
 assert.ok(js.includes("['QB','27+','TOP 8']"));
 assert.ok(js.includes("['TE','15+','TOP 3']"));
 assert.match(css,/fig-hof-248-routes/);
