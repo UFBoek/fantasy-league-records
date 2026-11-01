@@ -17,15 +17,15 @@ The **two players explicitly selected** for the inaugural class are Josh Allen a
 
 The Hall landing page only links to this section; it does not show the five requirements. The criteria live at `#/hall-of-fame/eligibility`, with a return link to the Hall.
 
-For future classes, a player qualifies to be **considered for nomination** by satisfying **at least 4 out of the 5** benchmarks below, or by independently attaining **two #1 positional PPG seasons** under the Positional Supremacy exception:
+For future classes, there is **one nomination standard**: satisfy **at least 4 out of 5** benchmarks, with requirement **#2, two positional PPG championships, sufficient by itself**. The two-title provision is part of the same standard, not a separate nomination pathway:
 
 1. **Elite Production:** Two top-3 positional PPG finishes, or top-2 for TEs.
-2. **Positional Supremacy:** Two seasons finishing #1 in positional PPG. This is also a standalone exception to the 4-of-5 requirement.
+2. **Positional Supremacy:** Two seasons finishing #1 in positional PPG. Meeting #2 independently fulfills the standard for nomination consideration.
 3. **Sustained Dominance:** Three top-5 positional PPG finishes, or top-3 for TEs.
 4. **Sustained Excellence:** Four seasons with at least nine FIG starts each, averaging 27+ QB PPG, 18+ RB or WR PPG, or 15+ TE PPG.
 5. **Career Consistency:** Five seasons with at least nine FIG starts each, finishing top-8 QB, top-10 RB or WR, or top-3 TE in positional PPG each season.
 
-Rankings and averages use **All-Time Combined** PPG, including official regular-season and playoff FIG lineup starts. Requirements 1 through 3 count only completed seasons with **at least 10** such starts. Requirements 4 and 5 count completed seasons with at least **nine**. Rankings are per position. Each requirement counts distinct qualifying seasons, not duplicate entries for the same season.
+**All five requirements use a minimum of 9 official FIG starts per completed season.** To determine a positional finish (such as QB top 3, TE top 2, or RB top 10), first exclude everyone at that position with fewer than nine official FIG starts in that same season. Then rank the remaining players by their **All-Time Combined average points per FIG start (PPG)**, including regular-season and playoff starts, **not by total fantasy points scored**. A player averaging 25.0 PPG over nine starts ranks ahead of a player averaging 24.0 PPG over fifteen starts; a player with eight starts has no qualifying ranking. Ties in average share the same position rank. All multi-season requirements count distinct completed seasons, not duplicate entries for a single season.
 
 Eligibility never guarantees induction, adds players to a class automatically or removes enshrined players. Josh Allen and Puka Nacua are founding-class exceptions; the commissioner makes later induction decisions. These rules are separate from the retired Induction Philosophy section.
 
