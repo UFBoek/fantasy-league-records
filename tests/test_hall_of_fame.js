@@ -29,11 +29,12 @@ assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the 
 // The live eligibility watch ranks eligible starter-season averages, not total points.
 const watch=api.hallEligibilityWatch(data);
 assert.deepEqual(watch.years,[2023,2024,2025]);
-assert.equal(watch.contenders.length,25,'Keep the watchlist intact except two removals and one new player');
+assert.equal(watch.contenders.length,26,'Keep prior 25 candidates and restore James Cook');
 const addedWatchPlayers={
  '9488':'Jaxon Smith-Njigba','9226':"De'Von Achane",'11632':'Malik Nabers',
  '11564':'Drake Maye','11566':'Jayden Daniels','11560':'Caleb Williams',
- '3163':'Jared Goff','6794':'Justin Jefferson','6813':'Jonathan Taylor'
+ '3163':'Jared Goff','6794':'Justin Jefferson','6813':'Jonathan Taylor',
+ '8138':'James Cook III'
 };
 for(const [id,name] of Object.entries(addedWatchPlayers)){
  const p=watch.contenders.find(player=>player.id===id);
@@ -43,13 +44,17 @@ for(const [id,name] of Object.entries(addedWatchPlayers)){
 }
 const excludedWatchPlayers={
  '3321':'Tyreek Hill','8112':'Drake London','9997':'Zay Flowers','8144':'Chris Olave',
- '8138':'James Cook III','5859':'A.J. Brown'
+ '5859':'A.J. Brown'
 };
 for(const [id,name] of Object.entries(excludedWatchPlayers))
  assert.ok(!watch.contenders.some(p=>p.id===id||p.name===name),
   'Removed player must not return in the Hall watch: '+name);
 assert.deepEqual(watch.contenders.find(p=>p.id==='9488').counts,[1,0,1,1,1],
  'JSN 2025 qualifies as an elite top-two WR season, but not a full benchmark');
+assert.deepEqual(watch.contenders.find(p=>p.id==='8138').counts,[0,0,1,2,2],
+ 'James Cook has qualifying 2024 and 2025 PPG and two top-twelve RB finishes');
+assert.equal(watch.contenders.find(p=>p.id==='8138').targets[4],5,
+ 'James Cook career consistency progress is measured against five complete seasons');
 assert.deepEqual(watch.contenders.find(p=>p.id==='3163').counts,[0,0,2,2,2],
  'Jared Goff progress uses completed FIG seasons and current thresholds');
 assert.deepEqual(watch.contenders.find(p=>p.id==='6794').counts,[1,0,1,1,1],
@@ -63,7 +68,7 @@ const cmcWatch=watch.contenders.find(p=>p.name==='Christian McCaffrey');
 const mcbride=watch.contenders.find(p=>p.name==='Trey McBride');
 assert.deepEqual(cmcWatch.counts,[2,2,2,2,2]);
 assert.deepEqual(mcbride.counts,[2,2,2,2,2]);
-assert.deepEqual(cmcWatch.targets,[2,1,3,4,4]);
+assert.deepEqual(cmcWatch.targets,[2,1,3,4,5]);
 assert.equal(cmcWatch.met,2,'Two positional #1 seasons still count as only one benchmark');
 assert.equal(mcbride.met,2,'Two TE positional championships count as only one benchmark');
 assert.equal(watch.contenders[0].met,2,'Single WR title is sufficient for #2, but not for overall nomination');
@@ -171,20 +176,24 @@ assert.equal(getRank('TE',3).counts[2],1,'TE rank 3 remains dominant');
 assert.equal(getRank('TE',4).counts[2],0,'TE rank 4 does not meet dominance');
 assert.equal(getRank('TE',3).counts[4],1,'TE rank 3 remains consistent');
 assert.equal(getRank('TE',4).counts[4],0,'TE rank 4 does not meet consistency');
-// The fourth completed top-ten season finishes benchmark five, including 2026 once complete.
-const futureLeague=[...data.league,{season:'2026',status:'complete'}];
-const fourYears=['2023','2024','2025','2026'].map(season=>({
- player_id:'four-year-qb',full_name:'Four-Year Quarterback',position:'QB',season,
+// Career consistency needs five complete qualifying seasons, not four.
+const futureLeague=[...data.league,{season:'2026',status:'complete'},{season:'2027',status:'complete'}];
+const fiveYears=['2023','2024','2025','2026','2027'].map(season=>({
+ player_id:'five-year-qb',full_name:'Five-Year Quarterback',position:'QB',season,
  starts:10,average_points:26,total_points:260,
  scoring_view:'All-Time Combined',season_complete:true
 }));
-const fourWatch=api.hallEligibilityWatch({league:futureLeague,playerSeasons:fourYears});
-const fourPlayer=fourWatch.all.find(p=>p.id==='four-year-qb');
-assert.equal(fourPlayer.counts[4],4,'Fourth qualified season must complete career consistency');
-assert.equal(fourPlayer.targets[4],4,'Career consistency target is four completed seasons');
-assert.equal(fourPlayer.met,5,'Four top-ten seasons can satisfy all five benchmarks');
-const threeWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:fourYears});
-assert.equal(threeWatch.all.find(p=>p.id==='four-year-qb').counts[4],3,
+const fiveWatch=api.hallEligibilityWatch({league:futureLeague,playerSeasons:fiveYears});
+const fivePlayer=fiveWatch.all.find(p=>p.id==='five-year-qb');
+assert.equal(fivePlayer.counts[4],5,'Fifth qualified season must complete career consistency');
+assert.equal(fivePlayer.targets[4],5,'Career consistency target is five completed seasons');
+assert.equal(fivePlayer.met,5,'Five top-ten seasons can satisfy all five benchmarks');
+const fourWatch=api.hallEligibilityWatch({league:futureLeague,playerSeasons:fiveYears.slice(0,4)});
+const fourPlayer=fourWatch.all.find(p=>p.id==='five-year-qb');
+assert.equal(fourPlayer.counts[4],4,'Four seasons show four-of-five progress');
+assert.equal(fourPlayer.met,4,'Four qualifying seasons do not satisfy benchmark five');
+const threeWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:fiveYears});
+assert.equal(threeWatch.all.find(p=>p.id==='five-year-qb').counts[4],3,
  'Incomplete league seasons cannot count toward benchmark five');
 // Hall season averages must match the published All-Time Combined player archive
 // exactly, including postseason starts and the original rounding convention.
@@ -293,7 +302,9 @@ assert.ok(js.includes('Every requirement, including #2, counts as one.'));
 assert.ok(js.includes('No individual requirement qualifies a player by itself.'));
 assert.ok(js.includes('Counts as one of the five required benchmarks.'));
 assert.ok(js.includes('One completed season finishing #1 in positional PPG.'));
-assert.ok(js.includes('const targets=[2,1,3,4,4]'));
+assert.ok(js.includes('const targets=[2,1,3,4,5]'));
+assert.ok(js.includes("['05','Career Consistency','Five completed seasons"));
+assert.ok(!js.includes("['05','Career Consistency','Four completed seasons"));
 assert.doesNotMatch(js,/independently qualifies a player|qualifies a player on its own/);
 assert.ok(js.includes('at least 9 official FIG starts'));
 assert.ok(js.includes('average points per FIG start (PPG)'));
