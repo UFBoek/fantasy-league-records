@@ -106,6 +106,36 @@ const {chromium}=require('playwright');
    for(const category of ['200+ Point Games','225+ Point Games','250+ Point Games'])
     assert.ok(texts.some(s=>s.includes(category)));
    assert.equal(await page.locator('.fig-hof-244-streak-list').count(),0);
+   await go(page,'','.fig-hof-242-hero h1');
+   assert.equal(await page.locator('a[href="#/hall-of-fame/eligibility"]').count(),1,
+    'Nomination standards linked from Hall without appearing as a main exhibit');
+   assert.equal(await page.locator('.fig-hof-248-eligibility').count(),0,
+    'The Hall landing page does not display the full requirements');
+   await page.locator('a[href="#/hall-of-fame/eligibility"]').click();
+   await page.locator('.fig-hof-248-eligibility h1').waitFor({timeout:30000});
+   assert.match(await page.locator('.fig-hof-248-eligibility h1').innerText(),/Eligibility & Nomination/);
+   const requirements=page.locator('.fig-hof-248-rules li');
+   assert.equal(await requirements.count(),5,'Exactly five nomination requirements');
+   assert.deepEqual(await requirements.locator('h3').allInnerTexts(),[
+    'Elite Production','Positional Supremacy','Sustained Dominance','Sustained Excellence','Career Consistency']);
+   const pathText=await page.locator('.fig-hof-248-routes').innerText();
+   assert.match(pathText,/4\\s+OF\\s+5/);
+   assert.match(pathText,/2\\s+TITLES/);
+   const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
+   assert.ok(criteria.includes('at least 10 verified FIG starts'));
+   assert.ok(criteria.includes('at least nine FIG starts'));
+   assert.ok(criteria.includes('Josh Allen and Puka Nacua are exempt'));
+   assert.ok(criteria.includes('commissioner makes the final induction decision'));
+   const tableValues=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
+    rows.map(row=>Array.from(row.querySelectorAll('th,td'),cell=>cell.textContent.trim())));
+   assert.deepEqual(tableValues,[['QB','27+','TOP 8'],['RB','18+','TOP 10'],
+    ['WR','18+','TOP 10'],['TE','15+','TOP 3']]);
+   const eligibilityDims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
+   assert.ok(eligibilityDims.scrollWidth<=eligibilityDims.clientWidth+3,
+    'Eligibility layout should not overflow '+label+': '+JSON.stringify(eligibilityDims));
+   await page.screenshot({path:'hof-eligibility-'+label+'.png',fullPage:true});
+   await page.locator('.fig-hof-248-back a').click();
+   await page.locator('.fig-hof-242-grid .fig-hof-242-card').first().waitFor();
    await go(page,'/charter','.fig-hof-242-grid .fig-hof-242-card');
    assert.equal(await page.locator('.fig-hof-242-charter').count(),0,
     'Retired induction philosophy route now shows the Hall');
