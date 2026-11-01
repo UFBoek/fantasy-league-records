@@ -120,9 +120,16 @@ const {chromium}=require('playwright');
     'Elite Production','Positional Supremacy','Sustained Dominance','Sustained Excellence','Career Consistency']);
    const pathText=await page.locator('.fig-hof-248-routes').innerText();
    assert.match(pathText,/4\s+OF\s+5/);
-   assert.match(pathText,/2\s+TITLES/);
+   assert.equal(await page.locator('.fig-hof-248-route').count(),1,
+    'There must be exactly one Hall nomination standard');
+   assert.doesNotMatch(pathText,/SUPREMACY EXCEPTION|STANDARD PATH|2 TITLES/);
+   assert.match(pathText,/Requirement #2 also qualifies a player on its own/);
    const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
-   assert.ok(criteria.includes('at least 10 verified FIG starts'));
+   assert.ok(criteria.includes('at least 9 official FIG starts'));
+   assert.ok(criteria.includes('average points per FIG start (PPG)'));
+   assert.ok(criteria.includes('not their total points'));
+   assert.ok(criteria.includes('A player with 8 starts is excluded'));
+   assert.ok(!criteria.includes('at least 10 verified FIG starts'));
    assert.ok(criteria.includes('at least nine FIG starts'));
    assert.ok(criteria.includes('Josh Allen and Puka Nacua are exempt'));
    assert.ok(criteria.includes('commissioner makes the final induction decision'));
@@ -130,6 +137,13 @@ const {chromium}=require('playwright');
     rows.map(row=>Array.from(row.querySelectorAll('th,td'),cell=>cell.textContent.trim())));
    assert.deepEqual(tableValues,[['QB','27+','TOP 8'],['RB','18+','TOP 10'],
     ['WR','18+','TOP 10'],['TE','15+','TOP 3']]);
+   const rowColors=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
+    rows.map(row=>({background:getComputedStyle(row.querySelector('td')).backgroundColor,
+      text:getComputedStyle(row.querySelector('td')).color})));
+   assert.ok(rowColors.every(row=>row.background==='rgb(25, 40, 51)'),
+    'Every positional table data cell must have dark background, including RB and TE: '+JSON.stringify(rowColors));
+   assert.ok(rowColors.every(row=>row.text==='rgb(246, 237, 220)'),
+    'Every positional table data cell must retain readable light text: '+JSON.stringify(rowColors));
    const eligibilityDims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
    assert.ok(eligibilityDims.scrollWidth<=eligibilityDims.clientWidth+3,
     'Eligibility layout should not overflow '+label+': '+JSON.stringify(eligibilityDims));
