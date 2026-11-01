@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Research-only 2017-2025 Legacy Points mockup. All NFL games, not FIG starts."""
+"""Research-only 2017-2025 smoothed Legacy Points mockup. All NFL games, not FIG starts."""
 from __future__ import annotations
 import csv
 import json
@@ -13,6 +13,7 @@ DIR=ROOT/"research"
 SOURCE=json.loads((DIR/"fig_historical_ppg_2010_2025.json").read_text())
 JS=(ROOT/"hall-of-fame-legacy-v245.js").read_text()
 SEASONS=json.loads(re.search(r"const SEASONS=(\[[\s\S]*?\]);",JS).group(1))
+FLOORS=json.loads(re.search(r"const FLOORS=(\[[\s\S]*?\]);",JS).group(1))
 GAMES=json.loads(re.search(r"const GAMES=(\[[\s\S]*?\]);",JS).group(1))
 THRESHOLD=int(re.search(r"const THRESHOLD=([0-9]+)",JS).group(1))
 POS={"QB":1,"RB":2,"WR":3,"TE":4}
@@ -21,10 +22,21 @@ YEARS=range(2017,2026)
 WATCH=set(re.findall(r"'([0-9]+)'", JS.split("const WATCH=new Set([",1)[1].split("]);",1)[0]))
 
 def season_score(pos,ppg):
-    pts=0
+    idx=POS[pos]
+    previous_ppg=FLOORS[idx-1]
+    if ppg<=previous_ppg:
+        return 0
+    previous_points=0
     for tier in SEASONS:
-        if ppg+1e-9>=tier[POS[pos]]:pts=tier[0]
-    return pts
+        target_ppg=tier[idx]
+        target_points=tier[0]
+        if ppg<target_ppg:
+            value=previous_points+(ppg-previous_ppg)/(target_ppg-previous_ppg)*(
+                target_points-previous_points)
+            return round(value+1e-9,1)
+        previous_ppg=target_ppg
+        previous_points=target_points
+    return previous_points
 
 def game_score(pos,score):
     pts=0
@@ -99,10 +111,10 @@ def main():
             writer=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(group)
-    out={"version":2,"official":False,"years":[2017,2025],
+    out={"version":3,"official":False,"years":[2017,2025],
         "active_cohort":"Had a verified NFL scoring appearance during 2026 through published week cutoff",
         "active_through_week":played_file["through_week"],"eligibility_threshold":THRESHOLD,
-        "method":"Current FIG Legacy seasonal tiers for >=8 scored NFL appearances in each year. Hypothetical game bonus for every NFL appearance, independent of whether a FIG manager would have started the player.",
+        "method":"Smoothed FIG Legacy seasonal PPG curve, starting at positional floors and using linear interpolation between published milestones, for >=8 scored NFL appearances in each year. Hypothetical game bonus for every NFL appearance, independent of whether a FIG manager would have started the player.",
         "limitations":["Pre-2021 fantasy scores can omit certain 50+ yard TD bonuses",
           "2017-2020 include NFL weeks 1-17; 2021-2025 weeks 1-18",
           "Non-started NFL games earn hypothetical game points but would not earn official FIG game points",

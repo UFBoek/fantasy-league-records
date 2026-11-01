@@ -1,7 +1,8 @@
-/* FIG Legacy Points 2.0. Season/game 60:40 calibration; verified FIG starts. */
+/* FIG Legacy Points 2.1. Smoothed season PPG awards; verified FIG starts. */
 (function(){
 'use strict';
-const THRESHOLD=450,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
+const THRESHOLD=500,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
+const FLOORS=[22,13,13,10]; // QB, RB, WR, TE: no seasonal points at or below these PPG values.
 const SEASONS=[
 [30,25,16,15.5,13.5],[50,26.5,18.5,18.5,15],[70,28.5,19.5,19.5,16],
 [95,29.5,22.5,21.5,17],[120,32,26,25,18.5],[145,34.5,28,27.5,20.5],
@@ -23,8 +24,22 @@ const FOUNDERS=new Set(['4984','9493']);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=x=>Number(x).toLocaleString('en-US',{maximumFractionDigits:1});
 const ppgFmt=x=>Number(x).toFixed(2);
-function seasonPoints(pos,ppg){const i=POSITIONS.indexOf(pos);if(i<0||!Number.isFinite(ppg))return 0;
-let n=0;for(const t of SEASONS)if(ppg+1e-9>=t[i+1])n=t[0];return n;}
+function seasonPoints(pos,ppg){
+ const i=POSITIONS.indexOf(pos);
+ if(i<0||!Number.isFinite(ppg)||ppg<=FLOORS[i])return 0;
+ let previousPPG=FLOORS[i],previousPoints=0;
+ // Seasonal milestone rows are anchors of a continuous curve, not point cliffs.
+ for(const tier of SEASONS){
+  const targetPPG=tier[i+1],targetPoints=tier[0];
+  if(ppg<targetPPG){
+   const value=previousPoints+(ppg-previousPPG)/(targetPPG-previousPPG)*
+    (targetPoints-previousPoints);
+   return Math.round((value+1e-9)*10)/10;
+  }
+  previousPPG=targetPPG;previousPoints=targetPoints;
+ }
+ return previousPoints; // Highest milestone remains the seasonal cap.
+}
 function gamePoints(pos,score){const i=POSITIONS.indexOf(pos);if(i<0||!Number.isFinite(score))return {points:0,band:-1};
 for(let j=GAMES.length-1;j>=0;j--)if(score>=GAMES[j][0])return {points:GAMES[j][i+1],band:j};return {points:0,band:-1};}
 function calculate(d){
@@ -99,7 +114,7 @@ function playerRow(p){
  '<td>'+(p.eligible?'QUALIFIED':fmt(p.remaining)+' LEFT')+'</td><td>'+pending+'</td></tr>';
 }
 function html(m){
- const st=SEASONS.map(t=>['+'+t[0],...t.slice(1).map(String)]);
+ const st=[['0 (FLOOR)',...FLOORS.map(String)],...SEASONS.map(t=>[t[0],...t.slice(1).map(String)])];
  const gm=GAMES.map((t,i)=>[i===4?'60+':t[0]+'-'+(GAMES[i+1][0]-0.01).toFixed(2),
   ...t.slice(1).map(v=>v?'+'+fmt(v):'-')]);
  return '<section class="fig-hof-content fig-hof-248-eligibility hoflp-page">'+
@@ -112,9 +127,9 @@ function html(m){
  '<div class="hoflp-share"><div><strong>'+(m.ratio*100).toFixed(1)+'%</strong><span>SEASON POINTS</span></div>'+
  '<div><strong>'+((1-m.ratio)*100).toFixed(1)+'%</strong><span>GAME BONUSES</span></div>'+
  '<div class="hoflp-share-bar"><i style="width:'+(m.ratio*100).toFixed(2)+'%"></i></div>'+
- '<p>Actual historical weighting. The Legacy 2.0 scoring bands target a 60% season / 40% game split.</p></div></div>'+
+ '<p>Actual historical season/game share after smoothing. The previous tiered formula was calibrated near 60/40, but smoothing raises seasonal points without changing game bonuses.</p></div></div>'+
  '<section class="hoflp-rule"><div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">I / SEASONAL DOMINANCE</span>'+
- '<h2>Great seasons endure.</h2><p>One permanent award per completed season with at least eight official FIG starts. The highest tier reached is awarded using exact unrounded All-Time Combined PPG, including playoffs.</p></div>'+
+ '<h2>Great seasons endure.</h2><p>One smoothed season award per completed season with at least eight official FIG starts. The table gives PPG anchors for each position. Points rise continuously between anchors, starting at zero at each positional floor and capping at 205. The calculation uses exact unrounded All-Time Combined PPG, including playoffs.</p></div>'+
  pointsTable(st,'hoflp-season-table')+'</section>'+
  '<section class="hoflp-rule"><div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">II / INDIVIDUAL MILESTONES</span>'+
  '<h2>Defining performances.</h2><p>One bonus per started FIG game, with the highest scoring band only. The first scoring band begins at 20 points for every position.</p></div>'+
@@ -170,5 +185,5 @@ window.figHallOfFame=async function(ctx,view,arg,sub,year){
  old.outerHTML=html(m);activate(ctx.app,m);
  document.title='Legacy Points and Hall Eligibility - Fromm is Garbage';
 };
-window.figHallLegacy={calculate,seasonPoints,gamePoints,SEASONS,GAMES,THRESHOLD,MIN_STARTS,WATCH};
+window.figHallLegacy={calculate,seasonPoints,gamePoints,SEASONS,GAMES,FLOORS,THRESHOLD,MIN_STARTS,WATCH};
 })();
