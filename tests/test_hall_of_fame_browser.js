@@ -127,7 +127,9 @@ const {chromium}=require('playwright');
    assert.match(pathText,/No individual requirement qualifies a player by itself/);
    assert.doesNotMatch(pathText,/qualifies a player on its own|exception/i);
    assert.match(await requirements.nth(1).innerText(),/One completed season finishing #1 in positional PPG/);
-   assert.match(await requirements.nth(2).innerText(),/Three top-six positional PPG finishes/);
+   assert.match(await requirements.nth(2).innerText(),/Three top-eight positional PPG finishes/);
+   assert.match(await requirements.nth(0).innerText(),/Two top-four positional PPG finishes/);
+   assert.match(await requirements.nth(0).innerText(),/Tight ends must finish top two/);
    assert.match(await requirements.nth(2).innerText(),/Tight ends must finish top three/);
    assert.match(await requirements.nth(4).innerText(),/Four completed seasons/);
    assert.match(await requirements.nth(1).innerText(),/Counts as one of the five required benchmarks/);
@@ -145,8 +147,8 @@ const {chromium}=require('playwright');
    assert.ok(criteria.includes('commissioner makes the final induction decision'));
    const tableValues=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
     rows.map(row=>Array.from(row.querySelectorAll('th,td'),cell=>cell.textContent.trim())));
-   assert.deepEqual(tableValues,[['QB','25+','TOP 10'],['RB','17+','TOP 10'],
-    ['WR','17+','TOP 10'],['TE','14+','TOP 3']]);
+   assert.deepEqual(tableValues,[['QB','25+','TOP 10'],['RB','17+','TOP 12'],
+    ['WR','17+','TOP 12'],['TE','14+','TOP 3']]);
    const rowColors=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
     rows.map(row=>({background:getComputedStyle(row.querySelector('td')).backgroundColor,
       text:getComputedStyle(row.querySelector('td')).color})));
@@ -174,7 +176,7 @@ const {chromium}=require('playwright');
     'Historical contenders remain available');
    const newPlayerCounts=[
     ['Jaxon Smith-Njigba',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
-    ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 4 SEASONS']],
+    ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 4 SEASONS']],
     ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
     ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']]
    ];
