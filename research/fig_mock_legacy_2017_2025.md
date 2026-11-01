@@ -7,8 +7,8 @@ Mock game points assume every scored NFL appearance counted as a FIG start.
 No official Hall of Fame totals or eligibility have been changed.
 
 Players: 1529. With verified 2026 NFL appearance: 410.
-Eligible at 350: 43.
-2026-appeared eligible: 33.
+Eligible at 450: 30.
+2026-appeared eligible: 26.
 
 ## Top 100 overall
 
