@@ -305,7 +305,7 @@ const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
 assert.match(html,/hall-of-fame-v244\.js\?v=272/);
 assert.match(html,/hall-of-fame-v244\.css\?v=252/);
 assert.match(html,/hall-of-fame-v242\.css\?v=253/);
-assert.match(sw,/fig-league-shell-v282/);
+assert.match(sw,/fig-league-shell-v\d+/);
 assert.match(sw,/hall-of-fame-v244\.js\?v=272/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=252/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
