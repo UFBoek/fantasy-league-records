@@ -20,7 +20,7 @@ The Hall landing page only links to this section; it does not show the five requ
 For future classes, there is **one nomination standard**: satisfy **at least 4 of the 5** benchmarks below. **No single benchmark independently qualifies a player.** Requirement #2 is counted exactly like the other four, as one qualifying benchmark:
 
 1. **Elite Production:** Two top-3 positional PPG finishes, or top-2 for TEs.
-2. **Positional Supremacy:** Two seasons finishing #1 in positional PPG. This counts as one of the five benchmarks, not an automatic qualification.
+2. **Positional Supremacy:** One completed season finishing #1 in positional PPG. This counts as one of the five benchmarks, not an automatic qualification.
 3. **Sustained Dominance:** Three top-5 positional PPG finishes, or top-3 for TEs.
 4. **Sustained Excellence:** Four seasons with at least nine FIG starts each, averaging 25+ QB PPG, 18+ RB or WR PPG, or 15+ TE PPG.
 5. **Career Consistency:** Five seasons with at least nine FIG starts each, finishing top-8 QB, top-10 RB or WR, or top-3 TE in positional PPG each season.
