@@ -19,11 +19,11 @@ The Hall landing page only links to this section; it does not show the five requ
 
 For future classes, there is **one nomination standard**: satisfy **at least 3 of the 5** benchmarks below. **No single benchmark independently qualifies a player.** Requirement #2 is counted exactly like the other four, as one qualifying benchmark:
 
-1. **Elite Production:** Two top-3 positional PPG finishes, or top-2 for TEs.
+1. **Elite Production:** Two top-4 positional PPG finishes for QB, RB and WR, or top-2 for TEs.
 2. **Positional Supremacy:** One completed season finishing #1 in positional PPG. This counts as one of the five benchmarks, not an automatic qualification.
-3. **Sustained Dominance:** Three top-6 positional PPG finishes for QB, RB and WR, or top-3 for TEs.
+3. **Sustained Dominance:** Three top-8 positional PPG finishes for QB, RB and WR, or top-3 for TEs.
 4. **Sustained Excellence:** Four seasons with at least nine FIG starts each, averaging 25+ QB PPG, 17+ RB or WR PPG, or 14+ TE PPG.
-5. **Career Consistency:** Four completed seasons with at least nine FIG starts each, finishing top-10 QB, RB, or WR, or top-3 TE in positional PPG each season.
+5. **Career Consistency:** Four completed seasons with at least nine FIG starts each, finishing top-10 QB, top-12 RB or WR, or top-3 TE in positional PPG each season.
 
 **All five requirements use a minimum of 9 official FIG starts per completed season.** To determine a positional finish (such as QB top 3, TE top 2, or RB top 10), first exclude everyone at that position with fewer than nine official FIG starts in that same season. Then rank the remaining players by their **All-Time Combined average points per FIG start (PPG)**, including regular-season and playoff starts, **not by total fantasy points scored**. A player averaging 25.0 PPG over nine starts ranks ahead of a player averaging 24.0 PPG over fifteen starts; a player with eight starts has no qualifying ranking. Ties in average share the same position rank. All multi-season requirements count distinct completed seasons, not duplicate entries for a single season.
 
