@@ -322,8 +322,8 @@ function hallEligibilityWatch(d){
  // Keep the established historical shortlist, with commissioner-selected emerging
  // players included even before they rise into the automatic historical top 18.
  // Player IDs keep identities stable when Sleeper names (e.g., James Cook III) vary.
- const watchAdditions=new Set(['8138','9226','11632','11564','11566','11560','3163','6794','6813']);
- const watchExclusions=new Set(['3321','8112','9997','8144']); // Tyreek Hill, Drake London, Zay Flowers, Chris Olave are not on the watchlist.
+ const watchAdditions=new Set(['9488','9226','11632','11564','11566','11560','3163','6794','6813']);
+ const watchExclusions=new Set(['3321','8112','9997','8144','8138','5859']); // Commissioner-excluded watch players remain excluded from automatic selections.
  const candidatePool=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)));
  const established=candidatePool.filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
   .slice(0,18).filter(p=>!watchExclusions.has(p.id));
