@@ -41,8 +41,8 @@ Mike Evans scores 489 mock points versus 311 previously, while Cooper Kupp score
 The season PPG thresholds remain position specific, retaining the previous ranked-position calibration. Game award values reflect different scoring distributions. The 60/40 balance is evaluated **across all positions together**; per-position and per-player splits are not forced to 60/40.
 
 ## Watchlist and leaderboard
-The Eligibility & Nomination page at `#/hall-of-fame/eligibility` displays the commissioner's curated 36-player watchlist and a searchable all-player leaderboard. Founder designation and curated exclusions remain independent of automatic points eligibility.
+The Eligibility & Nomination page at `#/hall-of-fame/eligibility` displays the commissioner's curated 35-player watchlist (14 QB, 10 RB, 9 WR, 2 TE) and a searchable all-player leaderboard. The current commissioner watchlist contains only the 35 requested candidates. Josh Allen and Puka Nacua remain permanently enshrined and searchable under All Players, but are not watchlist candidates. Watchlist membership is independent of points eligibility.
 
 The leaderboard shows earned season and game points, total and remaining to 450, the in-progress season preview, and year-by-year scoring. PPG award previews are not counted as earned until a season is completed and eight official starts are verified. All official awards are calculated from `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, and update when verified data are published.
 
-The founding class, enshrined seasons and commissioner selections are unaffected by the scoring recalibration. No former three-of-five rule applies.
+The founding class and enshrined seasons remain unchanged by watchlist selections. No former three-of-five rule applies.

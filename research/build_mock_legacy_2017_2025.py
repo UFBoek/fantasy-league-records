@@ -16,10 +16,8 @@ SEASONS=json.loads(re.search(r"const SEASONS=(\[[\s\S]*?\]);",JS).group(1))
 GAMES=json.loads(re.search(r"const GAMES=(\[[\s\S]*?\]);",JS).group(1))
 POS={"QB":1,"RB":2,"WR":3,"TE":4}
 YEARS=range(2017,2026)
-WATCH=set(("4984 9493 7564 4034 8130 9221 4881 6786 6904 9509 "+
-           "11604 3294 7547 4046 8150 3163 8183 9226 6801 9758 "+
-           "8137 9488 6813 6794 11564 11566 6770 8138 11560 11632 "+
-           "8151 7523 12527 12526 6804 9228").split())
+# Keep research watch flags aligned with the live commissioner list.
+WATCH=set(re.findall(r"'([0-9]+)'", JS.split("const WATCH=new Set([",1)[1].split("]);",1)[0]))
 
 def season_score(pos,ppg):
     pts=0

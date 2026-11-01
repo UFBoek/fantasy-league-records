@@ -7,7 +7,7 @@ new Function('window',fs.readFileSync(path.join(root,'hall-of-fame-legacy-v245.j
 const api=win.figHallLegacy;
 const m=api.calculate({league:read('league_history'),playerSeasons:read('player_seasons'),playerLog:read('player_game_log')});
 assert.equal(api.THRESHOLD,450);assert.equal(api.MIN_STARTS,8);
-assert.equal(m.all.length,386);assert.equal(m.watch.length,36);
+assert.equal(m.all.length,386);assert.equal(m.watch.length,35);
 assert.equal(m.season,7640);assert.equal(m.games,5085);
 assert.ok(m.ratio>.599&&m.ratio<.601,'Target aggregate 60/40 season/game');
 assert.deepEqual(m.eligible.map(p=>p.name),['Josh Allen']);
@@ -20,7 +20,8 @@ assert.ok(m.all.every(p=>p.eligible===(p.total>=450)));
 const totals=[['4984',456],['4034',366],['7564',372],['9493',335],
  ['8130',278],['6786',262],['9221',317],['9488',203],['11604',231]];
 for(const [id,total] of totals)assert.equal(m.all.find(p=>p.id===id)?.total,total,id);
-assert.deepEqual(m.watch.filter(p=>p.founder).map(p=>p.id),['4984','9493']);
+assert.deepEqual(m.watch.filter(p=>p.founder).map(p=>p.id),[]);
+assert.deepEqual(m.all.filter(p=>p.founder).map(p=>p.id),['4984','9493']);
 assert.equal(m.all.find(p=>p.id==='9221').current.pending,175);
 assert.equal(m.all.find(p=>p.id==='9488').current.pending,175);
 assert.equal(m.all.find(p=>p.id==='4984').current.pending,145);
@@ -31,10 +32,61 @@ assert.equal(api.seasonPoints('RB',31.79),175);
 assert.equal(api.seasonPoints('WR',31.44),175);
 assert.equal(api.seasonPoints('WR',23.999),95);
 assert.equal(api.seasonPoints('WR',24),95);
-for(const id of ['12527','12526','9228','8138','8183'])
- assert.ok(m.watch.some(p=>p.id===id),'Retain commissioner selection '+id);
-for(const n of ['Tyreek Hill','Derrick Henry','Travis Kelce'])
- assert.ok(!m.watch.some(p=>p.name===n)&&m.all.some(p=>p.name===n));
+const expectedWatchByPosition={
+ "QB": [
+  "4881",
+  "6904",
+  "6770",
+  "3294",
+  "4046",
+  "3163",
+  "8183",
+  "11566",
+  "11560",
+  "11564",
+  "9758",
+  "7523",
+  "4892",
+  "6804"
+ ],
+ "RB": [
+  "4034",
+  "9221",
+  "9509",
+  "8150",
+  "3198",
+  "4866",
+  "9226",
+  "6813",
+  "8138",
+  "12527"
+ ],
+ "WR": [
+  "7564",
+  "7547",
+  "6786",
+  "6794",
+  "5859",
+  "9488",
+  "6801",
+  "8144",
+  "9997"
+ ],
+ "TE": [
+  "8130",
+  "11604"
+ ]
+};
+const expectedWatchIds=Object.values(expectedWatchByPosition).flat();
+assert.equal(expectedWatchIds.length,35);
+assert.deepEqual([...api.WATCH].sort(),expectedWatchIds.slice().sort(),'Commissioner list exactly matches selected players');
+assert.deepEqual(m.watch.map(p=>p.id).sort(),expectedWatchIds.slice().sort(),'Every selected player in league game archive');
+for(const [pos,ids] of Object.entries(expectedWatchByPosition)){
+ assert.equal(m.watch.filter(p=>p.position===pos).length,ids.length,'Expected '+pos+' watchlist count');
+ for(const id of ids)assert.equal(m.watch.find(p=>p.id===id)?.position,pos,'Wrong position or missing '+id);
+}
+for(const n of ['Josh Allen','Puka Nacua','Tyreek Hill','Travis Kelce','Bryce Young','Tetairoa McMillan'])
+ assert.ok(!m.watch.some(p=>p.name===n)&&m.all.some(p=>p.name===n),'Excluded from watch only: '+n);
 for(const p of m.all)assert.equal(p.total,+(p.season+p.games).toFixed(1));
 
 const positions=['QB','RB','WR','TE'];
