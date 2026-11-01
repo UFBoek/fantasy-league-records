@@ -123,7 +123,10 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('.fig-hof-248-route').count(),1,
     'There must be exactly one Hall nomination standard');
    assert.doesNotMatch(pathText,/SUPREMACY EXCEPTION|STANDARD PATH|2 TITLES/);
-   assert.match(pathText,/Requirement #2 also qualifies a player on its own/);
+   assert.match(pathText,/Every requirement, including #2, counts as one/);
+   assert.match(pathText,/No individual requirement qualifies a player by itself/);
+   assert.doesNotMatch(pathText,/qualifies a player on its own|exception/i);
+   assert.match(await requirements.nth(1).innerText(),/Counts as one of the five required benchmarks/);
    const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
    assert.ok(criteria.includes('at least 9 official FIG starts'));
    assert.ok(criteria.includes('average points per FIG start (PPG)'));
