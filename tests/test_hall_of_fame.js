@@ -55,7 +55,7 @@ const cmcWatch=watch.contenders.find(p=>p.name==='Christian McCaffrey');
 const mcbride=watch.contenders.find(p=>p.name==='Trey McBride');
 assert.deepEqual(cmcWatch.counts,[2,2,2,2,2]);
 assert.deepEqual(mcbride.counts,[2,2,2,2,2]);
-assert.deepEqual(cmcWatch.targets,[2,1,3,4,5]);
+assert.deepEqual(cmcWatch.targets,[2,1,3,4,4]);
 assert.equal(cmcWatch.met,2,'Two positional #1 seasons still count as only one benchmark');
 assert.equal(mcbride.met,2,'Two TE positional championships count as only one benchmark');
 assert.equal(watch.contenders[0].met,2,'Single WR title is sufficient for #2, but not for overall nomination');
@@ -130,6 +130,43 @@ assert.equal(peakPlayer.met,3,'Three distinct milestones can be completed withou
 assert.equal(peakPlayer.eligible,true,'Three of five must now qualify for nomination');
 assert.ok(watch.contenders.every(p=>p.eligible===(p.met>=3)),
  'All watch eligibility flags must use three-of-five');
+// The third benchmark uses rank six for QB/RB/WR but still rank three for TE.
+const dominancePool=[
+ ...Array.from({length:7},(_,i)=>({
+  player_id:'qbdom-'+(i+1),full_name:'QB Dominance '+(i+1),position:'QB',
+  season:'2025',starts:9,average_points:35-i,total_points:(35-i)*9,
+  scoring_view:'All-Time Combined',season_complete:true
+ })),
+ ...Array.from({length:4},(_,i)=>({
+  player_id:'tedom-'+(i+1),full_name:'TE Dominance '+(i+1),position:'TE',
+  season:'2025',starts:9,average_points:23-i,total_points:(23-i)*9,
+  scoring_view:'All-Time Combined',season_complete:true
+ }))
+];
+const domWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:dominancePool});
+assert.equal(domWatch.all.find(p=>p.id==='qbdom-6').counts[2],1,
+ 'QB6 counts as a top-six sustained dominance season');
+assert.equal(domWatch.all.find(p=>p.id==='qbdom-7').counts[2],0,
+ 'QB7 cannot count as a top-six sustained dominance season');
+assert.equal(domWatch.all.find(p=>p.id==='tedom-3').counts[2],1,
+ 'TE3 remains a qualifying sustained dominance season');
+assert.equal(domWatch.all.find(p=>p.id==='tedom-4').counts[2],0,
+ 'TE4 must not qualify for tightened TE dominance');
+// The fourth completed top-ten season finishes benchmark five, including 2026 once complete.
+const futureLeague=[...data.league,{season:'2026',status:'complete'}];
+const fourYears=['2023','2024','2025','2026'].map(season=>({
+ player_id:'four-year-qb',full_name:'Four-Year Quarterback',position:'QB',season,
+ starts:10,average_points:26,total_points:260,
+ scoring_view:'All-Time Combined',season_complete:true
+}));
+const fourWatch=api.hallEligibilityWatch({league:futureLeague,playerSeasons:fourYears});
+const fourPlayer=fourWatch.all.find(p=>p.id==='four-year-qb');
+assert.equal(fourPlayer.counts[4],4,'Fourth qualified season must complete career consistency');
+assert.equal(fourPlayer.targets[4],4,'Career consistency target is four completed seasons');
+assert.equal(fourPlayer.met,5,'Four top-ten seasons can satisfy all five benchmarks');
+const threeWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:fourYears});
+assert.equal(threeWatch.all.find(p=>p.id==='four-year-qb').counts[4],3,
+ 'Incomplete league seasons cannot count toward benchmark five');
 // Hall season averages must match the published All-Time Combined player archive
 // exactly, including postseason starts and the original rounding convention.
 const historicalPlayers=api.playerCareers(data,m.foundingYears).byId;
@@ -237,7 +274,7 @@ assert.ok(js.includes('Every requirement, including #2, counts as one.'));
 assert.ok(js.includes('No individual requirement qualifies a player by itself.'));
 assert.ok(js.includes('Counts as one of the five required benchmarks.'));
 assert.ok(js.includes('One completed season finishing #1 in positional PPG.'));
-assert.ok(js.includes('const targets=[2,1,3,4,5]'));
+assert.ok(js.includes('const targets=[2,1,3,4,4]'));
 assert.doesNotMatch(js,/independently qualifies a player|qualifies a player on its own/);
 assert.ok(js.includes('at least 9 official FIG starts'));
 assert.ok(js.includes('average points per FIG start (PPG)'));
@@ -252,7 +289,14 @@ assert.match(css,/fig-hof-249-scroll/);
 assert.match(css,/fig-hof-248-ranking-rule/);
 assert.ok(css.includes('fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:nth-child(even)'),'Even positional rows must override global zebra backgrounds');
 assert.ok(js.includes("['QB','25+','TOP 10']"));
-assert.ok(js.includes('QB:{peak:25,consistent:10,elite:3,dominant:5}'));
+assert.ok(js.includes('QB:{peak:25,consistent:10,elite:3,dominant:6}'));
+assert.ok(js.includes('RB:{peak:17,consistent:10,elite:3,dominant:6}'));
+assert.ok(js.includes('WR:{peak:17,consistent:10,elite:3,dominant:6}'));
+assert.ok(js.includes('TE:{peak:14,consistent:3,elite:2,dominant:3}'));
+assert.ok(js.includes("['03','Sustained Dominance','Three top-six positional PPG finishes"));
+assert.ok(js.includes("['05','Career Consistency','Four completed seasons"));
+assert.ok(js.includes("i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:6)"));
+assert.ok(!js.includes('const targets=[2,1,3,4,5]'));
 assert.ok(js.includes('({QB:10,RB:10,WR:10,TE:3}[p.position])'));
 assert.ok(!js.includes("'TOP 8'"),'QB consistency display must not say top 8');
 assert.ok(js.includes("['RB','17+','TOP 10']"));
