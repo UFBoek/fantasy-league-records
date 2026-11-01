@@ -12,13 +12,13 @@ George Pickens through 2026 Week 7: 15.457142857 WR PPG, **29.5 pending seasonal
 
 | Eligibility cutoff | Original tiered 2.0 | New smoothed 2.1 |
 |---|---:|---:|
-| 450 | 30 | 40 |
-| **500** | Not previously used | **31** |
-| 525 | Not previously used | 29 |
-| 550 | Not previously used | 26 |
-| 600 | Not previously used | 22 |
+| 450 | 30 | 39 |
+| **500** | Not previously used | **29** |
+| 525 | Not previously used | 26 |
+| 550 | Not previously used | 24 |
+| 600 | Not previously used | 20 |
 
-The **500-point** requirement almost exactly preserves the original 450-point tiered model's 30 eligible players, while the smoother scoring accounts for sustained performance more fairly.
+The **500-point** requirement preserves nearly the same 30-player qualifying group as the earlier 450-point tiered model, while the smoother scoring accounts for sustained performance more fairly.
 
 ## Career benchmarks
 
@@ -40,13 +40,13 @@ The 2023-2026 Week 7 FIG started-player archive (completed seasonal awards throu
 | Component | Tiered Legacy 2.0 | Smoothed Legacy 2.1 |
 |---|---:|---:|
 | Completed season points | 7,640 | 10,253.7 |
-| Verified game points | 5,085 | 5,085 |
-| Season share | 60.04% | 66.85% |
-| Game share | 39.96% | 33.15% |
+| Verified game points | 5,085 | **4,734** |
+| Season share | 60.04% | **68.41%** |
+| Game share | 39.96% | **31.59%** |
 | Eligibility threshold | 450 | **500** |
 | Players meeting new/current threshold | 1 | 0 |
-| Highest scorer | Josh Allen, 456 | Josh Allen, 484.5 |
+| Highest scorer | Josh Allen, 456 | Josh Allen, 470.5 |
 
-No game scoring bands were changed. **Raising the Hall eligibility threshold does not preserve the 60/40 scoring composition.** Additional balancing would require revisiting award values rather than eligibility. The current change intentionally prioritizes the removal of cliffs and a similar number of historically eligible players.
+QB 20-29.99 games no longer award Legacy Points (0 instead of 1). In the actual FIG archive, 351 qualifying QB games lose one award each, reducing game points from 5,085 to **4,734**; seasonal points remain 10,253.7. The new aggregate split is **68.41% season / 31.59% game**. In the 2017-2025 hypothetical mock, 1,701 QB 20-29.99-point games lose their bonus, decreasing game points from 21,680 to **19,979**, with a new historical **66.22% season share**. **Raising the Hall eligibility threshold does not preserve the 60/40 scoring composition.** Additional balancing would require revisiting award values rather than eligibility. The current change intentionally prioritizes the removal of cliffs and a similar number of historically eligible players.
 
 Research caveats: the 2017-2025 mock omits pre-2017 seasons; it includes all NFL appearances, not genuine FIG starters; certain historical bonus data may be incomplete. Actual FIG only credits verified lineup starts and awards seasons after completion.

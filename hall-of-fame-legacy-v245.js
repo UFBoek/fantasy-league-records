@@ -8,7 +8,7 @@ const SEASONS=[
 [95,29.5,22.5,21.5,17],[120,32,26,25,18.5],[145,34.5,28,27.5,20.5],
 [175,37.5,30,30,22.5],[205,41,33,33,25]
 ];
-const GAMES=[[20,1,2,2,3],[30,3,5,5,10],[40,7,10,10,18],
+const GAMES=[[20,0,2,2,3],[30,3,5,5,10],[40,7,10,10,18],
 [50,13,15,15,26],[60,22,25,25,35]];
 const WATCH=new Set([
  // QB watch candidates
@@ -41,7 +41,7 @@ function seasonPoints(pos,ppg){
  return previousPoints; // Highest milestone remains the seasonal cap.
 }
 function gamePoints(pos,score){const i=POSITIONS.indexOf(pos);if(i<0||!Number.isFinite(score))return {points:0,band:-1};
-for(let j=GAMES.length-1;j>=0;j--)if(score>=GAMES[j][0])return {points:GAMES[j][i+1],band:j};return {points:0,band:-1};}
+for(let j=GAMES.length-1;j>=0;j--)if(score>=GAMES[j][0]){const bonus=GAMES[j][i+1];return {points:bonus,band:bonus>0?j:-1};}return {points:0,band:-1};}
 function calculate(d){
  const complete=new Set((d.league||[]).filter(x=>String(x.status).toLowerCase()==='complete').map(x=>+x.season));
  const players=new Map(),seen=new Set();
@@ -132,7 +132,7 @@ function html(m){
  '<h2>Great seasons endure.</h2><p>One smoothed season award per completed season with at least eight official FIG starts. The table gives PPG anchors for each position. Points rise continuously between anchors, starting at zero at each positional floor and capping at 205. The calculation uses exact unrounded All-Time Combined PPG, including playoffs.</p></div>'+
  pointsTable(st,'hoflp-season-table')+'</section>'+
  '<section class="hoflp-rule"><div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">II / INDIVIDUAL MILESTONES</span>'+
- '<h2>Defining performances.</h2><p>One bonus per started FIG game, with the highest scoring band only. The first scoring band begins at 20 points for every position.</p></div>'+
+ '<h2>Defining performances.</h2><p>One bonus per started FIG game, with the highest scoring band only. QB game bonuses begin at 30 points. RB, WR and TE bonuses begin at 20 points.</p></div>'+
  pointsTable(gm,'hoflp-game-table')+'</section>'+
  '<div class="hoflp-principles"><p><b>POSITIONALLY CALIBRATED</b> Earning bands reflect different positional scoring distributions.</p>'+
  '<p><b>PERMANENT ACHIEVEMENTS</b> New seasons never reduce already earned Legacy Points.</p>'+
