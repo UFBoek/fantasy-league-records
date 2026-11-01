@@ -781,37 +781,41 @@
    function signed(v){return (v>=0?'+':'')+fmt(v);}
    function teamCard(id){
      var row=modelReady?currentWeekLineups.find(function(p){return +p.roster_id===id;}):null;
-     var starters=row&&Array.isArray(row.starters)?row.starters.map(String):[];
+     var starters=row&&Array.isArray(row.starters)?row.starters.map(function(id){return id===null||id===undefined?'':String(id);}):[];
      var adjustment=modelReady?lineupAdjustments[id]:null;
+     if(adjustment&&Array.isArray(adjustment.starters))starters=adjustment.starters;
      var valid=adjustment&&adjustment.available===true&&starters.length===10;
      var baseline=strength[id].mean;
      var delta=valid?strength[id].lineupDelta:null;
      var forecast=valid?strength[id].weekMean:baseline;
      var sum=valid?adjustment.starterTotal:null;
      var rows=starters.map(function(pid,i){
-       var player=named[pid]||{},score=points[pid]||{};
-       var actual=liveActuals&&liveActuals[pid];
+       var empty=!pid||['0','null','undefined'].includes(String(pid).trim().toLowerCase());
+       var player=empty?{}:(named[pid]||{}),score=empty?{}:(points[pid]||{});
+       var actual=!empty&&liveActuals&&liveActuals[pid];
        var actualNow=!!(actual&&actual.points!==null&&Number.isFinite(Number(actual.points)));
-       var fallback=score.source==='sleeper_projection';
-       var rate=actualNow?(actual.expected===null?NaN:Number(actual.expected)):
-         (score.projection===null||score.projection===undefined?NaN:Number(score.projection));
-       var present=Number.isFinite(rate)&&(Number(score.games)>0||fallback||actualNow);
+       var played=Number(score.games)>0;
+       var historical=played&&score.projection!==null&&score.projection!==undefined?Number(score.projection):0;
+       if(!Number.isFinite(historical))historical=0;
+       var expected=actualNow&&actual.expected!==null&&actual.expected!==undefined?Number(actual.expected):NaN;
+       var rate=empty?0:actualNow&&Number.isFinite(expected)?expected:historical;
+       var present=true;
        var share=present&&sum>0?100*rate/sum:0;
-       var playerName=player.player_name||player.full_name||('Player '+pid);
+       var playerName=empty?'EMPTY SLOT':(player.player_name||player.full_name||('Player '+pid));
        var slot=positions[i]||'STARTER';
-       return '<div class="pcl-model-player">'+
+       return '<div class="pcl-model-player'+(empty?' pcl-model-player-empty':'')+'>'+
          '<div class="pcl-model-player-name"><small>'+safe(slot)+(player.position&&player.position!==slot?' · '+safe(player.position):'')+'</small>'+
-         '<strong>'+safe(playerName)+'</strong><span>'+(actualNow?
+         '<strong>'+safe(playerName)+'</strong><span>'+(empty?'UNFILLED STARTER · 0 POINTS':actualNow?
            safe(actual.phase)+' · '+fmt(actual.points)+' SCORED'+
              (actual.phase==='LIVE'&&actual.progress!==null?
                ' · '+Math.round(100*actual.progress)+'% GAME ELAPSED':''):
-           fallback?'NO '+year+' NFL GAMES · SLEEPER FORECAST':
-           present?score.games+' '+year+' GAME'+(score.games===1?'':'S'):'NO '+year+' HISTORY')+'</span></div>'+
+           played?score.games+' '+year+' GAME'+(score.games===1?'':'S'):
+           'NO '+year+' SCORING HISTORY · 0 POINTS')+'</span></div>'+
          '<div class="pcl-model-player-averages"><span>LAST '+(Number(score.games)>0?Math.min(8,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last8_avg):'–')+'</b></span>'+
          '<span>LAST '+(Number(score.games)>0?Math.min(3,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last3_avg):'–')+'</b></span></div>'+
          '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'–')+'</b><small>'+(actualNow?
            (actual.phase==='FINAL'?'FINAL POINTS':'LIVE EST. FINAL'):
-           fallback?'SLEEPER PROJ.':'PROJECTED')+'</small>'+
+           empty?'EMPTY SLOT':played?'PROJECTED':'NO HISTORY')+'</small>'+
          '<span class="pcl-model-player-bar"><i style="width:'+clamp(share,0,100).toFixed(2)+'%"></i></span>'+
          '<span class="pcl-model-player-share">'+(present?share.toFixed(1)+'% OF LINEUP':'')+'</span></div></div>';
      }).join('');
