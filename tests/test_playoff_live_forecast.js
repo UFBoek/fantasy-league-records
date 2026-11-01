@@ -53,6 +53,12 @@ near(result.progress,.1,'one of ten equally weighted starters resolved');
 near(result.mean,.9*238+.1*210,'only one tenth transferred to live points');
 near(result.sd,28*Math.sqrt(.9),'most uncertainty remains');
 
+const noHistory={...players,[starters[9]]:{projection:30,games:0,source:'sleeper_projection'}};
+const playedNine=Object.fromEntries(starters.slice(0,9).map(id=>[id,{points:20,phase:'FINAL',progress:1}]));
+const noHistoryDone=estimate({...baseline,players:noHistory,live:playedNine,starterTotal:180});
+near(noHistoryDone.progress,1,'a no-history player has zero expected workload');
+near(noHistoryDone.sd,0,'no-history Sleeper forecast cannot keep uncertainty alive');
+
 const missingClock={};
 starters.forEach(pid=>missingClock[pid]={points:0,phase:'LIVE',progress:null,expected:20});
 result=estimate({...baseline,live:missingClock});

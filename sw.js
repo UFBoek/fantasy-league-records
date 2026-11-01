@@ -1,5 +1,5 @@
 /* FIG League v235 – keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v284';
+const CACHE_NAME = 'fig-league-shell-v285';
 const APP_SHELL = [
   './',
   './index.html',
@@ -54,7 +54,7 @@ const APP_SHELL = [
   './manager-ratings-v155.js?v=157',
   './playoff-lineup-model-v191.js?v=283',
   './playoff-live-points-v195.js?v=197',
-  './playoff-live-forecast-v199.js?v=200',
+  './playoff-live-forecast-v199.js?v=285',
   './playoff-pf-view-v201.js?v=201',
   './playoff-implication-rank-v202.js?v=202',
   './playoff-live-score-bounds-v203.js?v=283',

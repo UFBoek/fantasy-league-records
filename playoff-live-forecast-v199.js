@@ -15,7 +15,7 @@
    for(const id of starters){
      const key=String(id);
      const player=scores[key]||{};
-     const projection=numeric(player.projection);
+     const projection=Number(player.games)>0?numeric(player.projection):0;
      // Avoid negative projection weights; zero-value starters still contribute
      // by headcount when the whole lineup has zero estimated workload.
      const importance=projection===null?0:Math.max(0,projection);
