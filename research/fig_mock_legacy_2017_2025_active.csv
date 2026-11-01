@@ -10,54 +10,54 @@ rank,active_rank,player,position,played_2026,sleeper_active_flag,status,current_
 10,9,George Kittle,TE,True,True,Active,SF,False,9,123,663.6,183,846.6,0,True,4217
 11,10,Saquon Barkley,RB,True,True,Active,PHI,True,7,106,498.2,188,686.2,0,True,4866
 12,11,Dak Prescott,QB,True,True,Active,DAL,True,8,123,402.9,280,682.9,0,True,3294
-13,12,Cooper Kupp,WR,True,True,Active,SEA,False,9,118,501.09999999999997,156,657.0999999999999,0,True,4039
-14,13,Ja'Marr Chase,WR,True,True,Active,CIN,True,5,78,453.09999999999997,199,652.0999999999999,0,True,7564
+13,12,Cooper Kupp,WR,True,True,Active,SEA,False,9,118,501.1,156,657.1,0,True,4039
+14,13,Ja'Marr Chase,WR,True,True,Active,CIN,True,5,78,453.1,199,652.1,0,True,7564
 15,14,Justin Jefferson,WR,True,True,Active,MIN,True,6,94,464.1,175,639.1,0,True,6794
 18,15,Stefon Diggs,WR,True,True,Active,WAS,False,9,136,460.0,164,624.0,0,True,2449
 19,16,Keenan Allen,WR,True,True,Active,IND,False,9,132,444.3,172,616.3,0,True,1479
 20,17,Jonathan Taylor,RB,True,True,Active,IND,True,6,84,432.9,176,608.9,0,True,6813
-22,18,Mike Evans,WR,True,True,Active,SF,False,8,128,421.0999999999999,179,600.0999999999999,0,True,2216
+22,18,Mike Evans,WR,True,True,Active,SF,False,8,128,421.1,179,600.1,0,True,2216
 23,19,Joe Burrow,QB,True,True,Active,CIN,True,6,78,385.1,213,598.1,0,True,6770
 24,20,Justin Herbert,QB,True,True,Active,LAC,False,6,95,376.5,214,590.5,0,True,6797
-25,21,Aaron Rodgers,QB,True,True,Active,PIT,False,7,121,352.49999999999994,228,580.5,0,True,96
-26,22,Jared Goff,QB,True,True,Active,DET,True,9,144,313.40000000000003,248,561.4000000000001,0,True,3163
+25,21,Aaron Rodgers,QB,True,True,Active,PIT,False,7,121,352.5,228,580.5,0,True,96
+26,22,Jared Goff,QB,True,True,Active,DET,True,9,144,313.4,248,561.4,0,True,3163
 27,23,Matthew Stafford,QB,True,True,Active,LAR,False,9,130,362.7,184,546.7,0,True,421
 28,24,CeeDee Lamb,WR,True,True,Active,DAL,True,6,94,387.0,151,538.0,0,True,6786
 29,25,Jalen Hurts,QB,True,True,Inactive,PHI,True,6,92,362.7,173,535.7,0,True,6904
 30,26,Kirk Cousins,QB,True,True,Active,LV,False,9,128,324.4,200,524.4,0,True,1166
 31,27,Amon-Ra St. Brown,WR,True,True,Active,DET,True,5,81,366.0,140,506.0,0,True,7547
 32,28,Kyler Murray,QB,True,True,Active,MIN,False,6,87,334.2,164,498.2,1.8000000000000114,False,5849
-35,29,Austin Ekeler,RB,True,True,Active,WAS,False,8,114,345.70000000000005,130,475.70000000000005,24.299999999999955,False,4663
-36,30,A.J. Brown,WR,True,True,Active,NE,True,7,105,340.79999999999995,132,472.79999999999995,27.200000000000045,False,5859
+35,29,Austin Ekeler,RB,True,True,Active,WAS,False,8,114,345.7,130,475.7,24.30000000000001,False,4663
+36,30,A.J. Brown,WR,True,True,Active,NE,True,7,105,340.8,132,472.8,27.19999999999999,False,5859
 38,31,Deshaun Watson,QB,True,True,Active,CLE,False,3,73,309.5,155,464.5,35.5,False,4017
 40,32,Josh Jacobs,RB,True,True,Active,GB,False,7,105,320.8,131,451.8,48.19999999999999,False,5850
 42,33,Aaron Jones Sr.,RB,True,True,Active,MIN,False,9,124,303.6,130,433.6,66.39999999999998,False,4199
 43,34,Mark Andrews,TE,True,True,Active,BAL,False,8,118,312.7,107,419.7,80.30000000000001,False,5012
 44,35,Zach Ertz,TE,True,True,Active,PHI,False,8,119,305.0,91,396.0,104.0,False,1339
-49,36,Puka Nacua,WR,True,True,Active,LAR,False,3,44,290.29999999999995,92,382.29999999999995,117.70000000000005,False,9493
-52,37,Jahmyr Gibbs,RB,True,True,Active,DET,True,3,49,253.29999999999998,114,367.29999999999995,132.70000000000005,False,9221
-55,38,Chris Godwin Jr.,WR,True,True,Active,TB,False,8,117,251.40000000000003,95,346.40000000000003,153.59999999999997,False,4037
-57,39,Darren Waller,TE,True,True,Active,CAR,False,6,74,248.89999999999998,90,338.9,161.10000000000002,False,2505
-59,40,Trey McBride,TE,True,True,Active,ARI,True,4,59,247.89999999999998,87,334.9,165.10000000000002,False,8130
+49,36,Puka Nacua,WR,True,True,Active,LAR,False,3,44,290.3,92,382.3,117.69999999999999,False,9493
+52,37,Jahmyr Gibbs,RB,True,True,Active,DET,True,3,49,253.3,114,367.3,132.7,False,9221
+55,38,Chris Godwin Jr.,WR,True,True,Active,TB,False,8,117,251.4,95,346.4,153.60000000000002,False,4037
+57,39,Darren Waller,TE,True,True,Active,CAR,False,6,74,248.9,90,338.9,161.10000000000002,False,2505
+59,40,Trey McBride,TE,True,True,Active,ARI,True,4,59,247.9,87,334.9,165.10000000000002,False,8130
 61,41,Carson Wentz,QB,True,True,Active,MIN,False,6,85,217.0,113,330.0,170.0,False,3161
 62,42,Bijan Robinson,RB,True,True,Active,ATL,True,3,51,234.0,93,327.0,173.0,False,9509
 63,43,De'Von Achane,RB,True,True,Inactive,MIA,True,3,44,235.8,90,325.8,174.2,False,9226
-66,44,Baker Mayfield,QB,True,True,Active,TB,True,8,123,168.20000000000002,139,307.20000000000005,192.79999999999995,False,4892
-67,45,Tee Higgins,WR,True,True,Active,CIN,True,6,81,219.09999999999997,81,300.09999999999997,199.90000000000003,False,6801
+66,44,Baker Mayfield,QB,True,True,Active,TB,True,8,123,168.2,139,307.2,192.8,False,4892
+67,45,Tee Higgins,WR,True,True,Active,CIN,True,6,81,219.1,81,300.1,199.89999999999998,False,6801
 68,46,DJ Moore,WR,True,True,Active,BUF,False,8,130,189.6,104,293.6,206.39999999999998,False,4983
 71,47,David Montgomery,RB,True,True,Active,HOU,False,7,105,186.8,76,262.8,237.2,False,5892
 72,48,Kyren Williams,RB,True,True,Active,LAR,True,4,53,200.9,61,261.9,238.10000000000002,False,8150
 73,49,Calvin Ridley,WR,True,True,Active,TEN,False,5,88,185.1,75,260.1,239.89999999999998,False,4981
 74,50,Deebo Samuel Sr.,WR,True,True,Active,SF,False,6,96,175.2,79,254.2,245.8,False,5872
-75,51,Jameis Winston,QB,True,True,Active,NYG,False,4,72,132.60000000000002,116,248.60000000000002,251.39999999999998,False,2306
+75,51,Jameis Winston,QB,True,True,Active,NYG,False,4,72,132.6,116,248.6,251.4,False,2306
 77,52,Brock Purdy,QB,True,True,Active,SF,True,4,49,155.3,84,239.3,260.7,False,8183
 78,53,DK Metcalf,WR,True,True,Active,PIT,False,7,111,162.5,75,237.5,262.5,False,5846
 79,54,James Cook III,RB,True,True,Active,BUF,True,4,66,157.2,77,234.2,265.8,False,8138
 80,55,Brandin Cooks,WR,True,True,Active,SF,False,9,123,157.3,74,231.3,268.7,False,2197
 81,56,Evan Engram,TE,True,True,Active,DEN,False,9,122,158.3,71,229.3,270.7,False,4066
-82,57,Nico Collins,WR,True,True,Active,HOU,False,5,65,174.10000000000002,53,227.10000000000002,272.9,False,7569
+82,57,Nico Collins,WR,True,True,Active,HOU,False,5,65,174.1,53,227.1,272.9,False,7569
 84,58,Terry McLaurin,WR,True,True,Inactive,WAS,False,7,105,167.2,54,221.2,278.8,False,5927
-87,59,Brock Bowers,TE,True,True,Active,LV,True,2,29,159.39999999999998,53,212.39999999999998,287.6,False,11604
+86,59,Brock Bowers,TE,True,True,Active,LV,True,2,29,159.4,53,212.4,287.6,False,11604
 88,60,T.J. Hockenson,TE,True,True,Active,MIN,False,7,95,150.2,62,212.2,287.8,False,5844
 89,61,Trevor Lawrence,QB,True,True,Active,JAX,True,5,77,110.9,101,211.9,288.1,False,7523
 90,62,Jaxon Smith-Njigba,WR,True,True,Active,SEA,True,3,51,145.1,60,205.1,294.9,False,9488
@@ -66,20 +66,20 @@ rank,active_rank,player,position,played_2026,sleeper_active_flag,status,current_
 95,65,Daniel Jones,QB,True,True,Active,IND,False,6,83,83.1,105,188.1,311.9,False,5870
 97,66,Dallas Goedert,TE,True,True,Active,PHI,False,8,101,125.4,56,181.4,318.6,False,5022
 98,67,Jaylen Waddle,WR,True,True,Active,DEN,False,5,77,115.2,61,176.2,323.8,False,7526
-100,68,DeVonta Smith,WR,True,True,Active,PHI,False,5,79,114.49999999999999,61,175.5,324.5,False,7525
+100,68,DeVonta Smith,WR,True,True,Active,PHI,False,5,79,114.5,61,175.5,324.5,False,7525
 102,69,Breece Hall,RB,True,True,Active,NYJ,False,3,56,115.1,59,174.1,325.9,False,8155
 111,70,Drake London,WR,True,True,Active,ATL,False,4,61,100.3,51,151.3,348.7,False,8112
 113,71,Travis Etienne Jr.,RB,True,True,Inactive,NO,False,4,66,94.6,54,148.6,351.4,False,7543
 114,72,Bo Nix,QB,True,True,Active,DEN,False,2,34,89.1,57,146.1,353.9,False,11563
 116,73,Sam Darnold,QB,True,True,Active,SEA,False,7,100,48.9,95,143.9,356.1,False,4943
-117,74,Michael Pittman Jr.,WR,True,True,Inactive,PIT,False,6,95,86.89999999999999,56,142.89999999999998,357.1,False,6819
+117,74,Michael Pittman Jr.,WR,True,True,Inactive,PIT,False,6,95,86.9,56,142.9,357.1,False,6819
 118,75,Chris Olave,WR,True,True,Active,NO,True,4,55,102.6,40,142.6,357.4,False,8144
 122,76,Courtland Sutton,WR,True,True,Active,DEN,False,7,112,87.2,45,132.2,367.8,False,5045
-123,77,Kenneth Walker III,RB,True,True,Active,KC,False,4,58,86.10000000000001,43,129.10000000000002,370.9,False,8151
-124,78,Geno Smith,QB,True,True,Active,NYJ,False,4,75,56.699999999999996,71,127.69999999999999,372.3,False,1373
-125,79,Hunter Henry,TE,True,True,Active,NE,False,8,113,84.80000000000001,41,125.80000000000001,374.2,False,3214
+123,77,Kenneth Walker III,RB,True,True,Active,KC,False,4,58,86.1,43,129.1,370.9,False,8151
+124,78,Geno Smith,QB,True,True,Active,NYJ,False,4,75,56.7,71,127.7,372.3,False,1373
+125,79,Hunter Henry,TE,True,True,Active,NE,False,8,113,84.8,41,125.8,374.2,False,3214
 128,80,Sam LaPorta,TE,True,True,Active,DET,False,3,42,90.9,31,121.9,378.1,False,10859
-129,81,Najee Harris,RB,True,True,Active,,False,4,71,85.10000000000001,36,121.10000000000001,378.9,False,7528
+129,81,Najee Harris,RB,True,True,Active,,False,4,71,85.1,36,121.1,378.9,False,7528
 130,82,Chase Brown,RB,True,True,Active,CIN,False,3,43,85.9,35,120.9,379.1,False,9224
 131,83,Tony Pollard,RB,True,True,Active,TEN,False,7,111,67.3,53,120.3,379.7,False,5967
 132,84,Jayden Daniels,QB,True,True,Active,WAS,True,1,24,72.5,47,119.5,380.5,False,11566
@@ -89,27 +89,27 @@ rank,active_rank,player,position,played_2026,sleeper_active_flag,status,current_
 138,88,Rashee Rice,WR,True,True,Active,KC,False,2,27,90.8,23,113.8,386.2,False,10229
 144,89,C.J. Stroud,QB,True,True,Active,HOU,True,3,46,52.2,58,110.2,389.8,False,9758
 145,90,Jakobi Meyers,WR,True,True,Active,JAX,False,7,100,70.8,39,109.8,390.2,False,5947
-147,91,Drake Maye,QB,True,True,Active,NE,True,2,29,68.9,39,107.9,392.1,False,11564
+148,91,Drake Maye,QB,True,True,Active,NE,True,2,29,68.9,39,107.9,392.1,False,11564
 151,92,Malik Nabers,WR,True,True,Active,NYG,False,1,19,73.8,31,104.8,395.2,False,11632
-153,93,Jerry Jeudy,WR,True,True,Active,CLE,False,6,87,67.30000000000001,36,103.30000000000001,396.7,False,6783
+153,93,Jerry Jeudy,WR,True,True,Active,CLE,False,6,87,67.3,36,103.3,396.7,False,6783
 154,94,Sterling Shepard,WR,True,True,Active,NYJ,False,7,93,70.4,32,102.4,397.6,False,3200
 155,95,Austin Hooper,TE,True,True,Active,ATL,False,9,131,82.4,18,100.4,399.6,False,3202
 156,96,Andy Dalton,QB,True,True,Active,ATL,False,6,83,26.1,74,100.1,399.9,False,829
 157,97,Jacoby Brissett,QB,True,True,Active,ARI,False,6,87,42.9,57,99.9,400.1,False,3257
-158,98,Garrett Wilson,WR,True,True,Active,NYJ,False,3,57,58.599999999999994,39,97.6,402.4,False,8146
+158,98,Garrett Wilson,WR,True,True,Active,NYJ,False,3,57,58.6,39,97.6,402.4,False,8146
 160,99,Caleb Williams,QB,True,True,Active,CHI,True,2,34,40.8,56,96.8,403.2,False,11560
 162,100,Jameson Williams,WR,True,True,Active,DET,False,3,43,68.0,26,94.0,406.0,False,8148
 164,101,Tucker Kraft,TE,True,True,Active,GB,False,3,34,75.7,16,91.7,408.3,False,9484
 165,102,Jonnu Smith,TE,True,True,Active,GB,False,9,117,54.5,37,91.5,408.5,False,4144
 166,103,Dalton Schultz,TE,True,True,Active,HOU,False,6,103,56.5,34,90.5,409.5,False,5001
-167,104,Zay Flowers,WR,True,True,Active,BAL,True,3,50,55.300000000000004,35,90.30000000000001,409.7,False,9997
+167,104,Zay Flowers,WR,True,True,Active,BAL,True,3,50,55.3,35,90.3,409.7,False,9997
 169,105,Rhamondre Stevenson,RB,True,True,Active,NE,False,5,70,42.3,47,89.3,410.7,False,7611
 172,106,Tank Dell,WR,True,True,Active,HOU,False,2,24,62.0,25,87.0,413.0,False,9502
 174,107,Jordan Addison,WR,True,True,Active,MIN,False,3,44,51.6,33,84.6,415.4,False,9756
 176,108,Mike Gesicki,TE,True,True,Active,CIN,False,8,110,40.5,43,83.5,416.5,False,4993
 179,109,Rachaad White,RB,True,True,Active,WAS,False,4,65,53.5,28,81.5,418.5,False,8136
 180,110,Kyle Pitts Sr.,TE,True,True,Active,ATL,False,5,76,44.0,37,81.0,419.0,False,7553
-182,111,Marquise Brown,WR,True,True,Active,PHI,False,6,86,41.400000000000006,37,78.4,421.6,False,5848
+182,111,Marquise Brown,WR,True,True,Active,PHI,False,6,86,41.4,37,78.4,421.6,False,5848
 184,112,Chuba Hubbard,RB,True,True,Active,CAR,False,5,76,44.5,30,74.5,425.5,False,7594
 187,113,Javonte Williams,RB,True,True,Active,DAL,False,4,70,39.9,34,73.9,426.1,False,7588
 188,114,Brian Thomas Jr.,WR,True,True,Active,JAX,False,2,31,49.2,24,73.2,426.8,False,11631
@@ -120,7 +120,7 @@ rank,active_rank,player,position,played_2026,sleeper_active_flag,status,current_
 200,119,Marcus Mariota,QB,True,True,Active,WAS,False,4,72,0,58,58,442,False,2307
 201,120,Darnell Mooney,WR,True,True,Active,NYG,False,6,86,32.7,25,57.7,442.3,False,7090
 202,121,Ladd McConkey,WR,True,True,Active,LAC,False,2,32,37.3,20,57.3,442.7,False,11635
-206,122,J.K. Dobbins,RB,True,True,Active,DEN,False,4,47,36.699999999999996,17,53.699999999999996,446.3,False,6806
+206,122,J.K. Dobbins,RB,True,True,Active,DEN,False,4,47,36.7,17,53.7,446.3,False,6806
 215,123,Rico Dowdle,RB,True,True,Active,PIT,False,3,51,23.5,26,49.5,450.5,False,7021
 216,124,Quentin Johnston,WR,True,True,Active,LAC,False,3,42,34.3,15,49.3,450.7,False,9754
 217,125,Jauan Jennings,WR,True,True,Active,MIN,False,5,65,26.2,23,49.2,450.8,False,7049
@@ -131,7 +131,7 @@ rank,active_rank,player,position,played_2026,sleeper_active_flag,status,current_
 223,130,Christian Watson,WR,True,True,Active,GB,False,4,45,19.3,27,46.3,453.7,False,8167
 226,131,Mac Jones,QB,True,True,Active,SF,False,5,63,0,45,45,455,False,7527
 229,132,Omarion Hampton,RB,True,True,Active,LAC,False,1,9,35.2,9,44.2,455.8,False,12507
-230,133,Jake Ferguson,TE,True,True,Active,DAL,False,4,58,28.700000000000003,15,43.7,456.3,False,8110
+231,133,Jake Ferguson,TE,True,True,Active,DAL,False,4,58,28.7,15,43.7,456.3,False,8110
 235,134,Josh Downs,WR,True,True,Active,IND,False,3,47,28.8,12,40.8,459.2,False,9500
 236,135,Jaylen Warren,RB,True,True,Active,PIT,False,4,64,22.8,18,40.8,459.2,False,8228
 239,136,Alec Pierce,WR,True,True,Inactive,IND,False,4,55,19.3,21,40.3,459.7,False,8142
