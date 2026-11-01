@@ -1,0 +1,37 @@
+name: Summarize historical FIG-scored NFL seasons
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/analyze_fig_historical.py'
+      - '.github/workflows/fig-historical-analysis.yml'
+  workflow_dispatch:
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Analyze saved full-season Sleeper data
+        run: python research/analyze_fig_historical.py
+      - name: Commit annual player lookups and positional benchmarks
+        shell: bash
+        run: |
+          git add research/fig_historical_20*.json research/fig_historical_baselines.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'research: score historical players and calibrate FIG positional baselines'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          exit 1
