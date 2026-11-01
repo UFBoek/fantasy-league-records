@@ -119,8 +119,8 @@ const {chromium}=require('playwright');
    assert.deepEqual(await requirements.locator('h3').allInnerTexts(),[
     'Elite Production','Positional Supremacy','Sustained Dominance','Sustained Excellence','Career Consistency']);
    const pathText=await page.locator('.fig-hof-248-routes').innerText();
-   assert.match(pathText,/4\\s+OF\\s+5/);
-   assert.match(pathText,/2\\s+TITLES/);
+   assert.match(pathText,/4\s+OF\s+5/);
+   assert.match(pathText,/2\s+TITLES/);
    const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
    assert.ok(criteria.includes('at least 10 verified FIG starts'));
    assert.ok(criteria.includes('at least nine FIG starts'));
