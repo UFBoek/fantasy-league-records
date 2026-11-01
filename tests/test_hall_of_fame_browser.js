@@ -162,17 +162,18 @@ const {chromium}=require('playwright');
     '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
     '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
    const candidates=watchTable.locator('tbody tr');
-   assert.equal(await candidates.count(),26,'Historical watchlist expanded to include nine selected players');
-   const selectedNames=['James Cook III',"De'Von Achane",'Malik Nabers','Drake Maye',
+   assert.equal(await candidates.count(),25,'Watchlist has 25 players after removing Cook and Brown and adding JSN');
+   const selectedNames=['Jaxon Smith-Njigba',"De'Von Achane",'Malik Nabers','Drake Maye',
     'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor'];
    const candidateNames=await candidates.locator('.fig-hof-249-player strong').allInnerTexts();
    for(const player of selectedNames)
     assert.ok(candidateNames.includes(player),'Selected watch player should appear: '+player);
-   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave'])
+   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave','James Cook III','A.J. Brown'])
     assert.ok(!candidateNames.includes(player),'Removed watch player should be excluded: '+player);
    assert.ok(candidateNames.includes("Ja'Marr Chase")&&candidateNames.includes('Christian McCaffrey'),
     'Historical contenders remain available');
    const newPlayerCounts=[
+    ['Jaxon Smith-Njigba',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
     ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 4 SEASONS']],
     ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
     ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']]
