@@ -29,12 +29,16 @@ assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the 
 // The live eligibility watch ranks eligible starter-season averages, not total points.
 const watch=api.hallEligibilityWatch(data);
 assert.deepEqual(watch.years,[2023,2024,2025]);
-assert.equal(watch.contenders.length,26,'Keep prior 25 candidates and restore James Cook');
+assert.equal(watch.contenders.length,34,'Remove four veterans and add 12 distinct candidates without duplicating existing players');
 const addedWatchPlayers={
  '9488':'Jaxon Smith-Njigba','9226':"De'Von Achane",'11632':'Malik Nabers',
  '11564':'Drake Maye','11566':'Jayden Daniels','11560':'Caleb Williams',
  '3163':'Jared Goff','6794':'Justin Jefferson','6813':'Jonathan Taylor',
- '8138':'James Cook III'
+ '8138':'James Cook III',
+ '8183':'Brock Purdy','6770':'Joe Burrow','8150':'Kyren Williams',
+ '12527':'Ashton Jeanty','8137':'George Pickens','9758':'C.J. Stroud',
+ '8151':'Kenneth Walker III','6801':'Tee Higgins','12526':'Tetairoa McMillan',
+ '6804':'Jordan Love','7523':'Trevor Lawrence','9228':'Bryce Young'
 };
 for(const [id,name] of Object.entries(addedWatchPlayers)){
  const p=watch.contenders.find(player=>player.id===id);
@@ -44,11 +48,21 @@ for(const [id,name] of Object.entries(addedWatchPlayers)){
 }
 const excludedWatchPlayers={
  '3321':'Tyreek Hill','8112':'Drake London','9997':'Zay Flowers','8144':'Chris Olave',
- '5859':'A.J. Brown'
+ '5859':'A.J. Brown','4035':'Alvin Kamara','3198':'Derrick Henry',
+ '4866':'Saquon Barkley','1466':'Travis Kelce'
 };
 for(const [id,name] of Object.entries(excludedWatchPlayers))
  assert.ok(!watch.contenders.some(p=>p.id===id||p.name===name),
   'Removed player must not return in the Hall watch: '+name);
+const newlyAddedProgress={
+ '8183':[0,0,2,2,2],'6770':[1,0,1,1,1],'8150':[1,0,1,2,2],
+ '12527':[0,0,0,0,1],'8137':[1,0,1,1,1],'9758':[1,0,1,1,1],
+ '8151':[0,0,0,1,0],'6801':[1,0,1,1,2],'12526':[0,0,0,0,1],
+ '6804':[0,0,0,0,0],'7523':[0,0,0,0,1],'9228':[0,0,0,0,0]
+};
+for(const [id,counts] of Object.entries(newlyAddedProgress))
+ assert.deepEqual(watch.contenders.find(p=>p.id===id)?.counts,counts,
+  'All newly watched players must have accurate completed-season milestones: '+id);
 assert.deepEqual(watch.contenders.find(p=>p.id==='9488').counts,[1,0,1,1,1],
  'JSN 2025 qualifies as an elite top-two WR season, but not a full benchmark');
 assert.deepEqual(watch.contenders.find(p=>p.id==='8138').counts,[0,0,1,2,2],
