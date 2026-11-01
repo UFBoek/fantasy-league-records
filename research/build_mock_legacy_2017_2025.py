@@ -14,6 +14,7 @@ SOURCE=json.loads((DIR/"fig_historical_ppg_2010_2025.json").read_text())
 JS=(ROOT/"hall-of-fame-legacy-v245.js").read_text()
 SEASONS=json.loads(re.search(r"const SEASONS=(\[[\s\S]*?\]);",JS).group(1))
 GAMES=json.loads(re.search(r"const GAMES=(\[[\s\S]*?\]);",JS).group(1))
+THRESHOLD=int(re.search(r"const THRESHOLD=([0-9]+)",JS).group(1))
 POS={"QB":1,"RB":2,"WR":3,"TE":4}
 YEARS=range(2017,2026)
 # Keep research watch flags aligned with the live commissioner list.
@@ -81,9 +82,9 @@ def main():
         points=p["season_points"]+p["modeled_game_points"]
         p.update(played_2026=pid in played_2026, sleeper_active_flag=bool(d.get("active")),current_team=d.get("team"),
             status=d.get("status"),watchlist=pid in WATCH,
-            total=points,remaining=max(0,350-points),
+            total=points,remaining=max(0,THRESHOLD-points),
             qualifying_seasons=sum(q["games"]>=8 for q in p["seasons"]),
-            eligible=points>=350)
+            eligible=points>=THRESHOLD)
         result.append(p)
     result.sort(key=lambda p:(-p["total"],-p["season_points"],p["player"]))
     for n,p in enumerate(result,1):p["rank"]=n
@@ -100,7 +101,7 @@ def main():
             writer.writerows(group)
     out={"version":2,"official":False,"years":[2017,2025],
         "active_cohort":"Had a verified NFL scoring appearance during 2026 through published week cutoff",
-        "active_through_week":played_file["through_week"],
+        "active_through_week":played_file["through_week"],"eligibility_threshold":THRESHOLD,
         "method":"Current FIG Legacy seasonal tiers for >=8 scored NFL appearances in each year. Hypothetical game bonus for every NFL appearance, independent of whether a FIG manager would have started the player.",
         "limitations":["Pre-2021 fantasy scores can omit certain 50+ yard TD bonuses",
           "2017-2020 include NFL weeks 1-17; 2021-2025 weeks 1-18",
@@ -117,7 +118,7 @@ def main():
            "Mock game points assume every scored NFL appearance counted as a FIG start.",
            "No official Hall of Fame totals or eligibility have been changed.","",
            "Players: "+str(len(result))+". With verified 2026 NFL appearance: "+str(len(active))+".",
-           "Eligible at 350: "+str(sum(x["eligible"] for x in result))+".",
+           "Eligible at "+str(THRESHOLD)+": "+str(sum(x["eligible"] for x in result))+".",
            "2026-appeared eligible: "+str(sum(x["eligible"] for x in active))+".","",
            "## Top 100 overall","",
            "| Rank | Player | Pos | Played 2026 | Season | Mock games | Total |",
