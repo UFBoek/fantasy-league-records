@@ -30,12 +30,22 @@ assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the 
 const watch=api.hallEligibilityWatch(data);
 assert.deepEqual(watch.years,[2023,2024,2025]);
 assert.equal(watch.contenders.length,18,'Show a curated-length live contender list');
-assert.equal(watch.contenders[0].name,'Christian McCaffrey');
-assert.equal(watch.contenders[1].name,'Trey McBride');
-assert.deepEqual(watch.contenders[0].counts,[2,2,2,2,2],
- 'CMC has two #1 RB seasons but only two of five benchmarks met');
-assert.deepEqual(watch.contenders[1].counts,[2,2,2,2,2],
- 'McBride has two #1 TE seasons but only two of five benchmarks met');
+assert.equal(watch.contenders[0].name,"Ja'Marr Chase",
+ 'One positional championship completes requirement two and moves Chase up the watchlist');
+assert.deepEqual(watch.contenders[0].counts,[2,1,2,3,3]);
+const cmc=watch.contenders.find(p=>p.name==='Christian McCaffrey');
+const mcbride=watch.contenders.find(p=>p.name==='Trey McBride');
+assert.deepEqual(cmc.counts,[2,2,2,2,2]);
+assert.deepEqual(mcbride.counts,[2,2,2,2,2]);
+assert.deepEqual(cmc.targets,[2,1,3,4,5]);
+assert.equal(cmc.met,2,'Two positional #1 seasons still count as only one benchmark');
+assert.equal(mcbride.met,2,'Two TE positional championships count as only one benchmark');
+assert.equal(watch.contenders[0].met,2,'Single WR title is sufficient for #2, but not for overall nomination');
+const lamar=watch.contenders.find(p=>p.name==='Lamar Jackson');
+assert.equal(lamar.counts[1],1,'Lamar has one #1 QB season');
+assert.equal(lamar.targets[1],1,'One #1 season satisfies positional supremacy');
+assert.equal(lamar.met,1,'One positional championship is not automatic nomination');
+assert.ok(!watch.contenders.some(p=>p.eligible),'The four-of-five requirement remains intact');
 assert.ok(watch.contenders.every(p=>!['4984','9493'].includes(p.id)),
  'Founding inductees must not be presented as future nomination candidates');
 assert.ok(watch.contenders.every(p=>p.met===p.counts.filter((n,i)=>n>=p.targets[i]).length));
@@ -168,6 +178,8 @@ assert.doesNotMatch(js,/THE SUPREMACY EXCEPTION|fig-hof-248-route-alt/);
 assert.ok(js.includes('Every requirement, including #2, counts as one.'));
 assert.ok(js.includes('No individual requirement qualifies a player by itself.'));
 assert.ok(js.includes('Counts as one of the five required benchmarks.'));
+assert.ok(js.includes('One completed season finishing #1 in positional PPG.'));
+assert.ok(js.includes('const targets=[2,1,3,4,5]'));
 assert.doesNotMatch(js,/independently qualifies a player|qualifies a player on its own/);
 assert.ok(js.includes('at least 9 official FIG starts'));
 assert.ok(js.includes('average points per FIG start (PPG)'));
