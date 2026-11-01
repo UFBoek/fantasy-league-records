@@ -118,7 +118,7 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('.hoflp-season-table tbody tr').count(),8);
    assert.equal(await page.locator('.hoflp-game-table tbody tr').count(),5);
    assert.match(await page.locator('.hoflp-page').innerText(),/at least eight official FIG starts/);
-   const rows=page.locator('.hoflp-leaderboard tbody tr');
+   const rows=page.locator('.hoflp-leaderboard > tbody > tr');
    assert.equal(await rows.count(),36);
    const names=await rows.locator('.hoflp-player a').allInnerTexts();
    for(const n of ['Josh Allen','Puka Nacua','Jaxon Smith-Njigba','James Cook III','Tetairoa McMillan','Bryce Young'])
