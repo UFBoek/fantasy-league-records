@@ -354,7 +354,7 @@ function hallEligibilityWatchSection(watch){
  return '<section class="fig-hof-249-watch" aria-labelledby="figHofWatchTitle">'+
   '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">ELIGIBILITY WATCH</span>'+
   '<h2 id="figHofWatchTitle">The eligibility field.</h2>'+
-  '<p>Founding inductees and future candidates, ranked by requirements met and progress toward the rest.</p></div>'+
+  '<p>Founding inductees and future candidates under the three-of-five nomination standard, ranked by requirements met and progress toward the rest.</p></div>'+
   (watch.contenders.length?'<div class="fig-hof-249-scroll" role="region" tabindex="0" aria-label="Hall eligibility watch table, scroll horizontally on smaller screens">'+
   '<table class="fig-hof-249-table"><thead><tr><th scope="col">PLAYER</th>'+
   titleNames.map((name,i)=>'<th scope="col" title="'+esc(name)+'"><span>#'+(i+1)+'</span><small>'+esc(name)+'</small></th>').join('')+
