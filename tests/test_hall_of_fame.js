@@ -33,7 +33,7 @@ assert.equal(watch.contenders.length,26,'Preserve 17 historical watch players an
 const addedWatchPlayers={
  '8138':'James Cook III','9226':"De'Von Achane",'11632':'Malik Nabers',
  '11564':'Drake Maye','11566':'Jayden Daniels','11560':'Caleb Williams',
- '9997':'Zay Flowers','8112':'Drake London','8144':'Chris Olave'
+ '3163':'Jared Goff','6794':'Justin Jefferson','6813':'Jonathan Taylor'
 };
 for(const [id,name] of Object.entries(addedWatchPlayers)){
  const p=watch.contenders.find(player=>player.id===id);
@@ -41,13 +41,18 @@ for(const [id,name] of Object.entries(addedWatchPlayers)){
  assert.equal(p.name,name,'Use the official published player name: '+name);
  assert.equal(p.counts.length,5,'Every addition has five honest calculated progress cells');
 }
-assert.ok(!watch.contenders.some(p=>p.id==='3321'||p.name==='Tyreek Hill'),
- 'Tyreek Hill must not appear in Hall eligibility watch');
-for(const name of ['Drake London','Zay Flowers']){
- const p=watch.contenders.find(x=>x.name===name);
- assert.deepEqual(p.counts,[0,0,0,0,0],
-  'Watch selections with no qualifying achievements display accurate 0% progress: '+name);
-}
+const excludedWatchPlayers={
+ '3321':'Tyreek Hill','8112':'Drake London','9997':'Zay Flowers','8144':'Chris Olave'
+};
+for(const [id,name] of Object.entries(excludedWatchPlayers))
+ assert.ok(!watch.contenders.some(p=>p.id===id||p.name===name),
+  'Removed player must not return in the Hall watch: '+name);
+assert.deepEqual(watch.contenders.find(p=>p.id==='3163').counts,[0,0,1,2,2],
+ 'Jared Goff progress uses completed FIG seasons and current thresholds');
+assert.deepEqual(watch.contenders.find(p=>p.id==='6794').counts,[1,0,1,1,1],
+ 'Justin Jefferson 2023 has fewer than nine starts and is excluded');
+assert.deepEqual(watch.contenders.find(p=>p.id==='6813').counts,[1,0,1,1,1],
+ 'Jonathan Taylor 2023 had fewer than nine starts and does not count');
 assert.equal(watch.contenders[0].name,"Ja'Marr Chase",
  'One positional championship completes requirement two and moves Chase up the watchlist');
 assert.deepEqual(watch.contenders[0].counts,[2,1,2,3,3]);
