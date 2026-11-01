@@ -72,6 +72,18 @@ assert.equal(sampleWatch.all.find(p=>p.id==='b').seasons[0].rank,3,
  'Higher total points cannot beat higher PPG in position ranking');
 assert.ok(!sampleWatch.all.some(p=>['c','e','f'].includes(p.id)),
  'Below-nine, non-combined and incomplete rows must not enter rankings');
+// QB career consistency counts a ninth- or tenth-ranked qualified season but not eleventh.
+const qbRankSample=Array.from({length:11},(_,i)=>({
+ player_id:'rank-'+(i+1),full_name:'QB Rank '+(i+1),position:'QB',
+ season:'2025',starts:9,average_points:35-i,total_points:9*(35-i),
+ scoring_view:'All-Time Combined',season_complete:true
+}));
+const qbRankWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:qbRankSample});
+assert.equal(qbRankWatch.all.find(p=>p.id==='rank-9').counts[4],1);
+assert.equal(qbRankWatch.all.find(p=>p.id==='rank-10').counts[4],1,
+ 'QB10 now earns one top-10 qualifying season');
+assert.equal(qbRankWatch.all.find(p=>p.id==='rank-11').counts[4],0,
+ 'QB11 does not earn a top-10 qualifying season');
 // Hall season averages must match the published All-Time Combined player archive
 // exactly, including postseason starts and the original rounding convention.
 const historicalPlayers=api.playerCareers(data,m.foundingYears).byId;
@@ -157,11 +169,11 @@ const css=fs.readFileSync(path.join(root,'hall-of-fame-v244.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'hall-of-fame-v244.js'),'utf8');
 const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
-assert.match(html,/hall-of-fame-v244\.js\?v=260/);
+assert.match(html,/hall-of-fame-v244\.js\?v=261/);
 assert.match(html,/hall-of-fame-v244\.css\?v=252/);
 assert.match(html,/hall-of-fame-v242\.css\?v=253/);
-assert.match(sw,/fig-league-shell-v260/);
-assert.match(sw,/hall-of-fame-v244\.js\?v=260/);
+assert.match(sw,/fig-league-shell-v261/);
+assert.match(sw,/hall-of-fame-v244\.js\?v=261/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=252/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
 assert.doesNotMatch(js,/function legacy\(/);
@@ -193,7 +205,10 @@ assert.ok(css.includes('white-space:normal;text-transform:none'),'Contender name
 assert.match(css,/fig-hof-249-scroll/);
 assert.match(css,/fig-hof-248-ranking-rule/);
 assert.ok(css.includes('fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:nth-child(even)'),'Even positional rows must override global zebra backgrounds');
-assert.ok(js.includes("['QB','25+','TOP 8']"));
+assert.ok(js.includes("['QB','25+','TOP 10']"));
+assert.ok(js.includes('QB:{peak:25,consistent:10,elite:3,dominant:5}'));
+assert.ok(js.includes('({QB:10,RB:10,WR:10,TE:3}[p.position])'));
+assert.ok(!js.includes("'TOP 8'"),'QB consistency display must not say top 8');
 assert.ok(js.includes("['TE','15+','TOP 3']"));
 assert.match(css,/fig-hof-248-routes/);
 assert.match(css,/fig-hof-244-record-grid/);
