@@ -8,14 +8,14 @@ Season averages are evaluated with exact unrounded All-Time Combined total point
 
 | Points | QB | RB | WR | TE |
 |---:|---:|---:|---:|---:|
-| 15 | 25 | 16 | 14.5 | 13.5 |
-| 30 | 26.5 | 18.5 | 17.5 | 15 |
-| 50 | 28.5 | 19.5 | 19 | 16 |
-| 75 | 29.5 | 22.5 | 21 | 17 |
-| 110 | 32 | 26 | 24 | 18.5 |
-| 140 | 34.5 | 28 | 27 | 20.5 |
-| 175 | 37.5 | 30 | 30 | 22.5 |
-| 215 | 41 | 33 | 33 | 25 |
+| 15 | 25 | 16 | 15.5 | 13.5 |
+| 35 | 26.5 | 18.5 | 18.5 | 15 |
+| 55 | 28.5 | 19.5 | 19.5 | 16 |
+| 85 | 29.5 | 22.5 | 21.5 | 17 |
+| 120 | 32 | 26 | 25 | 18.5 |
+| 150 | 34.5 | 28 | 27.5 | 20.5 |
+| 190 | 37.5 | 30 | 30 | 22.5 |
+| 230 | 41 | 33 | 33 | 25 |
 
 ### Individual game bonuses
 Each verified FIG starting-lineup game awards only its highest scoring-band bonus, regular season or playoffs. Bench performances never count.
@@ -38,3 +38,6 @@ Both views show earned seasonal and game points, total, remaining points until 3
 Existing historical Hall plaques and the Hayden Enshrined Season remain unchanged. The former three-of-five requirement is retired.
 
 The scoring detail expansion uses vertically stacked season cards rather than a nested wide table, preventing horizontal scrolling and preserving readable dark-theme typography on narrow layouts.
+
+### Positional calibration update
+FIG recorded 2,140 WR starts compared with 1,458 RB starts through 2026 Week 7. The old position-population PPG calibration gave a typical top-ten WR an average of 12.3 more seasonal Legacy Points than a typical top-ten RB despite similar scoring. Calibrating to equal positional ranks, while allowing a smaller WR discount for additional starting opportunities, cuts that difference to four points. Reweighting the eight seasonal award amounts preserves exactly 5,825 season points, 2,513 game points, and the historical 69.86/30.14 percent split. The 350-point Hall eligibility standard and commissioner watchlist are unchanged.
