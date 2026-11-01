@@ -278,7 +278,7 @@ function lobby(m){
    Positions are ranked by average PPG after excluding all players below 9 starts. */
 function hallEligibilityWatch(d){
  const years=completedYears(d),complete=new Set(years.map(Number));
- const rules={QB:{peak:25,consistent:8,elite:3,dominant:5},
+ const rules={QB:{peak:25,consistent:10,elite:3,dominant:5},
   RB:{peak:18,consistent:10,elite:3,dominant:5},
   WR:{peak:18,consistent:10,elite:3,dominant:5},
   TE:{peak:15,consistent:3,elite:2,dominant:3}};
@@ -334,7 +334,7 @@ function hallEligibilityWatchSection(watch){
   const seasonDesc=p.seasons.filter(s=>i===0?s.rank<=(p.position==='TE'?2:3):
    i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:5):
    i===3?s.ppg>=({QB:25,RB:18,WR:18,TE:15}[p.position]):
-   s.rank<=({QB:8,RB:10,WR:10,TE:3}[p.position])).map(s=>
+   s.rank<=({QB:10,RB:10,WR:10,TE:3}[p.position])).map(s=>
    s.year+' #'+s.rank+' · '+fmt(s.ppg,2)+' PPG ('+s.starts+' starts)').join('; ');
   const tooltip=titleNames[i]+': '+count+' qualifying season'+(count===1?'':'s')+' ('+target+' required)'+(seasonDesc?' | '+seasonDesc:'');
   return '<td><div class="fig-hof-249-progress'+(done?' is-met':'')+'" title="'+esc(tooltip)+'" aria-label="'+esc(titleNames[i]+', '+(done?'met, ':'')+count+' qualifying season'+(count===1?'':'s')+', '+target+' required')+'">'+
@@ -368,7 +368,7 @@ function eligibilityPage(d){
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
   ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
  ];
- const positions=[['QB','25+','TOP 8'],['RB','18+','TOP 10'],['WR','18+','TOP 10'],['TE','15+','TOP 3']];
+ const positions=[['QB','25+','TOP 10'],['RB','18+','TOP 10'],['WR','18+','TOP 10'],['TE','15+','TOP 3']];
  return '<section class="fig-hof-content fig-hof-248-eligibility">'+
  '<nav class="fig-hof-248-back" aria-label="Hall of Fame section"><a href="#/hall-of-fame">← RETURN TO THE HALL</a><span>HALL OF FAME / PLAYER NOMINATIONS</span></nav>'+
  '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD FOR FUTURE INDUCTEES</span>'+
