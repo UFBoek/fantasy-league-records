@@ -65,3 +65,5 @@
 .hoflp-note{color:#b1c0c7;font:500 11px/1.8 Inter,Arial,sans-serif;margin:14px 0}
 @media(max-width:850px){.hoflp-hero{grid-template-columns:1fr}.hoflp-principles{grid-template-columns:1fr}}
 @media(max-width:699px){.hoflp-page{padding-left:16px;padding-right:16px}.hoflp-hero{margin:24px 0 48px}.hoflp-hero>div{padding:24px 20px}.hoflp-rule{margin-bottom:42px}.hoflp-principles{margin-bottom:55px}.hoflp-controls{gap:9px}.hoflp-tabs{box-sizing:border-box;width:100%}.hoflp-tabs button{flex:1;font-size:9px;padding:10px 6px}.hoflp-controls input{flex:1;min-width:0}.hoflp-controls select{width:117px}.hoflp-page .hoflp-rules-table th,.hoflp-page .hoflp-rules-table td{padding:13px 12px}.hoflp-leaderboard{min-width:770px}}
+
+.hoflp-page .hoflp-player a{text-transform:none!important}

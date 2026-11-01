@@ -120,7 +120,7 @@ const {chromium}=require('playwright');
    assert.match(await page.locator('.hoflp-page').innerText(),/at least eight official FIG starts/);
    const rows=page.locator('.hoflp-leaderboard > tbody > tr');
    assert.equal(await rows.count(),36);
-   const names=await rows.locator('.hoflp-player a').allInnerTexts();
+   const names=await rows.locator('.hoflp-player a').evaluateAll(links=>links.map(a=>a.textContent.trim()));
    for(const n of ['Josh Allen','Puka Nacua','Jaxon Smith-Njigba','James Cook III','Tetairoa McMillan','Bryce Young'])
     assert.ok(names.includes(n),'Watch includes '+n);
    for(const n of ['Derrick Henry','Tyreek Hill','Travis Kelce'])
@@ -129,7 +129,7 @@ const {chromium}=require('playwright');
    assert.ok(await rows.first().locator('.hoflp-detail tbody tr').count()>=3);
    await page.locator('[data-hoflp-scope="all"]').click();
    assert.equal(await rows.count(),386);
-   assert.ok((await rows.locator('.hoflp-player a').allInnerTexts()).includes('Derrick Henry'));
+   assert.ok((await rows.locator('.hoflp-player a').evaluateAll(links=>links.map(a=>a.textContent.trim()))).includes('Derrick Henry'));
    await page.locator('[data-hoflp-pos]').selectOption('TE');
    assert.equal(await rows.count(),56);
    await page.locator('[data-hoflp-search]').fill('McBride');
