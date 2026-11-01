@@ -1,7 +1,7 @@
 /* FIG Legacy Points. Fixed positional bands; cumulative official FIG starts. */
 (function(){
 'use strict';
-const THRESHOLD=300,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
+const THRESHOLD=350,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
 const SEASONS=[
 [15,25,16,14.5,13.5],[30,26.5,18.5,17.5,15],[50,28.5,19.5,19,16],
 [75,29.5,22.5,21,17],[110,32,26,24,18.5],[140,34.5,28,27,20.5],
@@ -101,7 +101,7 @@ function html(m){
  '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD OF GREATNESS</span>'+
  '<h1>Legacy <em>Points.</em></h1><p>Every exceptional season builds a career legacy. Every unforgettable individual performance matters. Eligibility earns consideration, never automatic induction.</p></header>'+
  '<div class="hoflp-hero"><div><span class="fig-hof-eyebrow">HALL OF FAME ELIGIBILITY</span>'+
- '<strong>300</strong><b>CAREER LEGACY POINTS</b>'+
+ '<strong>'+THRESHOLD+'</strong><b>CAREER LEGACY POINTS</b>'+
  '<p>One eligibility standard for every position. Josh Allen and Puka Nacua remain permanently enshrined as the founding class.</p></div>'+
  '<div class="hoflp-share"><div><strong>'+(m.ratio*100).toFixed(1)+'%</strong><span>SEASON POINTS</span></div>'+
  '<div><strong>'+((1-m.ratio)*100).toFixed(1)+'%</strong><span>GAME BONUSES</span></div>'+
@@ -127,7 +127,7 @@ function html(m){
  POSITIONS.map(p=>'<option>'+p+'</option>').join('')+'</select></div>'+
  '<div class="hoflp-scroll" role="region" aria-label="Legacy Points leaderboard" tabindex="0">'+
  '<table class="hoflp-leaderboard"><thead><tr><th>#</th><th>PLAYER</th><th>SEASON</th><th>GAMES</th>'+
- '<th>TOTAL</th><th>TO 300</th><th>2026 PENDING</th></tr></thead><tbody data-hoflp-rows>'+
+ '<th>TOTAL</th><th>TO '+THRESHOLD+'</th><th>2026 PENDING</th></tr></thead><tbody data-hoflp-rows>'+
  m.watch.map(playerRow).join('')+'</tbody></table></div>'+
  '<p class="hoflp-count" data-hoflp-count>SHOWING '+m.watch.length+' WATCHLIST PLAYERS</p>'+
  '<p class="hoflp-note">The watchlist preserves commissioner selections and exclusions. ALL PLAYERS includes everyone, even players removed from the watch. Incomplete 2026 PPG award previews are conditional on maintaining the average and reaching eight starts at season completion. Current game bonuses are earned immediately as verified results publish.</p></section>'+

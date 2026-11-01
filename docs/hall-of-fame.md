@@ -1,7 +1,7 @@
 # FIG Hall of Fame: Legacy Points
 
 ## Eligibility
-The Hall uses **300 career Legacy Points** for QB, RB, WR and TE. Eligibility earns a nomination opportunity, not automatic induction. Josh Allen and Puka Nacua remain the founding class, and Hayden 2025 remains separately enshrined.
+The Hall uses **350 career Legacy Points** for QB, RB, WR and TE. Eligibility earns a nomination opportunity, not automatic induction. Josh Allen and Puka Nacua remain the founding class, and Hayden 2025 remains separately enshrined.
 
 ### Completed-season PPG awards
 Season averages are evaluated with exact unrounded All-Time Combined total points / FIG starts. The player must have at least **eight FIG starts in a completed season**. Only the highest earned tier counts.
@@ -33,7 +33,7 @@ Across FIG's 2023 through 2026 Week 7 data, the model yields 5,825 points from c
 ## Watchlist and leaderboard
 The **Eligibility & Nomination** page at `#/hall-of-fame/eligibility` shows the 36 established watch candidates, including the founders and all commissioner additions. It preserves commissioner exclusions from the curated watch, while the searchable **All Players** view includes every player, even those excluded from the watch.
 
-Both views show earned seasonal and game points, total, remaining points until 300, current-year pending season award, and an expandable year-by-year scoring breakdown. The in-progress PPG preview is not earned or included in the total until the season is complete and eight starts have been recorded. All values are derived from the published `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, so verified updates flow automatically to the site.
+Both views show earned seasonal and game points, total, remaining points until 350, current-year pending season award, and an expandable year-by-year scoring breakdown. The in-progress PPG preview is not earned or included in the total until the season is complete and eight starts have been recorded. All values are derived from the published `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, so verified updates flow automatically to the site.
 
 Existing historical Hall plaques and the Hayden Enshrined Season remain unchanged. The former three-of-five requirement is retired.
 

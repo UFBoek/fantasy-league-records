@@ -6,11 +6,14 @@ const win={figHallOfFame:async()=>{}};
 new Function('window',fs.readFileSync(path.join(root,'hall-of-fame-legacy-v245.js'),'utf8'))(win);
 const api=win.figHallLegacy;
 const m=api.calculate({league:read('league_history'),playerSeasons:read('player_seasons'),playerLog:read('player_game_log')});
-assert.equal(api.THRESHOLD,300);assert.equal(api.MIN_STARTS,8);
+assert.equal(api.THRESHOLD,350);assert.equal(api.MIN_STARTS,8);
 assert.equal(m.all.length,386);assert.equal(m.watch.length,36);
 assert.equal(m.season,5825);assert.equal(m.games,2513);
 assert.ok(m.ratio>.698&&m.ratio<.700);
-assert.deepEqual(m.eligible.map(p=>p.name),["Ja'Marr Chase",'Christian McCaffrey','Josh Allen']);
+assert.equal(m.eligible.length,0,'No player has reached 350 earned points yet');
+assert.equal(m.all[0].name,"Ja'Marr Chase");
+assert.equal(m.all[0].remaining,24);
+assert.ok(m.all.every(p=>p.eligible===(p.total>=350)));
 const totals=[['7564',326],['4034',305],['4984',304],['9493',269],
  ['8130',228],['6786',224],['9221',219],['9488',169],['11604',172]];
 for(const [id,total] of totals)assert.equal(m.all.find(p=>p.id===id)?.total,total,id);
