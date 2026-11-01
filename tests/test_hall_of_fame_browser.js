@@ -126,6 +126,7 @@ const {chromium}=require('playwright');
    assert.match(pathText,/Every requirement, including #2, counts as one/);
    assert.match(pathText,/No individual requirement qualifies a player by itself/);
    assert.doesNotMatch(pathText,/qualifies a player on its own|exception/i);
+   assert.match(await requirements.nth(1).innerText(),/One completed season finishing #1 in positional PPG/);
    assert.match(await requirements.nth(1).innerText(),/Counts as one of the five required benchmarks/);
    const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
    assert.ok(criteria.includes('at least 9 official FIG starts'));
@@ -157,15 +158,17 @@ const {chromium}=require('playwright');
    const candidates=watchTable.locator('tbody tr');
    assert.equal(await candidates.count(),18,'Display closest 18 candidates based on official history');
    const firstCandidate=await candidates.first().innerText();
-   assert.ok(firstCandidate.includes('Christian McCaffrey'),'CMC leads the historical watch');
-   assert.ok(firstCandidate.includes('2 OF 5 MET'),'Two top RB finishes do not independently qualify CMC');
+   assert.ok(firstCandidate.includes("Ja'Marr Chase"),'Chase leads after one positional championship satisfies #2');
+   assert.ok(firstCandidate.includes('2 OF 5 MET'),'One positional title still does not automatically qualify Chase');
+   assert.ok(await candidates.first().locator('td').nth(1).innerText().then(t=>t.includes('1 / 1 SEASONS')),
+    'One positional championship satisfies the positional supremacy benchmark');
    assert.equal(await candidates.first().locator('.fig-hof-249-progress.is-met').count(),2);
    assert.ok(await candidates.first().locator('td').nth(2).innerText().then(t=>t.includes('67%')),
-    'CMC has two out of three sustained dominance seasons');
-   assert.ok(await candidates.first().locator('td').nth(3).innerText().then(t=>t.includes('50%')),
-    'CMC has two out of four sustained excellence seasons');
-   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('40%')),
-    'CMC has two out of five career consistency seasons');
+    'Chase has two out of three sustained dominance seasons');
+   assert.ok(await candidates.first().locator('td').nth(3).innerText().then(t=>t.includes('75%')),
+    'Chase has three out of four sustained excellence seasons');
+   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('60%')),
+    'Chase has three out of five career consistency seasons');
    const chartText=await watchTable.innerText();
    assert.ok(!chartText.includes('Josh Allen')&&!chartText.includes('Puka Nacua'),
     'Founders remain inducted, not placed on a candidate watchlist');
@@ -173,7 +176,7 @@ const {chromium}=require('playwright');
    const matrixSize=await page.locator('.fig-hof-249-scroll').evaluate(el=>({
     content:el.scrollWidth,viewport:el.clientWidth}));
    assert.ok(matrixSize.content>=matrixSize.viewport,'Eligibility matrix must fit or scroll within its region');
-   assert.equal(await candidates.first().locator('.fig-hof-249-player').getAttribute('href'),'#/player/4034',
+   assert.equal(await candidates.first().locator('.fig-hof-249-player').getAttribute('href'),'#/player/7564',
     'Watch player links to existing player archive');
    const eligibilityDims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
    assert.ok(eligibilityDims.scrollWidth<=eligibilityDims.clientWidth+3,
