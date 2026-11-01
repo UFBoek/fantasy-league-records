@@ -60,6 +60,10 @@ assert.ok(Math.abs(other[1].earned-150.25)<1e-10,'sum available starter scores i
 assert.deepEqual(scoreStates([{roster_id:1,starters:boq,points:null}],{}),{},
  'missing live score inputs should not create false earned-point floors');
 
+const gaps=scoreStates([{roster_id:9,starters:[...boq.slice(0,8),null,null],points:23.5}],
+ Object.fromEntries(boq.slice(0,8).map(id=>[id,{phase:'FINAL'}])));
+assert.equal(gaps[9].allFinal,true);
+assert.equal(gaps[9].earned,23.5);
 const app=file('playoff-calculator-v167.js');
 assert.match(app,/window\.figPlayoffScoreBounds\.scoreStates\(currentWeekLineups,liveActuals\)/,
  'derive team earned scores directly from LIVE Sleeper matchups');
@@ -71,5 +75,5 @@ assert.match(app,/delete s\.weekScoreState/,'clear old live state when week adva
 const html=file('index.html'),sw=file('sw.js');
 assert.ok(html.indexOf('playoff-live-score-bounds-v203.js')<
   html.indexOf('playoff-calculator-v167.js'));
-assert.match(sw,/playoff-live-score-bounds-v203\.js\?v=203/);
+assert.match(sw,/playoff-live-score-bounds-v203\.js\?v=283/);
 console.log('Live earned point floors, finished opponent 0%, active comeback, and Monte Carlo tests passed');

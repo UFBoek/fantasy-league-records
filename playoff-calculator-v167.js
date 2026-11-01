@@ -150,7 +150,7 @@
        });
        // Shared estimate consumed by both the simulator and the drilldown.
        Object.keys(liveActuals).forEach(function(pid){
-         var score=snapshot.players[pid],pregame=score&&score.projection;
+         var score=snapshot.players[pid],pregame=score&&Number(score.games)>0?score.projection:0;
          liveActuals[pid].expected=window.figPlayoffLivePoints.projectedContribution(
            pregame===null||pregame===undefined?null:pregame,liveActuals[pid]
          );
@@ -177,7 +177,7 @@
        var forecast=window.figPlayoffLiveForecast&&starters?
          window.figPlayoffLiveForecast.estimate({
            pregameMean:pregameMean,baselineSD:s.sd,starterTotal:result.starterTotal,
-           starters:starters.starters,players:snapshot.players,live:liveActuals,
+           starters:result.starters,players:snapshot.players,live:liveActuals,
            actualSum:result.liveActualSum
          }):null;
        s.lineupDelta=pregameDelta;
@@ -197,7 +197,15 @@
      console.warn('Starter-informed playoff projection unavailable:',error);
    }
  }
- async function loadSchedule(){
+ function usableStarterSlots(row){
+    var ids=row&&Array.isArray(row.starters)?row.starters:[];
+    if(!ids.length||ids.length>10)return false;
+    var filled=ids.filter(function(id){
+      return id!==null&&id!==undefined&&!['','0','null','undefined'].includes(String(id).trim().toLowerCase());
+    }).map(String);
+    return new Set(filled).size===filled.length;
+  }
+  async function loadSchedule(){
    currentWeekLineups=null;lineupSource=null;
    // Hourly published Sleeper roster snapshot is a verified fallback if
    // browser-to-Sleeper matchup requests are unavailable or incomplete.
@@ -213,7 +221,7 @@
        var rows=await response.json();
        pairs=parseSleeper(rows);
        if(w===firstWeek&&modelWeekIsReady()&&pairs&&
-         rows.every(function(row){return Array.isArray(row.starters)&&row.starters.length===10&&new Set(row.starters.map(String)).size===10;})){
+         rows.every(usableStarterSlots)){
          currentWeekLineups=rows;lineupSource='LIVE';
        }
      }catch(e){console.warn('Sleeper schedule Week '+w+': '+e.message);}
@@ -230,12 +238,15 @@
        grouped[id].push(r);
      });
      var backup=standings.map(function(t){
-       var starters=(grouped[t.id]||[]).sort(function(a,b){return +a.lineup_order-(+b.lineup_order);})
-         .map(function(r){return String(r.player_id);});
-       return {roster_id:t.id,starters:starters};
+       var starters=Array(10).fill(null);
+        (grouped[t.id]||[]).forEach(function(entry){
+          var index=Number(entry.lineup_order)-1;
+          if(Number.isInteger(index)&&index>=0&&index<10)starters[index]=String(entry.player_id);
+        });
+        return {roster_id:t.id,starters:starters};
      });
      if(backup.length===10&&backup.some(function(r){
-       return r.starters.length===10&&new Set(r.starters).size===10;
+       return r.starters.some(function(pid){return pid!==null;});
      })){
        currentWeekLineups=backup;lineupSource='ROSTER SNAPSHOT';
      }
@@ -256,7 +267,7 @@
        '/matchups/'+firstWeek,{cache:'no-store'});
      if(!res.ok)throw Error('Sleeper HTTP '+res.status);
      var rows=await res.json(),pairs=parseSleeper(rows);
-     if(pairs&&rows.every(function(p){return Array.isArray(p.starters)&&p.starters.length===10;})){
+     if(pairs&&rows.every(usableStarterSlots)){
        currentWeekLineups=rows;lineupSource='LIVE';
        await applyCurrentLineups();
        if(root&&root.isConnected&&location.hash.startsWith('#/playoff-calculator')){
@@ -826,7 +837,7 @@
          '</details>':'')+
        '</div>';
      var unavailable=starters.length!==10?'<div class="pcl-warning">Ten valid starters could not be verified. The standard team projection is being used.</div>':
-       !valid?'<div class="pcl-warning">One or more starters have no completed '+year+' scoring history, or the lineup baseline is unavailable. No lineup adjustment was applied.</div>':'';
+       !valid?'<div class="pcl-warning">Insufficient completed prior lineups for the team baseline. No lineup adjustment was applied.</div>':'';
      return '<section class="pcl-model-team">'+label+stats+
        '<div class="pcl-model-player-heading"><span>STARTING LINEUP</span><span>70% LAST 8 · 30% LAST 3</span></div>'+
        '<div class="pcl-model-players">'+(rows||'<div class="pcl-warning">No current starters available.</div>')+'</div>'+

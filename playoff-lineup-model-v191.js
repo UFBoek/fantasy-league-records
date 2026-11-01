@@ -16,48 +16,46 @@
 
     const projections=playerScores.players,previous=playerScores.previous_lineups;
     const live=liveOverrides&&typeof liveOverrides==='object'?liveOverrides:{};
-    function projectedTotal(ids,useLive) {
-      if(!Array.isArray(ids)||ids.length!==10||new Set(ids).size!==10)return null;
+    const empty=id=>id===null||id===undefined||['','0','null','undefined'].includes(String(id).trim().toLowerCase());
+    function normalize(ids){
+      if(!Array.isArray(ids)||!ids.length||ids.length>10)return null;
+      const slots=ids.map(id=>empty(id)?'':String(id));
+      if(new Set(slots.filter(Boolean)).size!==slots.filter(Boolean).length)return null;
+      while(slots.length<10)slots.push('');
+      return slots;
+    }
+    function projectedTotal(ids,useLive){
+      const starters=normalize(ids);
+      if(!starters)return null;
       let total=0;
-      for(const player of ids) {
-        const override=useLive?live[String(player)]:null;
-        if(override) {
-          // Only completed NFL games may replace full-game projections with
-          // raw Sleeper points. In-progress games contribute ACTUAL +
-          // PROJECTED REMAINDER, supplied by the shared clock-aware helper.
-          const expected=override.expected!==null&&override.expected!==undefined?
-            Number(override.expected):NaN;
+      for(const player of starters){
+        if(!player)continue;
+        const override=useLive?live[player]:null;
+        if(override){
+          const expected=override.expected!==null&&override.expected!==undefined?Number(override.expected):NaN;
           if(Number.isFinite(expected)){total+=expected;continue;}
-          if(override.phase==='FINAL'&&override.points!==null&&
-             override.points!==undefined&&Number.isFinite(Number(override.points))){
+          if(override.phase==='FINAL'&&override.points!==null&&override.points!==undefined&&Number.isFinite(Number(override.points))){
             total+=Number(override.points);continue;
           }
         }
-        const score=projections[String(player)];
-        // Missing NFL scoring history must not be interpreted as 0 PPG.
-        // Sleeper's current-week forecast is an explicit backup only when a
-        // player has no played NFL games this season.
-        const projected=score&&score.projection!==null?Number(score.projection):NaN;
-        const played=score&&Number(score.games)>0;
-        const sleeperOnly=score&&score.source==='sleeper_projection';
-        if(!Number.isFinite(projected)||(!played&&!sleeperOnly))return null;
-        total+=Number(score.projection);
+        const score=projections[player];
+        // No NFL scoring history: zero, even if a Sleeper forecast exists.
+        if(!score||!(Number(score.games)>0))continue;
+        const value=score.projection===null||score.projection===undefined?NaN:Number(score.projection);
+        if(!Number.isFinite(value))return null;
+        total+=value;
       }
       return total;
     }
 
     const adjusted={},seen=new Set();
     for(const row of rows) {
-      const team=Number(row.roster_id),starters=Array.isArray(row.starters)?row.starters.map(String):[];
+      const team=Number(row.roster_id),starters=normalize(row.starters);
       if(!Number.isInteger(team)||team<1||team>10||seen.has(team))return {};
       seen.add(team);
-      if(starters.length!==10||new Set(starters).size!==10||
-         starters.some(id=>!id||id==='0'||id==='null')){
-        // A carried-forward roster snapshot can contain fewer than 10
-        // starters after Week 7 finalizes. Do not invalidate the other
-        // nine teams or manufacture lineup spots. Keep strict live validation.
+      if(!starters){
         if(!allowIncomplete)return {};
-        adjusted[team]={delta:0,historyWeeks:0,available:false};
+        adjusted[team]={delta:0,historyWeeks:0,available:false,starters:[]};
         continue;
       }
       const past=Array.isArray(previous[String(team)])?previous[String(team)].slice(0,3):[];
@@ -78,7 +76,7 @@
       const delta=clamp(0.7*(current-typical),-30,30);
       const pregameDelta=clamp(0.7*(pregame-typical),-30,30);
       adjusted[team]={delta,pregameDelta,pregameStarterTotal:pregame,
-        starterTotal:current,typicalTotal:typical,
+        starterTotal:current,typicalTotal:typical,starters,
         historyWeeks:past.length,available:true,
         liveActualCount:actualStarters.length,liveActualSum};
     }

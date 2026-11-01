@@ -10,13 +10,18 @@
  function scoreStates(matchups,live){
    const states={},overrides=live||{};
    for(const row of (Array.isArray(matchups)?matchups:[])){
-     const id=Number(row.roster_id),starters=Array.isArray(row.starters)?row.starters.map(String):[];
-     if(!Number.isInteger(id)||starters.length!==10||new Set(starters).size!==10)continue;
+     const id=Number(row.roster_id),raw=Array.isArray(row.starters)?row.starters:[];
+     if(!Number.isInteger(id)||!raw.length||raw.length>10)continue;
+     const empty=pid=>pid===null||pid===undefined||['','0','null','undefined'].includes(String(pid).trim().toLowerCase());
+     const starters=raw.map(pid=>empty(pid)?'':String(pid));
+     if(new Set(starters.filter(Boolean)).size!==starters.filter(Boolean).length)continue;
+     while(starters.length<10)starters.push('');
      const points=row.players_points&&typeof row.players_points==='object'?row.players_points:{};
      const slots=Array.isArray(row.starters_points)?row.starters_points:[];
      let sum=0,known=0,active=0,finalCount=0;
      for(let i=0;i<starters.length;i++){
        const pid=starters[i];
+       if(!pid){known++;finalCount++;continue;}
        const raw=Object.prototype.hasOwnProperty.call(points,pid)?points[pid]:slots[i];
        const value=numeric(raw);
        if(value!==null){sum+=value;known++;}

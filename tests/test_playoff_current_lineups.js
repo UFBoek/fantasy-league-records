@@ -36,24 +36,30 @@ assert.equal(adjusted[1].historyWeeks,3);
 const unknown=fixture();
 unknown.matchups[0].starters[0]='rookie-with-no-games';
 const uncertain=calculate(unknown);
-assert.equal(uncertain[1].delta,0,'unknown player should not be treated as zero PPG');
-assert.equal(uncertain[1].available,false);
-assert.equal(uncertain[2].available,true,'other teams still get valid adjustments');
+assert.equal(uncertain[1].available,true);
+assert.equal(uncertain[1].starterTotal,108,'no-history player scores zero');
+assert.ok(Math.abs(uncertain[1].delta+19.6)<1e-8);
+assert.equal(uncertain[2].available,true);
 
 const sleeperFallback=fixture();
 sleeperFallback.matchups[0].starters[0]='zero-history-waiver';
-sleeperFallback.playerScores.players['zero-history-waiver']={
-  projection:11.5,last8_avg:null,last3_avg:null,games:0,source:'sleeper_projection'
-};
-const fallbackResult=calculate(sleeperFallback);
-assert.equal(fallbackResult[1].available,true,
- 'Sleeper projection must keep starter-informed matchup model active for unrostered acquisitions');
-assert.ok(Math.abs(fallbackResult[1].delta-(-11.55))<0.00001,
- 'current-week Sleeper projection contributes to lineup adjustment');
+sleeperFallback.playerScores.players['zero-history-waiver']={projection:11.5,games:0,source:'sleeper_projection'};
+assert.equal(calculate(sleeperFallback)[1].starterTotal,108,'ignore Sleeper backup for no-history player');
+
+const empty=fixture();
+empty.matchups[0].starters[0]=null;
+empty.matchups[0].starters[1]='0';
+assert.equal(calculate(empty)[1].starterTotal,96,'two empty spots score zero');
+assert.equal(calculate(empty)[1].available,true);
+
+const nine=fixture();
+nine.matchups[0].starters.pop();
+assert.equal(calculate(nine)[1].starterTotal,124,'short starter list is padded with zero');
+assert.equal(calculate(nine)[1].starters.length,10);
 
 const invalid=fixture();
-invalid.matchups[0].starters.pop();
-assert.deepEqual(calculate(invalid),{},'incomplete Sleeper lineups fall back');
+invalid.matchups[0].starters[0]=invalid.matchups[0].starters[1];
+assert.deepEqual(calculate(invalid),{},'duplicate filled starters remain invalid');
 assert.deepEqual(calculate({...fixture(),week:8}),{},'stale week snapshot must be rejected');
 assert.deepEqual(calculate({...fixture(),matchups:fixture().matchups.slice(1)}),{});
 
