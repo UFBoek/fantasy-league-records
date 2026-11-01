@@ -164,19 +164,25 @@ const {chromium}=require('playwright');
    const candidates=watchTable.locator('tbody tr');
    assert.equal(await candidates.count(),26,'Historical watchlist expanded to include nine selected players');
    const selectedNames=['James Cook III',"De'Von Achane",'Malik Nabers','Drake Maye',
-    'Jayden Daniels','Caleb Williams','Zay Flowers','Drake London','Chris Olave'];
+    'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor'];
    const candidateNames=await candidates.locator('.fig-hof-249-player strong').allInnerTexts();
    for(const player of selectedNames)
     assert.ok(candidateNames.includes(player),'Selected watch player should appear: '+player);
-   assert.ok(!candidateNames.includes('Tyreek Hill'),'Tyreek Hill is excluded from the watch');
+   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave'])
+    assert.ok(!candidateNames.includes(player),'Removed watch player should be excluded: '+player);
    assert.ok(candidateNames.includes("Ja'Marr Chase")&&candidateNames.includes('Christian McCaffrey'),
     'Historical contenders remain available');
-   for(const player of ['Zay Flowers','Drake London']){
-    const row=candidates.filter({has:page.locator('.fig-hof-249-player strong', {hasText:player})});
-    assert.equal(await row.count(),1,'Included player remains visible with no prior benchmark');
+   const newPlayerCounts=[
+    ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 4 SEASONS']],
+    ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
+    ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']]
+   ];
+   for(const [player,expected] of newPlayerCounts){
+    const row=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:player})});
+    assert.equal(await row.count(),1,'Added candidate must have one row: '+player);
     assert.equal(await row.locator('.fig-hof-249-progress.is-met').count(),0);
-    assert.ok((await row.locator('.fig-hof-249-progress strong').allInnerTexts()).every(t=>t==='0%'),
-     'Do not fabricate completed benchmarks for '+player);
+    const actual=await row.locator('td .fig-hof-249-progress span').allInnerTexts();
+    assert.deepEqual(actual,expected,'Completed FIG season progress must be correct for '+player);
    }
    const firstCandidate=await candidates.first().innerText();
    assert.ok(firstCandidate.includes("Ja'Marr Chase"),'Chase leads after one positional championship satisfies #2');
