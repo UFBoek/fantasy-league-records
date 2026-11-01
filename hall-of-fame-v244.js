@@ -322,8 +322,8 @@ function hallEligibilityWatch(d){
  // Keep the established historical shortlist, with commissioner-selected emerging
  // players included even before they rise into the automatic historical top 18.
  // Player IDs keep identities stable when Sleeper names (e.g., James Cook III) vary.
- const watchAdditions=new Set(['9488','9226','11632','11564','11566','11560','3163','6794','6813','8138']);
- const watchExclusions=new Set(['3321','8112','9997','8144','5859']); // Commissioner-excluded watch players remain excluded from automatic selections.
+ const watchAdditions=new Set(['9488','9226','11632','11564','11566','11560','3163','6794','6813','8138','8183','6770','8150','12527','8137','9758','8151','6801','12526','6804','7523','9228']);
+ const watchExclusions=new Set(['3321','8112','9997','8144','5859','4035','3198','4866','1466']); // Commissioner-excluded watch players remain excluded from automatic selections.
  const candidatePool=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)));
  const established=candidatePool.filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
   .slice(0,18).filter(p=>!watchExclusions.has(p.id));
