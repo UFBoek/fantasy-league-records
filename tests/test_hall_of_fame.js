@@ -63,7 +63,7 @@ const lamar=watch.contenders.find(p=>p.name==='Lamar Jackson');
 assert.equal(lamar.counts[1],1,'Lamar has one #1 QB season');
 assert.equal(lamar.targets[1],1,'One #1 season satisfies positional supremacy');
 assert.equal(lamar.met,1,'One positional championship is not automatic nomination');
-assert.ok(!watch.contenders.some(p=>p.eligible),'The four-of-five requirement remains intact');
+assert.ok(!watch.contenders.some(p=>p.eligible),'The three-of-five requirement remains intact');
 assert.ok(watch.contenders.every(p=>!['4984','9493'].includes(p.id)),
  'Founding inductees must not be presented as future nomination candidates');
 assert.ok(watch.contenders.every(p=>p.met===p.counts.filter((n,i)=>n>=p.targets[i]).length));
@@ -102,6 +102,34 @@ assert.equal(qbRankWatch.all.find(p=>p.id==='rank-10').counts[4],1,
  'QB10 now earns one top-10 qualifying season');
 assert.equal(qbRankWatch.all.find(p=>p.id==='rank-11').counts[4],0,
  'QB11 does not earn a top-10 qualifying season');
+// The new PPG floors apply at the boundary in both the matrix and watch calculations.
+const floorTest=[
+ ['RB',17,1],['RB',16.99,0],['WR',17,1],['WR',16.99,0],
+ ['TE',14,1],['TE',13.99,0],['QB',25,1],['QB',24.99,0]
+].map(([position,ppg,expected],i)=>({
+ player_id:'floor-'+i,full_name:'Floor '+i,position,season:'2025',
+ starts:9,average_points:ppg,total_points:ppg*9,
+ scoring_view:'All-Time Combined',season_complete:true
+}));
+const floorWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:floorTest});
+for(let i=0;i<floorTest.length;i++){
+ const p=floorWatch.all.find(p=>p.id==='floor-'+i);
+ assert.equal(p.counts[3],i%2===0?1:0,
+  floorTest[i].position+' threshold must use updated required PPG');
+}
+// Three completed #1 seasons satisfy benchmarks 1, 2 and 3, not 4 or 5.
+const peakThree=['2023','2024','2025'].map(year=>({
+ player_id:'dominant-qb',full_name:'Three Season QB',position:'QB',
+ season:year,starts:9,average_points:30,total_points:270,
+ scoring_view:'All-Time Combined',season_complete:true
+}));
+const peakWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:peakThree});
+const peakPlayer=peakWatch.all.find(p=>p.id==='dominant-qb');
+assert.deepEqual(peakPlayer.counts,[3,3,3,3,3]);
+assert.equal(peakPlayer.met,3,'Three distinct milestones can be completed without four total seasons');
+assert.equal(peakPlayer.eligible,true,'Three of five must now qualify for nomination');
+assert.ok(watch.contenders.every(p=>p.eligible===(p.met>=3)),
+ 'All watch eligibility flags must use three-of-five');
 // Hall season averages must match the published All-Time Combined player archive
 // exactly, including postseason starts and the original rounding convention.
 const historicalPlayers=api.playerCareers(data,m.foundingYears).byId;
@@ -203,7 +231,7 @@ assert.ok(js.includes('function eligibilityPage(d)'),'Nomination standards have 
 assert.ok(js.includes("view==='eligibility'?eligibilityPage(ctx.DATA)"),'Hall route renders eligibility separately from the lobby');
 assert.ok(js.includes('#/hall-of-fame/eligibility'),'Hall lobby links to nomination requirements');
 assert.ok(js.includes('Positional Supremacy'));
-assert.ok(js.includes('4 <small>OF</small> 5'));
+assert.ok(js.includes('3 <small>OF</small> 5'));
 assert.doesNotMatch(js,/THE SUPREMACY EXCEPTION|fig-hof-248-route-alt/);
 assert.ok(js.includes('Every requirement, including #2, counts as one.'));
 assert.ok(js.includes('No individual requirement qualifies a player by itself.'));
@@ -227,7 +255,13 @@ assert.ok(js.includes("['QB','25+','TOP 10']"));
 assert.ok(js.includes('QB:{peak:25,consistent:10,elite:3,dominant:5}'));
 assert.ok(js.includes('({QB:10,RB:10,WR:10,TE:3}[p.position])'));
 assert.ok(!js.includes("'TOP 8'"),'QB consistency display must not say top 8');
-assert.ok(js.includes("['TE','15+','TOP 3']"));
+assert.ok(js.includes("['RB','17+','TOP 10']"));
+assert.ok(js.includes("['WR','17+','TOP 10']"));
+assert.ok(js.includes("['TE','14+','TOP 3']"));
+assert.ok(js.includes('eligible:met>=3'));
+assert.ok(js.includes('({QB:25,RB:17,WR:17,TE:14}[p.position])'));
+assert.ok(!js.includes('eligible:met>=4'));
+assert.doesNotMatch(js,/four-of-five nomination standard|at least four of the five requirements/);
 assert.match(css,/fig-hof-248-routes/);
 assert.match(css,/fig-hof-244-record-grid/);
 assert.match(css,/fig-hof-247-notable-tags/);
