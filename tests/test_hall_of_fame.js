@@ -26,6 +26,38 @@ assert.ok(m.inductees.every(x=>x.inductionYear===2026));
 assert.ok(m.inductees.every(x=>x.career.seasons.some(s=>s.year===2025&&s.starts>0)));
 assert.ok(m.inductees.every(x=>x.career.seasons.length===3));
 assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the induction case, not an auto-generated weighted point formula');
+// Eligibility is an independent candidate screen, not a fourth induction gate.
+const eligible=api.screenHallEligibility(data,m.foundingYears);
+assert.deepEqual(eligible.map(p=>p.name),[
+ 'Dak Prescott','Josh Allen','Christian McCaffrey','Jahmyr Gibbs',
+ 'Brock Bowers','Travis Kelce',"Ja'Marr Chase",'Puka Nacua'
+], 'Two top-three positional seasons are enough to qualify with ten FIG starts each');
+const cmcEligible=eligible.find(p=>p.name==='Christian McCaffrey');
+assert.deepEqual(cmcEligible.paths,['Elite Production']);
+assert.deepEqual(cmcEligible.finishes.filter(f=>f.rank<=3).map(f=>f.year),[2023,2025]);
+assert.equal(eligible.find(p=>p.name==='Dak Prescott').paths.includes('Elite Production'),true);
+assert.deepEqual(m.inductees.map(p=>p.id),ids,'Eligibility must not automatically induct candidates');
+// The other routes must work without satisfying the two-top-three route.
+const mockRow=(id,name,position,year,ppg,starts=10)=>({
+ player_id:String(id),full_name:name,position,season:String(year),
+ scoring_view:'All-Time Combined',season_complete:true,average_points:ppg,starts
+});
+const sample=[];
+for(const year of [2023,2024,2025]){
+ const ppg=year===2023?36:20;
+ sample.push(mockRow('dominant','Dominance candidate','QB',year,ppg));
+ if(year!==2023)for(let i=0;i<3;i++)
+   sample.push(mockRow('fill-qb-'+year+'-'+i,'Other QB','QB',year,30-i));
+}
+for(const year of [2023,2024,2025,2026]){
+ sample.push(mockRow('durable','Sustained candidate','RB',year,20,13));
+ for(let i=0;i<3;i++)sample.push(mockRow('fill-rb-'+year+'-'+i,'Other RB','RB',year,30-i,13));
+}
+sample.push(mockRow('short','Short sample','TE',2023,99,9));
+const alternate=api.screenHallEligibility({playerSeasons:sample},[2023,2024,2025,2026]);
+assert.deepEqual(alternate.find(p=>p.id==='dominant')?.paths,['Positional Dominance']);
+assert.deepEqual(alternate.find(p=>p.id==='durable')?.paths,['Sustained Greatness']);
+assert.ok(!alternate.some(p=>p.id==='short'),'Fewer than ten starts do not create a qualifying finish');
 // Hall season averages must match the published All-Time Combined player archive
 // exactly, including postseason starts and the original rounding convention.
 const historicalPlayers=api.playerCareers(data,m.foundingYears).byId;
