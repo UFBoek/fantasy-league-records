@@ -107,12 +107,19 @@ const {chromium}=require('playwright');
     assert.ok(texts.some(s=>s.includes(category)));
    assert.equal(await page.locator('.fig-hof-244-streak-list').count(),0);
    await go(page,'','.fig-hof-242-hero h1');
-   assert.equal(await page.locator('a[href="#/hall-of-fame/eligibility"]').count(),1,
-    'Nomination standards linked from Hall without appearing as a main exhibit');
+   const sectionTabs=page.locator('.fig-hof-switcher a');
+   assert.equal(await sectionTabs.count(),2,'Two links in the compact Hall navigation');
+   assert.deepEqual(await sectionTabs.allInnerTexts(),['HALL OF FAME','LEGACY POINTS']);
+   assert.equal(await sectionTabs.first().getAttribute('aria-current'),'page');
+   assert.equal(await sectionTabs.nth(1).getAttribute('aria-current'),null);
+   assert.equal(await page.locator('a[href="#/hall-of-fame/eligibility"]').count(),2,
+    'Legacy link in the top menu, plus existing lower Hall action');
    assert.equal(await page.locator('.fig-hof-248-eligibility').count(),0,
     'The Hall landing page does not display the full requirements');
-   await page.locator('a[href="#/hall-of-fame/eligibility"]').click();
+   await sectionTabs.nth(1).click();
    await page.locator('.hoflp-page h1').waitFor({timeout:30000});
+   assert.equal(await page.locator('.fig-hof-switcher a[aria-current="page"]').innerText(),'LEGACY POINTS');
+   assert.equal(await page.locator('.fig-hof-switcher a').count(),2);
    assert.match(await page.locator('.hoflp-page h1').innerText(),/Legacy Points/);
    assert.match(await page.locator('.hoflp-hero').innerText(),/500/);
    assert.match(await page.locator('.hoflp-leaderboard thead').innerText(),/TO 500/);
@@ -122,6 +129,10 @@ const {chromium}=require('playwright');
    assert.match(await page.locator('.hoflp-season-table').innerText(),/15.5/);
    assert.match(await page.locator('.hoflp-season-table').innerText(),/205/);
    assert.equal(await page.locator('.hoflp-game-table tbody tr').count(),5);
+   const firstGameRow=await page.locator('.hoflp-game-table tbody tr').first().innerText();
+   assert.match(firstGameRow,/20-29\.99/);
+   assert.match(firstGameRow,/\-\s*\+2\s*\+2\s*\+3/,'Zero QB bonus in 20-29.99 scoring band');
+   assert.match(await page.locator('.hoflp-rule').nth(1).innerText(),/QB game bonuses begin at 30 points/);
    assert.match(await page.locator('.hoflp-page').innerText(),/at least eight official FIG starts/);
    const rows=page.locator('.hoflp-leaderboard > tbody > tr');
    assert.equal(await rows.count(),35);
@@ -159,8 +170,9 @@ const {chromium}=require('playwright');
    const dim=await page.evaluate(()=>({w:document.documentElement.scrollWidth,c:document.documentElement.clientWidth}));
    assert.ok(dim.w<=dim.c+3,'No page overflow '+label+': '+JSON.stringify(dim));
    await page.screenshot({path:'hof-eligibility-'+label+'.png',fullPage:true});
-   await page.locator('.fig-hof-248-back a').click();
+   await page.locator('.fig-hof-switcher a').first().click();
    await page.locator('.fig-hof-242-grid .fig-hof-242-card').first().waitFor();
+   assert.equal(await page.locator('.fig-hof-switcher a[aria-current="page"]').innerText(),'HALL OF FAME');
    await go(page,'/charter','.fig-hof-242-grid .fig-hof-242-card');
    assert.equal(await page.locator('.fig-hof-242-charter').count(),0,
     'Retired induction philosophy route now shows the Hall');
