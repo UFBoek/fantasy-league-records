@@ -314,7 +314,7 @@ function hallEligibilityWatch(d){
    seasons.filter(x=>x.ppg>=rule.peak).length,
    seasons.filter(x=>x.rank<=rule.consistent).length
   ];
-  const targets=[2,1,3,4,4];
+  const targets=[2,1,3,4,5];
   const met=counts.filter((count,i)=>count>=targets[i]).length;
   const progress=counts.reduce((sum,count,i)=>sum+Math.min(count/targets[i],1),0);
   return {...p,seasons,counts,targets,met,progress,eligible:met>=3};
@@ -322,8 +322,8 @@ function hallEligibilityWatch(d){
  // Keep the established historical shortlist, with commissioner-selected emerging
  // players included even before they rise into the automatic historical top 18.
  // Player IDs keep identities stable when Sleeper names (e.g., James Cook III) vary.
- const watchAdditions=new Set(['9488','9226','11632','11564','11566','11560','3163','6794','6813']);
- const watchExclusions=new Set(['3321','8112','9997','8144','8138','5859']); // Commissioner-excluded watch players remain excluded from automatic selections.
+ const watchAdditions=new Set(['9488','9226','11632','11564','11566','11560','3163','6794','6813','8138']);
+ const watchExclusions=new Set(['3321','8112','9997','8144','5859']); // Commissioner-excluded watch players remain excluded from automatic selections.
  const candidatePool=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)));
  const established=candidatePool.filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
   .slice(0,18).filter(p=>!watchExclusions.has(p.id));
@@ -375,7 +375,7 @@ function eligibilityPage(d){
   ['02','Positional Supremacy','One completed season finishing #1 in positional PPG. Counts as one of the five required benchmarks.'],
   ['03','Sustained Dominance','Three top-eight positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
-  ['05','Career Consistency','Four completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
+  ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
  ];
  const positions=[['QB','25+','TOP 10'],['RB','17+','TOP 12'],['WR','17+','TOP 12'],['TE','14+','TOP 3']];
  return '<section class="fig-hof-content fig-hof-248-eligibility">'+
