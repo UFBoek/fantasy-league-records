@@ -50,7 +50,7 @@ for(const [id,name] of Object.entries(excludedWatchPlayers))
   'Removed player must not return in the Hall watch: '+name);
 assert.deepEqual(watch.contenders.find(p=>p.id==='9488').counts,[1,0,1,1,1],
  'JSN 2025 qualifies as an elite top-two WR season, but not a full benchmark');
-assert.deepEqual(watch.contenders.find(p=>p.id==='3163').counts,[0,0,1,2,2],
+assert.deepEqual(watch.contenders.find(p=>p.id==='3163').counts,[0,0,2,2,2],
  'Jared Goff progress uses completed FIG seasons and current thresholds');
 assert.deepEqual(watch.contenders.find(p=>p.id==='6794').counts,[1,0,1,1,1],
  'Justin Jefferson 2023 has fewer than nine starts and is excluded');
@@ -138,28 +138,39 @@ assert.equal(peakPlayer.met,3,'Three distinct milestones can be completed withou
 assert.equal(peakPlayer.eligible,true,'Three of five must now qualify for nomination');
 assert.ok(watch.contenders.every(p=>p.eligible===(p.met>=3)),
  'All watch eligibility flags must use three-of-five');
-// The third benchmark uses rank six for QB/RB/WR but still rank three for TE.
-const dominancePool=[
- ...Array.from({length:7},(_,i)=>({
-  player_id:'qbdom-'+(i+1),full_name:'QB Dominance '+(i+1),position:'QB',
+// Verify all new rank thresholds precisely; TE exceptions remain unchanged.
+const rankBoundaries=[
+ ...['QB','RB','WR'].flatMap(position=>Array.from({length:13},(_,i)=>({
+  player_id:'rank-'+position+'-'+(i+1),full_name:position+' Rank '+(i+1),position,
   season:'2025',starts:9,average_points:35-i,total_points:(35-i)*9,
   scoring_view:'All-Time Combined',season_complete:true
- })),
+ }))),
  ...Array.from({length:4},(_,i)=>({
-  player_id:'tedom-'+(i+1),full_name:'TE Dominance '+(i+1),position:'TE',
+  player_id:'rank-TE-'+(i+1),full_name:'TE Rank '+(i+1),position:'TE',
   season:'2025',starts:9,average_points:23-i,total_points:(23-i)*9,
   scoring_view:'All-Time Combined',season_complete:true
  }))
 ];
-const domWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:dominancePool});
-assert.equal(domWatch.all.find(p=>p.id==='qbdom-6').counts[2],1,
- 'QB6 counts as a top-six sustained dominance season');
-assert.equal(domWatch.all.find(p=>p.id==='qbdom-7').counts[2],0,
- 'QB7 cannot count as a top-six sustained dominance season');
-assert.equal(domWatch.all.find(p=>p.id==='tedom-3').counts[2],1,
- 'TE3 remains a qualifying sustained dominance season');
-assert.equal(domWatch.all.find(p=>p.id==='tedom-4').counts[2],0,
- 'TE4 must not qualify for tightened TE dominance');
+const rankWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:rankBoundaries});
+const getRank=(pos,rank)=>rankWatch.all.find(p=>p.id==='rank-'+pos+'-'+rank);
+for(const pos of ['QB','RB','WR']){
+ assert.equal(getRank(pos,4).counts[0],1,pos+' rank 4 qualifies for elite production');
+ assert.equal(getRank(pos,5).counts[0],0,pos+' rank 5 does not qualify for elite production');
+ assert.equal(getRank(pos,8).counts[2],1,pos+' rank 8 counts toward sustained dominance');
+ assert.equal(getRank(pos,9).counts[2],0,pos+' rank 9 does not count toward sustained dominance');
+}
+for(const pos of ['RB','WR']){
+ assert.equal(getRank(pos,12).counts[4],1,pos+' rank 12 earns a career consistency season');
+ assert.equal(getRank(pos,13).counts[4],0,pos+' rank 13 cannot earn a career consistency season');
+}
+assert.equal(getRank('QB',10).counts[4],1,'QB rank 10 still qualifies for consistency');
+assert.equal(getRank('QB',11).counts[4],0,'QB rank 11 still fails consistency');
+assert.equal(getRank('TE',2).counts[0],1,'TE rank 2 remains elite');
+assert.equal(getRank('TE',3).counts[0],0,'TE rank 3 does not meet elite rank');
+assert.equal(getRank('TE',3).counts[2],1,'TE rank 3 remains dominant');
+assert.equal(getRank('TE',4).counts[2],0,'TE rank 4 does not meet dominance');
+assert.equal(getRank('TE',3).counts[4],1,'TE rank 3 remains consistent');
+assert.equal(getRank('TE',4).counts[4],0,'TE rank 4 does not meet consistency');
 // The fourth completed top-ten season finishes benchmark five, including 2026 once complete.
 const futureLeague=[...data.league,{season:'2026',status:'complete'}];
 const fourYears=['2023','2024','2025','2026'].map(season=>({
@@ -297,18 +308,20 @@ assert.match(css,/fig-hof-249-scroll/);
 assert.match(css,/fig-hof-248-ranking-rule/);
 assert.ok(css.includes('fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:nth-child(even)'),'Even positional rows must override global zebra backgrounds');
 assert.ok(js.includes("['QB','25+','TOP 10']"));
-assert.ok(js.includes('QB:{peak:25,consistent:10,elite:3,dominant:6}'));
-assert.ok(js.includes('RB:{peak:17,consistent:10,elite:3,dominant:6}'));
-assert.ok(js.includes('WR:{peak:17,consistent:10,elite:3,dominant:6}'));
+assert.ok(js.includes('QB:{peak:25,consistent:10,elite:4,dominant:8}'));
+assert.ok(js.includes('RB:{peak:17,consistent:12,elite:4,dominant:8}'));
+assert.ok(js.includes('WR:{peak:17,consistent:12,elite:4,dominant:8}'));
 assert.ok(js.includes('TE:{peak:14,consistent:3,elite:2,dominant:3}'));
-assert.ok(js.includes("['03','Sustained Dominance','Three top-six positional PPG finishes"));
+assert.ok(js.includes("['01','Elite Production','Two top-four positional PPG finishes"));
+assert.ok(js.includes("['03','Sustained Dominance','Three top-eight positional PPG finishes"));
 assert.ok(js.includes("['05','Career Consistency','Four completed seasons"));
-assert.ok(js.includes("i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:6)"));
+assert.ok(js.includes("i===0?s.rank<=(p.position==='TE'?2:4)"));
+assert.ok(js.includes("i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:8)"));
 assert.ok(!js.includes('const targets=[2,1,3,4,5]'));
-assert.ok(js.includes('({QB:10,RB:10,WR:10,TE:3}[p.position])'));
+assert.ok(js.includes('({QB:10,RB:12,WR:12,TE:3}[p.position])'));
 assert.ok(!js.includes("'TOP 8'"),'QB consistency display must not say top 8');
-assert.ok(js.includes("['RB','17+','TOP 10']"));
-assert.ok(js.includes("['WR','17+','TOP 10']"));
+assert.ok(js.includes("['RB','17+','TOP 12']"));
+assert.ok(js.includes("['WR','17+','TOP 12']"));
 assert.ok(js.includes("['TE','14+','TOP 3']"));
 assert.ok(js.includes('eligible:met>=3'));
 assert.ok(js.includes('({QB:25,RB:17,WR:17,TE:14}[p.position])'));
