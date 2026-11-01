@@ -1,0 +1,19 @@
+name: Probe historical Sleeper stats for FIG scoring
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/probe_sleeper_fig.py'
+      - '.github/workflows/fig-historical-probe.yml'
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install requests
+      - run: python research/probe_sleeper_fig.py
