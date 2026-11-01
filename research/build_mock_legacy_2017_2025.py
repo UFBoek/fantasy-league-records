@@ -81,7 +81,7 @@ def main():
             bonuses=sum(game_score(pos,float(row[1])) for row in week_scores)
             row=pmap.setdefault(pid,dict(id=pid,player=name,position=pos,
                 seasons=[],season_points=0,modeled_game_points=0,games=0))
-            row["season_points"]+=season
+            row["season_points"]=round(row["season_points"]+season,1)
             row["modeled_game_points"]+=bonuses
             row["games"]+=games
             row["seasons"].append({"year":year,"games":games,
@@ -91,7 +91,7 @@ def main():
     result=[]
     for pid,p in pmap.items():
         d=directory.get(pid) if isinstance(directory.get(pid),dict) else {}
-        points=p["season_points"]+p["modeled_game_points"]
+        points=round(p["season_points"]+p["modeled_game_points"],1)
         p.update(played_2026=pid in played_2026, sleeper_active_flag=bool(d.get("active")),current_team=d.get("team"),
             status=d.get("status"),watchlist=pid in WATCH,
             total=points,remaining=max(0,THRESHOLD-points),
