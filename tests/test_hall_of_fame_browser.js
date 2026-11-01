@@ -122,11 +122,13 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('.hoflp-game-table tbody tr').count(),5);
    assert.match(await page.locator('.hoflp-page').innerText(),/at least eight official FIG starts/);
    const rows=page.locator('.hoflp-leaderboard > tbody > tr');
-   assert.equal(await rows.count(),36);
+   assert.equal(await rows.count(),35);
    const names=await rows.locator('.hoflp-player a').evaluateAll(links=>links.map(a=>a.textContent.trim()));
-   for(const n of ['Josh Allen','Puka Nacua','Jaxon Smith-Njigba','James Cook III','Tetairoa McMillan','Bryce Young'])
+   for(const n of ['Lamar Jackson','Jalen Hurts','Joe Burrow','Patrick Mahomes','Baker Mayfield','Christian McCaffrey','Jahmyr Gibbs','Derrick Henry','Saquon Barkley','Ashton Jeanty','Ja\'Marr Chase','Chris Olave','Zay Flowers','Trey McBride','Brock Bowers'])
     assert.ok(names.includes(n),'Watch includes '+n);
-   for(const n of ['Derrick Henry','Tyreek Hill','Travis Kelce'])
+   for(const n of ['Josh Allen','Puka Nacua','Tetairoa McMillan','Bryce Young'])
+    assert.ok(!names.includes(n),'Commissioner watch excludes '+n);
+   for(const n of ['Tyreek Hill','Travis Kelce'])
     assert.ok(!names.includes(n),'Watch exclusion '+n);
    await rows.first().locator('details summary').click();
    const details=rows.first().locator('.hoflp-detail-body');
@@ -147,7 +149,7 @@ const {chromium}=require('playwright');
    await page.locator('[data-hoflp-pos]').selectOption('ALL');
    await page.locator('[data-hoflp-search]').fill('');
    await page.locator('[data-hoflp-scope="watch"]').click();
-   assert.equal(await rows.count(),36);
+   assert.equal(await rows.count(),35);
    const dim=await page.evaluate(()=>({w:document.documentElement.scrollWidth,c:document.documentElement.clientWidth}));
    assert.ok(dim.w<=dim.c+3,'No page overflow '+label+': '+JSON.stringify(dim));
    await page.screenshot({path:'hof-eligibility-'+label+'.png',fullPage:true});
