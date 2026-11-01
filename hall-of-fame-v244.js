@@ -278,9 +278,9 @@ function lobby(m){
    Positions are ranked by average PPG after excluding all players below 9 starts. */
 function hallEligibilityWatch(d){
  const years=completedYears(d),complete=new Set(years.map(Number));
- const rules={QB:{peak:25,consistent:10,elite:3,dominant:6},
-  RB:{peak:17,consistent:10,elite:3,dominant:6},
-  WR:{peak:17,consistent:10,elite:3,dominant:6},
+ const rules={QB:{peak:25,consistent:10,elite:4,dominant:8},
+  RB:{peak:17,consistent:12,elite:4,dominant:8},
+  WR:{peak:17,consistent:12,elite:4,dominant:8},
   TE:{peak:14,consistent:3,elite:2,dominant:3}};
  const buckets=new Map();
  for(const r of (d.playerSeasons||[])){
@@ -340,10 +340,10 @@ function hallEligibilityWatchSection(watch){
  const cells=(p)=>p.counts.map((count,i)=>{
   const target=p.targets[i],done=count>=target,display=Math.min(count,target);
   const label=done?'Met':Math.round(display/target*100)+'%';
-  const seasonDesc=p.seasons.filter(s=>i===0?s.rank<=(p.position==='TE'?2:3):
-   i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:6):
+  const seasonDesc=p.seasons.filter(s=>i===0?s.rank<=(p.position==='TE'?2:4):
+   i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:8):
    i===3?s.ppg>=({QB:25,RB:17,WR:17,TE:14}[p.position]):
-   s.rank<=({QB:10,RB:10,WR:10,TE:3}[p.position])).map(s=>
+   s.rank<=({QB:10,RB:12,WR:12,TE:3}[p.position])).map(s=>
    s.year+' #'+s.rank+' · '+fmt(s.ppg,2)+' PPG ('+s.starts+' starts)').join('; ');
   const tooltip=titleNames[i]+': '+count+' qualifying season'+(count===1?'':'s')+' ('+target+' required)'+(seasonDesc?' | '+seasonDesc:'');
   return '<td><div class="fig-hof-249-progress'+(done?' is-met':'')+'" title="'+esc(tooltip)+'" aria-label="'+esc(titleNames[i]+', '+(done?'met, ':'')+count+' qualifying season'+(count===1?'':'s')+', '+target+' required')+'">'+
@@ -371,13 +371,13 @@ function hallEligibilityWatchSection(watch){
 function eligibilityPage(d){
  const watch=hallEligibilityWatch(d);
  const rules=[
-  ['01','Elite Production','Two top-three positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
+  ['01','Elite Production','Two top-four positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
   ['02','Positional Supremacy','One completed season finishing #1 in positional PPG. Counts as one of the five required benchmarks.'],
-  ['03','Sustained Dominance','Three top-six positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
+  ['03','Sustained Dominance','Three top-eight positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
   ['05','Career Consistency','Four completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
  ];
- const positions=[['QB','25+','TOP 10'],['RB','17+','TOP 10'],['WR','17+','TOP 10'],['TE','14+','TOP 3']];
+ const positions=[['QB','25+','TOP 10'],['RB','17+','TOP 12'],['WR','17+','TOP 12'],['TE','14+','TOP 3']];
  return '<section class="fig-hof-content fig-hof-248-eligibility">'+
  '<nav class="fig-hof-248-back" aria-label="Hall of Fame section"><a href="#/hall-of-fame">← RETURN TO THE HALL</a><span>HALL OF FAME / PLAYER NOMINATIONS</span></nav>'+
  '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD FOR FUTURE INDUCTEES</span>'+
