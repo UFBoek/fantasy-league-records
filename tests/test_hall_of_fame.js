@@ -33,12 +33,12 @@ assert.equal(watch.contenders.length,18,'Show a curated-length live contender li
 assert.equal(watch.contenders[0].name,"Ja'Marr Chase",
  'One positional championship completes requirement two and moves Chase up the watchlist');
 assert.deepEqual(watch.contenders[0].counts,[2,1,2,3,3]);
-const cmc=watch.contenders.find(p=>p.name==='Christian McCaffrey');
+const cmcWatch=watch.contenders.find(p=>p.name==='Christian McCaffrey');
 const mcbride=watch.contenders.find(p=>p.name==='Trey McBride');
-assert.deepEqual(cmc.counts,[2,2,2,2,2]);
+assert.deepEqual(cmcWatch.counts,[2,2,2,2,2]);
 assert.deepEqual(mcbride.counts,[2,2,2,2,2]);
-assert.deepEqual(cmc.targets,[2,1,3,4,5]);
-assert.equal(cmc.met,2,'Two positional #1 seasons still count as only one benchmark');
+assert.deepEqual(cmcWatch.targets,[2,1,3,4,5]);
+assert.equal(cmcWatch.met,2,'Two positional #1 seasons still count as only one benchmark');
 assert.equal(mcbride.met,2,'Two TE positional championships count as only one benchmark');
 assert.equal(watch.contenders[0].met,2,'Single WR title is sufficient for #2, but not for overall nomination');
 const lamar=watch.contenders.find(p=>p.name==='Lamar Jackson');
