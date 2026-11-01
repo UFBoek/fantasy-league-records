@@ -139,7 +139,7 @@
 .fig-hof-249-player:hover strong{text-decoration:underline;text-decoration-color:#cda972}
 .fig-hof-249-player>img{width:37px;height:37px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#334450;border:1px solid rgba(217,184,128,.3)}
 .fig-hof-249-player>span{display:flex;flex-direction:column;gap:5px;min-width:0}
-.fig-hof-249-player strong{color:#f8ead1;font:700 12px/1.3 Inter,Arial,sans-serif;letter-spacing:0;white-space:normal}
+.fig-hof-249-player strong{color:#f8ead1;font:700 12px/1.3 Inter,Arial,sans-serif;letter-spacing:0;white-space:normal;text-transform:none}
 .fig-hof-249-player small{color:#99aeb8;font:800 9px/1.3 Inter,Arial,sans-serif;letter-spacing:.045em;white-space:normal}
 .fig-hof-249-progress{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;min-height:58px;padding:8px 3px;background:#223342;border:1px solid rgba(175,198,213,.13);border-radius:5px;color:#e3e5df}
 .fig-hof-249-progress strong{font:600 20px/1 Georgia,serif;letter-spacing:-.01em;color:#dce6e9}
