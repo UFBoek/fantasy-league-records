@@ -127,6 +127,9 @@ const {chromium}=require('playwright');
    assert.match(pathText,/No individual requirement qualifies a player by itself/);
    assert.doesNotMatch(pathText,/qualifies a player on its own|exception/i);
    assert.match(await requirements.nth(1).innerText(),/One completed season finishing #1 in positional PPG/);
+   assert.match(await requirements.nth(2).innerText(),/Three top-six positional PPG finishes/);
+   assert.match(await requirements.nth(2).innerText(),/Tight ends must finish top three/);
+   assert.match(await requirements.nth(4).innerText(),/Four completed seasons/);
    assert.match(await requirements.nth(1).innerText(),/Counts as one of the five required benchmarks/);
    const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
    assert.ok(criteria.includes('at least 9 official FIG starts'));
@@ -185,8 +188,8 @@ const {chromium}=require('playwright');
     'Chase has two out of three sustained dominance seasons');
    assert.ok(await candidates.first().locator('td').nth(3).innerText().then(t=>t.includes('75%')),
     'Chase has three out of four sustained excellence seasons');
-   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('60%')),
-    'Chase has three out of five career consistency seasons');
+   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('75%')),
+    'Chase has three out of four career consistency seasons');
    const chartText=await watchTable.innerText();
    assert.ok(!chartText.includes('Josh Allen')&&!chartText.includes('Puka Nacua'),
     'Founders remain inducted, not placed on a candidate watchlist');
