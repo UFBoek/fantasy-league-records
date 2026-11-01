@@ -49,14 +49,18 @@
 .fig-hof-248-intro h1{margin:18px 0 23px;font:400 clamp(47px,6vw,80px)/1.05 Georgia,'Times New Roman',serif;letter-spacing:-.055em;color:#f5ecdb}
 .fig-hof-248-intro h1 em{font-weight:400;color:#dfbc83}
 .fig-hof-248-intro>p{max-width:690px;margin:0;color:#b9c5c9;font:400 15px/1.85 Inter,Arial,sans-serif}
-.fig-hof-248-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin:46px 0 75px}
+.fig-hof-248-routes{display:grid;grid-template-columns:minmax(0,1fr);gap:17px;margin:42px 0 35px}
 .fig-hof-248-route{border:1px solid rgba(222,183,123,.52);padding:28px 32px 30px;min-width:0;background:linear-gradient(135deg,#2b3740,#18252f)}
-.fig-hof-248-route-alt{border-color:rgba(207,181,135,.27);background:linear-gradient(135deg,#202e38,#16232e)}
 .fig-hof-248-route>span{font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.13em;color:#dcbf8c}
 .fig-hof-248-route>div{display:flex;align-items:center;gap:29px;margin-top:19px}
 .fig-hof-248-route strong{white-space:nowrap;color:#f4d8a7;font:400 54px/1 Georgia,serif;letter-spacing:-.05em}
 .fig-hof-248-route strong small{font:800 10px/1.3 Inter,Arial,sans-serif;letter-spacing:.09em;color:#c5b191}
-.fig-hof-248-route p{border-left:1px solid rgba(225,189,132,.26);padding-left:20px;max-width:290px;margin:0;color:#c2cbd0;font:400 12px/1.7 Inter,Arial,sans-serif}
+.fig-hof-248-route p{border-left:1px solid rgba(225,189,132,.26);padding-left:24px;max-width:650px;margin:0;color:#c2cbd0;font:400 13px/1.8 Inter,Arial,sans-serif}
+.fig-hof-248-ranking-rule{max-width:980px;margin:0 0 75px;padding:27px 0 25px;border-top:1px solid rgba(212,180,127,.24);border-bottom:1px solid rgba(212,180,127,.24)}
+.fig-hof-248-ranking-rule h2{margin:10px 0 12px;color:#f5ead5;font:400 clamp(27px,3.2vw,37px)/1.18 Georgia,serif;letter-spacing:-.035em}
+.fig-hof-248-ranking-rule p{max-width:880px;margin:0;color:#c1cbd0;font:400 13px/1.85 Inter,Arial,sans-serif}
+.fig-hof-248-ranking-rule p strong{color:#f2ddba;font-weight:800}
+.fig-hof-248-ranking-rule .fig-hof-248-example{margin-top:13px;color:#9eb2bd;font-size:12px}
 .fig-hof-248-section-head h2{font:400 clamp(32px,3.8vw,48px)/1.13 Georgia,serif;letter-spacing:-.035em;color:#f6ecda;margin:11px 0 10px}
 .fig-hof-248-section-head p{margin:8px 0 0;color:#b7c3c9;font:400 13px/1.7 Inter,Arial,sans-serif}
 .fig-hof-248-rules{padding:0;margin:27px 0 74px;list-style:none;border-top:1px solid rgba(212,180,127,.27)}
@@ -71,6 +75,14 @@
 .fig-hof-248-table-wrap thead{background:#2b3943}
 .fig-hof-248-table-wrap thead th{color:#c5aa7f;font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.09em}
 .fig-hof-248-table-wrap tbody{background:#192833}
+/* Override global table and zebra-row colors that otherwise make RB/TE rows white. */
+.fig-hof-248-eligibility .fig-hof-248-table-wrap table{background:#192833;border-radius:0;overflow:visible}
+.fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr,
+.fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:nth-child(even),
+.fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:hover{background:#192833}
+.fig-hof-248-eligibility .fig-hof-248-table-wrap tbody th{background:#2b3543;color:#f2ddba}
+.fig-hof-248-eligibility .fig-hof-248-table-wrap tbody td{background:#192833;color:#f6eddc}
+.fig-hof-248-eligibility .fig-hof-248-table-wrap thead th{background:#2b3943;color:#c5aa7f}
 .fig-hof-248-table-wrap tbody th{color:#f2ddba;font:800 14px/1.35 Inter,Arial,sans-serif;letter-spacing:.04em}
 .fig-hof-248-table-wrap tbody td{color:#f6eddc;font:400 23px/1.3 Georgia,serif}
 .fig-hof-248-table-wrap tbody tr:last-child th,.fig-hof-248-table-wrap tbody tr:last-child td{border-bottom:0}
@@ -80,7 +92,8 @@
 @media(max-width:750px){
  .fig-hof-248-eligibility{padding-top:18px;padding-bottom:60px}
  .fig-hof-248-back{margin-bottom:45px}
- .fig-hof-248-routes{grid-template-columns:1fr;gap:13px;margin:32px 0 60px}
+ .fig-hof-248-routes{grid-template-columns:1fr;gap:13px;margin:32px 0 27px}
+ .fig-hof-248-ranking-rule{margin-bottom:52px}
  .fig-hof-248-route{padding:24px}
  .fig-hof-248-rules{margin-bottom:56px}
 }
@@ -92,6 +105,8 @@
  .fig-hof-248-route>div{gap:18px}
  .fig-hof-248-route strong{font-size:46px}
  .fig-hof-248-route p{padding-left:14px;font-size:11px}
+ .fig-hof-248-ranking-rule p{font-size:12px}
+ .fig-hof-248-ranking-rule .fig-hof-248-example{font-size:11px}
  .fig-hof-248-rules li{grid-template-columns:48px minmax(0,1fr);gap:12px;padding:22px 0}
  .fig-hof-248-number{font-size:26px}
  .fig-hof-248-rules h3{font-size:22px}
