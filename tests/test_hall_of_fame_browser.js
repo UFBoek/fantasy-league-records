@@ -156,7 +156,22 @@ const {chromium}=require('playwright');
     '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
     '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
    const candidates=watchTable.locator('tbody tr');
-   assert.equal(await candidates.count(),18,'Display closest 18 candidates based on official history');
+   assert.equal(await candidates.count(),26,'Historical watchlist expanded to include nine selected players');
+   const selectedNames=['James Cook III',"De'Von Achane",'Malik Nabers','Drake Maye',
+    'Jayden Daniels','Caleb Williams','Zay Flowers','Drake London','Chris Olave'];
+   const candidateNames=await candidates.locator('.fig-hof-249-player strong').allInnerTexts();
+   for(const player of selectedNames)
+    assert.ok(candidateNames.includes(player),'Selected watch player should appear: '+player);
+   assert.ok(!candidateNames.includes('Tyreek Hill'),'Tyreek Hill is excluded from the watch');
+   assert.ok(candidateNames.includes("Ja'Marr Chase")&&candidateNames.includes('Christian McCaffrey'),
+    'Historical contenders remain available');
+   for(const player of ['Zay Flowers','Drake London']){
+    const row=candidates.filter({has:page.locator('.fig-hof-249-player strong', {hasText:player})});
+    assert.equal(await row.count(),1,'Included player remains visible with no prior benchmark');
+    assert.equal(await row.locator('.fig-hof-249-progress.is-met').count(),0);
+    assert.ok((await row.locator('.fig-hof-249-progress strong').allInnerTexts()).every(t=>t==='0%'),
+     'Do not fabricate completed benchmarks for '+player);
+   }
    const firstCandidate=await candidates.first().innerText();
    assert.ok(firstCandidate.includes("Ja'Marr Chase"),'Chase leads after one positional championship satisfies #2');
    assert.ok(firstCandidate.includes('2 OF 5 MET'),'One positional title still does not automatically qualify Chase');
