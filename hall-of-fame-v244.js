@@ -270,7 +270,39 @@ function lobby(m){
  '<div class="fig-hof-section-end"><span>PERMANENT CLASS OF 2026 · HISTORICAL PERIOD 2023–2025</span></div>'+
  immortalSeasonCard(m)+
  '<div class="fig-hof-v2-next-class"><span class="fig-hof-eyebrow">III / THE FUTURE OF THE HALL</span><h3>Built for the next twenty years.</h3>'+
- '<p>The legends of tomorrow will write the next chapter of FIG history.</p></div>'+
+ '<p>The legends of tomorrow will write the next chapter of FIG history.</p>'+
+ '<a class="fig-hof-248-eligibility-link" href="#/hall-of-fame/eligibility">ELIGIBILITY &amp; NOMINATION <span aria-hidden="true">↗</span></a></div>'+
+ '</section>';
+}
+/* Nomination standards live on their own Hall route and never alter class membership. */
+function eligibilityPage(){
+ const rules=[
+  ['01','Elite Production','Two top-three positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
+  ['02','Positional Supremacy','Two #1 positional PPG finishes in separate completed seasons. This achievement also independently qualifies a player for nomination.'],
+  ['03','Sustained Dominance','Three top-five positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
+  ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
+  ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
+ ];
+ const positions=[['QB','27+','TOP 8'],['RB','18+','TOP 10'],['WR','18+','TOP 10'],['TE','15+','TOP 3']];
+ return '<section class="fig-hof-content fig-hof-248-eligibility">'+
+ '<nav class="fig-hof-248-back" aria-label="Hall of Fame section"><a href="#/hall-of-fame">← RETURN TO THE HALL</a><span>HALL OF FAME / PLAYER NOMINATIONS</span></nav>'+
+ '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD FOR FUTURE INDUCTEES</span>'+
+ '<h1>Eligibility &amp; <em>Nomination.</em></h1>'+
+ '<p>The Hall is earned through extraordinary positional production or a body of work that endures. Qualifying makes a player eligible for consideration. It does not guarantee induction.</p></header>'+
+ '<div class="fig-hof-248-routes" aria-label="Ways to qualify for nomination">'+
+ '<div class="fig-hof-248-route"><span>THE STANDARD PATH</span><div><strong>4 <small>OF</small> 5</strong><p>Meet at least four of the five requirements below.</p></div></div>'+
+ '<div class="fig-hof-248-route fig-hof-248-route-alt"><span>THE SUPREMACY EXCEPTION</span><div><strong>2 <small>TITLES</small></strong><p>Finish #1 in positional PPG in two different seasons, even without meeting four requirements.</p></div></div>'+
+ '</div>'+
+ '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">THE FIVE BENCHMARKS</span><h2>Standards of greatness.</h2></div>'+
+ '<ol class="fig-hof-248-rules">'+rules.map(r=>
+ '<li><span class="fig-hof-248-number">'+r[0]+'</span><div><h3>'+r[1]+'</h3><p>'+r[2]+'</p></div></li>').join('')+'</ol>'+
+ '<section class="fig-hof-248-position-section" aria-label="Positional standards for requirements four and five">'+
+ '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">POSITIONAL STANDARDS</span><h2>Built for each position.</h2>'+
+ '<p>Requirements 4 and 5 use these thresholds in each qualifying season.</p></div>'+
+ '<div class="fig-hof-248-table-wrap"><table><thead><tr><th scope="col">POSITION</th><th scope="col">#4 · MINIMUM PPG</th><th scope="col">#5 · PPG FINISH</th></tr></thead>'+
+ '<tbody>'+positions.map(r=>'<tr><th scope="row">'+r[0]+'</th><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody></table></div></section>'+
+ '<aside class="fig-hof-248-notes"><h3>How nominations work</h3><p>Requirements 1, 2 and 3 count only completed seasons with at least 10 verified FIG starts. Requirements 4 and 5 require at least nine FIG starts per season. Positional finishes are ranked by All-Time Combined PPG from official FIG starting appearances, including regular-season and playoff games.</p>'+
+ '<p>Josh Allen and Puka Nacua are exempt as founding-class selections. A player who meets either nomination path is eligible for selection, but the commissioner makes the final induction decision. No player is added to the Hall automatically.</p></aside>'+
  '</section>';
 }
 function hall(m){return lobby(m);}
@@ -321,11 +353,12 @@ async function page(ctx,view,arg,sub,year){
  const isPlayer=(view==='inductee'&&arg==='player')||view==='player';
  const isSeason=view==='inductee'&&arg==='season';
  const id=view==='player'?String(arg||''):String(sub||'');
- const content=isPlayer?plaque(m,'player',id,year,ctx.DATA):
+ const content=view==='eligibility'?eligibilityPage():
+  isPlayer?plaque(m,'player',id,year,ctx.DATA):
   isSeason?immortalSeasonPlaque(m,sub,year):lobby(m);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2 fig-hof-242 fig-hof-243" id="figHallOfFame">'+
   head()+content+footer()+'</div>';
- document.title='The Hall – Fromm is Garbage';
+ document.title=(view==='eligibility'?'Hall Eligibility & Nomination':'The Hall')+' - Fromm is Garbage';
 }
 window.figHallOfFame=page;
 window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
