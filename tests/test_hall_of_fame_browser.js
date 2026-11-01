@@ -112,139 +112,34 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('.fig-hof-248-eligibility').count(),0,
     'The Hall landing page does not display the full requirements');
    await page.locator('a[href="#/hall-of-fame/eligibility"]').click();
-   await page.locator('.fig-hof-248-eligibility h1').waitFor({timeout:30000});
-   assert.match(await page.locator('.fig-hof-248-eligibility h1').innerText(),/Eligibility & Nomination/);
-   const requirements=page.locator('.fig-hof-248-rules li');
-   assert.equal(await requirements.count(),5,'Exactly five nomination requirements');
-   assert.deepEqual(await requirements.locator('h3').allInnerTexts(),[
-    'Elite Production','Positional Supremacy','Sustained Dominance','Sustained Excellence','Career Consistency']);
-   const pathText=await page.locator('.fig-hof-248-routes').innerText();
-   assert.match(pathText,/3\s+OF\s+5/);
-   assert.equal(await page.locator('.fig-hof-248-route').count(),1,
-    'There must be exactly one Hall nomination standard');
-   assert.doesNotMatch(pathText,/SUPREMACY EXCEPTION|STANDARD PATH|2 TITLES/);
-   assert.match(pathText,/Every requirement, including #2, counts as one/);
-   assert.match(pathText,/No individual requirement qualifies a player by itself/);
-   assert.doesNotMatch(pathText,/qualifies a player on its own|exception/i);
-   assert.match(await requirements.nth(1).innerText(),/One completed season finishing #1 in positional PPG/);
-   assert.match(await requirements.nth(2).innerText(),/Three top-eight positional PPG finishes/);
-   assert.match(await requirements.nth(0).innerText(),/Two top-four positional PPG finishes/);
-   assert.match(await requirements.nth(0).innerText(),/Tight ends must finish top two/);
-   assert.match(await requirements.nth(2).innerText(),/Tight ends must finish top three/);
-   assert.match(await requirements.nth(4).innerText(),/Five completed seasons/);
-   assert.match(await requirements.nth(1).innerText(),/Counts as one of the five required benchmarks/);
-   const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
-   assert.ok(criteria.includes('at least 9 official FIG starts'));
-   assert.ok(criteria.includes('average points per FIG start (PPG)'));
-   assert.ok(criteria.includes('not their total points'));
-   assert.ok(criteria.includes('A player with 8 starts is excluded'));
-   assert.ok(!criteria.includes('at least 10 verified FIG starts'));
-   assert.ok(criteria.includes('three of the five requirements'));
-   assert.ok(criteria.includes('three-of-five nomination standard'));
-   assert.ok(!criteria.includes('four-of-five nomination standard'));
-   assert.ok(criteria.includes('at least nine FIG starts'));
-   assert.ok(criteria.includes('Josh Allen and Puka Nacua are exempt'));
-   assert.ok(criteria.includes('commissioner makes the final induction decision'));
-   const tableValues=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
-    rows.map(row=>Array.from(row.querySelectorAll('th,td'),cell=>cell.textContent.trim())));
-   assert.deepEqual(tableValues,[['QB','25+','TOP 10'],['RB','17+','TOP 12'],
-    ['WR','17+','TOP 12'],['TE','14+','TOP 3']]);
-   const rowColors=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
-    rows.map(row=>({background:getComputedStyle(row.querySelector('td')).backgroundColor,
-      text:getComputedStyle(row.querySelector('td')).color})));
-   assert.ok(rowColors.every(row=>row.background==='rgb(25, 40, 51)'),
-    'Every positional table data cell must have dark background, including RB and TE: '+JSON.stringify(rowColors));
-   assert.ok(rowColors.every(row=>row.text==='rgb(246, 237, 220)'),
-    'Every positional table data cell must retain readable light text: '+JSON.stringify(rowColors));
-   const watchTable=page.locator('.fig-hof-249-table');
-   assert.equal(await watchTable.count(),1,'Eligibility watch table renders on requirements page');
-   const watchHeadings=await watchTable.locator('thead th').allInnerTexts();
-   assert.equal(watchHeadings.length,6,'Player column followed by five requirement columns');
-   assert.deepEqual(watchHeadings.slice(1).map(t=>t.replace(/\s+/g,' ').trim().toUpperCase()),[
-    '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
-    '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
-   const candidates=watchTable.locator('tbody tr');
-   assert.equal(await candidates.count(),36,'Watchlist includes both founders and all 34 other candidates');
-   const selectedNames=['Josh Allen','Puka Nacua','Jaxon Smith-Njigba',"De'Von Achane",'Malik Nabers','Drake Maye',
-    'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor','James Cook III',
-    'Brock Purdy','Joe Burrow','Kyren Williams','Ashton Jeanty','George Pickens',
-    'C.J. Stroud','Kenneth Walker III','Tee Higgins','Tetairoa McMillan','Jordan Love',
-    'Trevor Lawrence','Bryce Young'];
-   const candidateNames=await candidates.locator('.fig-hof-249-player strong').allInnerTexts();
-   for(const player of selectedNames)
-    assert.ok(candidateNames.includes(player),'Selected watch player should appear: '+player);
-   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave','A.J. Brown','Alvin Kamara','Derrick Henry','Saquon Barkley','Travis Kelce'])
-    assert.ok(!candidateNames.includes(player),'Removed watch player should be excluded: '+player);
-   assert.ok(candidateNames.includes("Ja'Marr Chase")&&candidateNames.includes('Christian McCaffrey'),
-    'Historical contenders remain available');
-   const newPlayerCounts=[
-    ['Jaxon Smith-Njigba',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
-    ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['James Cook III',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
-    ['Brock Purdy',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
-    ['Joe Burrow',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['Kyren Williams',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
-    ['Ashton Jeanty',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','1 / 5 SEASONS']],
-    ['George Pickens',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['C.J. Stroud',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['Kenneth Walker III',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','1 / 4 SEASONS','0 / 5 SEASONS']],
-    ['Tee Higgins',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','2 / 5 SEASONS']],
-    ['Tetairoa McMillan',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','1 / 5 SEASONS']],
-    ['Jordan Love',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','0 / 5 SEASONS']],
-    ['Trevor Lawrence',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','1 / 5 SEASONS']],
-    ['Bryce Young',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','0 / 5 SEASONS']]
-   ];
-   for(const [player,expected] of newPlayerCounts){
-    const row=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:player})});
-    assert.equal(await row.count(),1,'Added candidate must have one row: '+player);
-    assert.equal(await row.locator('.fig-hof-249-progress.is-met').count(),0);
-    const actual=await row.locator('td .fig-hof-249-progress span').allInnerTexts();
-    assert.deepEqual(actual,expected,'Completed FIG season progress must be correct for '+player);
-   }
-   assert.deepEqual(candidateNames.slice(0,2),['Josh Allen','Puka Nacua'],
-    'Founding inductees lead the watch as completed three-of-five cases');
-   const founderCounts=[
-    ['Josh Allen',['3 / 2 SEASONS','2 / 1 SEASONS','3 / 3 SEASONS','3 / 4 SEASONS','3 / 5 SEASONS']],
-    ['Puka Nacua',['2 / 2 SEASONS','1 / 1 SEASONS','3 / 3 SEASONS','3 / 4 SEASONS','3 / 5 SEASONS']]
-   ];
-   for(const [name,expectedCounts] of founderCounts){
-    const row=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:name})});
-    const summary=await row.locator('.fig-hof-249-player small').innerText();
-    assert.match(summary,/FOUNDING CLASS/,'Founder clearly identified as already inducted: '+name);
-    assert.match(summary,/3 OF 5 MET/);
-    assert.match(summary,/ELIGIBLE/);
-    assert.equal(await row.locator('.fig-hof-249-progress.is-met').count(),3,
-     'Each founder completes exactly three historical benchmarks');
-    const actual=await row.locator('td .fig-hof-249-progress span').allInnerTexts();
-    assert.deepEqual(actual,expectedCounts.map(t=>t.replace(/^3 \/ 2/,'2 / 2').replace(/^2 \/ 1/,'1 / 1')),
-     'Founder watch cells display progress without exceeding the target');
-   }
-   const chaseRow=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:"Ja'Marr Chase"})});
-   assert.ok((await chaseRow.innerText()).includes('2 OF 5 MET'),
-    'A single WR title does not automatically qualify Chase');
-   assert.ok(await chaseRow.locator('td').nth(1).innerText().then(t=>t.includes('1 / 1 SEASONS')),
-    'One positional championship satisfies the positional supremacy benchmark');
-   assert.equal(await chaseRow.locator('.fig-hof-249-progress.is-met').count(),2);
-   assert.ok(await chaseRow.locator('td').nth(2).innerText().then(t=>t.includes('67%')),
-    'Chase has two out of three sustained dominance seasons');
-   assert.ok(await chaseRow.locator('td').nth(3).innerText().then(t=>t.includes('75%')),
-    'Chase has three out of four sustained excellence seasons');
-   assert.ok(await chaseRow.locator('td').nth(4).innerText().then(t=>t.includes('60%')),
-    'Chase has three out of five career consistency seasons');
-   const chartText=await watchTable.innerText();
-   assert.ok(chartText.includes('Josh Allen')&&chartText.includes('Puka Nacua'),
-    'Both founding inductees appear in the watch for historical comparison');
-   assert.match(await page.locator('.fig-hof-249-footnote').innerText(),/Minimum nine starts per season/);
-   const matrixSize=await page.locator('.fig-hof-249-scroll').evaluate(el=>({
-    content:el.scrollWidth,viewport:el.clientWidth}));
-   assert.ok(matrixSize.content>=matrixSize.viewport,'Eligibility matrix must fit or scroll within its region');
-   assert.equal(await chaseRow.locator('.fig-hof-249-player').getAttribute('href'),'#/player/7564',
-    'Watch player links to existing player archive');
-   const eligibilityDims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
-   assert.ok(eligibilityDims.scrollWidth<=eligibilityDims.clientWidth+3,
-    'Eligibility layout should not overflow '+label+': '+JSON.stringify(eligibilityDims));
+   await page.locator('.hoflp-page h1').waitFor({timeout:30000});
+   assert.match(await page.locator('.hoflp-page h1').innerText(),/Legacy Points/);
+   assert.match(await page.locator('.hoflp-hero').innerText(),/300/);
+   assert.equal(await page.locator('.hoflp-season-table tbody tr').count(),8);
+   assert.equal(await page.locator('.hoflp-game-table tbody tr').count(),5);
+   assert.match(await page.locator('.hoflp-page').innerText(),/at least eight official FIG starts/);
+   const rows=page.locator('.hoflp-leaderboard tbody tr');
+   assert.equal(await rows.count(),36);
+   const names=await rows.locator('.hoflp-player a').allInnerTexts();
+   for(const n of ['Josh Allen','Puka Nacua','Jaxon Smith-Njigba','James Cook III','Tetairoa McMillan','Bryce Young'])
+    assert.ok(names.includes(n),'Watch includes '+n);
+   for(const n of ['Derrick Henry','Tyreek Hill','Travis Kelce'])
+    assert.ok(!names.includes(n),'Watch exclusion '+n);
+   await rows.first().locator('details summary').click();
+   assert.ok(await rows.first().locator('.hoflp-detail tbody tr').count()>=3);
+   await page.locator('[data-hoflp-scope="all"]').click();
+   assert.equal(await rows.count(),386);
+   assert.ok((await rows.locator('.hoflp-player a').allInnerTexts()).includes('Derrick Henry'));
+   await page.locator('[data-hoflp-pos]').selectOption('TE');
+   assert.equal(await rows.count(),56);
+   await page.locator('[data-hoflp-search]').fill('McBride');
+   assert.equal(await rows.count(),1);
+   await page.locator('[data-hoflp-pos]').selectOption('ALL');
+   await page.locator('[data-hoflp-search]').fill('');
+   await page.locator('[data-hoflp-scope="watch"]').click();
+   assert.equal(await rows.count(),36);
+   const dim=await page.evaluate(()=>({w:document.documentElement.scrollWidth,c:document.documentElement.clientWidth}));
+   assert.ok(dim.w<=dim.c+3,'No page overflow '+label+': '+JSON.stringify(dim));
    await page.screenshot({path:'hof-eligibility-'+label+'.png',fullPage:true});
    await page.locator('.fig-hof-248-back a').click();
    await page.locator('.fig-hof-242-grid .fig-hof-242-card').first().waitFor();

@@ -8,7 +8,7 @@ on:
       - 'hall-of-fame-v242.*'
       - 'hall-of-fame-v243.*'
       - 'hall-of-fame-v244.*'
-      - 'hall-of-fame-v244.*'
+      - 'hall-of-fame-legacy-v245.*'
       - 'app.js'
       - 'index.html'
       - 'sw.js'
@@ -22,7 +22,7 @@ on:
       - 'hall-of-fame-v242.*'
       - 'hall-of-fame-v243.*'
       - 'hall-of-fame-v244.*'
-      - 'hall-of-fame-v244.*'
+      - 'hall-of-fame-legacy-v245.*'
       - 'app.js'
       - 'index.html'
       - 'sw.js'
@@ -49,9 +49,10 @@ jobs:
           node --check hall-of-fame-v242.js
           node --check hall-of-fame-v243.js
           node --check hall-of-fame-v244.js
-          node --check hall-of-fame-v244.js
+          node --check hall-of-fame-legacy-v245.js
           node --check app.js
           node tests/test_hall_of_fame.js
+          node tests/test_hall_of_fame_legacy.js
       - name: Browser smoke tests (desktop and mobile)
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/fig-hof-http.log 2>&1 &

@@ -1,95 +1,38 @@
-# FIG Hall of Fame · Class of 2026
+# FIG Hall of Fame: Legacy Points
 
-The FIG Hall of Fame is a permanent institution for exceptional fantasy performances within Fromm Is Garbage, accessible from **More → Hall of Fame**, `#/hall-of-fame`.
+## Eligibility
+The Hall uses **300 career Legacy Points** for QB, RB, WR and TE. Eligibility earns a nomination opportunity, not automatic induction. Josh Allen and Puka Nacua remain the founding class, and Hayden 2025 remains separately enshrined.
 
-The main Hall presents two founding player plaques, the separately enshrined Hayden 2025 team season, and a short note about future legends. A discreet link in the latter opens a separate **Eligibility & Nomination** Hall subpage at `#/hall-of-fame/eligibility`. The previous Induction Philosophy page remains retired; existing links to `/charter` render the main Hall.
+### Completed-season PPG awards
+Season averages are evaluated with exact unrounded All-Time Combined total points / FIG starts. The player must have at least **eight FIG starts in a completed season**. Only the highest earned tier counts.
 
-## 2026 Inaugural Class: The Founding Two
+| Points | QB | RB | WR | TE |
+|---:|---:|---:|---:|---:|
+| 15 | 25 | 16 | 14.5 | 13.5 |
+| 30 | 26.5 | 18.5 | 17.5 | 15 |
+| 50 | 28.5 | 19.5 | 19 | 16 |
+| 75 | 29.5 | 22.5 | 21 | 17 |
+| 110 | 32 | 26 | 24 | 18.5 |
+| 140 | 34.5 | 28 | 27 | 20.5 |
+| 175 | 37.5 | 30 | 30 | 22.5 |
+| 215 | 41 | 33 | 33 | 25 |
 
-| Position | Inductee | FIG player ID | Historical case |
-| --- | --- | --- | --- |
-| QB | Josh Allen | 4984 | Three consecutive seasons above 30 combined PPG, FIG's founding-era statistical standard |
-| WR | Puka Nacua | 9493 | **THE LOGO**: the face of FIG, represented in the league's branding, with elite founding-era production |
+### Individual game bonuses
+Each verified FIG starting-lineup game awards only its highest scoring-band bonus, regular season or playoffs. Bench performances never count.
 
-The **two players explicitly selected** for the inaugural class are Josh Allen and Puka Nacua. Gibbs and McBride remain in the normal player archive, but no longer appear as Hall inductees. The historical Hayden 2025 franchise season remains enshrined separately. No other player was added.
+| Game score | QB | RB | WR | TE |
+|---:|---:|---:|---:|---:|
+| 20-29.99 | 0 | 0.5 | 0.5 | 1 |
+| 30-39.99 | 0.5 | 1.5 | 1.5 | 4 |
+| 40-49.99 | 2 | 4 | 4 | 9 |
+| 50-59.99 | 4 | 8 | 8 | 13 |
+| 60+ | 12 | 14 | 14 | 19 |
 
-## Eligibility & Nomination (separate Hall route)
+Across FIG's 2023 through 2026 Week 7 data, the model yields 5,825 points from completed seasons and 1,401 game points: **80.61% seasonal versus 19.39% game**. Historical positions are calibrated for comparable point earning opportunities. The separate upper tiers recognize unprecedented seasons, and points are permanently earned.
 
-The Hall landing page only links to this section; it does not show the five requirements. The criteria live at `#/hall-of-fame/eligibility`, with a return link to the Hall.
+## Watchlist and leaderboard
+The **Eligibility & Nomination** page at `#/hall-of-fame/eligibility` shows the 36 established watch candidates, including the founders and all commissioner additions. It preserves commissioner exclusions from the curated watch, while the searchable **All Players** view includes every player, even those excluded from the watch.
 
-For future classes, there is **one nomination standard**: satisfy **at least 3 of the 5** benchmarks below. **No single benchmark independently qualifies a player.** Requirement #2 is counted exactly like the other four, as one qualifying benchmark:
+Both views show earned seasonal and game points, total, remaining points until 300, current-year pending season award, and an expandable year-by-year scoring breakdown. The in-progress PPG preview is not earned or included in the total until the season is complete and eight starts have been recorded. All values are derived from the published `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, so verified updates flow automatically to the site.
 
-1. **Elite Production:** Two top-4 positional PPG finishes for QB, RB and WR, or top-2 for TEs.
-2. **Positional Supremacy:** One completed season finishing #1 in positional PPG. This counts as one of the five benchmarks, not an automatic qualification.
-3. **Sustained Dominance:** Three top-8 positional PPG finishes for QB, RB and WR, or top-3 for TEs.
-4. **Sustained Excellence:** Four seasons with at least nine FIG starts each, averaging 25+ QB PPG, 17+ RB or WR PPG, or 14+ TE PPG.
-5. **Career Consistency:** Five completed seasons with at least nine FIG starts each, finishing top-10 QB, top-12 RB or WR, or top-3 TE in positional PPG each season.
-
-**All five requirements use a minimum of 9 official FIG starts per completed season.** To determine a positional finish (such as QB top 3, TE top 2, or RB top 10), first exclude everyone at that position with fewer than nine official FIG starts in that same season. Then rank the remaining players by their **All-Time Combined average points per FIG start (PPG)**, including regular-season and playoff starts, **not by total fantasy points scored**. A player averaging 25.0 PPG over nine starts ranks ahead of a player averaging 24.0 PPG over fifteen starts; a player with eight starts has no qualifying ranking. Ties in average share the same position rank. All multi-season requirements count distinct completed seasons, not duplicate entries for a single season.
-
-Eligibility never guarantees induction, adds players to a class automatically or removes enshrined players. Josh Allen and Puka Nacua are founding-class exceptions; the commissioner makes later induction decisions. These rules are separate from the retired Induction Philosophy section.
-
-### Eligibility Watch
-
-The separate `#/hall-of-fame/eligibility` page includes a live **Eligibility Watch** table beneath the rules. Its candidates begin with the 18-player historical shortlist (before commissioner exclusions) and are supplemented by explicit commissioner selections. The matrix currently displays **36 unique players**, including the two founding inductees, based on completed seasons through 2025. Players are identified by stable Sleeper player IDs so names and roster changes do not cause duplicates.
-
-The commissioner has excluded Tyreek Hill, Drake London, Zay Flowers, Chris Olave, A.J. Brown, Alvin Kamara, Derrick Henry, Saquon Barkley and Travis Kelce from the watch. These players do not return through automatic historical rankings. Josh Allen and Puka Nacua also appear in the watch for comparison, clearly identified as already inducted founding-class players; this does not change their enshrinement or their exemption from the future-class nomination process.
-
-The commissioner-selected additions include Jaxon Smith-Njigba, De'Von Achane, Malik Nabers, Drake Maye, Jayden Daniels, Caleb Williams, Jared Goff, Justin Jefferson, Jonathan Taylor, James Cook III, Brock Purdy, Joe Burrow, Kyren Williams, Ashton Jeanty, George Pickens, C.J. Stroud, Kenneth Walker III, Tee Higgins, Tetairoa McMillan, Jordan Love, Trevor Lawrence and Bryce Young. Selection for the watch does not itself confer eligibility; each player's five benchmark counts are computed from official completed FIG seasons, even when that means 0%.
-
-Founders Josh Allen and Puka Nacua both satisfy 3 of 5 benchmarks using the complete 2023–2025 FIG archive and are included without displacing the existing 34 watch candidates. Every player name links to the historical player archive. Each of the five requirement columns shows a checkmark for a completed benchmark or a percentage of the required number of qualifying seasons, together with its fraction (for example, `2 / 5 SEASONS`). These percentages represent milestone completion, **not induction probabilities**. The player heading shows the number of fully satisfied benchmarks.
-
-The table is calculated from `data/player_seasons.json` and completed seasons in `data/league_history.json` when the Hall page loads. Positional rankings use **All-Time Combined PPG** and only complete seasons with **at least nine official FIG starts**. Ties share the same rank. Requirement #4 retains the positional floors of **25+ QB, 17+ RB or WR, and 14+ TE PPG**. The matrix sorts by the number of fully satisfied benchmarks, then summed capped percentage progress, including inducted founders as historical comparisons. A player must meet **three of the five** benchmarks to become eligible for nomination, and the commissioner decides inductions. The founding class and Hayden's separate Enshrined Season are unaffected.
-
-## Player scoring scope: All-Time Combined
-
-All Hall of Fame player cards, season ledgers, career highlights, and signature-season PPG use **All-Time Combined** scoring, including verified FIG starting-lineup appearances in both the regular season and playoffs. This matches the default player archive's `data/player_seasons.json` rows where `scoring_view` is `All-Time Combined`.
-
-The Hall builds career and individual game receipts from `data/player_game_log.json` and, when totals and starts agree, uses the published combined season average directly. Season PPG is displayed to **two decimal places** and labeled clearly, avoiding mismatched rounding conventions. For example, Christian McCaffrey's canonical combined PPG was **26.31 in 2023** and **28.58 in 2025**, versus regular-season-only 26.99 and 27.47. He is a comparison player, not an inducted founding member. The two founding inductees' combined 2025 PPG values are Josh Allen 30.80 and Puka Nacua 25.56.
-
-Franchise single-season records, including Hayden's 2025 3,000.13 points, remain **regular-season** statistics where those categories are defined that way. Hall player scoring scope does not redefine team record books.
-
-## Enshrined Season — Hayden 2025
-
-The original **Hayden 2025** season is restored as a dedicated **Enshrined Season** exhibit on the main Hall, replacing the former “Greatness is not a leaderboard” slogan panel.
-
-Verified 2025 records: 3,000.13 regular-season points, 214.30 points per game, 88.10% all-play winning rate, seven weekly-high scores, and a FIG championship victory (2025 Week 17 against Boek). The season has its own exhibit at `#/hall-of-fame/inductee/season/6/2025` and links directly to its team-season archive and championship box score.
-
-The founding *player* class is exactly Allen and Puka, while Hayden's enshrined team season is recognized in a separate category.
-
-## Enshrined Season historical records
-
-The separate streak gallery and the redundant "Case for Enshrinement" chapter have been removed. The season exhibit shows **every single-season record category** recorded for that franchise-season, including marks outside the league's top three and the season loss count. Ranks are recomputed against completed franchise seasons and ties are reflected. The index still excludes 150+ point games as a record category, while keeping 175+, 200+, 225+, and 250+ games, Highest Weekly Score, and the exclusive starter-performance 20/30/40/50 BOMB categories.
-
-The brief season description now derives its playoff result from official postseason box scores, and the landing-page enshrined-season card lists **every notable top-three season achievement**. The exhibit separately links every scoring performance ranked in the league's all-time top 25 across regular-season and playoff games, including final games already logged for the active season. As of October 31, 2026, Hayden 2025 contributes 290.25 (Week 7, #1 overall), 260.24 (Week 10, #6 overall), 255.99 (Week 12, #9 overall), 238.26 (Week 17 playoffs, #19 overall), and 234.60 (Week 5, #21 overall). These placements update automatically as verified game history grows.
-
-The Python backend regenerates milestone categories on every data update. The Hall recalculates all-time rankings from completed seasons only.
-
-## Website typography rule
-
-**No em dashes** are permitted anywhere in the public website's displayed text. Existing frontend JavaScript, HTML, CSS, manifest, and published data have been audited, and a repository regression test (`tests/test_no_em_dashes.js`) enforces the rule against future reintroduction.
-
-## Evidence limitation
-
-The currently integrated archived `data/player_game_log.json` contains the verified **official FIG lineup starts**, not every week that an owned player scored from the bench. The Hall's existing displayed PPG, season point totals and signature box scores are explicitly marked as **starter-only evidence**, and **are not induction gates**. Evaluating rostered bench performances fairly requires a separate validated reconstruction of historical roster snapshots and weekly NFL scoring. Do not present starter-only rankings as comprehensive evaluations of every rostered player.
-
-The founding class is a permanent editorial designation. New data may enhance exhibits, but it does not silently remove, add or recalculate class membership.
-
-## Site structure
-
-The Hall intentionally contains **one institution**, not a separate Legacy Points competition, historic-feats leaderboard or manager induction ranking. The core Hall page contains the ceremonial entry, two founding plaques and the Hayden 2025 enshrined-season exhibit. No induction philosophy page or section is published. Each player has an expanded exhibit containing:
-
-- Bronze-relief styled portrait framing (an aesthetic treatment of player photographs, not a fabricated 3D likeness)
-- A distinct historical identity and position
-- Individual completed seasons side by side
-- Historical FIG-start stats explicitly labeled as such
-- Signature verified lineup performances with links to original game pages
-- Links to the existing league's detailed player history
-
-The 2026 founding class and 2025 team-season selection cover completed seasons 2023–2025. Incomplete 2026 results do not change the founding class. Puka is visibly identified as **THE LOGO** on both his card and his player plaque.
-
-Implementation: `hall-of-fame-v244.js`, `hall-of-fame-v244.css`, `hall-of-fame-v243.css`, `hall-of-fame-v242.css`, existing `hall-of-fame-v240.css` and `v241.css` museum foundations, `index.html`, and the service-worker app shell. The public route remains `#/hall-of-fame`, individual inductee routes remain `#/hall-of-fame/inductee/player/:id`, and legacy Hall routes gracefully return to the main Hall.
-
-Testing: `node tests/test_hall_of_fame.js` and browser smoke testing in `tests/test_hall_of_fame_browser.js` at desktop, standard mobile and narrow mobile widths.
-
-The FIG Hall is an independent fantasy football project, not affiliated with the NFL or the Pro Football Hall of Fame.
+Existing historical Hall plaques and the Hayden Enshrined Season remain unchanged. The former three-of-five requirement is retired.
