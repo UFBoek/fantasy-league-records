@@ -131,7 +131,7 @@ const {chromium}=require('playwright');
    assert.match(await requirements.nth(0).innerText(),/Two top-four positional PPG finishes/);
    assert.match(await requirements.nth(0).innerText(),/Tight ends must finish top two/);
    assert.match(await requirements.nth(2).innerText(),/Tight ends must finish top three/);
-   assert.match(await requirements.nth(4).innerText(),/Four completed seasons/);
+   assert.match(await requirements.nth(4).innerText(),/Five completed seasons/);
    assert.match(await requirements.nth(1).innerText(),/Counts as one of the five required benchmarks/);
    const criteria=await page.locator('.fig-hof-248-eligibility').innerText();
    assert.ok(criteria.includes('at least 9 official FIG starts'));
@@ -164,21 +164,22 @@ const {chromium}=require('playwright');
     '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
     '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
    const candidates=watchTable.locator('tbody tr');
-   assert.equal(await candidates.count(),25,'Watchlist has 25 players after removing Cook and Brown and adding JSN');
+   assert.equal(await candidates.count(),26,'Restored James Cook to the watchlist without returning excluded players');
    const selectedNames=['Jaxon Smith-Njigba',"De'Von Achane",'Malik Nabers','Drake Maye',
-    'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor'];
+    'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor','James Cook III'];
    const candidateNames=await candidates.locator('.fig-hof-249-player strong').allInnerTexts();
    for(const player of selectedNames)
     assert.ok(candidateNames.includes(player),'Selected watch player should appear: '+player);
-   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave','James Cook III','A.J. Brown'])
+   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave','A.J. Brown'])
     assert.ok(!candidateNames.includes(player),'Removed watch player should be excluded: '+player);
    assert.ok(candidateNames.includes("Ja'Marr Chase")&&candidateNames.includes('Christian McCaffrey'),
     'Historical contenders remain available');
    const newPlayerCounts=[
-    ['Jaxon Smith-Njigba',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
-    ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 4 SEASONS']],
-    ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']],
-    ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 4 SEASONS']]
+    ['Jaxon Smith-Njigba',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
+    ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
+    ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
+    ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
+    ['James Cook III',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']]
    ];
    for(const [player,expected] of newPlayerCounts){
     const row=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:player})});
@@ -197,8 +198,8 @@ const {chromium}=require('playwright');
     'Chase has two out of three sustained dominance seasons');
    assert.ok(await candidates.first().locator('td').nth(3).innerText().then(t=>t.includes('75%')),
     'Chase has three out of four sustained excellence seasons');
-   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('75%')),
-    'Chase has three out of four career consistency seasons');
+   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('60%')),
+    'Chase has three out of five career consistency seasons');
    const chartText=await watchTable.innerText();
    assert.ok(!chartText.includes('Josh Allen')&&!chartText.includes('Puka Nacua'),
     'Founders remain inducted, not placed on a candidate watchlist');
