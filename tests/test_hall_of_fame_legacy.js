@@ -10,16 +10,16 @@ assert.equal(api.THRESHOLD,500);assert.equal(api.MIN_STARTS,8);
 assert.deepEqual(api.FLOORS,[22,13,13,10]);
 assert.equal(m.all.length,386);assert.equal(m.watch.length,35);
 assert.ok(Math.abs(m.season-10253.7)<1e-5);
-assert.equal(m.games,5085);
-assert.ok(m.ratio>.668&&m.ratio<.669,'Historical seasonal share after smoothing');
+assert.equal(m.games,4734);
+assert.ok(m.ratio>.683&&m.ratio<.685,'Historical season/game share after removing low-scoring QB bonuses');
 assert.deepEqual(m.eligible.map(p=>p.name),[],'500 is not yet earned in four FIG seasons');
 assert.equal(m.all[0].name,'Josh Allen');
-assert.equal(m.all[0].remaining,15.5);
+assert.equal(m.all[0].remaining,29.5);
 assert.equal(m.all.find(p=>p.id==='7564').remaining,81);
 assert.equal(m.all.find(p=>p.id==='4034').remaining,121.4);
 assert.equal(m.all.find(p=>p.id==='9493').remaining,124.5);
 assert.ok(m.all.every(p=>p.eligible===(p.total>=500)));
-const totals=[['4984',484.5],['4034',378.6],['7564',419],['9493',375.5],
+const totals=[['4984',470.5],['4034',378.6],['7564',419],['9493',375.5],
  ['8130',299.9],['6786',309.2],['9221',371.2],['9488',233.8],['11604',250.4]];
 for(const [id,total] of totals)assert.equal(m.all.find(p=>p.id===id)?.total,total,id);
 assert.deepEqual(m.watch.filter(p=>p.founder).map(p=>p.id),[]);
@@ -28,7 +28,12 @@ assert.equal(m.all.find(p=>p.id==='9221').current.pending,192.9);
 assert.equal(m.all.find(p=>p.id==='9488').current.pending,189.4);
 assert.equal(m.all.find(p=>p.id==='4984').current.pending,148.8);
 assert.equal(m.all.find(p=>p.name==='George Pickens').current.pending,29.5);
-assert.equal(api.gamePoints('QB',25).points,1);
+assert.equal(api.gamePoints('QB',25).points,0);
+assert.equal(api.gamePoints('QB',25).band,-1,'No QB 20-point milestone awarded');
+assert.equal(api.gamePoints('QB',29.99).points,0);
+assert.equal(api.gamePoints('RB',25).points,2);
+assert.equal(api.gamePoints('WR',25).points,2);
+assert.equal(api.gamePoints('TE',25).points,3);
 assert.equal(api.gamePoints('QB',30).points,3);
 assert.equal(api.gamePoints('QB',40).points,7);
 assert.equal(api.seasonPoints('RB',31.79),192.9);
@@ -99,12 +104,12 @@ for(const x of read('player_game_log')){
  if(!entry)continue;
  entry.games++;entry.points+=api.gamePoints(x.position,Number(x.starter_points)).points;
 }
-const expectedRates={QB:1.54,RB:.91,WR:.82,TE:.69};
+const expectedRates={QB:1.19,RB:.91,WR:.82,TE:.69};
 for(const p of positions){
  const rate=counts[p].points/counts[p].games;
  assert.ok(Math.abs(rate-expectedRates[p])<.025,'Legacy 2.0 positional game rate for '+p+': '+rate);
 }
-assert.deepEqual(api.GAMES,[[20,1,2,2,3],[30,3,5,5,10],[40,7,10,10,18],[50,13,15,15,26],[60,22,25,25,35]]);
+assert.deepEqual(api.GAMES,[[20,0,2,2,3],[30,3,5,5,10],[40,7,10,10,18],[50,13,15,15,26],[60,22,25,25,35]]);
 const html=fs.readFileSync(path.join(root,'hall-of-fame-legacy-v245.js'),'utf8');
 assert.match(html,/class="hoflp-season-card"/);
 assert.match(html,/class="hoflp-game-counts"/);
@@ -180,16 +185,16 @@ for(let yr=2017;yr<=2025;yr++){
 const mockRows=[...mock.values()].map(p=>({...p,total:p.seasons+p.games}));
 const mockGet=name=>mockRows.find(p=>p.name===name);
 assert.equal(mockRows.length,1529);
-assert.equal(mockRows.filter(p=>p.total>=450).length,40,'Smoothing makes former threshold too lenient');
-assert.equal(mockRows.filter(p=>p.total>=500).length,31,'500 maintains historic 30-player selectivity');
-assert.equal(mockRows.filter(p=>p.total>=550).length,26);
+assert.equal(mockRows.filter(p=>p.total>=450).length,39,'Historical 450-point reference after QB bonus change');
+assert.equal(mockRows.filter(p=>p.total>=500).length,29,'500 remains near historic 30-player selectivity');
+assert.equal(mockRows.filter(p=>p.total>=550).length,24);
 assert.deepEqual([+mockGet('Mike Evans').seasons.toFixed(1),mockGet('Mike Evans').games,+mockGet('Mike Evans').total.toFixed(1)],[421.1,179,600.1]);
 assert.deepEqual([+mockGet('Cooper Kupp').seasons.toFixed(1),mockGet('Cooper Kupp').games,+mockGet('Cooper Kupp').total.toFixed(1)],[501.1,156,657.1]);
 const mockSeason=mockRows.reduce((n,p)=>n+p.seasons,0);
 const mockGames=mockRows.reduce((n,p)=>n+p.games,0);
 assert.ok(mockSeason>39150&&mockSeason<39165);
-assert.equal(mockGames,21680);
-assert.ok(mockSeason/(mockSeason+mockGames)>.64&&mockSeason/(mockSeason+mockGames)<.65);
+assert.equal(mockGames,19979);
+assert.ok(mockSeason/(mockSeason+mockGames)>.66&&mockSeason/(mockSeason+mockGames)<.67);
 
 console.log('FIG Legacy verified: ',m.all.length,'players,',m.watch.length,
  'watched; seasonal',m.season,'game',m.games,'share',m.ratio.toFixed(4));
