@@ -126,7 +126,14 @@ const {chromium}=require('playwright');
    for(const n of ['Derrick Henry','Tyreek Hill','Travis Kelce'])
     assert.ok(!names.includes(n),'Watch exclusion '+n);
    await rows.first().locator('details summary').click();
-   assert.ok(await rows.first().locator('.hoflp-detail tbody tr').count()>=3);
+   const details=rows.first().locator('.hoflp-detail-body');
+   assert.ok(await details.locator('.hoflp-season-card').count()>=3);
+   assert.equal(await details.locator('.hoflp-game-counts > div').count(),5);
+   const content=await details.evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth,overflow:getComputedStyle(el).overflowX}));
+   assert.ok(content.scroll<=content.client+1,'Season breakdown cannot scroll horizontally: '+JSON.stringify(content));
+   assert.notEqual(content.overflow,'auto','No nested horizontal scroller in breakdown');
+   const bg=await details.locator('.hoflp-season-card').first().evaluate(el=>getComputedStyle(el).backgroundColor);
+   assert.notEqual(bg,'rgb(255, 255, 255)','Season breakdown stays on dark theme');
    await page.locator('[data-hoflp-scope="all"]').click();
    assert.equal(await rows.count(),386);
    assert.ok((await rows.locator('.hoflp-player a').evaluateAll(links=>links.map(a=>a.textContent.trim()))).includes('Derrick Henry'));

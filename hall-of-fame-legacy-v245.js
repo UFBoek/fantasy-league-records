@@ -7,8 +7,8 @@ const SEASONS=[
 [75,29.5,22.5,21,17],[110,32,26,24,18.5],[140,34.5,28,27,20.5],
 [175,37.5,30,30,22.5],[215,41,33,33,25]
 ];
-const GAMES=[[20,0,.5,.5,1],[30,.5,1.5,1.5,4],[40,2,4,4,9],
-[50,4,8,8,13],[60,12,14,14,19]];
+const GAMES=[[20,0,1,1,2],[30,1,2,3,7],[40,3,7,6,14],
+[50,7,14,14,24],[60,20,25,25,35]];
 const WATCH=new Set(('4984 9493 7564 4034 8130 9221 4881 6786 6904 9509 '+
 '11604 3294 7547 4046 8150 3163 8183 9226 6801 9758 '+
 '8137 9488 6813 6794 11564 11566 6770 8138 11560 11632 '+
@@ -65,12 +65,19 @@ function pointsTable(rows,cls){
  '</tbody></table></div>';
 }
 function detail(p){
- return '<details class="hoflp-detail"><summary>POINTS BREAKDOWN</summary><div class="hoflp-detail-scroll">'+
- '<table><thead><tr><th>YEAR</th><th>STARTS</th><th>PPG</th><th>SEASON</th><th>GAMES</th></tr></thead><tbody>'+
- p.years.map(s=>'<tr><td>'+s.year+(s.complete?'':' *')+'</td><td>'+s.starts+'</td><td>'+
- ppgFmt(s.ppg)+'</td><td>'+fmt(s.season)+'</td><td>'+fmt(s.games)+'</td></tr>').join('')+
- '</tbody></table><p>Exact scoring bands 20/30/40/50/60+: '+p.bands.join(' / ')+
- '. * denotes an incomplete season with no PPG award yet.</p></div></details>';
+ const seasons=p.years.map(s=>
+  '<div class="hoflp-season-card"><div class="hoflp-season-head"><strong>'+s.year+'</strong>'+
+  (s.complete?'<span>FINAL</span>':'<span class="hoflp-active">IN PROGRESS</span>')+'</div>'+
+  '<div class="hoflp-season-average"><strong>'+ppgFmt(s.ppg)+'</strong><span>PPG · '+s.starts+' STARTS</span></div>'+
+  '<div class="hoflp-season-values"><div><small>SEASON POINTS</small><b>'+fmt(s.season)+'</b></div>'+
+  '<div><small>GAME POINTS</small><b>'+fmt(s.games)+'</b></div></div></div>').join('');
+ const bands=p.bands.map((count,i)=>'<div><small>'+GAMES[i][0]+'+</small><strong>'+count+'</strong></div>').join('');
+ return '<details class="hoflp-detail"><summary>POINTS BREAKDOWN</summary>'+
+  '<div class="hoflp-detail-body">'+seasons+
+  '<div class="hoflp-game-breakdown"><span>GAME SCORING BANDS</span>'+
+  '<div class="hoflp-game-counts">'+bands+'</div>'+
+  '<p>Counts use the highest scoring band per game. PPG bonuses are awarded only after the season is complete.</p>'+
+  '</div></div></details>';
 }
 function playerRow(p){
  const status=p.founder?'ENSHRINED':p.eligible?'ELIGIBLE':'BUILDING';
@@ -99,7 +106,7 @@ function html(m){
  '<div class="hoflp-share"><div><strong>'+(m.ratio*100).toFixed(1)+'%</strong><span>SEASON POINTS</span></div>'+
  '<div><strong>'+((1-m.ratio)*100).toFixed(1)+'%</strong><span>GAME BONUSES</span></div>'+
  '<div class="hoflp-share-bar"><i style="width:'+(m.ratio*100).toFixed(2)+'%"></i></div>'+
- '<p>Actual historical weighting. Long-term excellence earns more than four times the points of individual games.</p></div></div>'+
+ '<p>Actual historical weighting. Seasonal excellence earns roughly 70% of all Legacy Points.</p></div></div>'+
  '<section class="hoflp-rule"><div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">I / SEASONAL DOMINANCE</span>'+
  '<h2>Great seasons endure.</h2><p>One permanent award per completed season with at least eight official FIG starts. The highest tier reached is awarded using exact unrounded All-Time Combined PPG, including playoffs.</p></div>'+
  pointsTable(st,'hoflp-season-table')+'</section>'+

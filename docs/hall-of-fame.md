@@ -22,13 +22,13 @@ Each verified FIG starting-lineup game awards only its highest scoring-band bonu
 
 | Game score | QB | RB | WR | TE |
 |---:|---:|---:|---:|---:|
-| 20-29.99 | 0 | 0.5 | 0.5 | 1 |
-| 30-39.99 | 0.5 | 1.5 | 1.5 | 4 |
-| 40-49.99 | 2 | 4 | 4 | 9 |
-| 50-59.99 | 4 | 8 | 8 | 13 |
-| 60+ | 12 | 14 | 14 | 19 |
+| 20-29.99 | 0 | 1 | 1 | 2 |
+| 30-39.99 | 1 | 2 | 3 | 7 |
+| 40-49.99 | 3 | 7 | 6 | 14 |
+| 50-59.99 | 7 | 14 | 14 | 24 |
+| 60+ | 20 | 25 | 25 | 35 |
 
-Across FIG's 2023 through 2026 Week 7 data, the model yields 5,825 points from completed seasons and 1,401 game points: **80.61% seasonal versus 19.39% game**. Historical positions are calibrated for comparable point earning opportunities. The separate upper tiers recognize unprecedented seasons, and points are permanently earned.
+Across FIG's 2023 through 2026 Week 7 data, the model yields 5,825 points from completed seasons and 2,513 game points: **69.86% seasonal versus 30.14% game**. Historical positions are calibrated for comparable point earning opportunities. The separate upper tiers recognize unprecedented seasons, and points are permanently earned.
 
 ## Watchlist and leaderboard
 The **Eligibility & Nomination** page at `#/hall-of-fame/eligibility` shows the 36 established watch candidates, including the founders and all commissioner additions. It preserves commissioner exclusions from the curated watch, while the searchable **All Players** view includes every player, even those excluded from the watch.
@@ -36,3 +36,5 @@ The **Eligibility & Nomination** page at `#/hall-of-fame/eligibility` shows the 
 Both views show earned seasonal and game points, total, remaining points until 300, current-year pending season award, and an expandable year-by-year scoring breakdown. The in-progress PPG preview is not earned or included in the total until the season is complete and eight starts have been recorded. All values are derived from the published `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, so verified updates flow automatically to the site.
 
 Existing historical Hall plaques and the Hayden Enshrined Season remain unchanged. The former three-of-five requirement is retired.
+
+The scoring detail expansion uses vertically stacked season cards rather than a nested wide table, preventing horizontal scrolling and preserving readable dark-theme typography on narrow layouts.

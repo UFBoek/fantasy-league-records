@@ -55,12 +55,28 @@
 .hoflp-total i b{display:block;height:100%;background:#e0ba7f}
 .hoflp-page .hoflp-leaderboard td:last-child b{display:block;font-size:10px;color:#e4c393}
 .hoflp-page .hoflp-leaderboard td:last-child small{display:block;font:600 9px/1.5 Inter,Arial,sans-serif;color:#aabdc4}
-.hoflp-detail{max-width:290px;margin-top:9px}
-.hoflp-detail summary{cursor:pointer;width:max-content;font:800 9px/1.4 Inter,Arial,sans-serif;color:#d5b17a;letter-spacing:.045em}
-.hoflp-detail-scroll{max-width:295px;overflow-x:auto;margin-top:10px;background:#172834;border:1px solid #46565d;padding:12px}
-.hoflp-page .hoflp-detail-scroll table{min-width:275px;width:100%;border-collapse:collapse}
-.hoflp-page .hoflp-detail-scroll th,.hoflp-page .hoflp-detail-scroll td{padding:6px 4px!important;background:transparent!important;border-bottom:1px solid #394954!important;color:#e3dbc9!important;text-align:left!important;font:600 10px/1.5 Inter,Arial,sans-serif!important}
-.hoflp-detail-scroll p{margin:10px 0 0;color:#bac5c7;font:500 10px/1.7 Inter,Arial,sans-serif}
+.hoflp-detail{max-width:100%;min-width:0;width:100%;box-sizing:border-box;margin-top:10px}
+.hoflp-detail summary{cursor:pointer;width:max-content;max-width:100%;font:800 10px/1.4 Inter,Arial,sans-serif;color:#e1bf8a;letter-spacing:.025em;text-transform:none!important}
+.hoflp-detail-body{display:flex;flex-direction:column;gap:9px;width:100%;max-width:100%;box-sizing:border-box;margin-top:10px;padding:9px;background:#142530;border:1px solid #405461;overflow-x:hidden;white-space:normal;min-width:0}
+.hoflp-season-card{box-sizing:border-box;min-width:0;width:100%;padding:10px 11px;border:1px solid rgba(207,177,124,.22);border-radius:3px;background:#20333f;color:#f0e4d4;white-space:normal}
+.hoflp-season-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px}
+.hoflp-season-head>strong{color:#f7e1bd;font:800 13px/1.2 Inter,Arial,sans-serif;letter-spacing:0}
+.hoflp-season-head>span{color:#aebdc2;font:800 8px/1.4 Inter,Arial,sans-serif;letter-spacing:.05em}
+.hoflp-season-head>span.hoflp-active{color:#f2c681}
+.hoflp-season-average{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 7px;margin-top:10px;min-width:0}
+.hoflp-season-average strong{color:#f6e3c1;font:700 18px/1.1 Inter,Arial,sans-serif;letter-spacing:-.025em}
+.hoflp-season-average span{color:#b5c5c9;font:700 8px/1.4 Inter,Arial,sans-serif;letter-spacing:.02em}
+.hoflp-season-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid rgba(221,186,131,.2)}
+.hoflp-season-values>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hoflp-season-values small{color:#acbec5;font:800 8px/1.3 Inter,Arial,sans-serif;letter-spacing:.015em;white-space:normal}
+.hoflp-season-values b{color:#e8cc9f;font:800 12px/1.3 Inter,Arial,sans-serif}
+.hoflp-game-breakdown{box-sizing:border-box;min-width:0;margin-top:3px;padding:8px 1px 1px;color:#e9dcc9;white-space:normal}
+.hoflp-game-breakdown>span{display:block;color:#d9b984;font:800 9px/1.4 Inter,Arial,sans-serif;letter-spacing:.04em}
+.hoflp-game-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:9px}
+.hoflp-game-counts>div{min-width:0;display:flex;flex-direction:column;gap:2px;padding:7px 4px;text-align:center;border:1px solid #425765;border-radius:3px;background:#213641}
+.hoflp-game-counts small{color:#b3c4cb;font:700 9px/1.3 Inter,Arial,sans-serif}
+.hoflp-game-counts strong{color:#f3ddb4;font:800 12px/1.3 Inter,Arial,sans-serif}
+.hoflp-game-breakdown p{margin:10px 0 0;color:#aebfc7;font:500 9px/1.55 Inter,Arial,sans-serif;overflow-wrap:anywhere;white-space:normal}
 .hoflp-count{color:#e1bd86;font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.08em;margin:13px 0}
 .hoflp-note{color:#b1c0c7;font:500 11px/1.8 Inter,Arial,sans-serif;margin:14px 0}
 @media(max-width:850px){.hoflp-hero{grid-template-columns:1fr}.hoflp-principles{grid-template-columns:1fr}}
