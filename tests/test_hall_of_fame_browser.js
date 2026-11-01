@@ -139,7 +139,7 @@ const {chromium}=require('playwright');
    assert.ok(criteria.includes('commissioner makes the final induction decision'));
    const tableValues=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
     rows.map(row=>Array.from(row.querySelectorAll('th,td'),cell=>cell.textContent.trim())));
-   assert.deepEqual(tableValues,[['QB','25+','TOP 8'],['RB','18+','TOP 10'],
+   assert.deepEqual(tableValues,[['QB','25+','TOP 10'],['RB','18+','TOP 10'],
     ['WR','18+','TOP 10'],['TE','15+','TOP 3']]);
    const rowColors=await page.locator('.fig-hof-248-table-wrap tbody tr').evaluateAll(rows=>
     rows.map(row=>({background:getComputedStyle(row.querySelector('td')).backgroundColor,
