@@ -46,6 +46,11 @@ def main():
     if not isinstance(directory,dict) or len(directory)<500:
         raise RuntimeError("Incomplete Sleeper player directory")
     print("MOCK_DIRECTORY",len(directory),flush=True)
+    played_file=json.loads((ROOT/"data"/"playoff_nfl_weekly_scores.json").read_text())
+    if played_file.get("season")!=2026 or int(played_file.get("through_week") or 0)<1:
+        raise RuntimeError("Missing verified 2026 appearances")
+    played_2026=set(str(pid) for week in played_file["weeks"].values() for pid in week)
+    print("MOCK_2026_APPEARED",len(played_2026),flush=True)
     pmap={}
     for year in YEARS:
         block=SOURCE["seasons"].get(str(year))
@@ -76,7 +81,7 @@ def main():
     for pid,p in pmap.items():
         d=directory.get(pid) if isinstance(directory.get(pid),dict) else {}
         points=p["season_points"]+p["modeled_game_points"]
-        p.update(active_2026=bool(d.get("active")),current_team=d.get("team"),
+        p.update(played_2026=pid in played_2026, sleeper_active_flag=bool(d.get("active")),current_team=d.get("team"),
             status=d.get("status"),watchlist=pid in WATCH,
             total=points,remaining=max(0,350-points),
             qualifying_seasons=sum(q["games"]>=8 for q in p["seasons"]),
@@ -84,9 +89,9 @@ def main():
         result.append(p)
     result.sort(key=lambda p:(-p["total"],-p["season_points"],p["player"]))
     for n,p in enumerate(result,1):p["rank"]=n
-    active=[p for p in result if p["active_2026"]]
+    active=[p for p in result if p["played_2026"]]
     for n,p in enumerate(active,1):p["active_rank"]=n
-    cols=["rank","active_rank","player","position","active_2026","status",
+    cols=["rank","active_rank","player","position","played_2026","sleeper_active_flag","status",
           "current_team","watchlist","qualifying_seasons","games",
           "season_points","modeled_game_points","total","remaining","eligible","id"]
     for suffix,group in [("all",result),("active",active)]:
@@ -95,7 +100,9 @@ def main():
             writer=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(group)
-    out={"version":1,"official":False,"years":[2017,2025],
+    out={"version":2,"official":False,"years":[2017,2025],
+        "active_cohort":"Had a verified NFL scoring appearance during 2026 through published week cutoff",
+        "active_through_week":played_file["through_week"],
         "method":"Current FIG Legacy seasonal tiers for >=8 scored NFL appearances in each year. Hypothetical game bonus for every NFL appearance, independent of whether a FIG manager would have started the player.",
         "limitations":["Pre-2021 fantasy scores can omit certain 50+ yard TD bonuses",
           "2017-2020 include NFL weeks 1-17; 2021-2025 weeks 1-18",
@@ -111,17 +118,17 @@ def main():
            "Season points require 8 NFL appearances, not historical FIG starts.",
            "Mock game points assume every scored NFL appearance counted as a FIG start.",
            "No official Hall of Fame totals or eligibility have been changed.","",
-           "Players: "+str(len(result))+". Sleeper-active: "+str(len(active))+".",
+           "Players: "+str(len(result))+". With verified 2026 NFL appearance: "+str(len(active))+".",
            "Eligible at 350: "+str(sum(x["eligible"] for x in result))+".",
-           "Active eligible: "+str(sum(x["eligible"] for x in active))+".","",
+           "2026-appeared eligible: "+str(sum(x["eligible"] for x in active))+".","",
            "## Top 100 overall","",
-           "| Rank | Player | Pos | Active | Season | Mock games | Total |",
+           "| Rank | Player | Pos | Played 2026 | Season | Mock games | Total |",
            "|---:|---|:---:|:---:|---:|---:|---:|"]
     for p in result[:100]:
         lines.append(f"| {p['rank']} | {p['player']} | {p['position']} | "+
-                     ("Yes" if p["active_2026"] else "No")+
+                     ("Yes" if p["played_2026"] else "No")+
                      f" | {p['season_points']} | {p['modeled_game_points']} | **{p['total']}** |")
-    lines.extend(["","## Top 100 currently active","",
+    lines.extend(["","## Top 100 players with a verified 2026 NFL appearance","",
         "| Rank | Player | Pos | Seasons | Season | Mock games | Total |",
         "|---:|---|:---:|---:|---:|---:|---:|"])
     for p in active[:100]:
