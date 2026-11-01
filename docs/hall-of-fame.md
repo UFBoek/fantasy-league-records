@@ -13,6 +13,22 @@ The main Hall presents two founding player plaques, the separately enshrined Hay
 
 The **two players explicitly selected** for the inaugural class are Josh Allen and Puka Nacua. Gibbs and McBride remain in the normal player archive, but no longer appear as Hall inductees. The historical Hayden 2025 franchise season remains enshrined separately. No other player was added.
 
+## Eligibility for future classes: independent positional routes
+
+Eligibility permits **consideration**, not automatic induction. A player qualifies for consideration by meeting **any ONE** of the following alternatives. These are position-specific FIG scoring requirements, not a checklist that must be satisfied in full.
+
+| Route | Minimum standard |
+| --- | --- |
+| **Elite Production** | Two separate completed seasons finishing **top three in positional PPG**. |
+| **Positional Dominance** | One completed season finishing **#1 in positional PPG**, plus two other completed seasons finishing **top five**. |
+| **Sustained Greatness** | Four separate completed seasons finishing **top five in positional PPG**, and at least **50 career FIG starts**. |
+
+The standards apply separately to **QB, RB, WR and TE**. Each positional finish must have at least **10 verified FIG starts** in that completed season. Rankings use **All-Time Combined PPG**, including regular-season and playoff FIG starts. Players with equal PPG share a rank; qualifying seasons are distinct. The five-completed-season requirement and 50-career-start gate are **not universal**; the 50-start condition applies only to Sustained Greatness.
+
+There is **no Historical Excellence alternative** or subjective escape route in standard eligibility. Josh Allen and Puka Nacua were explicitly enshrined as the **2026 founding-class exceptions**, and no future rankings can revoke their induction. All subsequent classes require a separate commissioner induction decision; a statistical pathway never auto-adds a player. The criteria do not appear on a restored Induction Philosophy page or alter the main Hall presentation.
+
+`screenHallEligibility` in `hall-of-fame-v244.js` computes qualifying candidates from completed-season combined player data without changing curated class membership.
+
 ## Player scoring scope: All-Time Combined
 
 All Hall of Fame player cards, season ledgers, career highlights, and signature-season PPG use **All-Time Combined** scoring, including verified FIG starting-lineup appearances in both the regular season and playoffs. This matches the default player archive's `data/player_seasons.json` rows where `scoring_view` is `All-Time Combined`.
@@ -43,7 +59,7 @@ The Python backend regenerates milestone categories on every data update. The Ha
 
 ## Evidence limitation
 
-The currently integrated archived `data/player_game_log.json` contains the verified **official FIG lineup starts**, not every week that an owned player scored from the bench. The Hall's existing displayed PPG, season point totals and signature box scores are explicitly marked as **starter-only evidence**, and **are not induction gates**. Evaluating rostered bench performances fairly requires a separate validated reconstruction of historical roster snapshots and weekly NFL scoring. Do not present starter-only rankings as comprehensive evaluations of every rostered player.
+The currently integrated archived `data/player_game_log.json` contains the verified **official FIG lineup starts**, not every week that an owned player scored from the bench. The Hall's displayed PPG, season point totals, and signature box scores use **starter-only evidence**. Future player eligibility evaluates completed-season positional finishes with a ten-FIG-start minimum, and requires 50 career starts only under the Sustained Greatness route; these thresholds do not automatically induct anyone. Evaluating rostered bench performances fairly requires a separate validated reconstruction of historical roster snapshots and weekly NFL scoring. Do not present starter-only rankings as comprehensive evaluations of every rostered player.
 
 The founding class is a permanent editorial designation. New data may enhance exhibits, but it does not silently remove, add or recalculate class membership.
 
