@@ -165,7 +165,7 @@ const {chromium}=require('playwright');
    assert.match(await rows.first().innerText(),/29\.5 PENDING/);
    await page.locator('[data-hoflp-search]').fill('');
    await page.locator('[data-hoflp-pos]').selectOption('TE');
-   assert.equal(await rows.count(),56);
+   assert.equal(await rows.count(),24,'TE filter shows only TEs with earned points');
    await page.locator('[data-hoflp-search]').fill('McBride');
    assert.equal(await rows.count(),1);
    await page.locator('[data-hoflp-pos]').selectOption('ALL');
