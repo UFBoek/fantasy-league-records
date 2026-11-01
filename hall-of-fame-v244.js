@@ -324,14 +324,16 @@ function hallEligibilityWatch(d){
  // Player IDs keep identities stable when Sleeper names (e.g., James Cook III) vary.
  const watchAdditions=new Set(['9488','9226','11632','11564','11566','11560','3163','6794','6813','8138','8183','6770','8150','12527','8137','9758','8151','6801','12526','6804','7523','9228']);
  const watchExclusions=new Set(['3321','8112','9997','8144','5859','4035','3198','4866','1466']); // Commissioner-excluded watch players remain excluded from automatic selections.
- const candidatePool=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)));
+ const foundingIds=new Set(INDUCTION_CLASSES.flatMap(cls=>cls.entries.filter(e=>e.kind==='player').map(e=>e.id)));
+ const candidatePool=all.filter(p=>!foundingIds.has(p.id));
  const established=candidatePool.filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
   .slice(0,18).filter(p=>!watchExclusions.has(p.id));
- const includedIds=new Set(established.map(p=>p.id));
+ // Founding members appear in the comparison table without altering the future-candidate shortlist.
+ const includedIds=new Set([...established.map(p=>p.id),...foundingIds]);
  for(const p of candidatePool){
   if(watchAdditions.has(p.id)&&!watchExclusions.has(p.id))includedIds.add(p.id);
  }
- const contenders=candidatePool.filter(p=>includedIds.has(p.id));
+ const contenders=all.filter(p=>includedIds.has(p.id)).map(p=>({...p,foundingClass:foundingIds.has(p.id)}));
  return {years,all,contenders};
 }
 function hallEligibilityWatchSection(watch){
@@ -351,20 +353,20 @@ function hallEligibilityWatchSection(watch){
  }).join('');
  return '<section class="fig-hof-249-watch" aria-labelledby="figHofWatchTitle">'+
   '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">ELIGIBILITY WATCH</span>'+
-  '<h2 id="figHofWatchTitle">The next in line.</h2>'+
-  '<p>Players closest to the three-of-five nomination standard, ranked by requirements met and progress toward the rest.</p></div>'+
+  '<h2 id="figHofWatchTitle">The eligibility field.</h2>'+
+  '<p>Founding inductees and future candidates, ranked by requirements met and progress toward the rest.</p></div>'+
   (watch.contenders.length?'<div class="fig-hof-249-scroll" role="region" tabindex="0" aria-label="Hall eligibility watch table, scroll horizontally on smaller screens">'+
   '<table class="fig-hof-249-table"><thead><tr><th scope="col">PLAYER</th>'+
   titleNames.map((name,i)=>'<th scope="col" title="'+esc(name)+'"><span>#'+(i+1)+'</span><small>'+esc(name)+'</small></th>').join('')+
   '</tr></thead><tbody>'+watch.contenders.map(p=>
    '<tr><th scope="row"><a class="fig-hof-249-player" href="#/player/'+slug(p.id)+'">'+
    '<img loading="lazy" src="https://sleepercdn.com/content/nfl/players/thumb/'+slug(p.id)+'.jpg" alt="" onerror="this.remove()">'+
-   '<span><strong>'+esc(p.name)+'</strong><small>'+esc(p.position)+' · '+p.met+' OF 5 MET'+(p.eligible?' · ELIGIBLE':'')+'</small></span></a></th>'+
+   '<span><strong>'+esc(p.name)+'</strong><small>'+esc(p.position)+' · '+(p.foundingClass?'FOUNDING CLASS · ':'')+p.met+' OF 5 MET'+(p.eligible?' · ELIGIBLE':'')+'</small></span></a></th>'+
    cells(p)+'</tr>').join('')+'</tbody></table></div>':
   '<p class="fig-hof-249-empty">No qualifying candidates appear in the completed season archive yet.</p>')+
   '<p class="fig-hof-249-footnote">Official FIG starts only · All-Time Combined PPG · Minimum nine starts per season'+
   (lastYear?' · Completed seasons through '+lastYear:'')+
-  '. A percentage shows completed qualifying seasons toward each requirement, not a probability of induction. Founding inductees and excluded players are omitted; additional watch candidates are included by commissioner selection. Every player\'s progress updates as seasons become complete.</p>'+
+  '. A percentage shows completed qualifying seasons toward each requirement, not a probability of induction. Founding inductees appear for comparison and remain enshrined; excluded players stay omitted. Every player\'s progress updates as seasons become complete.</p>'+
   '</section>';
 }
 /* Nomination standards live on their own Hall route and never alter class membership. */
