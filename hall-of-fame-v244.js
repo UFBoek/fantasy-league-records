@@ -314,7 +314,7 @@ function hallEligibilityWatch(d){
    seasons.filter(x=>x.ppg>=rule.peak).length,
    seasons.filter(x=>x.rank<=rule.consistent).length
   ];
-  const targets=[2,2,3,4,5];
+  const targets=[2,1,3,4,5];
   const met=counts.filter((count,i)=>count>=targets[i]).length;
   const progress=counts.reduce((sum,count,i)=>sum+Math.min(count/targets[i],1),0);
   return {...p,seasons,counts,targets,met,progress,eligible:met>=4};
@@ -363,7 +363,7 @@ function eligibilityPage(d){
  const watch=hallEligibilityWatch(d);
  const rules=[
   ['01','Elite Production','Two top-three positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
-  ['02','Positional Supremacy','Two #1 positional PPG finishes in separate completed seasons. Counts as one of the five required benchmarks.'],
+  ['02','Positional Supremacy','One completed season finishing #1 in positional PPG. Counts as one of the five required benchmarks.'],
   ['03','Sustained Dominance','Three top-five positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
   ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
