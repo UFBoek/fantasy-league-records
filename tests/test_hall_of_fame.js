@@ -29,7 +29,25 @@ assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the 
 // The live eligibility watch ranks eligible starter-season averages, not total points.
 const watch=api.hallEligibilityWatch(data);
 assert.deepEqual(watch.years,[2023,2024,2025]);
-assert.equal(watch.contenders.length,18,'Show a curated-length live contender list');
+assert.equal(watch.contenders.length,26,'Preserve 17 historical watch players and include nine commissioner additions');
+const addedWatchPlayers={
+ '8138':'James Cook III','9226':"De'Von Achane",'11632':'Malik Nabers',
+ '11564':'Drake Maye','11566':'Jayden Daniels','11560':'Caleb Williams',
+ '9997':'Zay Flowers','8112':'Drake London','8144':'Chris Olave'
+};
+for(const [id,name] of Object.entries(addedWatchPlayers)){
+ const p=watch.contenders.find(player=>player.id===id);
+ assert.ok(p,'User-selected watch candidate must remain visible: '+name);
+ assert.equal(p.name,name,'Use the official published player name: '+name);
+ assert.equal(p.counts.length,5,'Every addition has five honest calculated progress cells');
+}
+assert.ok(!watch.contenders.some(p=>p.id==='3321'||p.name==='Tyreek Hill'),
+ 'Tyreek Hill must not appear in Hall eligibility watch');
+for(const name of ['Drake London','Zay Flowers']){
+ const p=watch.contenders.find(x=>x.name===name);
+ assert.deepEqual(p.counts,[0,0,0,0,0],
+  'Watch selections with no qualifying achievements display accurate 0% progress: '+name);
+}
 assert.equal(watch.contenders[0].name,"Ja'Marr Chase",
  'One positional championship completes requirement two and moves Chase up the watchlist');
 assert.deepEqual(watch.contenders[0].counts,[2,1,2,3,3]);
