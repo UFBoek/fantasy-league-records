@@ -1,14 +1,14 @@
-/* FIG Legacy Points. Fixed positional bands; cumulative official FIG starts. */
+/* FIG Legacy Points 2.0. Season/game 60:40 calibration; verified FIG starts. */
 (function(){
 'use strict';
 const THRESHOLD=350,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
 const SEASONS=[
-[15,25,16,15.5,13.5],[35,26.5,18.5,18.5,15],[55,28.5,19.5,19.5,16],
-[85,29.5,22.5,21.5,17],[120,32,26,25,18.5],[150,34.5,28,27.5,20.5],
-[190,37.5,30,30,22.5],[230,41,33,33,25]
+[30,25,16,15.5,13.5],[50,26.5,18.5,18.5,15],[70,28.5,19.5,19.5,16],
+[95,29.5,22.5,21.5,17],[120,32,26,25,18.5],[145,34.5,28,27.5,20.5],
+[175,37.5,30,30,22.5],[205,41,33,33,25]
 ];
-const GAMES=[[20,0,1,1,2],[30,1,2,3,7],[40,3,7,6,14],
-[50,7,14,14,24],[60,20,25,25,35]];
+const GAMES=[[20,1,2,2,3],[30,3,5,5,10],[40,7,10,10,18],
+[50,13,15,15,26],[60,22,25,25,35]];
 const WATCH=new Set(('4984 9493 7564 4034 8130 9221 4881 6786 6904 9509 '+
 '11604 3294 7547 4046 8150 3163 8183 9226 6801 9758 '+
 '8137 9488 6813 6794 11564 11566 6770 8138 11560 11632 '+
@@ -106,12 +106,12 @@ function html(m){
  '<div class="hoflp-share"><div><strong>'+(m.ratio*100).toFixed(1)+'%</strong><span>SEASON POINTS</span></div>'+
  '<div><strong>'+((1-m.ratio)*100).toFixed(1)+'%</strong><span>GAME BONUSES</span></div>'+
  '<div class="hoflp-share-bar"><i style="width:'+(m.ratio*100).toFixed(2)+'%"></i></div>'+
- '<p>Actual historical weighting. Seasonal excellence earns roughly 70% of all Legacy Points.</p></div></div>'+
+ '<p>Actual historical weighting. The Legacy 2.0 scoring bands target a 60% season / 40% game split.</p></div></div>'+
  '<section class="hoflp-rule"><div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">I / SEASONAL DOMINANCE</span>'+
  '<h2>Great seasons endure.</h2><p>One permanent award per completed season with at least eight official FIG starts. The highest tier reached is awarded using exact unrounded All-Time Combined PPG, including playoffs.</p></div>'+
  pointsTable(st,'hoflp-season-table')+'</section>'+
  '<section class="hoflp-rule"><div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">II / INDIVIDUAL MILESTONES</span>'+
- '<h2>Defining performances.</h2><p>One bonus per started FIG game, with the highest scoring band only. Quarterbacks earn no points for a game scoring 20-29.99.</p></div>'+
+ '<h2>Defining performances.</h2><p>One bonus per started FIG game, with the highest scoring band only. The first scoring band begins at 20 points for every position.</p></div>'+
  pointsTable(gm,'hoflp-game-table')+'</section>'+
  '<div class="hoflp-principles"><p><b>POSITIONALLY CALIBRATED</b> Earning bands reflect different positional scoring distributions.</p>'+
  '<p><b>PERMANENT ACHIEVEMENTS</b> New seasons never reduce already earned Legacy Points.</p>'+
