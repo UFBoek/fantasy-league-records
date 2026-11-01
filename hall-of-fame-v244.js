@@ -319,10 +319,19 @@ function hallEligibilityWatch(d){
   const progress=counts.reduce((sum,count,i)=>sum+Math.min(count/targets[i],1),0);
   return {...p,seasons,counts,targets,met,progress,eligible:met>=4};
  }).sort((a,b)=>b.met-a.met||b.progress-a.progress||b.seasons.length-a.seasons.length||a.name.localeCompare(b.name));
- // Founding selections are enshrined already, not nomination candidates.
- const contenders=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)))
-  .filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
-  .slice(0,18);
+ // Keep the established historical shortlist, with commissioner-selected emerging
+ // players included even before they rise into the automatic historical top 18.
+ // Player IDs keep identities stable when Sleeper names (e.g., James Cook III) vary.
+ const watchAdditions=new Set(['8138','9226','11632','11564','11566','11560','9997','8112','8144']);
+ const watchExclusions=new Set(['3321']); // Tyreek Hill is not on the watchlist.
+ const candidatePool=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)));
+ const established=candidatePool.filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
+  .slice(0,18).filter(p=>!watchExclusions.has(p.id));
+ const includedIds=new Set(established.map(p=>p.id));
+ for(const p of candidatePool){
+  if(watchAdditions.has(p.id)&&!watchExclusions.has(p.id))includedIds.add(p.id);
+ }
+ const contenders=candidatePool.filter(p=>includedIds.has(p.id));
  return {years,all,contenders};
 }
 function hallEligibilityWatchSection(watch){
@@ -355,7 +364,7 @@ function hallEligibilityWatchSection(watch){
   '<p class="fig-hof-249-empty">No qualifying candidates appear in the completed season archive yet.</p>')+
   '<p class="fig-hof-249-footnote">Official FIG starts only · All-Time Combined PPG · Minimum nine starts per season'+
   (lastYear?' · Completed seasons through '+lastYear:'')+
-  '. A percentage shows completed qualifying seasons toward each requirement, not a probability of induction. Founding inductees are excluded. The list updates as seasons become complete.</p>'+
+  '. A percentage shows completed qualifying seasons toward each requirement, not a probability of induction. Founding inductees and excluded players are omitted; additional watch candidates are included by commissioner selection. Every player\'s progress updates as seasons become complete.</p>'+
   '</section>';
 }
 /* Nomination standards live on their own Hall route and never alter class membership. */
