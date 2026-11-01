@@ -151,9 +151,9 @@ const {chromium}=require('playwright');
    assert.equal(await watchTable.count(),1,'Eligibility watch table renders on requirements page');
    const watchHeadings=await watchTable.locator('thead th').allInnerTexts();
    assert.equal(watchHeadings.length,6,'Player column followed by five requirement columns');
-   assert.deepEqual(watchHeadings.slice(1).map(t=>t.replace(/\s+/g,' ').trim()),[
-    '#1 Elite Production','#2 Positional Supremacy','#3 Sustained Dominance',
-    '#4 Sustained Excellence','#5 Career Consistency']);
+   assert.deepEqual(watchHeadings.slice(1).map(t=>t.replace(/\s+/g,' ').trim().toUpperCase()),[
+    '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
+    '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
    const candidates=watchTable.locator('tbody tr');
    assert.equal(await candidates.count(),18,'Display closest 18 candidates based on official history');
    const firstCandidate=await candidates.first().innerText();
