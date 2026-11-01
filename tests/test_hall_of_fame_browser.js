@@ -164,8 +164,8 @@ const {chromium}=require('playwright');
     '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
     '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
    const candidates=watchTable.locator('tbody tr');
-   assert.equal(await candidates.count(),34,'34 selected candidates after removing four veterans and adding twelve');
-   const selectedNames=['Jaxon Smith-Njigba',"De'Von Achane",'Malik Nabers','Drake Maye',
+   assert.equal(await candidates.count(),36,'Watchlist includes both founders and all 34 other candidates');
+   const selectedNames=['Josh Allen','Puka Nacua','Jaxon Smith-Njigba',"De'Von Achane",'Malik Nabers','Drake Maye',
     'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor','James Cook III',
     'Brock Purdy','Joe Burrow','Kyren Williams','Ashton Jeanty','George Pickens',
     'C.J. Stroud','Kenneth Walker III','Tee Higgins','Tetairoa McMillan','Jordan Love',
@@ -203,26 +203,44 @@ const {chromium}=require('playwright');
     const actual=await row.locator('td .fig-hof-249-progress span').allInnerTexts();
     assert.deepEqual(actual,expected,'Completed FIG season progress must be correct for '+player);
    }
-   const firstCandidate=await candidates.first().innerText();
-   assert.ok(firstCandidate.includes("Ja'Marr Chase"),'Chase leads after one positional championship satisfies #2');
-   assert.ok(firstCandidate.includes('2 OF 5 MET'),'One positional title still does not automatically qualify Chase');
-   assert.ok(await candidates.first().locator('td').nth(1).innerText().then(t=>t.includes('1 / 1 SEASONS')),
+   assert.deepEqual(candidateNames.slice(0,2),['Josh Allen','Puka Nacua'],
+    'Founding inductees lead the watch as completed three-of-five cases');
+   const founderCounts=[
+    ['Josh Allen',['3 / 2 SEASONS','2 / 1 SEASONS','3 / 3 SEASONS','3 / 4 SEASONS','3 / 5 SEASONS']],
+    ['Puka Nacua',['2 / 2 SEASONS','1 / 1 SEASONS','3 / 3 SEASONS','3 / 4 SEASONS','3 / 5 SEASONS']]
+   ];
+   for(const [name,expectedCounts] of founderCounts){
+    const row=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:name})});
+    const summary=await row.locator('.fig-hof-249-player small').innerText();
+    assert.match(summary,/FOUNDING CLASS/,'Founder clearly identified as already inducted: '+name);
+    assert.match(summary,/3 OF 5 MET/);
+    assert.match(summary,/ELIGIBLE/);
+    assert.equal(await row.locator('.fig-hof-249-progress.is-met').count(),3,
+     'Each founder completes exactly three historical benchmarks');
+    const actual=await row.locator('td .fig-hof-249-progress span').allInnerTexts();
+    assert.deepEqual(actual,expectedCounts.map(t=>t.replace(/^3 \/ 2/,'2 / 2').replace(/^2 \/ 1/,'1 / 1')),
+     'Founder watch cells display progress without exceeding the target');
+   }
+   const chaseRow=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:"Ja'Marr Chase"})});
+   assert.ok((await chaseRow.innerText()).includes('2 OF 5 MET'),
+    'A single WR title does not automatically qualify Chase');
+   assert.ok(await chaseRow.locator('td').nth(1).innerText().then(t=>t.includes('1 / 1 SEASONS')),
     'One positional championship satisfies the positional supremacy benchmark');
-   assert.equal(await candidates.first().locator('.fig-hof-249-progress.is-met').count(),2);
-   assert.ok(await candidates.first().locator('td').nth(2).innerText().then(t=>t.includes('67%')),
+   assert.equal(await chaseRow.locator('.fig-hof-249-progress.is-met').count(),2);
+   assert.ok(await chaseRow.locator('td').nth(2).innerText().then(t=>t.includes('67%')),
     'Chase has two out of three sustained dominance seasons');
-   assert.ok(await candidates.first().locator('td').nth(3).innerText().then(t=>t.includes('75%')),
+   assert.ok(await chaseRow.locator('td').nth(3).innerText().then(t=>t.includes('75%')),
     'Chase has three out of four sustained excellence seasons');
-   assert.ok(await candidates.first().locator('td').nth(4).innerText().then(t=>t.includes('60%')),
+   assert.ok(await chaseRow.locator('td').nth(4).innerText().then(t=>t.includes('60%')),
     'Chase has three out of five career consistency seasons');
    const chartText=await watchTable.innerText();
-   assert.ok(!chartText.includes('Josh Allen')&&!chartText.includes('Puka Nacua'),
-    'Founders remain inducted, not placed on a candidate watchlist');
+   assert.ok(chartText.includes('Josh Allen')&&chartText.includes('Puka Nacua'),
+    'Both founding inductees appear in the watch for historical comparison');
    assert.match(await page.locator('.fig-hof-249-footnote').innerText(),/Minimum nine starts per season/);
    const matrixSize=await page.locator('.fig-hof-249-scroll').evaluate(el=>({
     content:el.scrollWidth,viewport:el.clientWidth}));
    assert.ok(matrixSize.content>=matrixSize.viewport,'Eligibility matrix must fit or scroll within its region');
-   assert.equal(await candidates.first().locator('.fig-hof-249-player').getAttribute('href'),'#/player/7564',
+   assert.equal(await chaseRow.locator('.fig-hof-249-player').getAttribute('href'),'#/player/7564',
     'Watch player links to existing player archive');
    const eligibilityDims=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
    assert.ok(eligibilityDims.scrollWidth<=eligibilityDims.clientWidth+3,
