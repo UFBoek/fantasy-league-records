@@ -14,7 +14,7 @@ Research-only simulation using `research/fig_historical_ppg_2010_2025.json` (NFL
 | Season share | 68.08% | 56.92% |
 | Players scoring 350+ | 20 | 43 |
 | Players scoring 300+ | 32 | 58 |
-| Players scoring 450+ | 12 | 30 |
+| Players scoring 450+ | 12 | **30** |
 | Players scoring 600+ | 9 | 12 |
 
 All 1,529 modeled players are included in the denominator, even those who are never serious Hall candidates.
@@ -49,9 +49,14 @@ Using the actual FIG archive from 2023 through 2026 Week 7 (5,238 verified playe
 | Verified game bonuses | 2,513 | 5,085 |
 | Season share | 69.86% | **60.04%** |
 | Game share | 30.14% | **39.96%** |
-| Current players above 350 | 0 | **3** |
+| Current players above 350 (former requirement) | 0 | 3 |
+| Current players above 450 (adopted requirement) | 0 | **1** |
 
-The three current points-qualified players would be Josh Allen (456), Ja'Marr Chase (372) and Christian McCaffrey (366). All current 2026 seasonal awards remain pending until the season is complete.
+At the new **450-point** threshold, only Josh Allen (456) is currently points-qualified. Ja'Marr Chase (372) and Christian McCaffrey (366) would have qualified under the retired 350-point requirement. All current 2026 seasonal awards remain pending until the season is complete.
+
+## Adopted eligibility requirement
+
+**450 career Legacy Points**, effective with Legacy 2.0. The 350-point row remains only to show historical comparison against the previous cutoff. Players reaching 450 can be considered for induction; the threshold never guarantees it. Josh Allen and Puka Nacua remain founding-class members regardless of points eligibility.
 
 ### Interpretation and tradeoffs
 
