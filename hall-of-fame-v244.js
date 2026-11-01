@@ -278,7 +278,7 @@ function lobby(m){
 function eligibilityPage(){
  const rules=[
   ['01','Elite Production','Two top-three positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
-  ['02','Positional Supremacy','Two #1 positional PPG finishes in separate completed seasons. This achievement also independently qualifies a player for nomination.'],
+  ['02','Positional Supremacy','Two #1 positional PPG finishes in separate completed seasons. Counts as one of the five required benchmarks.'],
   ['03','Sustained Dominance','Three top-five positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
   ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
@@ -290,7 +290,7 @@ function eligibilityPage(){
  '<h1>Eligibility &amp; <em>Nomination.</em></h1>'+
  '<p>The Hall is earned through extraordinary positional production or a body of work that endures. Qualifying makes a player eligible for consideration. It does not guarantee induction.</p></header>'+
  '<div class="fig-hof-248-routes" aria-label="Nomination standard">'+
- '<div class="fig-hof-248-route"><span>THE NOMINATION STANDARD</span><div><strong>4 <small>OF</small> 5</strong><p>Meet at least four of the five requirements below. Requirement #2 also qualifies a player on its own with two #1 positional PPG finishes in separate seasons.</p></div></div>'+
+ '<div class="fig-hof-248-route"><span>THE NOMINATION STANDARD</span><div><strong>4 <small>OF</small> 5</strong><p>A player must meet at least four of the five requirements below to become eligible for nomination. Every requirement, including #2, counts as one. No individual requirement qualifies a player by itself.</p></div></div>'+
  '</div>'+
  '<section class="fig-hof-248-ranking-rule"><span class="fig-hof-eyebrow">HOW RANKINGS WORK</span><h2>Ranked by average, not total points.</h2>'+
  '<p>To enter a positional ranking in any completed season, a player must have <strong>at least 9 official FIG starts</strong> that season. Only players meeting that minimum are ranked, and their positions are ranked by <strong>average points per FIG start (PPG)</strong>, not their total points. Regular-season and playoff starts are combined.</p>'+
