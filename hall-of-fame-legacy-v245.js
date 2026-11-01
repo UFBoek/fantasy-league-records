@@ -1,7 +1,7 @@
 /* FIG Legacy Points 2.0. Season/game 60:40 calibration; verified FIG starts. */
 (function(){
 'use strict';
-const THRESHOLD=350,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
+const THRESHOLD=450,MIN_STARTS=8,POSITIONS=['QB','RB','WR','TE'];
 const SEASONS=[
 [30,25,16,15.5,13.5],[50,26.5,18.5,18.5,15],[70,28.5,19.5,19.5,16],
 [95,29.5,22.5,21.5,17],[120,32,26,25,18.5],[145,34.5,28,27.5,20.5],
