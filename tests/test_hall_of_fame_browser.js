@@ -164,13 +164,16 @@ const {chromium}=require('playwright');
     '#1 ELITE PRODUCTION','#2 POSITIONAL SUPREMACY','#3 SUSTAINED DOMINANCE',
     '#4 SUSTAINED EXCELLENCE','#5 CAREER CONSISTENCY']);
    const candidates=watchTable.locator('tbody tr');
-   assert.equal(await candidates.count(),26,'Restored James Cook to the watchlist without returning excluded players');
+   assert.equal(await candidates.count(),34,'34 selected candidates after removing four veterans and adding twelve');
    const selectedNames=['Jaxon Smith-Njigba',"De'Von Achane",'Malik Nabers','Drake Maye',
-    'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor','James Cook III'];
+    'Jayden Daniels','Caleb Williams','Jared Goff','Justin Jefferson','Jonathan Taylor','James Cook III',
+    'Brock Purdy','Joe Burrow','Kyren Williams','Ashton Jeanty','George Pickens',
+    'C.J. Stroud','Kenneth Walker III','Tee Higgins','Tetairoa McMillan','Jordan Love',
+    'Trevor Lawrence','Bryce Young'];
    const candidateNames=await candidates.locator('.fig-hof-249-player strong').allInnerTexts();
    for(const player of selectedNames)
     assert.ok(candidateNames.includes(player),'Selected watch player should appear: '+player);
-   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave','A.J. Brown'])
+   for(const player of ['Tyreek Hill','Drake London','Zay Flowers','Chris Olave','A.J. Brown','Alvin Kamara','Derrick Henry','Saquon Barkley','Travis Kelce'])
     assert.ok(!candidateNames.includes(player),'Removed watch player should be excluded: '+player);
    assert.ok(candidateNames.includes("Ja'Marr Chase")&&candidateNames.includes('Christian McCaffrey'),
     'Historical contenders remain available');
@@ -179,7 +182,19 @@ const {chromium}=require('playwright');
     ['Jared Goff',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
     ['Justin Jefferson',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
     ['Jonathan Taylor',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
-    ['James Cook III',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']]
+    ['James Cook III',['0 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
+    ['Brock Purdy',['0 / 2 SEASONS','0 / 1 SEASONS','2 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
+    ['Joe Burrow',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
+    ['Kyren Williams',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','2 / 4 SEASONS','2 / 5 SEASONS']],
+    ['Ashton Jeanty',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','1 / 5 SEASONS']],
+    ['George Pickens',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
+    ['C.J. Stroud',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','1 / 5 SEASONS']],
+    ['Kenneth Walker III',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','1 / 4 SEASONS','0 / 5 SEASONS']],
+    ['Tee Higgins',['1 / 2 SEASONS','0 / 1 SEASONS','1 / 3 SEASONS','1 / 4 SEASONS','2 / 5 SEASONS']],
+    ['Tetairoa McMillan',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','1 / 5 SEASONS']],
+    ['Jordan Love',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','0 / 5 SEASONS']],
+    ['Trevor Lawrence',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','1 / 5 SEASONS']],
+    ['Bryce Young',['0 / 2 SEASONS','0 / 1 SEASONS','0 / 3 SEASONS','0 / 4 SEASONS','0 / 5 SEASONS']]
    ];
    for(const [player,expected] of newPlayerCounts){
     const row=candidates.filter({has:page.locator('.fig-hof-249-player strong',{hasText:player})});
