@@ -336,8 +336,8 @@ function hallEligibilityWatchSection(watch){
    i===3?s.ppg>=({QB:25,RB:18,WR:18,TE:15}[p.position]):
    s.rank<=({QB:8,RB:10,WR:10,TE:3}[p.position])).map(s=>
    s.year+' #'+s.rank+' · '+fmt(s.ppg,2)+' PPG ('+s.starts+' starts)').join('; ');
-  const tooltip=titleNames[i]+': '+count+'/'+target+' qualifying seasons'+(seasonDesc?' | '+seasonDesc:'');
-  return '<td><div class="fig-hof-249-progress'+(done?' is-met':'')+'" title="'+esc(tooltip)+'" aria-label="'+esc(titleNames[i]+', '+count+' of '+target+' seasons')+'">'+
+  const tooltip=titleNames[i]+': '+count+' qualifying season'+(count===1?'':'s')+' ('+target+' required)'+(seasonDesc?' | '+seasonDesc:'');
+  return '<td><div class="fig-hof-249-progress'+(done?' is-met':'')+'" title="'+esc(tooltip)+'" aria-label="'+esc(titleNames[i]+', '+(done?'met, ':'')+count+' qualifying season'+(count===1?'':'s')+', '+target+' required')+'">'+
    '<strong>'+(done?'✓':label)+'</strong><span>'+display+' / '+target+' SEASONS</span></div></td>';
  }).join('');
  return '<section class="fig-hof-249-watch" aria-labelledby="figHofWatchTitle">'+
