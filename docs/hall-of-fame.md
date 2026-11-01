@@ -1,43 +1,48 @@
-# FIG Hall of Fame: Legacy Points
+# FIG Hall of Fame: Legacy Points 2.0
 
 ## Eligibility
-The Hall uses **350 career Legacy Points** for QB, RB, WR and TE. Eligibility earns a nomination opportunity, not automatic induction. Josh Allen and Puka Nacua remain the founding class, and Hayden 2025 remains separately enshrined.
+A player reaches Hall of Fame consideration at **350 career Legacy Points**, regardless of QB, RB, WR, or TE position. The threshold replaces the former three-of-five requirements; it is **not** automatic induction. Josh Allen and Puka Nacua remain the founding class, with the separately enshrined Hayden 2025 season unchanged.
 
-### Completed-season PPG awards
-Season averages are evaluated with exact unrounded All-Time Combined total points / FIG starts. The player must have at least **eight FIG starts in a completed season**. Only the highest earned tier counts.
+This iteration targets a **60% completed-season / 40% individual-game** balance across published FIG data. The target is aggregate, not a fixed per-player proportion. Regular season and playoff FIG starts are included. Bench performances do not earn points.
+
+## Completed-season PPG awards
+One nonstacking award for the highest qualifying tier per completed season, requiring at least **eight official FIG starts**. Use exact, unrounded All-Time Combined PPG. Season points are not awarded during an unfinished season.
 
 | Points | QB | RB | WR | TE |
 |---:|---:|---:|---:|---:|
-| 15 | 25 | 16 | 15.5 | 13.5 |
-| 35 | 26.5 | 18.5 | 18.5 | 15 |
-| 55 | 28.5 | 19.5 | 19.5 | 16 |
-| 85 | 29.5 | 22.5 | 21.5 | 17 |
+| 30 | 25 | 16 | 15.5 | 13.5 |
+| 50 | 26.5 | 18.5 | 18.5 | 15 |
+| 70 | 28.5 | 19.5 | 19.5 | 16 |
+| 95 | 29.5 | 22.5 | 21.5 | 17 |
 | 120 | 32 | 26 | 25 | 18.5 |
-| 150 | 34.5 | 28 | 27.5 | 20.5 |
-| 190 | 37.5 | 30 | 30 | 22.5 |
-| 230 | 41 | 33 | 33 | 25 |
+| 145 | 34.5 | 28 | 27.5 | 20.5 |
+| 175 | 37.5 | 30 | 30 | 22.5 |
+| 205 | 41 | 33 | 33 | 25 |
 
-### Individual game bonuses
-Each verified FIG starting-lineup game awards only its highest scoring-band bonus, regular season or playoffs. Bench performances never count.
+## Individual-game bonuses
+Each verified FIG starter game earns **only the highest reached scoring band**. The five bands are 20+, 30+, 40+, 50+, and 60+. The 20-point threshold is inclusive and applies to all positions.
 
 | Game score | QB | RB | WR | TE |
 |---:|---:|---:|---:|---:|
-| 20-29.99 | 0 | 1 | 1 | 2 |
-| 30-39.99 | 1 | 2 | 3 | 7 |
-| 40-49.99 | 3 | 7 | 6 | 14 |
-| 50-59.99 | 7 | 14 | 14 | 24 |
-| 60+ | 20 | 25 | 25 | 35 |
+| 20-29.99 | 1 | 2 | 2 | 3 |
+| 30-39.99 | 3 | 5 | 5 | 10 |
+| 40-49.99 | 7 | 10 | 10 | 18 |
+| 50-59.99 | 13 | 15 | 15 | 26 |
+| 60+ | 22 | 25 | 25 | 35 |
 
-Across FIG's 2023 through 2026 Week 7 data, the model yields 5,825 points from completed seasons and 2,513 game points: **69.86% seasonal versus 30.14% game**. Historical positions are calibrated for comparable point earning opportunities. The separate upper tiers recognize unprecedented seasons, and points are permanently earned.
+### Verified historical calibration
+Across FIG's 2023 to 2026 Week 7 data, Legacy 2.0 awards **7,640 completed-season** and **5,085 individual-game** points. That is **60.04% season / 39.96% game**. The previous formula awarded 5,825 and 2,513 (69.86% / 30.14%). The exact ratio will change as new weeks are played and seasons are finalized. Award bands remain fixed rather than being dynamically scaled from actual league totals.
+
+A separate **research-only 2017-2025 mock** applies the same FIG custom scoring to every recorded NFL appearance. It produces 28,645 season points and 21,680 game points (56.92% / 43.08%), with 43 of 1,529 players reaching 350 instead of 20 under the previous scoring. These are not official FIG points: the mock assumes all recorded NFL appearances would have been FIG starts, and pre-2021 NFL data may omit certain long-play bonuses.
+
+Mike Evans scores 489 mock points versus 311 previously, while Cooper Kupp scores 576 versus 443. The gap decreases from 132 to 87 points. These comparison figures are not complete pre-2017 NFL career totals.
+
+### Position calibration
+The season PPG thresholds remain position specific, retaining the previous ranked-position calibration. Game award values reflect different scoring distributions. The 60/40 balance is evaluated **across all positions together**; per-position and per-player splits are not forced to 60/40.
 
 ## Watchlist and leaderboard
-The **Eligibility & Nomination** page at `#/hall-of-fame/eligibility` shows the 36 established watch candidates, including the founders and all commissioner additions. It preserves commissioner exclusions from the curated watch, while the searchable **All Players** view includes every player, even those excluded from the watch.
+The Eligibility & Nomination page at `#/hall-of-fame/eligibility` displays the commissioner's curated 36-player watchlist and a searchable all-player leaderboard. Founder designation and curated exclusions remain independent of automatic points eligibility.
 
-Both views show earned seasonal and game points, total, remaining points until 350, current-year pending season award, and an expandable year-by-year scoring breakdown. The in-progress PPG preview is not earned or included in the total until the season is complete and eight starts have been recorded. All values are derived from the published `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, so verified updates flow automatically to the site.
+The leaderboard shows earned season and game points, total and remaining to 350, the in-progress season preview, and year-by-year scoring. PPG award previews are not counted as earned until a season is completed and eight official starts are verified. All official awards are calculated from `data/player_game_log.json`, `data/player_seasons.json`, and `data/league_history.json`, and update when verified data are published.
 
-Existing historical Hall plaques and the Hayden Enshrined Season remain unchanged. The former three-of-five requirement is retired.
-
-The scoring detail expansion uses vertically stacked season cards rather than a nested wide table, preventing horizontal scrolling and preserving readable dark-theme typography on narrow layouts.
-
-### Positional calibration update
-FIG recorded 2,140 WR starts compared with 1,458 RB starts through 2026 Week 7. The old position-population PPG calibration gave a typical top-ten WR an average of 12.3 more seasonal Legacy Points than a typical top-ten RB despite similar scoring. Calibrating to equal positional ranks, while allowing a smaller WR discount for additional starting opportunities, cuts that difference to four points. Reweighting the eight seasonal award amounts preserves exactly 5,825 season points, 2,513 game points, and the historical 69.86/30.14 percent split. The 350-point Hall eligibility standard and commissioner watchlist are unchanged.
+The founding class, enshrined seasons and commissioner selections are unaffected by the scoring recalibration. No former three-of-five rule applies.
