@@ -358,7 +358,7 @@ async function page(ctx,view,arg,sub,year){
   isSeason?immortalSeasonPlaque(m,sub,year):lobby(m);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2 fig-hof-242 fig-hof-243" id="figHallOfFame">'+
   head()+content+footer()+'</div>';
- document.title=(view==='eligibility'?'Hall Eligibility & Nomination':'The Hall')+' - Fromm is Garbage';
+ document.title=view==='eligibility'?'Hall Eligibility & Nomination – Fromm is Garbage':'The Hall – Fromm is Garbage';
 }
 window.figHallOfFame=page;
 window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
