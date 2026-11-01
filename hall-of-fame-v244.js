@@ -103,6 +103,9 @@ const personPhoto=id=>'<span class="fig-hof-v2-owner"><img loading="lazy" src="a
 const playerPhoto=p=>'<span class="fig-hof-v2-nfl"><img loading="lazy" referrerpolicy="no-referrer" src="https://sleepercdn.com/content/nfl/players/thumb/'+slug(p.id)+'.jpg" alt="" onerror="this.remove()"><i>'+esc(p.position)+'</i></span>';
 const logo=()=>'<span class="fig-hof-seal">FIG <span>HALL OF FAME</span></span>';
 const head=()=>'<header class="fig-hof-site-head">'+logo()+'<span>EST. 2026 <b>·</b> BUILT FOR THE AGES</span></header>';
+const sectionMenu=view=>'<nav class="fig-hof-switcher" aria-label="Hall of Fame navigation">'+
+ '<a href="#/hall-of-fame"'+(view==='eligibility'?'':' aria-current="page"')+'>HALL OF FAME</a>'+
+ '<a href="#/hall-of-fame/eligibility"'+(view==='eligibility'?' aria-current="page"':'')+'>LEGACY POINTS</a></nav>';
 const heading=(n,t,s)=>'<div class="fig-hof-section-head"><div class="fig-hof-eyebrow">'+n+'</div><h2>'+t+'</h2><p>'+s+'</p></div>';
 const metric=(value,label)=>'<div class="fig-hof-number"><strong>'+value+'</strong><span>'+label+'</span></div>';
 function hcard(e){
@@ -456,7 +459,7 @@ async function page(ctx,view,arg,sub,year){
   isPlayer?plaque(m,'player',id,year,ctx.DATA):
   isSeason?immortalSeasonPlaque(m,sub,year):lobby(m);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2 fig-hof-242 fig-hof-243" id="figHallOfFame">'+
-  head()+content+footer()+'</div>';
+  head()+sectionMenu(view)+content+footer()+'</div>';
  document.title=view==='eligibility'?'Hall Eligibility & Nomination – Fromm is Garbage':'The Hall – Fromm is Garbage';
 }
 window.figHallOfFame=page;
