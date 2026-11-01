@@ -1,0 +1,41 @@
+name: Build historical NFL PPG with FIG scoring
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'research/build_historical_fig_ppg.py'
+      - '.github/workflows/fig-historical-ppg.yml'
+  workflow_dispatch:
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install requests
+      - name: Build historical player averages from Sleeper
+        run: python research/build_historical_fig_ppg.py
+      - name: Commit the non-official research results
+        shell: bash
+        run: |
+          git add research/fig_historical_ppg_2010_2025.json research/fig_historical_ppg_report.md
+          if git diff --cached --quiet; then
+            echo "Research archive already up to date."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'research: archive historical FIG-equivalent NFL player PPG'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          exit 1
