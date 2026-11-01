@@ -789,6 +789,15 @@
      var delta=valid?strength[id].lineupDelta:null;
      var forecast=valid?strength[id].weekMean:baseline;
      var sum=valid?adjustment.starterTotal:null;
+     // Build player rows as DOM nodes, not interpolated HTML. Each row stays
+     // a single, balanced card even when live player data changes.
+     function child(tag,parent,className,textValue){
+       var el=document.createElement(tag);
+       if(className)el.className=className;
+       if(textValue!==undefined&&textValue!==null)el.textContent=String(textValue);
+       parent.appendChild(el);
+       return el;
+     }
      var rows=starters.map(function(pid,i){
        var empty=!pid||['0','null','undefined'].includes(String(pid).trim().toLowerCase());
        var player=empty?{}:(named[pid]||{}),score=empty?{}:(points[pid]||{});
@@ -799,26 +808,37 @@
        if(!Number.isFinite(historical))historical=0;
        var expected=actualNow&&actual.expected!==null&&actual.expected!==undefined?Number(actual.expected):NaN;
        var rate=empty?0:actualNow&&Number.isFinite(expected)?expected:historical;
-       var present=true;
-       var share=present&&sum>0?100*rate/sum:0;
+       var share=sum>0?100*rate/sum:0;
        var playerName=empty?'EMPTY SLOT':(player.player_name||player.full_name||('Player '+pid));
        var slot=positions[i]||'STARTER';
-       return '<div class="pcl-model-player'+(empty?' pcl-model-player-empty':'')+'>'+
-         '<div class="pcl-model-player-name"><small>'+safe(slot)+(player.position&&player.position!==slot?' · '+safe(player.position):'')+'</small>'+
-         '<strong>'+safe(playerName)+'</strong><span>'+(empty?'UNFILLED STARTER · 0 POINTS':actualNow?
-           safe(actual.phase)+' · '+fmt(actual.points)+' SCORED'+
-             (actual.phase==='LIVE'&&actual.progress!==null?
-               ' · '+Math.round(100*actual.progress)+'% GAME ELAPSED':''):
-           played?score.games+' '+year+' GAME'+(score.games===1?'':'S'):
-           'NO '+year+' SCORING HISTORY · 0 POINTS')+'</span></div>'+
-         '<div class="pcl-model-player-averages"><span>LAST '+(Number(score.games)>0?Math.min(8,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last8_avg):'–')+'</b></span>'+
-         '<span>LAST '+(Number(score.games)>0?Math.min(3,Number(score.games)):0)+' <b>'+(Number(score.games)>0?fmt(score.last3_avg):'–')+'</b></span></div>'+
-         '<div class="pcl-model-player-points'+(actualNow?' pcl-player-live':'')+'"><b>'+(present?rate.toFixed(2):'–')+'</b><small>'+(actualNow?
-           (actual.phase==='FINAL'?'FINAL POINTS':'LIVE EST. FINAL'):
-           empty?'EMPTY SLOT':played?'PROJECTED':'NO HISTORY')+'</small>'+
-         '<span class="pcl-model-player-bar"><i style="width:'+clamp(share,0,100).toFixed(2)+'%"></i></span>'+
-         '<span class="pcl-model-player-share">'+(present?share.toFixed(1)+'% OF LINEUP':'')+'</span></div></div>';
-     }).join('');
+       var detail=empty?'UNFILLED STARTER · 0 POINTS':actualNow?
+         String(actual.phase)+' · '+fmt(actual.points)+' SCORED'+
+           (actual.phase==='LIVE'&&actual.progress!==null?
+             ' · '+Math.round(100*actual.progress)+'% GAME ELAPSED':''):
+         played?score.games+' '+year+' GAME'+(Number(score.games)===1?'':'S'):
+         'NO '+year+' SCORING HISTORY · 0 POINTS';
+       var rowNode=document.createElement('div');
+       rowNode.className='pcl-model-player'+(empty?' pcl-model-player-empty':'');
+       var identity=child('div',rowNode,'pcl-model-player-name');
+       child('small',identity,'',slot+(player.position&&player.position!==slot?' · '+player.position:''));
+       child('strong',identity,'',playerName);
+       child('span',identity,'',detail);
+       var averages=child('div',rowNode,'pcl-model-player-averages');
+       [[Math.min(8,Number(score.games)||0),score.last8_avg],
+        [Math.min(3,Number(score.games)||0),score.last3_avg]].forEach(function(pair){
+         var item=child('span',averages,'','LAST '+pair[0]+'  ');
+         child('b',item,'',played?fmt(pair[1]):'–');
+       });
+       var result=child('div',rowNode,'pcl-model-player-points'+(actualNow?' pcl-player-live':''));
+       child('b',result,'',rate.toFixed(2));
+       child('small',result,'',actualNow?
+         (actual.phase==='FINAL'?'FINAL POINTS':'LIVE EST. FINAL'):
+         empty?'EMPTY SLOT':played?'PROJECTED':'NO HISTORY');
+       var bar=child('span',result,'pcl-model-player-bar');
+       child('i',bar).style.width=clamp(share,0,100).toFixed(2)+'%';
+       child('span',result,'pcl-model-player-share',share.toFixed(1)+'% OF LINEUP');
+       return rowNode;
+     });
      var status=valid?'<span class="pcl-model-chip">STARTERS APPLIED</span>':'<span class="pcl-model-chip pcl-model-chip-off">TEAM MODEL ONLY</span>';
      var actuals=valid?(adjustment.liveActualCount||0):0;
      var progress=valid&&Number.isFinite(strength[id].weekProgress)?
@@ -842,10 +862,15 @@
        '</div>';
      var unavailable=starters.length!==10?'<div class="pcl-warning">Ten valid starters could not be verified. The standard team projection is being used.</div>':
        !valid?'<div class="pcl-warning">Insufficient completed prior lineups for the team baseline. No lineup adjustment was applied.</div>':'';
-     return '<section class="pcl-model-team">'+label+stats+
+     var card=document.createElement('section');
+     card.className='pcl-model-team';
+     card.innerHTML=label+stats+
        '<div class="pcl-model-player-heading"><span>STARTING LINEUP</span><span>70% LAST 8 · 30% LAST 3</span></div>'+
-       '<div class="pcl-model-players">'+(rows||'<div class="pcl-warning">No current starters available.</div>')+'</div>'+
-       unavailable+'</section>';
+       '<div class="pcl-model-players"></div>'+unavailable;
+     var lineupContainer=card.querySelector('.pcl-model-players');
+     if(rows.length)rows.forEach(function(rowNode){lineupContainer.appendChild(rowNode);});
+     else lineupContainer.innerHTML='<div class="pcl-warning">No current starters available.</div>';
+     return card;
    }
    var chance=modelMatchWinChance(game.a,game.b,firstWeek);
    root.innerHTML=back+'<section class="pcl-model-hero">'+
@@ -858,8 +883,9 @@
      ' · '+Object.keys(liveActuals||{}).length+' NFL GAMES STARTED/FINAL'+
      ' <button type="button" data-refresh="1">RECHECK SLEEPER</button></div>'+
      '</section>'+
-     '<div class="pcl-model-teams">'+teamCard(game.a)+teamCard(game.b)+'</div>'+
-     '';
+     '<div class="pcl-model-teams"></div>';
+   root.querySelector('.pcl-model-teams').appendChild(teamCard(game.a));
+   root.querySelector('.pcl-model-teams').appendChild(teamCard(game.b));
  }
  function reRender(){
    if(!document.getElementById('figPlayoffCalc'))return;
