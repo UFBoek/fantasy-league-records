@@ -8,7 +8,7 @@ const api=win.figHallLegacy;
 const m=api.calculate({league:read('league_history'),playerSeasons:read('player_seasons'),playerLog:read('player_game_log')});
 assert.equal(api.THRESHOLD,500);assert.equal(api.MIN_STARTS,8);
 assert.deepEqual(api.FLOORS,[22,13,13,10]);
-assert.equal(m.all.length,386);assert.equal(m.watch.length,35);
+assert.equal(m.all.length,386);assert.equal(m.watch.length,36);
 assert.equal(m.allScored.length,210,'All Players displays only earned Legacy scorers');
 assert.equal(m.all.length-m.allScored.length,176,'Zero-point archive players hidden from All Players');
 assert.ok(m.allScored.every(p=>p.total>0),'No zero-point players in All Players');
@@ -72,7 +72,8 @@ const expectedWatchByPosition={
   "9226",
   "6813",
   "8138",
-  "12527"
+  "12527",
+  "8151"
  ],
  "WR": [
   "7564",
@@ -91,7 +92,7 @@ const expectedWatchByPosition={
  ]
 };
 const expectedWatchIds=Object.values(expectedWatchByPosition).flat();
-assert.equal(expectedWatchIds.length,35);
+assert.equal(expectedWatchIds.length,36);
 assert.deepEqual([...api.WATCH].sort(),expectedWatchIds.slice().sort(),'Commissioner list exactly matches selected players');
 assert.deepEqual(m.watch.map(p=>p.id).sort(),expectedWatchIds.slice().sort(),'Every selected player in league game archive');
 for(const [pos,ids] of Object.entries(expectedWatchByPosition)){
