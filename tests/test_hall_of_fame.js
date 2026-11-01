@@ -29,7 +29,15 @@ assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the 
 // The live eligibility watch ranks eligible starter-season averages, not total points.
 const watch=api.hallEligibilityWatch(data);
 assert.deepEqual(watch.years,[2023,2024,2025]);
-assert.equal(watch.contenders.length,34,'Remove four veterans and add 12 distinct candidates without duplicating existing players');
+assert.equal(watch.contenders.length,36,'Include the 34 watch candidates plus both founding inductees');
+const nonFounders=watch.contenders.filter(p=>!p.foundingClass);
+assert.equal(nonFounders.length,34,'Founders do not displace or duplicate other watch candidates');
+assert.deepEqual(watch.contenders.slice(0,2).map(p=>p.name),['Josh Allen','Puka Nacua']);
+assert.deepEqual(watch.contenders.filter(p=>p.foundingClass).map(p=>p.id),['4984','9493']);
+assert.deepEqual(watch.contenders.find(p=>p.id==='4984').counts,[3,2,3,3,3]);
+assert.deepEqual(watch.contenders.find(p=>p.id==='9493').counts,[2,1,3,3,3]);
+assert.ok(watch.contenders.filter(p=>p.foundingClass).every(p=>p.eligible&&p.met===3),
+ 'Inducted founders independently meet three of five completed-season benchmarks');
 const addedWatchPlayers={
  '9488':'Jaxon Smith-Njigba','9226':"De'Von Achane",'11632':'Malik Nabers',
  '11564':'Drake Maye','11566':'Jayden Daniels','11560':'Caleb Williams',
@@ -75,9 +83,9 @@ assert.deepEqual(watch.contenders.find(p=>p.id==='6794').counts,[1,0,1,1,1],
  'Justin Jefferson 2023 has fewer than nine starts and is excluded');
 assert.deepEqual(watch.contenders.find(p=>p.id==='6813').counts,[1,0,1,1,1],
  'Jonathan Taylor 2023 had fewer than nine starts and does not count');
-assert.equal(watch.contenders[0].name,"Ja'Marr Chase",
+assert.equal(nonFounders[0].name,"Ja'Marr Chase",
  'One positional championship completes requirement two and moves Chase up the watchlist');
-assert.deepEqual(watch.contenders[0].counts,[2,1,2,3,3]);
+assert.deepEqual(nonFounders[0].counts,[2,1,2,3,3]);
 const cmcWatch=watch.contenders.find(p=>p.name==='Christian McCaffrey');
 const mcbride=watch.contenders.find(p=>p.name==='Trey McBride');
 assert.deepEqual(cmcWatch.counts,[2,2,2,2,2]);
@@ -85,14 +93,14 @@ assert.deepEqual(mcbride.counts,[2,2,2,2,2]);
 assert.deepEqual(cmcWatch.targets,[2,1,3,4,5]);
 assert.equal(cmcWatch.met,2,'Two positional #1 seasons still count as only one benchmark');
 assert.equal(mcbride.met,2,'Two TE positional championships count as only one benchmark');
-assert.equal(watch.contenders[0].met,2,'Single WR title is sufficient for #2, but not for overall nomination');
+assert.equal(nonFounders[0].met,2,'Single WR title is sufficient for #2, but not for overall nomination');
 const lamar=watch.contenders.find(p=>p.name==='Lamar Jackson');
 assert.equal(lamar.counts[1],1,'Lamar has one #1 QB season');
 assert.equal(lamar.targets[1],1,'One #1 season satisfies positional supremacy');
 assert.equal(lamar.met,1,'One positional championship is not automatic nomination');
-assert.ok(!watch.contenders.some(p=>p.eligible),'The three-of-five requirement remains intact');
-assert.ok(watch.contenders.every(p=>!['4984','9493'].includes(p.id)),
- 'Founding inductees must not be presented as future nomination candidates');
+assert.ok(!nonFounders.some(p=>p.eligible),'Future candidates must still satisfy three of five');
+assert.ok(watch.contenders.filter(p=>['4984','9493'].includes(p.id)).every(p=>p.foundingClass),
+ 'Both founders must be labeled as already inducted, not presented as future nominees');
 assert.ok(watch.contenders.every(p=>p.met===p.counts.filter((n,i)=>n>=p.targets[i]).length));
 assert.ok(watch.contenders.every(p=>p.seasons.every(y=>y.starts>=9&&y.year<=2025)),
  'Partial seasons or below-nine-start averages cannot be considered');
