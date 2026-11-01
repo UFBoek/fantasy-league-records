@@ -35,3 +35,69 @@
 .fig-hof-247-game-grid a>b{margin-top:15px;padding-top:14px;border-top:1px solid rgba(222,182,119,.23);font:800 9px Inter,Arial,sans-serif;letter-spacing:.1em;color:#e3bd81}
 @media(max-width:850px){.fig-hof-247-game-grid{grid-template-columns:1fr}}
 @media(max-width:699px){.fig-hof-247-notable-tags{gap:6px}.fig-hof-247-notable-tags>span{padding:7px 9px;font-size:9px}.fig-hof-247-game-section{margin:29px 0 42px}.fig-hof-247-game-grid a{padding:22px}}
+
+/* Dedicated Hall of Fame nomination standards, deliberately outside the main exhibit. */
+.fig-hof-248-eligibility-link{display:inline-flex;align-items:center;gap:19px;width:max-content;max-width:100%;margin-top:25px;border-bottom:1px solid #c6a271;padding:0 0 8px;color:#e4c28b!important;font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.12em;text-decoration:none;transition:color .18s,border-color .18s}
+.fig-hof-248-eligibility-link:hover,.fig-hof-248-eligibility-link:focus-visible{color:#fff0d3!important;border-color:#f1d6a6;outline-offset:6px}
+.fig-hof-248-eligibility-link span{font-size:17px;font-weight:500}
+.fig-hof-248-eligibility{padding-top:34px;padding-bottom:90px;max-width:1220px;box-sizing:border-box}
+.fig-hof-248-back{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:75px;padding-bottom:21px;border-bottom:1px solid rgba(207,175,125,.28);font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.11em}
+.fig-hof-248-back a{color:#e2c48c;text-decoration:none}
+.fig-hof-248-back a:hover,.fig-hof-248-back a:focus-visible{text-decoration:underline}
+.fig-hof-248-back span{color:#92a3ae}
+.fig-hof-248-intro{max-width:880px}
+.fig-hof-248-intro h1{margin:18px 0 23px;font:400 clamp(47px,6vw,80px)/1.05 Georgia,'Times New Roman',serif;letter-spacing:-.055em;color:#f5ecdb}
+.fig-hof-248-intro h1 em{font-weight:400;color:#dfbc83}
+.fig-hof-248-intro>p{max-width:690px;margin:0;color:#b9c5c9;font:400 15px/1.85 Inter,Arial,sans-serif}
+.fig-hof-248-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin:46px 0 75px}
+.fig-hof-248-route{border:1px solid rgba(222,183,123,.52);padding:28px 32px 30px;min-width:0;background:linear-gradient(135deg,#2b3740,#18252f)}
+.fig-hof-248-route-alt{border-color:rgba(207,181,135,.27);background:linear-gradient(135deg,#202e38,#16232e)}
+.fig-hof-248-route>span{font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.13em;color:#dcbf8c}
+.fig-hof-248-route>div{display:flex;align-items:center;gap:29px;margin-top:19px}
+.fig-hof-248-route strong{white-space:nowrap;color:#f4d8a7;font:400 54px/1 Georgia,serif;letter-spacing:-.05em}
+.fig-hof-248-route strong small{font:800 10px/1.3 Inter,Arial,sans-serif;letter-spacing:.09em;color:#c5b191}
+.fig-hof-248-route p{border-left:1px solid rgba(225,189,132,.26);padding-left:20px;max-width:290px;margin:0;color:#c2cbd0;font:400 12px/1.7 Inter,Arial,sans-serif}
+.fig-hof-248-section-head h2{font:400 clamp(32px,3.8vw,48px)/1.13 Georgia,serif;letter-spacing:-.035em;color:#f6ecda;margin:11px 0 10px}
+.fig-hof-248-section-head p{margin:8px 0 0;color:#b7c3c9;font:400 13px/1.7 Inter,Arial,sans-serif}
+.fig-hof-248-rules{padding:0;margin:27px 0 74px;list-style:none;border-top:1px solid rgba(212,180,127,.27)}
+.fig-hof-248-rules li{display:grid;grid-template-columns:80px minmax(0,1fr);gap:15px;border-bottom:1px solid rgba(212,180,127,.23);padding:27px 16px 29px 0;align-items:start}
+.fig-hof-248-number{font:400 34px/1.1 Georgia,serif;color:#c8a575}
+.fig-hof-248-rules h3{margin:0 0 7px;color:#fbefda;font:400 25px/1.25 Georgia,serif;letter-spacing:-.015em}
+.fig-hof-248-rules p{margin:0;max-width:760px;color:#b9c5cb;font:400 13px/1.85 Inter,Arial,sans-serif}
+.fig-hof-248-position-section{margin:0 0 46px}
+.fig-hof-248-table-wrap{margin-top:25px;border:1px solid rgba(213,180,128,.35);overflow-x:auto}
+.fig-hof-248-table-wrap table{border-collapse:collapse;width:100%;min-width:480px;table-layout:fixed}
+.fig-hof-248-table-wrap th,.fig-hof-248-table-wrap td{padding:20px 24px;text-align:left;border-bottom:1px solid rgba(213,180,128,.17)}
+.fig-hof-248-table-wrap thead{background:#2b3943}
+.fig-hof-248-table-wrap thead th{color:#c5aa7f;font:800 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.09em}
+.fig-hof-248-table-wrap tbody{background:#192833}
+.fig-hof-248-table-wrap tbody th{color:#f2ddba;font:800 14px/1.35 Inter,Arial,sans-serif;letter-spacing:.04em}
+.fig-hof-248-table-wrap tbody td{color:#f6eddc;font:400 23px/1.3 Georgia,serif}
+.fig-hof-248-table-wrap tbody tr:last-child th,.fig-hof-248-table-wrap tbody tr:last-child td{border-bottom:0}
+.fig-hof-248-notes{border-top:1px solid rgba(213,180,128,.34);padding-top:29px;max-width:900px}
+.fig-hof-248-notes h3{font:400 26px/1.25 Georgia,serif;color:#f4e5c9;margin:0 0 16px}
+.fig-hof-248-notes p{font:400 12px/1.9 Inter,Arial,sans-serif;color:#aebdc5;margin:0 0 13px}
+@media(max-width:750px){
+ .fig-hof-248-eligibility{padding-top:18px;padding-bottom:60px}
+ .fig-hof-248-back{margin-bottom:45px}
+ .fig-hof-248-routes{grid-template-columns:1fr;gap:13px;margin:32px 0 60px}
+ .fig-hof-248-route{padding:24px}
+ .fig-hof-248-rules{margin-bottom:56px}
+}
+@media(max-width:499px){
+ .fig-hof-248-back{gap:8px}
+ .fig-hof-248-back span{font-size:8px}
+ .fig-hof-248-intro h1{font-size:clamp(39px,10vw,54px)}
+ .fig-hof-248-intro>p{font-size:13px}
+ .fig-hof-248-route>div{gap:18px}
+ .fig-hof-248-route strong{font-size:46px}
+ .fig-hof-248-route p{padding-left:14px;font-size:11px}
+ .fig-hof-248-rules li{grid-template-columns:48px minmax(0,1fr);gap:12px;padding:22px 0}
+ .fig-hof-248-number{font-size:26px}
+ .fig-hof-248-rules h3{font-size:22px}
+ .fig-hof-248-rules p{font-size:12px}
+ .fig-hof-248-table-wrap th,.fig-hof-248-table-wrap td{padding:16px}
+ .fig-hof-248-table-wrap table{min-width:410px}
+ .fig-hof-248-table-wrap tbody td{font-size:21px}
+ .fig-hof-248-table-wrap thead th{font-size:9px}
+}
