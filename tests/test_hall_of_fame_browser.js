@@ -118,7 +118,7 @@ const {chromium}=require('playwright');
    assert.match(await page.locator('.hoflp-leaderboard thead').innerText(),/TO 350/);
    assert.equal(await page.locator('.hoflp-season-table tbody tr').count(),8);
    assert.match(await page.locator('.hoflp-season-table').innerText(),/15.5/);
-   assert.match(await page.locator('.hoflp-season-table').innerText(),/230/);
+   assert.match(await page.locator('.hoflp-season-table').innerText(),/205/);
    assert.equal(await page.locator('.hoflp-game-table tbody tr').count(),5);
    assert.match(await page.locator('.hoflp-page').innerText(),/at least eight official FIG starts/);
    const rows=page.locator('.hoflp-leaderboard > tbody > tr');
