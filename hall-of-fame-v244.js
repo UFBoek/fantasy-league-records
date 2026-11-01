@@ -279,9 +279,9 @@ function lobby(m){
 function hallEligibilityWatch(d){
  const years=completedYears(d),complete=new Set(years.map(Number));
  const rules={QB:{peak:25,consistent:10,elite:3,dominant:5},
-  RB:{peak:18,consistent:10,elite:3,dominant:5},
-  WR:{peak:18,consistent:10,elite:3,dominant:5},
-  TE:{peak:15,consistent:3,elite:2,dominant:3}};
+  RB:{peak:17,consistent:10,elite:3,dominant:5},
+  WR:{peak:17,consistent:10,elite:3,dominant:5},
+  TE:{peak:14,consistent:3,elite:2,dominant:3}};
  const buckets=new Map();
  for(const r of (d.playerSeasons||[])){
   const season=Number(r.season),starts=Number(r.starts),ppg=Number(r.average_points);
@@ -317,7 +317,7 @@ function hallEligibilityWatch(d){
   const targets=[2,1,3,4,5];
   const met=counts.filter((count,i)=>count>=targets[i]).length;
   const progress=counts.reduce((sum,count,i)=>sum+Math.min(count/targets[i],1),0);
-  return {...p,seasons,counts,targets,met,progress,eligible:met>=4};
+  return {...p,seasons,counts,targets,met,progress,eligible:met>=3};
  }).sort((a,b)=>b.met-a.met||b.progress-a.progress||b.seasons.length-a.seasons.length||a.name.localeCompare(b.name));
  // Keep the established historical shortlist, with commissioner-selected emerging
  // players included even before they rise into the automatic historical top 18.
@@ -342,7 +342,7 @@ function hallEligibilityWatchSection(watch){
   const label=done?'Met':Math.round(display/target*100)+'%';
   const seasonDesc=p.seasons.filter(s=>i===0?s.rank<=(p.position==='TE'?2:3):
    i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:5):
-   i===3?s.ppg>=({QB:25,RB:18,WR:18,TE:15}[p.position]):
+   i===3?s.ppg>=({QB:25,RB:17,WR:17,TE:14}[p.position]):
    s.rank<=({QB:10,RB:10,WR:10,TE:3}[p.position])).map(s=>
    s.year+' #'+s.rank+' · '+fmt(s.ppg,2)+' PPG ('+s.starts+' starts)').join('; ');
   const tooltip=titleNames[i]+': '+count+' qualifying season'+(count===1?'':'s')+' ('+target+' required)'+(seasonDesc?' | '+seasonDesc:'');
@@ -352,7 +352,7 @@ function hallEligibilityWatchSection(watch){
  return '<section class="fig-hof-249-watch" aria-labelledby="figHofWatchTitle">'+
   '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">ELIGIBILITY WATCH</span>'+
   '<h2 id="figHofWatchTitle">The next in line.</h2>'+
-  '<p>Players closest to the four-of-five nomination standard, ranked by requirements met and progress toward the rest.</p></div>'+
+  '<p>Players closest to the three-of-five nomination standard, ranked by requirements met and progress toward the rest.</p></div>'+
   (watch.contenders.length?'<div class="fig-hof-249-scroll" role="region" tabindex="0" aria-label="Hall eligibility watch table, scroll horizontally on smaller screens">'+
   '<table class="fig-hof-249-table"><thead><tr><th scope="col">PLAYER</th>'+
   titleNames.map((name,i)=>'<th scope="col" title="'+esc(name)+'"><span>#'+(i+1)+'</span><small>'+esc(name)+'</small></th>').join('')+
@@ -377,14 +377,14 @@ function eligibilityPage(d){
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
   ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
  ];
- const positions=[['QB','25+','TOP 10'],['RB','18+','TOP 10'],['WR','18+','TOP 10'],['TE','15+','TOP 3']];
+ const positions=[['QB','25+','TOP 10'],['RB','17+','TOP 10'],['WR','17+','TOP 10'],['TE','14+','TOP 3']];
  return '<section class="fig-hof-content fig-hof-248-eligibility">'+
  '<nav class="fig-hof-248-back" aria-label="Hall of Fame section"><a href="#/hall-of-fame">← RETURN TO THE HALL</a><span>HALL OF FAME / PLAYER NOMINATIONS</span></nav>'+
  '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD FOR FUTURE INDUCTEES</span>'+
  '<h1>Eligibility &amp; <em>Nomination.</em></h1>'+
  '<p>The Hall is earned through extraordinary positional production or a body of work that endures. Qualifying makes a player eligible for consideration. It does not guarantee induction.</p></header>'+
  '<div class="fig-hof-248-routes" aria-label="Nomination standard">'+
- '<div class="fig-hof-248-route"><span>THE NOMINATION STANDARD</span><div><strong>4 <small>OF</small> 5</strong><p>A player must meet at least four of the five requirements below to become eligible for nomination. Every requirement, including #2, counts as one. No individual requirement qualifies a player by itself.</p></div></div>'+
+ '<div class="fig-hof-248-route"><span>THE NOMINATION STANDARD</span><div><strong>3 <small>OF</small> 5</strong><p>A player must meet at least three of the five requirements below to become eligible for nomination. Every requirement, including #2, counts as one. No individual requirement qualifies a player by itself.</p></div></div>'+
  '</div>'+
  '<section class="fig-hof-248-ranking-rule"><span class="fig-hof-eyebrow">HOW RANKINGS WORK</span><h2>Ranked by average, not total points.</h2>'+
  '<p>To enter a positional ranking in any completed season, a player must have <strong>at least 9 official FIG starts</strong> that season. Only players meeting that minimum are ranked, and their positions are ranked by <strong>average points per FIG start (PPG)</strong>, not their total points. Regular-season and playoff starts are combined.</p>'+
