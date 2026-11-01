@@ -29,6 +29,13 @@ For future classes, there is **one nomination standard**: satisfy **at least 4 o
 
 Eligibility never guarantees induction, adds players to a class automatically or removes enshrined players. Josh Allen and Puka Nacua are founding-class exceptions; the commissioner makes later induction decisions. These rules are separate from the retired Induction Philosophy section.
 
+### Eligibility Watch
+
+The separate `#/hall-of-fame/eligibility` page now has a live **Eligibility Watch** table beneath the rules. It shows up to 18 leading historical candidates (excluding inducted founding players), with a linked player name in the first column and separate boxes for requirements #1 through #5. Every cell displays either a checkmark when complete or percentage of the required number of qualifying seasons, as well as a season count such as `2 / 4 SEASONS`. These progress percentages are historical milestone completion, **not induction probabilities**. The player line also shows how many of the five requirements are fully met.
+
+The table is computed entirely from `data/player_seasons.json` and the completed seasons in `data/league_history.json` when the Hall page loads, so new completed-season data automatically changes the standings. Positional rankings use only **All-Time Combined PPG** for completed seasons with **at least nine FIG starts at that position**. Every positional season is ranked against other qualifying players that year, ties share a rank, and the PPG threshold for QB requirement #4 is **25+**. The order prioritizes the number of fully met requirements, followed by summed capped percentage progress, with a maximum of 18 rows. A player must still meet **four out of five** benchmarks, and no requirement is a shortcut. The founding class and Hayden's separate Enshrined Season are unaffected.
+
+
 ## Player scoring scope: All-Time Combined
 
 All Hall of Fame player cards, season ledgers, career highlights, and signature-season PPG use **All-Time Combined** scoring, including verified FIG starting-lineup appearances in both the regular season and playoffs. This matches the default player archive's `data/player_seasons.json` rows where `scoring_view` is `All-Time Combined`.
