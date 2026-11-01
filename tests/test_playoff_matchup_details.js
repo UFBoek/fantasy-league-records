@@ -80,7 +80,7 @@ if(teamRows.length===10&&scores.through_week>=1){
  for(const [tid,result] of Object.entries(outputs)){
    if(!result.available)continue;
    const team=teamRows.find(x=>String(x.roster_id)===tid);
-   const total=team.starters.reduce((sum,id)=>sum+scores.players[id].projection,0);
+   const total=team.starters.reduce((sum,id)=>sum+(scores.players[id]&&scores.players[id].games>0?scores.players[id].projection:0),0);
    assert.ok(Math.abs(total-result.starterTotal)<1e-5,'all ten visible starter PPGs sum exactly');
    assert.ok(Math.abs(result.delta-Math.max(-30,Math.min(30,.7*(result.starterTotal-result.typicalTotal))))<1e-5,
      'drilldown adjustment equals the existing simulation');
