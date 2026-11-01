@@ -274,8 +274,93 @@ function lobby(m){
  '<a class="fig-hof-248-eligibility-link" href="#/hall-of-fame/eligibility">ELIGIBILITY &amp; NOMINATION <span aria-hidden="true">↗</span></a></div>'+
  '</section>';
 }
+/* The nomination watch uses only the published official combined season archive.
+   Positions are ranked by average PPG after excluding all players below 9 starts. */
+function hallEligibilityWatch(d){
+ const years=completedYears(d),complete=new Set(years.map(Number));
+ const rules={QB:{peak:25,consistent:8,elite:3,dominant:5},
+  RB:{peak:18,consistent:10,elite:3,dominant:5},
+  WR:{peak:18,consistent:10,elite:3,dominant:5},
+  TE:{peak:15,consistent:3,elite:2,dominant:3}};
+ const buckets=new Map();
+ for(const r of (d.playerSeasons||[])){
+  const season=Number(r.season),starts=Number(r.starts),ppg=Number(r.average_points);
+  if(r.scoring_view!=='All-Time Combined'||!complete.has(season)||
+     !(r.season_complete===true||r.season_complete==='true')||
+     !rules[r.position]||starts<9||!Number.isFinite(ppg))continue;
+  const key=season+'|'+r.position;
+  if(!buckets.has(key))buckets.set(key,[]);
+  buckets.get(key).push({id:String(r.player_id),name:r.full_name,position:r.position,year:season,starts,ppg});
+ }
+ const players=new Map();
+ for(const entries of buckets.values()){
+  entries.sort((a,b)=>b.ppg-a.ppg||a.name.localeCompare(b.name));
+  let rank=0,previous=null;
+  for(let i=0;i<entries.length;i++){
+   const r=entries[i];
+   if(previous===null||r.ppg!==previous)rank=i+1;
+   previous=r.ppg;
+   const p=players.get(r.id)||{id:r.id,name:r.name,position:r.position,seasons:[]};
+   p.seasons.push({...r,rank});
+   players.set(r.id,p);
+  }
+ }
+ const all=[...players.values()].map(p=>{
+  const rule=rules[p.position],seasons=p.seasons.slice().sort((a,b)=>a.year-b.year);
+  const counts=[
+   seasons.filter(x=>x.rank<=rule.elite).length,
+   seasons.filter(x=>x.rank===1).length,
+   seasons.filter(x=>x.rank<=rule.dominant).length,
+   seasons.filter(x=>x.ppg>=rule.peak).length,
+   seasons.filter(x=>x.rank<=rule.consistent).length
+  ];
+  const targets=[2,2,3,4,5];
+  const met=counts.filter((count,i)=>count>=targets[i]).length;
+  const progress=counts.reduce((sum,count,i)=>sum+Math.min(count/targets[i],1),0);
+  return {...p,seasons,counts,targets,met,progress,eligible:met>=4};
+ }).sort((a,b)=>b.met-a.met||b.progress-a.progress||b.seasons.length-a.seasons.length||a.name.localeCompare(b.name));
+ // Founding selections are enshrined already, not nomination candidates.
+ const contenders=all.filter(p=>!INDUCTION_CLASSES.some(cls=>cls.entries.some(e=>e.kind==='player'&&e.id===p.id)))
+  .filter(p=>p.seasons.some(y=>y.rank<=rules[p.position].dominant)||p.counts[3]>=2)
+  .slice(0,18);
+ return {years,all,contenders};
+}
+function hallEligibilityWatchSection(watch){
+ const titleNames=['Elite Production','Positional Supremacy','Sustained Dominance','Sustained Excellence','Career Consistency'];
+ const lastYear=watch.years.length?Math.max(...watch.years):null;
+ const cells=(p)=>p.counts.map((count,i)=>{
+  const target=p.targets[i],done=count>=target,display=Math.min(count,target);
+  const label=done?'Met':Math.round(display/target*100)+'%';
+  const seasonDesc=p.seasons.filter(s=>i===0?s.rank<=(p.position==='TE'?2:3):
+   i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:5):
+   i===3?s.ppg>=({QB:25,RB:18,WR:18,TE:15}[p.position]):
+   s.rank<=({QB:8,RB:10,WR:10,TE:3}[p.position])).map(s=>
+   s.year+' #'+s.rank+' · '+fmt(s.ppg,2)+' PPG ('+s.starts+' starts)').join('; ');
+  const tooltip=titleNames[i]+': '+count+'/'+target+' qualifying seasons'+(seasonDesc?' | '+seasonDesc:'');
+  return '<td><div class="fig-hof-249-progress'+(done?' is-met':'')+'" title="'+esc(tooltip)+'" aria-label="'+esc(titleNames[i]+', '+count+' of '+target+' seasons')+'">'+
+   '<strong>'+(done?'✓':label)+'</strong><span>'+display+' / '+target+' SEASONS</span></div></td>';
+ }).join('');
+ return '<section class="fig-hof-249-watch" aria-labelledby="figHofWatchTitle">'+
+  '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">ELIGIBILITY WATCH</span>'+
+  '<h2 id="figHofWatchTitle">The next in line.</h2>'+
+  '<p>Players closest to the four-of-five nomination standard, ranked by requirements met and progress toward the rest.</p></div>'+
+  (watch.contenders.length?'<div class="fig-hof-249-scroll" role="region" tabindex="0" aria-label="Hall eligibility watch table, scroll horizontally on smaller screens">'+
+  '<table class="fig-hof-249-table"><thead><tr><th scope="col">PLAYER</th>'+
+  titleNames.map((name,i)=>'<th scope="col" title="'+esc(name)+'"><span>#'+(i+1)+'</span><small>'+esc(name)+'</small></th>').join('')+
+  '</tr></thead><tbody>'+watch.contenders.map(p=>
+   '<tr><th scope="row"><a class="fig-hof-249-player" href="#/player/'+slug(p.id)+'">'+
+   '<img loading="lazy" src="https://sleepercdn.com/content/nfl/players/thumb/'+slug(p.id)+'.jpg" alt="" onerror="this.remove()">'+
+   '<span><strong>'+esc(p.name)+'</strong><small>'+esc(p.position)+' · '+p.met+' OF 5 MET'+(p.eligible?' · ELIGIBLE':'')+'</small></span></a></th>'+
+   cells(p)+'</tr>').join('')+'</tbody></table></div>':
+  '<p class="fig-hof-249-empty">No qualifying candidates appear in the completed season archive yet.</p>')+
+  '<p class="fig-hof-249-footnote">Official FIG starts only · All-Time Combined PPG · Minimum nine starts per season'+
+  (lastYear?' · Completed seasons through '+lastYear:'')+
+  '. A percentage shows completed qualifying seasons toward each requirement, not a probability of induction. Founding inductees are excluded. The list updates as seasons become complete.</p>'+
+  '</section>';
+}
 /* Nomination standards live on their own Hall route and never alter class membership. */
-function eligibilityPage(){
+function eligibilityPage(d){
+ const watch=hallEligibilityWatch(d);
  const rules=[
   ['01','Elite Production','Two top-three positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
   ['02','Positional Supremacy','Two #1 positional PPG finishes in separate completed seasons. Counts as one of the five required benchmarks.'],
@@ -305,6 +390,7 @@ function eligibilityPage(){
  '<tbody>'+positions.map(r=>'<tr><th scope="row">'+r[0]+'</th><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody></table></div></section>'+
  '<aside class="fig-hof-248-notes"><h3>How nominations work</h3><p>All five requirements use completed seasons. For every positional PPG ranking, only players with at least 9 FIG starts in that particular season are compared, using their All-Time Combined average, never total season points. The same 9-start threshold applies to each season counted toward requirements 4 and 5.</p>'+
  '<p>Josh Allen and Puka Nacua are exempt as founding-class selections. Meeting the nomination standard makes a player eligible for selection, but the commissioner makes the final induction decision. No player is added to the Hall automatically.</p></aside>'+
+ hallEligibilityWatchSection(watch)+
  '</section>';
 }
 function hall(m){return lobby(m);}
@@ -355,7 +441,7 @@ async function page(ctx,view,arg,sub,year){
  const isPlayer=(view==='inductee'&&arg==='player')||view==='player';
  const isSeason=view==='inductee'&&arg==='season';
  const id=view==='player'?String(arg||''):String(sub||'');
- const content=view==='eligibility'?eligibilityPage():
+ const content=view==='eligibility'?eligibilityPage(ctx.DATA):
   isPlayer?plaque(m,'player',id,year,ctx.DATA):
   isSeason?immortalSeasonPlaque(m,sub,year):lobby(m);
  ctx.app.innerHTML='<div class="fig-hof fig-hof-v2 fig-hof-242 fig-hof-243" id="figHallOfFame">'+
@@ -363,5 +449,5 @@ async function page(ctx,view,arg,sub,year){
  document.title=view==='eligibility'?'Hall Eligibility & Nomination – Fromm is Garbage':'The Hall – Fromm is Garbage';
 }
 window.figHallOfFame=page;
-window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
+window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,hallEligibilityWatch,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
 })();
