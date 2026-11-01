@@ -26,6 +26,42 @@ assert.ok(m.inductees.every(x=>x.inductionYear===2026));
 assert.ok(m.inductees.every(x=>x.career.seasons.some(s=>s.year===2025&&s.starts>0)));
 assert.ok(m.inductees.every(x=>x.career.seasons.length===3));
 assert.ok(m.inductees.every(x=>x.why===undefined),'Curation is explained by the induction case, not an auto-generated weighted point formula');
+// The live eligibility watch ranks eligible starter-season averages, not total points.
+const watch=api.hallEligibilityWatch(data);
+assert.deepEqual(watch.years,[2023,2024,2025]);
+assert.equal(watch.contenders.length,18,'Show a curated-length live contender list');
+assert.equal(watch.contenders[0].name,'Christian McCaffrey');
+assert.equal(watch.contenders[1].name,'Trey McBride');
+assert.deepEqual(watch.contenders[0].counts,[2,2,2,2,2],
+ 'CMC has two #1 RB seasons but only two of five benchmarks met');
+assert.deepEqual(watch.contenders[1].counts,[2,2,2,2,2],
+ 'McBride has two #1 TE seasons but only two of five benchmarks met');
+assert.ok(watch.contenders.every(p=>!['4984','9493'].includes(p.id)),
+ 'Founding inductees must not be presented as future nomination candidates');
+assert.ok(watch.contenders.every(p=>p.met===p.counts.filter((n,i)=>n>=p.targets[i]).length));
+assert.ok(watch.contenders.every(p=>p.seasons.every(y=>y.starts>=9&&y.year<=2025)),
+ 'Partial seasons or below-nine-start averages cannot be considered');
+const sampleRows=[
+ {player_id:'a',full_name:'High Average',position:'QB',season:'2025',
+  starts:9,average_points:28,total_points:252,scoring_view:'All-Time Combined',season_complete:true},
+ {player_id:'b',full_name:'Higher Total',position:'QB',season:'2025',
+  starts:15,average_points:25,total_points:375,scoring_view:'All-Time Combined',season_complete:true},
+ {player_id:'c',full_name:'Short Sample',position:'QB',season:'2025',
+  starts:8,average_points:99,total_points:792,scoring_view:'All-Time Combined',season_complete:true},
+ {player_id:'d',full_name:'Same Average',position:'QB',season:'2025',
+  starts:10,average_points:28,total_points:280,scoring_view:'All-Time Combined',season_complete:true},
+ {player_id:'e',full_name:'Not Combined',position:'QB',season:'2025',
+  starts:15,average_points:70,total_points:1050,scoring_view:'Regular Season',season_complete:true},
+ {player_id:'f',full_name:'Incomplete',position:'QB',season:'2026',
+  starts:15,average_points:80,total_points:1200,scoring_view:'All-Time Combined',season_complete:false}
+];
+const sampleWatch=api.hallEligibilityWatch({league:data.league,playerSeasons:sampleRows});
+assert.equal(sampleWatch.all.find(p=>p.id==='a').seasons[0].rank,1);
+assert.equal(sampleWatch.all.find(p=>p.id==='d').seasons[0].rank,1,'Equal PPG receives tied rank');
+assert.equal(sampleWatch.all.find(p=>p.id==='b').seasons[0].rank,3,
+ 'Higher total points cannot beat higher PPG in position ranking');
+assert.ok(!sampleWatch.all.some(p=>['c','e','f'].includes(p.id)),
+ 'Below-nine, non-combined and incomplete rows must not enter rankings');
 // Hall season averages must match the published All-Time Combined player archive
 // exactly, including postseason starts and the original rounding convention.
 const historicalPlayers=api.playerCareers(data,m.foundingYears).byId;
@@ -137,6 +173,11 @@ assert.ok(js.includes('at least 9 official FIG starts'));
 assert.ok(js.includes('average points per FIG start (PPG)'));
 assert.ok(js.includes('not their total points'));
 assert.ok(!js.includes('at least 10 verified FIG starts'));
+assert.ok(js.includes('function hallEligibilityWatch(d)'));
+assert.ok(js.includes('hallEligibilityWatchSection(watch)'));
+assert.ok(js.includes('eligibilityPage(ctx.DATA)'));
+assert.match(css,/fig-hof-249-progress/);
+assert.match(css,/fig-hof-249-scroll/);
 assert.match(css,/fig-hof-248-ranking-rule/);
 assert.ok(css.includes('fig-hof-248-eligibility .fig-hof-248-table-wrap tbody tr:nth-child(even)'),'Even positional rows must override global zebra backgrounds');
 assert.ok(js.includes("['QB','25+','TOP 8']"));
