@@ -65,47 +65,9 @@ function playerCareers(d,years){
  return {all,byId:new Map(all.map(p=>[p.id,p]))};
 }
 function verifyPlayer(p){
- // A frozen editorial decision grants induction. Eligibility screening never
- // automatically changes an induction class, including the founding class.
- return {ok:!!p,criteria:'Curated induction. Future player eligibility requires any one of three routes: Elite Production, Positional Dominance or Sustained Greatness. Founding inductees are exempt.'};
-}
-/* Objective minimum standards for future commissioner consideration.
-   These screen player candidates; they do not automatically induct anyone.
-   Rankings use completed FIG seasons and official combined starter PPG only. */
-function screenHallEligibility(d,years=completedYears(d)){
- const completed=new Set(years.map(Number)),positions=new Set(POSITIONS);
- const rows=(d.playerSeasons||[]).filter(r=>r.scoring_view==='All-Time Combined' &&
-   completed.has(Number(r.season)) && (r.season_complete===true||r.season_complete==='true') &&
-   positions.has(r.position) && Number(r.starts)>0);
- const byPlayer=new Map(),bySeasonPosition=new Map();
- for(const r of rows){
-   const id=String(r.player_id),key=Number(r.season)+'|'+r.position;
-   if(!byPlayer.has(id))byPlayer.set(id,{id,name:r.full_name,position:r.position,careerStarts:0,finishes:[]});
-   byPlayer.get(id).careerStarts+=value(r.starts);
-   if(value(r.starts)<10)continue;
-   if(!bySeasonPosition.has(key))bySeasonPosition.set(key,[]);
-   bySeasonPosition.get(key).push(r);
- }
- for(const entries of bySeasonPosition.values()){
-   entries.sort((a,b)=>value(b.average_points)-value(a.average_points));
-   for(let i=0;i<entries.length;i++){
-     const r=entries[i];
-     const rank=1+entries.filter(x=>value(x.average_points)>value(r.average_points)).length;
-     byPlayer.get(String(r.player_id)).finishes.push({
-       year:Number(r.season),position:r.position,rank,ppg:value(r.average_points),starts:value(r.starts)
-     });
-   }
- }
- return [...byPlayer.values()].map(p=>{
-   const top3=p.finishes.filter(s=>s.rank<=3);
-   const top5=p.finishes.filter(s=>s.rank<=5);
-   const crowns=p.finishes.filter(s=>s.rank===1);
-   const paths=[];
-   if(top3.length>=2)paths.push('Elite Production');
-   if(crowns.length>=1 && top5.length>=3)paths.push('Positional Dominance');
-   if(top5.length>=4 && p.careerStarts>=50)paths.push('Sustained Greatness');
-   return {...p,finishes:p.finishes.sort((a,b)=>a.year-b.year),paths,eligible:paths.length>0};
- }).filter(p=>p.eligible).sort((a,b)=>a.position.localeCompare(b.position)||a.name.localeCompare(b.name));
+ // A frozen editorial decision grants induction. The historical log supplies
+ // evidence for the plaque but never imposes career PPG or lineup-start gates.
+ return {ok:!!p,criteria:'Historical induction: excellence across individual seasons, positional distinction, defining peak and sustained impact. No career PPG, career-total or FIG lineup-start threshold.'};
 }
 function verifySeason(s,fin){
  const qualifies=!!s&&fin.some(f=>f.year===s.year&&f.champion===s.id)&&s.points>=3000&&s.ppg>=210&&s.allPlay>=85&&s.highs>=6;
@@ -366,5 +328,5 @@ async function page(ctx,view,arg,sub,year){
  document.title='The Hall – Fromm is Garbage';
 }
 window.figHallOfFame=page;
-window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,screenHallEligibility,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
+window.figHallOfFameModel={model,playerCareers,verifyPlayer,verifySeason,completedYears,INDUCTION_CLASSES,seasonHonors,displayRecordValue};
 })();
