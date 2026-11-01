@@ -278,9 +278,9 @@ function lobby(m){
    Positions are ranked by average PPG after excluding all players below 9 starts. */
 function hallEligibilityWatch(d){
  const years=completedYears(d),complete=new Set(years.map(Number));
- const rules={QB:{peak:25,consistent:10,elite:3,dominant:5},
-  RB:{peak:17,consistent:10,elite:3,dominant:5},
-  WR:{peak:17,consistent:10,elite:3,dominant:5},
+ const rules={QB:{peak:25,consistent:10,elite:3,dominant:6},
+  RB:{peak:17,consistent:10,elite:3,dominant:6},
+  WR:{peak:17,consistent:10,elite:3,dominant:6},
   TE:{peak:14,consistent:3,elite:2,dominant:3}};
  const buckets=new Map();
  for(const r of (d.playerSeasons||[])){
@@ -314,7 +314,7 @@ function hallEligibilityWatch(d){
    seasons.filter(x=>x.ppg>=rule.peak).length,
    seasons.filter(x=>x.rank<=rule.consistent).length
   ];
-  const targets=[2,1,3,4,5];
+  const targets=[2,1,3,4,4];
   const met=counts.filter((count,i)=>count>=targets[i]).length;
   const progress=counts.reduce((sum,count,i)=>sum+Math.min(count/targets[i],1),0);
   return {...p,seasons,counts,targets,met,progress,eligible:met>=3};
@@ -341,7 +341,7 @@ function hallEligibilityWatchSection(watch){
   const target=p.targets[i],done=count>=target,display=Math.min(count,target);
   const label=done?'Met':Math.round(display/target*100)+'%';
   const seasonDesc=p.seasons.filter(s=>i===0?s.rank<=(p.position==='TE'?2:3):
-   i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:5):
+   i===1?s.rank===1:i===2?s.rank<=(p.position==='TE'?3:6):
    i===3?s.ppg>=({QB:25,RB:17,WR:17,TE:14}[p.position]):
    s.rank<=({QB:10,RB:10,WR:10,TE:3}[p.position])).map(s=>
    s.year+' #'+s.rank+' · '+fmt(s.ppg,2)+' PPG ('+s.starts+' starts)').join('; ');
@@ -373,9 +373,9 @@ function eligibilityPage(d){
  const rules=[
   ['01','Elite Production','Two top-three positional PPG finishes in separate completed seasons. Tight ends must finish top two.'],
   ['02','Positional Supremacy','One completed season finishing #1 in positional PPG. Counts as one of the five required benchmarks.'],
-  ['03','Sustained Dominance','Three top-five positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
+  ['03','Sustained Dominance','Three top-six positional PPG finishes in separate completed seasons. Tight ends must finish top three.'],
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
-  ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
+  ['05','Career Consistency','Four completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
  ];
  const positions=[['QB','25+','TOP 10'],['RB','17+','TOP 10'],['WR','17+','TOP 10'],['TE','14+','TOP 3']];
  return '<section class="fig-hof-content fig-hof-248-eligibility">'+
