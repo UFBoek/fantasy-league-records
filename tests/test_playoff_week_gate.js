@@ -49,7 +49,8 @@ assert.ok(valid>=8,'snapshot should provide most teams with a full current-roste
 assert.equal(simulated[10].available,true,
  'James with 8 recorded starters should use two empty zero-point slots');
 assert.equal(simulated[10].starters.length,10,'incomplete lineup is padded to ten slots');
-assert.equal(simulated[10].starters.filter(Boolean).length,8,'no missing starter is invented');
+assert.equal(simulated[10].starters.filter(Boolean).length,snapshots[9].starters.filter(Boolean).length,
+ 'no missing starter is invented, even if the latest roster has all ten starters');
 assert.ok(Object.values(simulated).some(x=>x.available===true),
  'provisional Week 8 adjustments must become active rather than all teams falling back');
 const strict=calculate({year:2026,week:8,matchups:snapshots,playerScores});
