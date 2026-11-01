@@ -283,7 +283,7 @@ function eligibilityPage(){
   ['04','Sustained Excellence','Four completed seasons with at least nine FIG starts each, meeting the position-specific minimum PPG below.'],
   ['05','Career Consistency','Five completed seasons with at least nine FIG starts each and a position-specific top finish in PPG.']
  ];
- const positions=[['QB','27+','TOP 8'],['RB','18+','TOP 10'],['WR','18+','TOP 10'],['TE','15+','TOP 3']];
+ const positions=[['QB','25+','TOP 8'],['RB','18+','TOP 10'],['WR','18+','TOP 10'],['TE','15+','TOP 3']];
  return '<section class="fig-hof-content fig-hof-248-eligibility">'+
  '<nav class="fig-hof-248-back" aria-label="Hall of Fame section"><a href="#/hall-of-fame">← RETURN TO THE HALL</a><span>HALL OF FAME / PLAYER NOMINATIONS</span></nav>'+
  '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD FOR FUTURE INDUCTEES</span>'+
