@@ -9,6 +9,11 @@ const m=api.calculate({league:read('league_history'),playerSeasons:read('player_
 assert.equal(api.THRESHOLD,500);assert.equal(api.MIN_STARTS,8);
 assert.deepEqual(api.FLOORS,[22,13,13,10]);
 assert.equal(m.all.length,386);assert.equal(m.watch.length,35);
+assert.equal(m.allScored.length,210,'All Players displays only earned Legacy scorers');
+assert.equal(m.all.length-m.allScored.length,176,'Zero-point archive players hidden from All Players');
+assert.ok(m.allScored.every(p=>p.total>0),'No zero-point players in All Players');
+assert.ok(m.all.filter(p=>p.total===0).every(p=>!m.allScored.includes(p)),'Zero players retained in full archive, but filtered from UI');
+assert.ok(m.watch.every(p=>p.watched),'Commissioner watchlist remains independent');
 assert.ok(Math.abs(m.season-10253.7)<1e-5);
 assert.equal(m.games,4734);
 assert.ok(m.ratio>.683&&m.ratio<.685,'Historical season/game share after removing low-scoring QB bonuses');
