@@ -1,5 +1,5 @@
 /* FIG League v235 – keep app shell available; never cache live league JSON. */
-const CACHE_NAME = 'fig-league-shell-v262';
+const CACHE_NAME = 'fig-league-shell-v263';
 const APP_SHELL = [
   './',
   './index.html',
@@ -80,8 +80,8 @@ const APP_SHELL = [
   './hall-of-fame-v243.css?v=243',
   './hall-of-fame-v244.css?v=252',
   './list-ui-v250.css?v=250',
-  './hall-of-fame-v244.js?v=262',
-  './app.js?v=262',
+  './hall-of-fame-v244.js?v=263',
+  './app.js?v=263',
   './manifest.webmanifest?v=132',
   './assets/icons/puka-192.png?v=132',
   './assets/icons/puka-512.png?v=132',
