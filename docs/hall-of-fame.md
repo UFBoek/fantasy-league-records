@@ -2,7 +2,7 @@
 
 The FIG Hall of Fame is a permanent institution for exceptional fantasy performances within Fromm Is Garbage, accessible from **More → Hall of Fame**, `#/hall-of-fame`.
 
-The main Hall presents two founding player plaques, the separately enshrined Hayden 2025 team season, and a short note about future legends. The separate Induction Philosophy page, its navigation, and its footer links have been removed. Existing links to the retired `/charter` route render the main Hall.
+The main Hall presents two founding player plaques, the separately enshrined Hayden 2025 team season, and a short note about future legends. A discreet link in the latter opens a separate **Eligibility & Nomination** Hall subpage at `#/hall-of-fame/eligibility`. The previous Induction Philosophy page remains retired; existing links to `/charter` render the main Hall.
 
 ## 2026 Inaugural Class: The Founding Two
 
@@ -12,6 +12,22 @@ The main Hall presents two founding player plaques, the separately enshrined Hay
 | WR | Puka Nacua | 9493 | **THE LOGO**: the face of FIG, represented in the league's branding, with elite founding-era production |
 
 The **two players explicitly selected** for the inaugural class are Josh Allen and Puka Nacua. Gibbs and McBride remain in the normal player archive, but no longer appear as Hall inductees. The historical Hayden 2025 franchise season remains enshrined separately. No other player was added.
+
+## Eligibility & Nomination (separate Hall route)
+
+The Hall landing page only links to this section; it does not show the five requirements. The criteria live at `#/hall-of-fame/eligibility`, with a return link to the Hall.
+
+For future classes, a player qualifies to be **considered for nomination** by satisfying **at least 4 out of the 5** benchmarks below, or by independently attaining **two #1 positional PPG seasons** under the Positional Supremacy exception:
+
+1. **Elite Production:** Two top-3 positional PPG finishes, or top-2 for TEs.
+2. **Positional Supremacy:** Two seasons finishing #1 in positional PPG. This is also a standalone exception to the 4-of-5 requirement.
+3. **Sustained Dominance:** Three top-5 positional PPG finishes, or top-3 for TEs.
+4. **Sustained Excellence:** Four seasons with at least nine FIG starts each, averaging 27+ QB PPG, 18+ RB or WR PPG, or 15+ TE PPG.
+5. **Career Consistency:** Five seasons with at least nine FIG starts each, finishing top-8 QB, top-10 RB or WR, or top-3 TE in positional PPG each season.
+
+Rankings and averages use **All-Time Combined** PPG, including official regular-season and playoff FIG lineup starts. Requirements 1 through 3 count only completed seasons with **at least 10** such starts. Requirements 4 and 5 count completed seasons with at least **nine**. Rankings are per position. Each requirement counts distinct qualifying seasons, not duplicate entries for the same season.
+
+Eligibility never guarantees induction, adds players to a class automatically or removes enshrined players. Josh Allen and Puka Nacua are founding-class exceptions; the commissioner makes later induction decisions. These rules are separate from the retired Induction Philosophy section.
 
 ## Player scoring scope: All-Time Combined
 
