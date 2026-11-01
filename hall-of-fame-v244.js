@@ -289,10 +289,12 @@ function eligibilityPage(){
  '<header class="fig-hof-248-intro"><span class="fig-hof-eyebrow">THE STANDARD FOR FUTURE INDUCTEES</span>'+
  '<h1>Eligibility &amp; <em>Nomination.</em></h1>'+
  '<p>The Hall is earned through extraordinary positional production or a body of work that endures. Qualifying makes a player eligible for consideration. It does not guarantee induction.</p></header>'+
- '<div class="fig-hof-248-routes" aria-label="Ways to qualify for nomination">'+
- '<div class="fig-hof-248-route"><span>THE STANDARD PATH</span><div><strong>4 <small>OF</small> 5</strong><p>Meet at least four of the five requirements below.</p></div></div>'+
- '<div class="fig-hof-248-route fig-hof-248-route-alt"><span>THE SUPREMACY EXCEPTION</span><div><strong>2 <small>TITLES</small></strong><p>Finish #1 in positional PPG in two different seasons, even without meeting four requirements.</p></div></div>'+
+ '<div class="fig-hof-248-routes" aria-label="Nomination standard">'+
+ '<div class="fig-hof-248-route"><span>THE NOMINATION STANDARD</span><div><strong>4 <small>OF</small> 5</strong><p>Meet at least four of the five requirements below. Requirement #2 also qualifies a player on its own with two #1 positional PPG finishes in separate seasons.</p></div></div>'+
  '</div>'+
+ '<section class="fig-hof-248-ranking-rule"><span class="fig-hof-eyebrow">HOW RANKINGS WORK</span><h2>Ranked by average, not total points.</h2>'+
+ '<p>To enter a positional ranking in any completed season, a player must have <strong>at least 9 official FIG starts</strong> that season. Only players meeting that minimum are ranked, and their positions are ranked by <strong>average points per FIG start (PPG)</strong>, not their total points. Regular-season and playoff starts are combined.</p>'+
+ '<p class="fig-hof-248-example">For example, a player averaging 25.0 PPG in 9 starts ranks ahead of a player averaging 24.0 PPG in 15 starts. A player with 8 starts is excluded from that season\'s positional rankings for Hall eligibility.</p></section>'+
  '<div class="fig-hof-248-section-head"><span class="fig-hof-eyebrow">THE FIVE BENCHMARKS</span><h2>Standards of greatness.</h2></div>'+
  '<ol class="fig-hof-248-rules">'+rules.map(r=>
  '<li><span class="fig-hof-248-number">'+r[0]+'</span><div><h3>'+r[1]+'</h3><p>'+r[2]+'</p></div></li>').join('')+'</ol>'+
@@ -301,8 +303,8 @@ function eligibilityPage(){
  '<p>Requirements 4 and 5 use these thresholds in each qualifying season.</p></div>'+
  '<div class="fig-hof-248-table-wrap"><table><thead><tr><th scope="col">POSITION</th><th scope="col">#4 · MINIMUM PPG</th><th scope="col">#5 · PPG FINISH</th></tr></thead>'+
  '<tbody>'+positions.map(r=>'<tr><th scope="row">'+r[0]+'</th><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody></table></div></section>'+
- '<aside class="fig-hof-248-notes"><h3>How nominations work</h3><p>Requirements 1, 2 and 3 count only completed seasons with at least 10 verified FIG starts. Requirements 4 and 5 require at least nine FIG starts per season. Positional finishes are ranked by All-Time Combined PPG from official FIG starting appearances, including regular-season and playoff games.</p>'+
- '<p>Josh Allen and Puka Nacua are exempt as founding-class selections. A player who meets either nomination path is eligible for selection, but the commissioner makes the final induction decision. No player is added to the Hall automatically.</p></aside>'+
+ '<aside class="fig-hof-248-notes"><h3>How nominations work</h3><p>All five requirements use completed seasons. For every positional PPG ranking, only players with at least 9 FIG starts in that particular season are compared, using their All-Time Combined average, never total season points. The same 9-start threshold applies to each season counted toward requirements 4 and 5.</p>'+
+ '<p>Josh Allen and Puka Nacua are exempt as founding-class selections. Meeting the nomination standard makes a player eligible for selection, but the commissioner makes the final induction decision. No player is added to the Hall automatically.</p></aside>'+
  '</section>';
 }
 function hall(m){return lobby(m);}
