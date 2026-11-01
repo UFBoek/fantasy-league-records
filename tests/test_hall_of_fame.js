@@ -306,7 +306,7 @@ assert.match(html,/hall-of-fame-v244\.js\?v=272/);
 assert.match(html,/hall-of-fame-v244\.css\?v=252/);
 assert.match(html,/hall-of-fame-v242\.css\?v=253/);
 assert.match(sw,/fig-league-shell-v280/);
-assert.match(sw,/hall-of-fame-v244\.js\?v=271/);
+assert.match(sw,/hall-of-fame-v244\.js\?v=272/);
 assert.match(sw,/hall-of-fame-v244\.css\?v=252/);
 assert.match(app,/parts\[0\]==='hall-of-fame'/);
 assert.doesNotMatch(js,/function legacy\(/);
