@@ -35,7 +35,31 @@
    }
    return null;
  }
- const api={sundayNoonEastern,expectedWeeklyMean,firstSunday};
+ // Treat this week's projected final score as ONE additional result when
+ // forecasting future weeks and the title. Recompute the standard 65% season
+ // and 35% last-three average instead of repeating this lineup indefinitely.
+ function projectedModelMean({completedScores,currentEstimate,leagueAverage}){
+   const estimate=expectedWeeklyMean({expected:currentEstimate,simulated:null,baseline:null});
+   if(estimate===null||!Array.isArray(completedScores))return null;
+   const scores=[];
+   for(const score of completedScores){
+     if(score===null||score===undefined||score===''||!Number.isFinite(Number(score)))
+       return null;
+     scores.push(Number(score));
+   }
+   const all=scores.concat(estimate);
+   const season=all.reduce((sum,v)=>sum+v,0)/all.length;
+   const lastThree=all.slice(-3);
+   const recent=lastThree.reduce((sum,v)=>sum+v,0)/lastThree.length;
+   let mean=Math.max(35,Math.min(300,.65*season+.35*recent));
+   if(all.length<3){
+     const league=leagueAverage!==null&&leagueAverage!==undefined&&
+       Number.isFinite(Number(leagueAverage))?Number(leagueAverage):season;
+     mean=league+(mean-league)*all.length/3;
+   }
+   return mean;
+ }
+ const api={sundayNoonEastern,expectedWeeklyMean,projectedModelMean,firstSunday};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(global)global.figPlayoffWeeklyOdds=api;
 })(typeof window!=='undefined'?window:null);
