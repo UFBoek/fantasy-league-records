@@ -87,12 +87,12 @@ assert.match(js,/week===firstWeek&&Number\.isFinite\(ax\.weekSd\)\?ax\.weekSd:ax
 assert.match(js,/week===firstWeek&&Number\.isFinite\(bx\.weekSd\)\?bx\.weekSd:bx\.sd/);
 assert.match(js,/spread<1e-8\)return diff>0\?1:diff<0\?0:0\.5/,
  'if both teams final, H2H probability must be decisive');
-assert.match(js,/weekExpected\+'\/'\+s\.weekMean\+'\/'\+s\.weekSd/,
- 'the odds cache must invalidate if remaining SD changes even when mean stays fixed');
+assert.match(js,/s\.weekExpected,s\.weekMean,s\.weekSd,s\.futureMean,s\.weekScoreState/,
+ 'the odds cache must invalidate if remaining SD or earned-score floors change');
 assert.match(js,/window\.figPlayoffLiveForecast\.estimate/);
 assert.match(js,/s\.weekMean=forecast\?forecast\.mean:pregameMean/);
 assert.match(js,/s\.weekSd=forecast\?forecast\.sd:s\.sd/);
-assert.match(js,/\['matchup','main','team'\]\.includes\(routeMode\)/,
+assert.match(js,/\['matchup','main','team','bracket'\]\.includes\(routeMode\)/,
  'main odds and team route should receive live refresh');
 assert.match(js,/renderOdds\(\);\s*renderBracket\(oddsResults\)/,
  'main odds and playoff bracket should recalculate without resetting What-If entries');
