@@ -1,5 +1,5 @@
 /* Current-week odds center on the 70/30 starter forecast, not the team's
-   historical 65/35 scoring mean. Before Sunday noon Eastern, expose the
+   historical full-season scoring mean. Before Sunday noon Eastern, expose the
    historical comparisons; from Sunday noon on, keep only the live starter
    expectation. The week dates follow the NFL regular-season Sunday calendar
    (first Sunday after Labor Day) and use the New York timezone across DST. */
@@ -36,9 +36,9 @@
    return null;
  }
  // Treat this week's projected final score as ONE additional result when
- // forecasting future weeks and the title. Recompute the standard 65% season
- // and 35% last-three average instead of repeating this lineup indefinitely.
- function projectedModelMean({completedScores,currentEstimate,leagueAverage}){
+ // forecasting future weeks and the title. Recompute the full-season mean
+ // without a last-three bonus, instead of repeating this lineup indefinitely.
+ function projectedModelMean({completedScores,currentEstimate}){
    const estimate=expectedWeeklyMean({expected:currentEstimate,simulated:null,baseline:null});
    if(estimate===null||!Array.isArray(completedScores))return null;
    const scores=[];
@@ -49,15 +49,7 @@
    }
    const all=scores.concat(estimate);
    const season=all.reduce((sum,v)=>sum+v,0)/all.length;
-   const lastThree=all.slice(-3);
-   const recent=lastThree.reduce((sum,v)=>sum+v,0)/lastThree.length;
-   let mean=Math.max(35,Math.min(300,.65*season+.35*recent));
-   if(all.length<3){
-     const league=leagueAverage!==null&&leagueAverage!==undefined&&
-       Number.isFinite(Number(leagueAverage))?Number(leagueAverage):season;
-     mean=league+(mean-league)*all.length/3;
-   }
-   return mean;
+   return Math.max(35,Math.min(300,season));
  }
  const api={sundayNoonEastern,expectedWeeklyMean,projectedModelMean,firstSunday};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;

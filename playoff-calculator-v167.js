@@ -68,9 +68,8 @@
      if(!scores.length)season=avg;
      var recent=scores.slice(-3).reduce(function(s,v){return s+v;},0)/Math.max(1,Math.min(3,scores.length));
      if(!scores.length)recent=avg;
-     // Projected averages use 65% full-season and 35% last-three-game scoring.
-     var mean=clamp(.65*season+.35*recent,35,300);
-     if(scores.length<3)mean=avg+(mean-avg)*scores.length/3;
+     // Team Model PPG is the current-season mean; recent form is informational only.
+     var mean=clamp(season,35,300);
      // Estimate each franchise's volatility from its last eight completed
      // regular-season games. Fill any missing current-season games with the
      // most recent regular-season games from the immediately prior season.
@@ -95,7 +94,7 @@
      var ap=apTotal?(t.apW+t.apT*.5)/apTotal:.5;
      strength[t.id]={mean:mean,sd:variability,season:season,recent:recent,allPlay:ap,
        sdGames:sampleSize,sdPriorGames:priorWindow.length,
-        completedScores:scores,leagueAverage:avg};
+        completedScores:scores};
    });
  }
  function validPairs(pairs){
@@ -191,8 +190,7 @@
        // for current-week odds, without altering completed historical games.
        s.futureMean=window.figPlayoffWeeklyOdds&&window.figPlayoffWeeklyOdds.projectedModelMean?
          window.figPlayoffWeeklyOdds.projectedModelMean({
-           completedScores:s.completedScores,currentEstimate:s.weekExpected,
-           leagueAverage:s.leagueAverage
+           completedScores:s.completedScores,currentEstimate:s.weekExpected
          }):null;
        s.weekSd=forecast?forecast.sd:s.sd;
        s.weekProgress=forecast?forecast.progress:0;

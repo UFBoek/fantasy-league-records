@@ -34,10 +34,10 @@ assert.equal(expectedWeeklyMean({expected:undefined,simulated:undefined,baseline
 assert.equal(expectedWeeklyMean({expected:NaN,simulated:205,baseline:190}),205);
 assert.equal(expectedWeeklyMean({expected:null,simulated:null,baseline:null}),null);
 
-// A forecast is one extra regular-season score in the established 65/35 mean.
+// A forecast is one extra regular-season score in the full-season average.
 const previous=[130,160,190,210], projection=250;
 const next=projectedModelMean({completedScores:previous,currentEstimate:projection,leagueAverage:172.5});
-const expected=.65*((130+160+190+210+250)/5)+.35*((190+210+250)/3);
+const expected=(130+160+190+210+250)/5;
 assert.ok(Math.abs(next-expected)<1e-9);
 assert.ok(next>projectedModelMean({completedScores:previous,currentEstimate:100,leagueAverage:172.5}),
  'a stronger current-week estimate should raise future scoring and title odds');
@@ -45,8 +45,13 @@ assert.equal(projectedModelMean({completedScores:previous,currentEstimate:null,l
  'unavailable lineup data must preserve the original historical fallback');
 assert.ok(Number.isFinite(projectedModelMean({completedScores:previous,currentEstimate:0,leagueAverage:172.5})),
  'a completed zero remains a legitimate additional result');
-assert.ok(Math.abs(projectedModelMean({completedScores:[],currentEstimate:200,leagueAverage:150})-(150+50/3))<1e-9,
- 'the original early-season shrinkage is respected');
+assert.equal(projectedModelMean({completedScores:[],currentEstimate:200,leagueAverage:150}),200,
+ 'a single current-season estimate is not shrunk toward a league average');
+assert.equal(projectedModelMean({completedScores:[100,200,100,200],currentEstimate:200}),
+ projectedModelMean({completedScores:[200,100,200,100],currentEstimate:200}),
+ 'changing which weeks were the last three cannot change Model PPG');
+assert.equal(projectedModelMean({completedScores:[0],currentEstimate:0}),35,
+ 'model PPG maintains the minimum bound');
 
 const calc=read('playoff-calculator-v167.js'),html=read('index.html'),sw=read('sw.js'),
   css=read('playoff-calculator-v167.css');
@@ -62,7 +67,11 @@ assert.match(calc,/var aMean=weeklyScoringMean\(a,week\),bMean=weeklyScoringMean
 assert.match(calc,/aMean:aMean,bMean:bMean/,
  'earned-score-bounded live win probabilities use expected starter scoring');
 assert.match(calc,/if\(week!==firstWeek\)return Number\.isFinite\(s\.futureMean\)\?s\.futureMean:s\.mean/,
- 'future weeks use the updated 65/35 mean and fall back to historical strength');
+ 'future weeks use the updated full-season mean and fall back to historical strength');
+assert.match(calc,/var mean=clamp\(season,35,300\)/,
+ 'historical team Model PPG uses current-season mean without recent-game weighting');
+assert.doesNotMatch(calc,/\.35\*recent/,
+ 'team baseline no longer bonuses last three games');
 assert.match(calc,/currentEstimate:s\.weekExpected/,
  'current matchup starter points drive the new model data point');
 assert.match(calc,/var aMean=Number\.isFinite\(x\.futureMean\)\?x\.futureMean:x\.mean/,
