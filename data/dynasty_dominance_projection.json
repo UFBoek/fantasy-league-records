@@ -1,7 +1,7 @@
 {
   "version": "fig-beta-2.0-qb-cap-r1-pick-development",
   "status": "experimental_beta_not_calibrated",
-  "generated_at": "2026-11-06T06:12:04.906Z",
+  "generated_at": "2026-11-06T07:29:37.818Z",
   "source_week": 8,
   "source_season": 2026,
   "model_version": "experimental-v3.7-qb-scoring-and-r1-draft-order",
@@ -39782,5 +39782,5 @@
     2031,
     2032
   ],
-  "input_fingerprint": "223a39b18870526e550bf548"
+  "input_fingerprint": "18ddbc7095d8c41a36c3fcda"
 }
