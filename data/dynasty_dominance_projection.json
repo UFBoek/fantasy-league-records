@@ -1,8 +1,8 @@
 {
   "version": "fig-beta-2.0-qb-cap-r1-pick-development",
   "status": "experimental_beta_not_calibrated",
-  "generated_at": "2026-11-10T02:10:59.309Z",
-  "source_week": 8,
+  "generated_at": "2026-11-10T04:34:36.620Z",
+  "source_week": 9,
   "source_season": 2026,
   "model_version": "experimental-v3.7-qb-scoring-and-r1-draft-order",
   "runs": 1500,
@@ -23,8 +23,8 @@
     "description": "Historical one-year tests did not consistently beat the simpler roster scoring baseline. The model is research only."
   },
   "league_scoring_reference": {
-    "historical_weekly_avg": 1602.8,
-    "completed_ten_team_weeks": 50,
+    "historical_weekly_avg": 1601,
+    "completed_ten_team_weeks": 51,
     "description": "Actual completed 10-team weeks independently check the league-wide 1,600-point baseline; past individual player/team scoring never sets talent projections"
   },
   "league_scoring_calibration": {
@@ -114,7 +114,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 227,
+      "current_ppg": 228.3,
       "market_value_known_players": 104507
     },
     {
@@ -156,7 +156,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 148.5,
+      "current_ppg": 149.7,
       "market_value_known_players": 34900
     },
     {
@@ -198,7 +198,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 97.1,
+      "current_ppg": 95.5,
       "market_value_known_players": 15142
     },
     {
@@ -240,7 +240,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 173.6,
+      "current_ppg": 179.7,
       "market_value_known_players": 44313
     },
     {
@@ -282,7 +282,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 166.6,
+      "current_ppg": 162.9,
       "market_value_known_players": 48286
     },
     {
@@ -324,7 +324,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 215.8,
+      "current_ppg": 213.7,
       "market_value_known_players": 79811
     },
     {
@@ -366,7 +366,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 169.3,
+      "current_ppg": 171.2,
       "market_value_known_players": 42689
     },
     {
@@ -408,7 +408,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 164,
+      "current_ppg": 159,
       "market_value_known_players": 39605
     },
     {
@@ -450,7 +450,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 158.3,
+      "current_ppg": 151.1,
       "market_value_known_players": 35334
     },
     {
@@ -492,7 +492,7 @@
           "projected_assumed": 4
         }
       },
-      "current_ppg": 65.2,
+      "current_ppg": 66.4,
       "market_value_known_players": 6218
     }
   ],
@@ -39866,5 +39866,5 @@
     2031,
     2032
   ],
-  "input_fingerprint": "aa6082e1a66a91cdc76328ca"
+  "input_fingerprint": "b30d424e530ae9e8d9243fca"
 }
