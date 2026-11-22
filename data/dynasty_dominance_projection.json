@@ -1,7 +1,7 @@
 {
   "version": "fig-beta-2.0-qb-cap-r1-pick-development",
   "status": "experimental_beta_not_calibrated",
-  "generated_at": "2026-11-22T06:52:11.874Z",
+  "generated_at": "2026-11-22T15:20:43.053Z",
   "source_week": 10,
   "source_season": 2026,
   "model_version": "experimental-v3.7-qb-scoring-and-r1-draft-order",
@@ -36,14 +36,14 @@
     "retained_raw_trend_fraction": 0.1,
     "by_year": {
       "2027": {
-        "raw_ppg": 1709.4,
+        "raw_ppg": 1709.5,
         "target_ppg": 1610.9,
-        "multiplier": 0.9424
+        "multiplier": 0.94237
       },
       "2028": {
-        "raw_ppg": 1803.9,
+        "raw_ppg": 1804,
         "target_ppg": 1620.4,
-        "multiplier": 0.89825
+        "multiplier": 0.89824
       },
       "2029": {
         "raw_ppg": 1866.5,
@@ -51,19 +51,19 @@
         "multiplier": 0.87149
       },
       "2030": {
-        "raw_ppg": 1898.3,
+        "raw_ppg": 1898.2,
         "target_ppg": 1629.8,
-        "multiplier": 0.85859
+        "multiplier": 0.85861
       },
       "2031": {
         "raw_ppg": 1901.5,
         "target_ppg": 1630,
-        "multiplier": 0.85722
+        "multiplier": 0.85723
       },
       "2032": {
         "raw_ppg": 1885.3,
         "target_ppg": 1628.5,
-        "multiplier": 0.86382
+        "multiplier": 0.86381
       }
     }
   },
@@ -325,7 +325,7 @@
         }
       },
       "current_ppg": 222.1,
-      "market_value_known_players": 80913
+      "market_value_known_players": 80934
     },
     {
       "id": 7,
@@ -533,7 +533,7 @@
         {
           "id": 9,
           "ppg": 161.4,
-          "p10": 146.5,
+          "p10": 146.6,
           "p90": 177.2
         },
         {
@@ -552,7 +552,7 @@
           "id": 3,
           "ppg": 103.3,
           "p10": 90.1,
-          "p90": 117.8
+          "p90": 117.7
         },
         {
           "id": 10,
@@ -821,7 +821,7 @@
             "pos": "RB",
             "age": 26,
             "ppg": 11.2,
-            "p10": 8.7,
+            "p10": 8.6,
             "p90": 13.6,
             "projected_rookie": false,
             "pick_year": null,
@@ -962,7 +962,7 @@
             "age": 24,
             "ppg": 3.2,
             "p10": 2.1,
-            "p90": 4.8,
+            "p90": 4.7,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -1130,7 +1130,7 @@
             "name": "Jordyn Tyson",
             "pos": "WR",
             "age": 23,
-            "ppg": 12.1,
+            "ppg": 12.2,
             "p10": 8.7,
             "p90": 16,
             "projected_rookie": false,
@@ -1688,6 +1688,20 @@
             "current_market_value": 106
           },
           {
+            "id": "12718",
+            "name": "Konata Mumpfield",
+            "pos": "WR",
+            "age": 25,
+            "ppg": 4.4,
+            "p10": 3,
+            "p90": 5.8,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 176
+          },
+          {
             "id": "13306",
             "name": "Taylen Green",
             "pos": "QB",
@@ -1700,20 +1714,6 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 5
-          },
-          {
-            "id": "12718",
-            "name": "Konata Mumpfield",
-            "pos": "WR",
-            "age": 25,
-            "ppg": 4.3,
-            "p10": 3,
-            "p90": 5.8,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 176
           },
           {
             "id": "13288",
@@ -1975,7 +1975,7 @@
             "pos": "WR",
             "age": 25,
             "ppg": 15.9,
-            "p10": 11.9,
+            "p10": 12,
             "p90": 20.2,
             "projected_rookie": false,
             "pick_year": null,
@@ -2003,7 +2003,7 @@
             "pos": "RB",
             "age": 27,
             "ppg": 13.1,
-            "p10": 9.8,
+            "p10": 9.7,
             "p90": 16,
             "projected_rookie": false,
             "pick_year": null,
@@ -2635,7 +2635,7 @@
             "pos": "RB",
             "age": 23,
             "ppg": 8.1,
-            "p10": 5.7,
+            "p10": 5.6,
             "p90": 10.7,
             "projected_rookie": false,
             "pick_year": null,
@@ -2916,7 +2916,7 @@
             "name": "Josh Allen",
             "pos": "QB",
             "age": 31,
-            "ppg": 30.9,
+            "ppg": 30.8,
             "p10": 24.6,
             "p90": 37.2,
             "projected_rookie": false,
@@ -2972,7 +2972,7 @@
             "name": "Amon-Ra St. Brown",
             "pos": "WR",
             "age": 28,
-            "ppg": 22.9,
+            "ppg": 22.8,
             "p10": 18.2,
             "p90": 27.6,
             "projected_rookie": false,
@@ -2987,7 +2987,7 @@
             "pos": "QB",
             "age": 39,
             "ppg": 16.2,
-            "p10": 10.8,
+            "p10": 10.9,
             "p90": 20,
             "projected_rookie": false,
             "pick_year": null,
@@ -3084,14 +3084,14 @@
             "name": "Daniel Jones",
             "pos": "QB",
             "age": 30,
-            "ppg": 10.5,
-            "p10": 7.4,
-            "p90": 12.5,
+            "ppg": 10.7,
+            "p10": 7.6,
+            "p90": 12.8,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
             "pick_origin": null,
-            "current_market_value": 398
+            "current_market_value": 419
           },
           {
             "id": "5859",
@@ -3294,7 +3294,7 @@
             "name": "Kimani Vidal",
             "pos": "RB",
             "age": 26,
-            "ppg": 3.2,
+            "ppg": 3.3,
             "p10": 2.5,
             "p90": 4,
             "projected_rookie": false,
@@ -3366,8 +3366,8 @@
             "name": "Brock Purdy",
             "pos": "QB",
             "age": 27,
-            "ppg": 29.6,
-            "p10": 21.6,
+            "ppg": 29.5,
+            "p10": 21.5,
             "p90": 38,
             "projected_rookie": false,
             "pick_year": null,
@@ -3873,7 +3873,7 @@
             "pos": "RB",
             "age": 24,
             "ppg": 14.6,
-            "p10": 10.3,
+            "p10": 10.4,
             "p90": 18.6,
             "projected_rookie": false,
             "pick_year": null,
@@ -3943,7 +3943,7 @@
             "pos": "QB",
             "age": 37,
             "ppg": 11.8,
-            "p10": 7.7,
+            "p10": 7.8,
             "p90": 14.6,
             "projected_rookie": false,
             "pick_year": null,
@@ -3985,7 +3985,7 @@
             "pos": "WR",
             "age": 23,
             "ppg": 10,
-            "p10": 7,
+            "p10": 7.1,
             "p90": 13.1,
             "projected_rookie": false,
             "pick_year": null,
@@ -4014,7 +4014,7 @@
             "age": 21.5,
             "ppg": 9,
             "p10": 5.8,
-            "p90": 12.9,
+            "p90": 13,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 1,
@@ -4182,7 +4182,7 @@
             "age": 26,
             "ppg": 5.4,
             "p10": 3.6,
-            "p90": 7.2,
+            "p90": 7.1,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -4293,7 +4293,7 @@
             "pos": "WR",
             "age": 32,
             "ppg": 3.9,
-            "p10": 2.9,
+            "p10": 2.8,
             "p90": 4.9,
             "projected_rookie": false,
             "pick_year": null,
@@ -4364,7 +4364,7 @@
             "age": 23,
             "ppg": 2.8,
             "p10": 1.8,
-            "p90": 3.5,
+            "p90": 3.6,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -4602,7 +4602,7 @@
             "name": "Anthony Richardson Sr.",
             "pos": "QB",
             "age": 25,
-            "ppg": 8.8,
+            "ppg": 8.7,
             "p10": 6,
             "p90": 11.9,
             "projected_rookie": false,
@@ -4984,7 +4984,7 @@
             "age": 23,
             "ppg": 10.2,
             "p10": 7.3,
-            "p90": 13.3,
+            "p90": 13.4,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -5278,7 +5278,7 @@
             "age": 24,
             "ppg": 3.7,
             "p10": 2.4,
-            "p90": 5.4,
+            "p90": 5.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -5532,13 +5532,13 @@
       ]
     },
     "2028": {
-      "league_total_ppg": 1620.5,
+      "league_total_ppg": 1620.4,
       "ranking": [
         {
           "id": 1,
           "ppg": 227.8,
           "p10": 211.5,
-          "p90": 244.9
+          "p90": 245
         },
         {
           "id": 6,
@@ -5548,9 +5548,9 @@
         },
         {
           "id": 7,
-          "ppg": 179.3,
+          "ppg": 179.2,
           "p10": 161.5,
-          "p90": 197.1
+          "p90": 197
         },
         {
           "id": 4,
@@ -5568,12 +5568,12 @@
           "id": 2,
           "ppg": 158.5,
           "p10": 140.3,
-          "p90": 176.9
+          "p90": 177
         },
         {
           "id": 9,
           "ppg": 158.1,
-          "p10": 141.5,
+          "p10": 141.6,
           "p90": 176.2
         },
         {
@@ -5631,7 +5631,7 @@
             "pos": "QB",
             "age": 26,
             "ppg": 27.4,
-            "p10": 19,
+            "p10": 19.1,
             "p90": 37,
             "projected_rookie": false,
             "pick_year": null,
@@ -5687,7 +5687,7 @@
             "pos": "QB",
             "age": 30,
             "ppg": 22.1,
-            "p10": 15.9,
+            "p10": 16,
             "p90": 28.9,
             "projected_rookie": false,
             "pick_year": null,
@@ -5854,7 +5854,7 @@
             "name": "Kirk Cousins",
             "pos": "QB",
             "age": 40,
-            "ppg": 9.7,
+            "ppg": 9.6,
             "p10": 6.3,
             "p90": 12.2,
             "projected_rookie": false,
@@ -6192,7 +6192,7 @@
             "name": "Jordyn Tyson",
             "pos": "WR",
             "age": 24,
-            "ppg": 12.8,
+            "ppg": 12.9,
             "p10": 9,
             "p90": 17,
             "projected_rookie": false,
@@ -6333,7 +6333,7 @@
             "pos": "RB",
             "age": 25,
             "ppg": 5.9,
-            "p10": 3.5,
+            "p10": 3.4,
             "p90": 7.1,
             "projected_rookie": false,
             "pick_year": null,
@@ -6658,7 +6658,7 @@
             "age": 26,
             "ppg": 19.4,
             "p10": 13.1,
-            "p90": 26.2,
+            "p90": 26.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -6671,7 +6671,7 @@
             "pos": "RB",
             "age": 23,
             "ppg": 14.4,
-            "p10": 9.6,
+            "p10": 9.7,
             "p90": 19.3,
             "projected_rookie": false,
             "pick_year": null,
@@ -7318,7 +7318,7 @@
             "age": 22.5,
             "ppg": 8.6,
             "p10": 5.5,
-            "p90": 13,
+            "p90": 12.9,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 1,
@@ -7907,7 +7907,7 @@
             "pos": "TE",
             "age": 23,
             "ppg": 7.1,
-            "p10": 4.8,
+            "p10": 4.7,
             "p90": 9.8,
             "projected_rookie": false,
             "pick_year": null,
@@ -8118,7 +8118,7 @@
             "age": 22.5,
             "ppg": 3,
             "p10": 1.8,
-            "p90": 4.7,
+            "p90": 4.8,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 4,
@@ -8328,7 +8328,7 @@
             "name": "Jahmyr Gibbs",
             "pos": "RB",
             "age": 26,
-            "ppg": 22.4,
+            "ppg": 22.3,
             "p10": 16.8,
             "p90": 27.8,
             "projected_rookie": false,
@@ -8440,14 +8440,14 @@
             "name": "Daniel Jones",
             "pos": "QB",
             "age": 31,
-            "ppg": 9.9,
-            "p10": 6.9,
-            "p90": 12.1,
+            "ppg": 10.2,
+            "p10": 7.1,
+            "p90": 12.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
             "pick_origin": null,
-            "current_market_value": 398
+            "current_market_value": 419
           },
           {
             "id": "5859",
@@ -8582,7 +8582,7 @@
             "age": 25,
             "ppg": 4.6,
             "p10": 2.8,
-            "p90": 7.7,
+            "p90": 7.6,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -8766,7 +8766,7 @@
             "age": 29,
             "ppg": 29.3,
             "p10": 21.6,
-            "p90": 37.8,
+            "p90": 37.9,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -8990,7 +8990,7 @@
             "age": 27,
             "ppg": 6.5,
             "p10": 4,
-            "p90": 8,
+            "p90": 7.9,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -9130,7 +9130,7 @@
             "age": 26,
             "ppg": 3.9,
             "p10": 2.2,
-            "p90": 4.8,
+            "p90": 4.7,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -9266,20 +9266,6 @@
             "current_market_value": 1490
           },
           {
-            "id": "12490",
-            "name": "Bhayshul Tuten",
-            "pos": "RB",
-            "age": 25,
-            "ppg": 15.2,
-            "p10": 10.5,
-            "p90": 20,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 3656
-          },
-          {
             "id": "13275",
             "name": "Ty Simpson",
             "pos": "QB",
@@ -9292,6 +9278,20 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 1542
+          },
+          {
+            "id": "12490",
+            "name": "Bhayshul Tuten",
+            "pos": "RB",
+            "age": 25,
+            "ppg": 15.1,
+            "p10": 10.5,
+            "p90": 20,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 3656
           },
           {
             "id": "8148",
@@ -9314,7 +9314,7 @@
             "age": 27,
             "ppg": 12.9,
             "p10": 9.1,
-            "p90": 18.3,
+            "p90": 18.2,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -9494,7 +9494,7 @@
             "name": "DK Metcalf",
             "pos": "WR",
             "age": 30,
-            "ppg": 7,
+            "ppg": 6.9,
             "p10": 5.1,
             "p90": 8.6,
             "projected_rookie": false,
@@ -9622,7 +9622,7 @@
             "age": 27,
             "ppg": 4.9,
             "p10": 3,
-            "p90": 5.6,
+            "p90": 5.5,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -9658,6 +9658,20 @@
             "current_market_value": null
           },
           {
+            "id": "5967",
+            "name": "Tony Pollard",
+            "pos": "RB",
+            "age": 31,
+            "ppg": 4.4,
+            "p10": 3,
+            "p90": 5.5,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 1297
+          },
+          {
             "id": "pick:2028:2:8",
             "name": "2028 R2 · Winston original pick",
             "pos": "TBD",
@@ -9670,20 +9684,6 @@
             "pick_round": 2,
             "pick_origin": 8,
             "current_market_value": null
-          },
-          {
-            "id": "5967",
-            "name": "Tony Pollard",
-            "pos": "RB",
-            "age": 31,
-            "ppg": 4.3,
-            "p10": 3,
-            "p90": 5.5,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 1297
           },
           {
             "id": "13602",
@@ -9776,7 +9776,7 @@
             "age": 24,
             "ppg": 3.3,
             "p10": 1.8,
-            "p90": 4.2,
+            "p90": 4.4,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -9847,7 +9847,7 @@
             "pos": "QB",
             "age": 35,
             "ppg": 25.1,
-            "p10": 17.7,
+            "p10": 17.8,
             "p90": 31.2,
             "projected_rookie": false,
             "pick_year": null,
@@ -10043,7 +10043,7 @@
             "pos": "QB",
             "age": 26,
             "ppg": 9.3,
-            "p10": 6.2,
+            "p10": 6.1,
             "p90": 13.2,
             "projected_rookie": false,
             "pick_year": null,
@@ -10085,7 +10085,7 @@
             "pos": "TBD",
             "age": 21.5,
             "ppg": 7.8,
-            "p10": 4.8,
+            "p10": 4.9,
             "p90": 11.4,
             "projected_rookie": true,
             "pick_year": 2028,
@@ -10380,7 +10380,7 @@
             "age": 22.5,
             "ppg": 3.3,
             "p10": 2,
-            "p90": 5.2,
+            "p90": 5.3,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
@@ -10844,7 +10844,7 @@
             "age": 25,
             "ppg": 4.1,
             "p10": 2.5,
-            "p90": 7.6,
+            "p90": 7.5,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -10964,6 +10964,20 @@
             "current_market_value": 348
           },
           {
+            "id": "13297",
+            "name": "Reggie Virgil",
+            "pos": "WR",
+            "age": 24,
+            "ppg": 3.4,
+            "p10": 1.9,
+            "p90": 6.4,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 15
+          },
+          {
             "id": "12457",
             "name": "Jaydon Blue",
             "pos": "RB",
@@ -10990,20 +11004,6 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 79
-          },
-          {
-            "id": "13297",
-            "name": "Reggie Virgil",
-            "pos": "WR",
-            "age": 24,
-            "ppg": 3.3,
-            "p10": 1.9,
-            "p90": 6.4,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 15
           },
           {
             "id": "10219",
@@ -11083,27 +11083,27 @@
         },
         {
           "id": 4,
-          "gap_ppg": 57.9,
-          "p10": 35.8,
+          "gap_ppg": 58,
+          "p10": 35.9,
           "p90": 81.3
         },
         {
           "id": 5,
-          "gap_ppg": 59.5,
+          "gap_ppg": 59.6,
           "p10": 36.2,
-          "p90": 82.1
+          "p90": 82.2
         },
         {
           "id": 2,
           "gap_ppg": 69.3,
-          "p10": 44.2,
+          "p10": 44.4,
           "p90": 94.3
         },
         {
           "id": 9,
           "gap_ppg": 69.7,
           "p10": 45.1,
-          "p90": 93.3
+          "p90": 93.5
         },
         {
           "id": 8,
@@ -11113,8 +11113,8 @@
         },
         {
           "id": 3,
-          "gap_ppg": 108.4,
-          "p10": 85.3,
+          "gap_ppg": 108.5,
+          "p10": 85.4,
           "p90": 131.3
         },
         {
@@ -11156,7 +11156,7 @@
           "id": 2,
           "ppg": 164.8,
           "p10": 145.8,
-          "p90": 184
+          "p90": 184.1
         },
         {
           "id": 5,
@@ -11309,7 +11309,7 @@
             "pos": "WR",
             "age": 30,
             "ppg": 19.5,
-            "p10": 14.6,
+            "p10": 14.5,
             "p90": 24.3,
             "projected_rookie": false,
             "pick_year": null,
@@ -12152,7 +12152,7 @@
             "age": 23.5,
             "ppg": 4,
             "p10": 2.2,
-            "p90": 6.9,
+            "p90": 7,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
@@ -13402,7 +13402,7 @@
             "age": 25,
             "ppg": 3.9,
             "p10": 1.9,
-            "p90": 9.1,
+            "p90": 9.2,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -13599,7 +13599,7 @@
             "pos": "WR",
             "age": 30,
             "ppg": 14.9,
-            "p10": 11.3,
+            "p10": 11.4,
             "p90": 18.5,
             "projected_rookie": false,
             "pick_year": null,
@@ -13628,7 +13628,7 @@
             "age": 28,
             "ppg": 11,
             "p10": 7.5,
-            "p90": 15.2,
+            "p90": 15.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -13776,6 +13776,20 @@
             "current_market_value": 406
           },
           {
+            "id": "11624",
+            "name": "Xavier Worthy",
+            "pos": "WR",
+            "age": 26,
+            "ppg": 6.5,
+            "p10": 3.7,
+            "p90": 12.4,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 406
+          },
+          {
             "id": "12487",
             "name": "Terrance Ferguson",
             "pos": "TE",
@@ -13788,20 +13802,6 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 603
-          },
-          {
-            "id": "11624",
-            "name": "Xavier Worthy",
-            "pos": "WR",
-            "age": 26,
-            "ppg": 6.4,
-            "p10": 3.7,
-            "p90": 12.4,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 406
           },
           {
             "id": "11638",
@@ -14175,7 +14175,7 @@
             "pos": "QB",
             "age": 30,
             "ppg": 22.8,
-            "p10": 15.9,
+            "p10": 16,
             "p90": 30.4,
             "projected_rookie": false,
             "pick_year": null,
@@ -14286,14 +14286,14 @@
             "name": "Daniel Jones",
             "pos": "QB",
             "age": 32,
-            "ppg": 9.6,
-            "p10": 6.4,
-            "p90": 11.8,
+            "ppg": 9.8,
+            "p10": 6.6,
+            "p90": 12.1,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
             "pick_origin": null,
-            "current_market_value": 398
+            "current_market_value": 419
           },
           {
             "id": "6813",
@@ -14427,7 +14427,7 @@
             "pos": "WR",
             "age": 28,
             "ppg": 4.7,
-            "p10": 2.5,
+            "p10": 2.4,
             "p90": 5.2,
             "projected_rookie": false,
             "pick_year": null,
@@ -15016,9 +15016,9 @@
             "name": "Cyrus Allen",
             "pos": "WR",
             "age": 26,
-            "ppg": 5.3,
+            "ppg": 5.4,
             "p10": 3.1,
-            "p90": 9.6,
+            "p90": 9.8,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -15046,7 +15046,7 @@
             "age": 27,
             "ppg": 4.4,
             "p10": 2.2,
-            "p90": 5.1,
+            "p90": 5,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -15243,7 +15243,7 @@
             "pos": "QB",
             "age": 26,
             "ppg": 22,
-            "p10": 14.4,
+            "p10": 14.3,
             "p90": 30.8,
             "projected_rookie": false,
             "pick_year": null,
@@ -15286,7 +15286,7 @@
             "age": 26,
             "ppg": 14.4,
             "p10": 9.8,
-            "p90": 19.1,
+            "p90": 19.2,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -15313,7 +15313,7 @@
             "pos": "WR",
             "age": 28,
             "ppg": 12.3,
-            "p10": 8.5,
+            "p10": 8.6,
             "p90": 17,
             "projected_rookie": false,
             "pick_year": null,
@@ -15904,7 +15904,7 @@
             "age": 26,
             "ppg": 21.8,
             "p10": 13.8,
-            "p90": 30.9,
+            "p90": 30.8,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -16038,6 +16038,20 @@
             "current_market_value": 435
           },
           {
+            "id": "pick:2027:1:9",
+            "name": "2027 R1 · CamNol original pick",
+            "pos": "TBD",
+            "age": 23.5,
+            "ppg": 10.2,
+            "p10": 6.1,
+            "p90": 15.6,
+            "projected_rookie": true,
+            "pick_year": 2027,
+            "pick_round": 1,
+            "pick_origin": 9,
+            "current_market_value": null
+          },
+          {
             "id": "13272",
             "name": "Carson Beck",
             "pos": "QB",
@@ -16050,20 +16064,6 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 464
-          },
-          {
-            "id": "pick:2027:1:9",
-            "name": "2027 R1 · CamNol original pick",
-            "pos": "TBD",
-            "age": 23.5,
-            "ppg": 10.1,
-            "p10": 6.1,
-            "p90": 15.6,
-            "projected_rookie": true,
-            "pick_year": 2027,
-            "pick_round": 1,
-            "pick_origin": 9,
-            "current_market_value": null
           },
           {
             "id": "12495",
@@ -16351,7 +16351,7 @@
             "pos": "TBD",
             "age": 22.5,
             "ppg": 4.3,
-            "p10": 2.6,
+            "p10": 2.7,
             "p90": 6.7,
             "projected_rookie": true,
             "pick_year": 2028,
@@ -16760,7 +16760,7 @@
             "age": 29,
             "ppg": 9.1,
             "p10": 5.6,
-            "p90": 14.8,
+            "p90": 14.5,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -16843,7 +16843,7 @@
             "pos": "TBD",
             "age": 23.5,
             "ppg": 5.7,
-            "p10": 3.1,
+            "p10": 3.2,
             "p90": 9.2,
             "projected_rookie": true,
             "pick_year": 2027,
@@ -17233,7 +17233,7 @@
           "id": 7,
           "gap_ppg": 45.5,
           "p10": 18.7,
-          "p90": 72
+          "p90": 72.1
         },
         {
           "id": 4,
@@ -17251,19 +17251,19 @@
           "id": 5,
           "gap_ppg": 57.1,
           "p10": 33.2,
-          "p90": 81.9
+          "p90": 82
         },
         {
           "id": 8,
-          "gap_ppg": 62.2,
+          "gap_ppg": 62.3,
           "p10": 36.5,
-          "p90": 87.8
+          "p90": 88
         },
         {
           "id": 9,
           "gap_ppg": 64.1,
           "p10": 38.6,
-          "p90": 88.5
+          "p90": 88.8
         },
         {
           "id": 3,
@@ -17286,7 +17286,7 @@
           "id": 1,
           "ppg": 210.4,
           "p10": 192.1,
-          "p90": 228.2
+          "p90": 228.1
         },
         {
           "id": 6,
@@ -17297,7 +17297,7 @@
         {
           "id": 4,
           "ppg": 173.6,
-          "p10": 152.6,
+          "p10": 152.7,
           "p90": 194.6
         },
         {
@@ -17309,7 +17309,7 @@
         {
           "id": 7,
           "ppg": 169.4,
-          "p10": 150.5,
+          "p10": 150.6,
           "p90": 189.1
         },
         {
@@ -17392,8 +17392,8 @@
             "name": "Jaxon Smith-Njigba",
             "pos": "WR",
             "age": 28,
-            "ppg": 23,
-            "p10": 16.4,
+            "ppg": 22.9,
+            "p10": 16.3,
             "p90": 30.3,
             "projected_rookie": false,
             "pick_year": null,
@@ -17434,7 +17434,7 @@
             "name": "Puka Nacua",
             "pos": "WR",
             "age": 29,
-            "ppg": 20.8,
+            "ppg": 20.7,
             "p10": 15.3,
             "p90": 27,
             "projected_rookie": false,
@@ -17450,7 +17450,7 @@
             "age": 28,
             "ppg": 18.1,
             "p10": 12.8,
-            "p90": 23.3,
+            "p90": 23.2,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -17476,7 +17476,7 @@
             "name": "Trey McBride",
             "pos": "TE",
             "age": 31,
-            "ppg": 16.8,
+            "ppg": 16.9,
             "p10": 11.6,
             "p90": 21.8,
             "projected_rookie": false,
@@ -18012,7 +18012,7 @@
             "age": 26,
             "ppg": 14.4,
             "p10": 9.3,
-            "p90": 20.5,
+            "p90": 20.4,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -18081,7 +18081,7 @@
             "pos": "TE",
             "age": 30,
             "ppg": 12,
-            "p10": 8.1,
+            "p10": 8.2,
             "p90": 16.4,
             "projected_rookie": false,
             "pick_year": null,
@@ -18629,7 +18629,7 @@
             "pos": "RB",
             "age": 25,
             "ppg": 16.3,
-            "p10": 10.9,
+            "p10": 10.8,
             "p90": 22.7,
             "projected_rookie": false,
             "pick_year": null,
@@ -18740,7 +18740,7 @@
             "name": "2028 R1 · Line original pick",
             "pos": "TBD",
             "age": 23.5,
-            "ppg": 9.4,
+            "ppg": 9.5,
             "p10": 5.8,
             "p90": 13.9,
             "projected_rookie": true,
@@ -18960,20 +18960,6 @@
             "current_market_value": 91
           },
           {
-            "id": "12496",
-            "name": "Tai Felton",
-            "pos": "WR",
-            "age": 27,
-            "ppg": 4.6,
-            "p10": 2.1,
-            "p90": 11.6,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 6
-          },
-          {
             "id": "pick:2027:3:10",
             "name": "2027 R3 · James original pick",
             "pos": "TBD",
@@ -19000,6 +18986,20 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 88
+          },
+          {
+            "id": "12496",
+            "name": "Tai Felton",
+            "pos": "WR",
+            "age": 27,
+            "ppg": 4.5,
+            "p10": 2.1,
+            "p90": 11.6,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 6
           },
           {
             "id": "pick:2027:3:1",
@@ -19318,7 +19318,7 @@
             "age": 33,
             "ppg": 16.9,
             "p10": 11.5,
-            "p90": 22.5,
+            "p90": 22.6,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -19382,31 +19382,31 @@
             "current_market_value": 1812
           },
           {
-            "id": "pick:2027:1:6",
-            "name": "2027 R1 · Hayden original pick",
-            "pos": "TBD",
-            "age": 24.5,
-            "ppg": 10,
-            "p10": 6,
-            "p90": 15.4,
-            "projected_rookie": true,
-            "pick_year": 2027,
-            "pick_round": 1,
-            "pick_origin": 6,
-            "current_market_value": null
-          },
-          {
             "id": "pick:2027:1:1",
             "name": "2027 R1 · Boek original pick",
             "pos": "TBD",
             "age": 24.5,
-            "ppg": 9.9,
+            "ppg": 10,
             "p10": 6.1,
             "p90": 15.4,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 1,
             "pick_origin": 1,
+            "current_market_value": null
+          },
+          {
+            "id": "pick:2027:1:6",
+            "name": "2027 R1 · Hayden original pick",
+            "pos": "TBD",
+            "age": 24.5,
+            "ppg": 10,
+            "p10": 6,
+            "p90": 15.3,
+            "projected_rookie": true,
+            "pick_year": 2027,
+            "pick_round": 1,
+            "pick_origin": 6,
             "current_market_value": null
           },
           {
@@ -19906,7 +19906,7 @@
             "name": "Patrick Mahomes",
             "pos": "QB",
             "age": 35,
-            "ppg": 25.3,
+            "ppg": 25.2,
             "p10": 17.1,
             "p90": 32.6,
             "projected_rookie": false,
@@ -20202,7 +20202,7 @@
             "age": 36,
             "ppg": 6.3,
             "p10": 4.2,
-            "p90": 8,
+            "p90": 8.1,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -20364,20 +20364,6 @@
             "current_market_value": null
           },
           {
-            "id": "pick:2028:4:5",
-            "name": "2028 R4 · Leyton original pick",
-            "pos": "TBD",
-            "age": 23.5,
-            "ppg": 3.4,
-            "p10": 1.9,
-            "p90": 6,
-            "projected_rookie": true,
-            "pick_year": 2028,
-            "pick_round": 4,
-            "pick_origin": 5,
-            "current_market_value": null
-          },
-          {
             "id": "pick:2028:4:7",
             "name": "2028 R4 · Line original pick",
             "pos": "TBD",
@@ -20389,6 +20375,20 @@
             "pick_year": 2028,
             "pick_round": 4,
             "pick_origin": 7,
+            "current_market_value": null
+          },
+          {
+            "id": "pick:2028:4:5",
+            "name": "2028 R4 · Leyton original pick",
+            "pos": "TBD",
+            "age": 23.5,
+            "ppg": 3.3,
+            "p10": 1.9,
+            "p90": 6,
+            "projected_rookie": true,
+            "pick_year": 2028,
+            "pick_round": 4,
+            "pick_origin": 5,
             "current_market_value": null
           },
           {
@@ -20716,6 +20716,20 @@
             "current_market_value": 1992
           },
           {
+            "id": "5870",
+            "name": "Daniel Jones",
+            "pos": "QB",
+            "age": 33,
+            "ppg": 9.5,
+            "p10": 6.1,
+            "p90": 12.1,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 419
+          },
+          {
             "id": "13274",
             "name": "Germie Bernard",
             "pos": "WR",
@@ -20728,20 +20742,6 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 1081
-          },
-          {
-            "id": "5870",
-            "name": "Daniel Jones",
-            "pos": "QB",
-            "age": 33,
-            "ppg": 9.3,
-            "p10": 6,
-            "p90": 11.9,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 398
           },
           {
             "id": "pick:2029:1:6",
@@ -21240,7 +21240,7 @@
             "name": "Matthew Golden",
             "pos": "WR",
             "age": 27,
-            "ppg": 18.7,
+            "ppg": 18.8,
             "p10": 12.9,
             "p90": 25,
             "projected_rookie": false,
@@ -21382,7 +21382,7 @@
             "age": 28,
             "ppg": 9.1,
             "p10": 5.3,
-            "p90": 15.4,
+            "p90": 15.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -21409,7 +21409,7 @@
             "pos": "TBD",
             "age": 21.5,
             "ppg": 7.9,
-            "p10": 4.9,
+            "p10": 5,
             "p90": 11.8,
             "projected_rookie": true,
             "pick_year": 2030,
@@ -21480,7 +21480,7 @@
             "age": 29,
             "ppg": 6,
             "p10": 3.5,
-            "p90": 7.8,
+            "p90": 7.7,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -21604,7 +21604,7 @@
             "name": "Keaton Mitchell",
             "pos": "RB",
             "age": 28,
-            "ppg": 3.6,
+            "ppg": 3.7,
             "p10": 2.1,
             "p90": 4.1,
             "projected_rookie": false,
@@ -21944,7 +21944,7 @@
             "age": 24.5,
             "ppg": 10.8,
             "p10": 6.4,
-            "p90": 16.4,
+            "p90": 16.5,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 1,
@@ -21985,7 +21985,7 @@
             "pos": "TE",
             "age": 31,
             "ppg": 9.3,
-            "p10": 6.3,
+            "p10": 6.2,
             "p90": 12.1,
             "projected_rookie": false,
             "pick_year": null,
@@ -22126,7 +22126,7 @@
             "age": 29,
             "ppg": 5.6,
             "p10": 3.2,
-            "p90": 7.1,
+            "p90": 7,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -22139,7 +22139,7 @@
             "pos": "QB",
             "age": 40,
             "ppg": 5.5,
-            "p10": 3.5,
+            "p10": 3.6,
             "p90": 7.1,
             "projected_rookie": false,
             "pick_year": null,
@@ -22153,7 +22153,7 @@
             "pos": "TBD",
             "age": 23.5,
             "ppg": 5.4,
-            "p10": 3,
+            "p10": 3.1,
             "p90": 8.8,
             "projected_rookie": true,
             "pick_year": 2028,
@@ -22252,7 +22252,7 @@
             "age": 31,
             "ppg": 4.7,
             "p10": 3.1,
-            "p90": 6.1,
+            "p90": 6,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -22280,7 +22280,7 @@
             "age": 24.5,
             "ppg": 4.5,
             "p10": 2.2,
-            "p90": 8.6,
+            "p90": 8.5,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
@@ -22362,7 +22362,7 @@
             "name": "CJ Donaldson",
             "pos": "RB",
             "age": 26,
-            "ppg": 3.7,
+            "ppg": 3.8,
             "p10": 1.7,
             "p90": 4.5,
             "projected_rookie": false,
@@ -22461,7 +22461,7 @@
             "pos": "RB",
             "age": 30,
             "ppg": 1.9,
-            "p10": 1.4,
+            "p10": 1.3,
             "p90": 2.4,
             "projected_rookie": false,
             "pick_year": null,
@@ -23446,7 +23446,7 @@
             "age": 28,
             "ppg": 7.3,
             "p10": 4.2,
-            "p90": 12.7,
+            "p90": 12.9,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -23572,7 +23572,7 @@
             "age": 27,
             "ppg": 5.2,
             "p10": 2.6,
-            "p90": 12.3,
+            "p90": 12.1,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -23932,27 +23932,27 @@
         ]
       },
       "boek_vs_leagues_best_opponent": {
-        "gap_ppg": 18.5,
-        "p10": -4.4,
+        "gap_ppg": 18.4,
+        "p10": -4.5,
         "p90": 40.7
       },
       "boek_vs_teams": [
         {
           "id": 6,
-          "gap_ppg": 28.6,
+          "gap_ppg": 28.5,
           "p10": 1.8,
           "p90": 54.6
         },
         {
           "id": 4,
-          "gap_ppg": 36.9,
+          "gap_ppg": 36.8,
           "p10": 8.7,
-          "p90": 63.6
+          "p90": 63.5
         },
         {
           "id": 2,
-          "gap_ppg": 40.8,
-          "p10": 14.1,
+          "gap_ppg": 40.7,
+          "p10": 13.9,
           "p90": 67.4
         },
         {
@@ -23963,44 +23963,44 @@
         },
         {
           "id": 8,
-          "gap_ppg": 47.8,
+          "gap_ppg": 47.7,
           "p10": 19.2,
           "p90": 73.7
         },
         {
           "id": 5,
-          "gap_ppg": 54.8,
+          "gap_ppg": 54.7,
           "p10": 28,
-          "p90": 80.3
+          "p90": 80.2
         },
         {
           "id": 9,
-          "gap_ppg": 56.1,
+          "gap_ppg": 56,
           "p10": 28.5,
-          "p90": 81.1
+          "p90": 81
         },
         {
           "id": 3,
           "gap_ppg": 67.1,
           "p10": 37.9,
-          "p90": 94.1
+          "p90": 94
         },
         {
           "id": 10,
-          "gap_ppg": 101.6,
-          "p10": 70.8,
+          "gap_ppg": 101.5,
+          "p10": 70.7,
           "p90": 132
         }
       ]
     },
     "2031": {
-      "league_total_ppg": 1630,
+      "league_total_ppg": 1630.1,
       "ranking": [
         {
           "id": 1,
           "ppg": 201,
           "p10": 181,
-          "p90": 220.8
+          "p90": 221
         },
         {
           "id": 6,
@@ -24012,7 +24012,7 @@
           "id": 2,
           "ppg": 174.3,
           "p10": 153.8,
-          "p90": 195.4
+          "p90": 195.3
         },
         {
           "id": 4,
@@ -24034,7 +24034,7 @@
         },
         {
           "id": 9,
-          "ppg": 154.6,
+          "ppg": 154.7,
           "p10": 135.5,
           "p90": 175.2
         },
@@ -24042,7 +24042,7 @@
           "id": 3,
           "ppg": 153.3,
           "p10": 132.1,
-          "p90": 175.2
+          "p90": 175.1
         },
         {
           "id": 5,
@@ -24150,7 +24150,7 @@
             "age": 30,
             "ppg": 19.1,
             "p10": 13.4,
-            "p90": 25.3,
+            "p90": 25.4,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -24162,7 +24162,7 @@
             "name": "Trey McBride",
             "pos": "TE",
             "age": 32,
-            "ppg": 15.6,
+            "ppg": 15.7,
             "p10": 10.3,
             "p90": 20.9,
             "projected_rookie": false,
@@ -24388,7 +24388,7 @@
             "age": 25.5,
             "ppg": 4.4,
             "p10": 2,
-            "p90": 9.3,
+            "p90": 9.4,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 4,
@@ -24402,7 +24402,7 @@
             "age": 24.5,
             "ppg": 4.3,
             "p10": 2.1,
-            "p90": 8,
+            "p90": 8.1,
             "projected_rookie": true,
             "pick_year": 2028,
             "pick_round": 3,
@@ -24484,7 +24484,7 @@
             "name": "2029 R3 · Boek original pick",
             "pos": "TBD",
             "age": 23.5,
-            "ppg": 3.6,
+            "ppg": 3.7,
             "p10": 2.1,
             "p90": 6.3,
             "projected_rookie": true,
@@ -24780,8 +24780,8 @@
             "name": "2027 R1 · Fru original pick",
             "pos": "TBD",
             "age": 25.5,
-            "ppg": 15.2,
-            "p10": 9.1,
+            "ppg": 15.1,
+            "p10": 9,
             "p90": 22.9,
             "projected_rookie": true,
             "pick_year": 2027,
@@ -24962,7 +24962,7 @@
             "name": "2027 R2 · Fromm original pick",
             "pos": "TBD",
             "age": 25.5,
-            "ppg": 7,
+            "ppg": 6.9,
             "p10": 3.5,
             "p90": 12.6,
             "projected_rookie": true,
@@ -25014,6 +25014,20 @@
             "current_market_value": 273
           },
           {
+            "id": "pick:2028:2:10",
+            "name": "2028 R2 · James original pick",
+            "pos": "TBD",
+            "age": 24.5,
+            "ppg": 6.3,
+            "p10": 3.4,
+            "p90": 10.9,
+            "projected_rookie": true,
+            "pick_year": 2028,
+            "pick_round": 2,
+            "pick_origin": 10,
+            "current_market_value": null
+          },
+          {
             "id": "pick:2028:2:2",
             "name": "2028 R2 · Fru original pick",
             "pos": "TBD",
@@ -25025,20 +25039,6 @@
             "pick_year": 2028,
             "pick_round": 2,
             "pick_origin": 2,
-            "current_market_value": null
-          },
-          {
-            "id": "pick:2028:2:10",
-            "name": "2028 R2 · James original pick",
-            "pos": "TBD",
-            "age": 24.5,
-            "ppg": 6.2,
-            "p10": 3.4,
-            "p90": 10.9,
-            "projected_rookie": true,
-            "pick_year": 2028,
-            "pick_round": 2,
-            "pick_origin": 10,
             "current_market_value": null
           },
           {
@@ -25104,7 +25104,7 @@
             "age": 29,
             "ppg": 5.4,
             "p10": 2.8,
-            "p90": 10.1,
+            "p90": 10.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -25118,7 +25118,7 @@
             "age": 25.5,
             "ppg": 5.1,
             "p10": 2.4,
-            "p90": 11,
+            "p90": 11.1,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
@@ -25168,31 +25168,31 @@
             "current_market_value": 384
           },
           {
-            "id": "pick:2028:4:1",
-            "name": "2028 R4 · Boek original pick",
-            "pos": "TBD",
-            "age": 24.5,
-            "ppg": 4,
-            "p10": 1.9,
-            "p90": 7.8,
-            "projected_rookie": true,
-            "pick_year": 2028,
-            "pick_round": 4,
-            "pick_origin": 1,
-            "current_market_value": null
-          },
-          {
             "id": "pick:2028:4:8",
             "name": "2028 R4 · Winston original pick",
             "pos": "TBD",
             "age": 24.5,
-            "ppg": 3.9,
+            "ppg": 4,
             "p10": 2,
             "p90": 7.8,
             "projected_rookie": true,
             "pick_year": 2028,
             "pick_round": 4,
             "pick_origin": 8,
+            "current_market_value": null
+          },
+          {
+            "id": "pick:2028:4:1",
+            "name": "2028 R4 · Boek original pick",
+            "pos": "TBD",
+            "age": 24.5,
+            "ppg": 3.9,
+            "p10": 1.9,
+            "p90": 7.8,
+            "projected_rookie": true,
+            "pick_year": 2028,
+            "pick_round": 4,
+            "pick_origin": 1,
             "current_market_value": null
           },
           {
@@ -25800,31 +25800,31 @@
             "current_market_value": 176
           },
           {
-            "id": "pick:2030:2:3",
-            "name": "2030 R2 · Fromm original pick",
-            "pos": "TBD",
-            "age": 22.5,
-            "ppg": 4.9,
-            "p10": 3,
-            "p90": 7.4,
-            "projected_rookie": true,
-            "pick_year": 2030,
-            "pick_round": 2,
-            "pick_origin": 3,
-            "current_market_value": null
-          },
-          {
             "id": "pick:2027:3:1",
             "name": "2027 R3 · Boek original pick",
             "pos": "TBD",
             "age": 25.5,
             "ppg": 4.8,
             "p10": 2.2,
-            "p90": 9.9,
+            "p90": 9.8,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
             "pick_origin": 1,
+            "current_market_value": null
+          },
+          {
+            "id": "pick:2030:2:3",
+            "name": "2030 R2 · Fromm original pick",
+            "pos": "TBD",
+            "age": 22.5,
+            "ppg": 4.8,
+            "p10": 3,
+            "p90": 7.4,
+            "projected_rookie": true,
+            "pick_year": 2030,
+            "pick_round": 2,
+            "pick_origin": 3,
             "current_market_value": null
           },
           {
@@ -26016,7 +26016,7 @@
             "age": 23.5,
             "ppg": 3.3,
             "p10": 1.8,
-            "p90": 5.7,
+            "p90": 5.6,
             "projected_rookie": true,
             "pick_year": 2029,
             "pick_round": 4,
@@ -26044,7 +26044,7 @@
             "age": 22.5,
             "ppg": 3.3,
             "p10": 1.9,
-            "p90": 5.2,
+            "p90": 5.1,
             "projected_rookie": true,
             "pick_year": 2030,
             "pick_round": 3,
@@ -26142,7 +26142,7 @@
             "name": "Jordan Love",
             "pos": "QB",
             "age": 33,
-            "ppg": 26.8,
+            "ppg": 26.7,
             "p10": 18.9,
             "p90": 35.9,
             "projected_rookie": false,
@@ -26199,7 +26199,7 @@
             "pos": "QB",
             "age": 34,
             "ppg": 16.8,
-            "p10": 10.8,
+            "p10": 10.9,
             "p90": 23.2,
             "projected_rookie": false,
             "pick_year": null,
@@ -26242,7 +26242,7 @@
             "age": 28,
             "ppg": 11.1,
             "p10": 7.4,
-            "p90": 15.2,
+            "p90": 15.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -26354,7 +26354,7 @@
             "age": 21.5,
             "ppg": 8.1,
             "p10": 5,
-            "p90": 11.9,
+            "p90": 12,
             "projected_rookie": true,
             "pick_year": 2031,
             "pick_round": 1,
@@ -26508,7 +26508,7 @@
             "age": 25.5,
             "ppg": 4.9,
             "p10": 2.3,
-            "p90": 10.7,
+            "p90": 10.6,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
@@ -26845,7 +26845,7 @@
             "pos": "QB",
             "age": 36,
             "ppg": 23,
-            "p10": 16,
+            "p10": 15.9,
             "p90": 29.5,
             "projected_rookie": false,
             "pick_year": null,
@@ -27166,7 +27166,7 @@
             "name": "Ricky Pearsall",
             "pos": "WR",
             "age": 31,
-            "ppg": 5.2,
+            "ppg": 5.1,
             "p10": 3.1,
             "p90": 6.3,
             "projected_rookie": false,
@@ -27484,20 +27484,6 @@
             "current_market_value": 337
           },
           {
-            "id": "4037",
-            "name": "Chris Godwin Jr.",
-            "pos": "WR",
-            "age": 35,
-            "ppg": 1.3,
-            "p10": 0.7,
-            "p90": 1.7,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 257
-          },
-          {
             "id": "5850",
             "name": "Josh Jacobs",
             "pos": "RB",
@@ -27510,6 +27496,20 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 1701
+          },
+          {
+            "id": "4037",
+            "name": "Chris Godwin Jr.",
+            "pos": "WR",
+            "age": 35,
+            "ppg": 1.2,
+            "p10": 0.7,
+            "p90": 1.7,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 257
           },
           {
             "id": "7611",
@@ -27710,6 +27710,20 @@
             "current_market_value": 1081
           },
           {
+            "id": "5870",
+            "name": "Daniel Jones",
+            "pos": "QB",
+            "age": 34,
+            "ppg": 9.4,
+            "p10": 6,
+            "p90": 12.1,
+            "projected_rookie": false,
+            "pick_year": null,
+            "pick_round": null,
+            "pick_origin": null,
+            "current_market_value": 419
+          },
+          {
             "id": "13286",
             "name": "Jadarian Price",
             "pos": "RB",
@@ -27724,27 +27738,13 @@
             "current_market_value": 1992
           },
           {
-            "id": "5870",
-            "name": "Daniel Jones",
-            "pos": "QB",
-            "age": 34,
-            "ppg": 9.3,
-            "p10": 5.9,
-            "p90": 11.9,
-            "projected_rookie": false,
-            "pick_year": null,
-            "pick_round": null,
-            "pick_origin": null,
-            "current_market_value": 398
-          },
-          {
             "id": "pick:2029:1:6",
             "name": "2029 R1 · Hayden original pick",
             "pos": "TBD",
             "age": 23.5,
             "ppg": 9.2,
             "p10": 5.5,
-            "p90": 14,
+            "p90": 13.9,
             "projected_rookie": true,
             "pick_year": 2029,
             "pick_round": 1,
@@ -28361,7 +28361,7 @@
             "pos": "QB",
             "age": 36,
             "ppg": 10.9,
-            "p10": 7.2,
+            "p10": 7.3,
             "p90": 14.2,
             "projected_rookie": false,
             "pick_year": null,
@@ -28530,7 +28530,7 @@
             "age": 28,
             "ppg": 5.7,
             "p10": 2.9,
-            "p90": 11.7,
+            "p90": 11.8,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -28558,7 +28558,7 @@
             "age": 30,
             "ppg": 5.6,
             "p10": 3.2,
-            "p90": 7.2,
+            "p90": 7.1,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -28880,7 +28880,7 @@
             "name": "Bryce Young",
             "pos": "QB",
             "age": 30,
-            "ppg": 22.6,
+            "ppg": 22.7,
             "p10": 14.7,
             "p90": 32.4,
             "projected_rookie": false,
@@ -28908,7 +28908,7 @@
             "name": "Michael Penix Jr.",
             "pos": "QB",
             "age": 31,
-            "ppg": 17.4,
+            "ppg": 17.5,
             "p10": 11,
             "p90": 25.1,
             "projected_rookie": false,
@@ -29288,7 +29288,7 @@
             "age": 30,
             "ppg": 5.4,
             "p10": 2.9,
-            "p90": 7,
+            "p90": 6.9,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -29300,9 +29300,9 @@
             "name": "2027 R3 · Winston original pick",
             "pos": "TBD",
             "age": 25.5,
-            "ppg": 5.1,
+            "ppg": 5,
             "p10": 2.4,
-            "p90": 10.7,
+            "p90": 10.6,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 3,
@@ -30100,7 +30100,7 @@
             "name": "2029 R2 · CamNol original pick",
             "pos": "TBD",
             "age": 23.5,
-            "ppg": 5.4,
+            "ppg": 5.3,
             "p10": 3.1,
             "p90": 8.6,
             "projected_rookie": true,
@@ -30250,6 +30250,20 @@
             "current_market_value": null
           },
           {
+            "id": "pick:2028:3:2",
+            "name": "2028 R3 · Fru original pick",
+            "pos": "TBD",
+            "age": 24.5,
+            "ppg": 4.5,
+            "p10": 2.3,
+            "p90": 8.9,
+            "projected_rookie": true,
+            "pick_year": 2028,
+            "pick_round": 3,
+            "pick_origin": 2,
+            "current_market_value": null
+          },
+          {
             "id": "pick:2027:4:7",
             "name": "2027 R4 · Line original pick",
             "pos": "TBD",
@@ -30275,20 +30289,6 @@
             "pick_year": 2028,
             "pick_round": 3,
             "pick_origin": 3,
-            "current_market_value": null
-          },
-          {
-            "id": "pick:2028:3:2",
-            "name": "2028 R3 · Fru original pick",
-            "pos": "TBD",
-            "age": 24.5,
-            "ppg": 4.4,
-            "p10": 2.3,
-            "p90": 8.9,
-            "projected_rookie": true,
-            "pick_year": 2028,
-            "pick_round": 3,
-            "pick_origin": 2,
             "current_market_value": null
           },
           {
@@ -30594,7 +30594,7 @@
             "age": 25.5,
             "ppg": 15.1,
             "p10": 9.3,
-            "p90": 22.3,
+            "p90": 22.2,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 1,
@@ -30902,7 +30902,7 @@
             "age": 27,
             "ppg": 4.6,
             "p10": 2,
-            "p90": 11.2,
+            "p90": 11.3,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -31207,7 +31207,7 @@
       },
       "boek_vs_leagues_best_opponent": {
         "gap_ppg": 9.2,
-        "p10": -14.6,
+        "p10": -14.5,
         "p90": 34
       },
       "boek_vs_teams": [
@@ -31233,7 +31233,7 @@
           "id": 8,
           "gap_ppg": 34.5,
           "p10": 5.2,
-          "p90": 62.3
+          "p90": 62.4
         },
         {
           "id": 7,
@@ -31274,7 +31274,7 @@
           "id": 1,
           "ppg": 188.8,
           "p10": 169.4,
-          "p90": 208
+          "p90": 208.1
         },
         {
           "id": 2,
@@ -31286,7 +31286,7 @@
           "id": 4,
           "ppg": 173.9,
           "p10": 153,
-          "p90": 196.2
+          "p90": 196.1
         },
         {
           "id": 8,
@@ -31675,7 +31675,7 @@
             "pos": "TBD",
             "age": 26.5,
             "ppg": 4.7,
-            "p10": 2,
+            "p10": 2.1,
             "p90": 10.9,
             "projected_rookie": true,
             "pick_year": 2027,
@@ -32096,7 +32096,7 @@
             "name": "Luther Burden III",
             "pos": "WR",
             "age": 28,
-            "ppg": 18.6,
+            "ppg": 18.5,
             "p10": 12,
             "p90": 26.3,
             "projected_rookie": false,
@@ -32378,7 +32378,7 @@
             "age": 24.5,
             "ppg": 6.2,
             "p10": 3.3,
-            "p90": 11,
+            "p90": 10.9,
             "projected_rookie": true,
             "pick_year": 2029,
             "pick_round": 2,
@@ -32574,7 +32574,7 @@
             "age": 23.5,
             "ppg": 3.8,
             "p10": 2.1,
-            "p90": 6.3,
+            "p90": 6.4,
             "projected_rookie": true,
             "pick_year": 2030,
             "pick_round": 3,
@@ -33024,7 +33024,7 @@
             "age": 29,
             "ppg": 8.7,
             "p10": 5.4,
-            "p90": 12.4,
+            "p90": 12.5,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -33036,7 +33036,7 @@
             "name": "Brenton Strange",
             "pos": "TE",
             "age": 31,
-            "ppg": 7.1,
+            "ppg": 7.2,
             "p10": 4,
             "p90": 11.7,
             "projected_rookie": false,
@@ -33228,6 +33228,20 @@
             "current_market_value": 44
           },
           {
+            "id": "pick:2031:2:3",
+            "name": "2031 R2 · Fromm original pick",
+            "pos": "TBD",
+            "age": 22.5,
+            "ppg": 4.8,
+            "p10": 2.9,
+            "p90": 7.3,
+            "projected_rookie": true,
+            "pick_year": 2031,
+            "pick_round": 2,
+            "pick_origin": 3,
+            "current_market_value": null
+          },
+          {
             "id": "13400",
             "name": "Justin Joly",
             "pos": "TE",
@@ -33254,20 +33268,6 @@
             "pick_round": null,
             "pick_origin": null,
             "current_market_value": 176
-          },
-          {
-            "id": "pick:2031:2:3",
-            "name": "2031 R2 · Fromm original pick",
-            "pos": "TBD",
-            "age": 22.5,
-            "ppg": 4.7,
-            "p10": 2.9,
-            "p90": 7.3,
-            "projected_rookie": true,
-            "pick_year": 2031,
-            "pick_round": 2,
-            "pick_origin": 3,
-            "current_market_value": null
           },
           {
             "id": "pick:2029:3:3",
@@ -33512,7 +33512,7 @@
             "name": "2032 R3 · Fromm original pick",
             "pos": "TBD",
             "age": 21.5,
-            "ppg": 2.7,
+            "ppg": 2.8,
             "p10": 1.8,
             "p90": 4,
             "projected_rookie": true,
@@ -33698,7 +33698,7 @@
             "age": 26.5,
             "ppg": 11.6,
             "p10": 6.5,
-            "p90": 18.8,
+            "p90": 18.9,
             "projected_rookie": true,
             "pick_year": 2027,
             "pick_round": 1,
@@ -33725,7 +33725,7 @@
             "pos": "TBD",
             "age": 23.5,
             "ppg": 10,
-            "p10": 6,
+            "p10": 6.1,
             "p90": 15.2,
             "projected_rookie": true,
             "pick_year": 2030,
@@ -33964,7 +33964,7 @@
             "age": 29,
             "ppg": 5,
             "p10": 2.4,
-            "p90": 11,
+            "p90": 11.2,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -34160,7 +34160,7 @@
             "age": 23.5,
             "ppg": 3.4,
             "p10": 1.9,
-            "p90": 6.1,
+            "p90": 6.2,
             "projected_rookie": true,
             "pick_year": 2030,
             "pick_round": 4,
@@ -34736,7 +34736,7 @@
             "age": 25.5,
             "ppg": 4.6,
             "p10": 2.1,
-            "p90": 10.4,
+            "p90": 10.5,
             "projected_rookie": true,
             "pick_year": 2028,
             "pick_round": 4,
@@ -35241,7 +35241,7 @@
             "pos": "WR",
             "age": 33,
             "ppg": 11.4,
-            "p10": 7.3,
+            "p10": 7.4,
             "p90": 15.1,
             "projected_rookie": false,
             "pick_year": null,
@@ -35296,14 +35296,14 @@
             "name": "Daniel Jones",
             "pos": "QB",
             "age": 35,
-            "ppg": 8.8,
-            "p10": 5.4,
-            "p90": 12,
+            "ppg": 9,
+            "p10": 5.5,
+            "p90": 12.2,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
             "pick_origin": null,
-            "current_market_value": 398
+            "current_market_value": 419
           },
           {
             "id": "pick:2031:1:6",
@@ -36294,7 +36294,7 @@
             "age": 30,
             "ppg": 4,
             "p10": 1.9,
-            "p90": 5.2,
+            "p90": 5.1,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -36812,7 +36812,7 @@
             "name": "2027 R2 · Winston original pick",
             "pos": "TBD",
             "age": 26.5,
-            "ppg": 7.3,
+            "ppg": 7.2,
             "p10": 3.3,
             "p90": 14.1,
             "projected_rookie": true,
@@ -37584,7 +37584,7 @@
             "name": "2031 R1 · CamNol original pick",
             "pos": "TBD",
             "age": 22.5,
-            "ppg": 10.2,
+            "ppg": 10.3,
             "p10": 6.1,
             "p90": 15,
             "projected_rookie": true,
@@ -38132,7 +38132,7 @@
             "age": 24.5,
             "ppg": 3.8,
             "p10": 2,
-            "p90": 7,
+            "p90": 7.1,
             "projected_rookie": true,
             "pick_year": 2029,
             "pick_round": 4,
@@ -38540,7 +38540,7 @@
             "age": 28,
             "ppg": 5.5,
             "p10": 2.3,
-            "p90": 14.8,
+            "p90": 14.7,
             "projected_rookie": false,
             "pick_year": null,
             "pick_round": null,
@@ -39053,15 +39053,15 @@
         },
         {
           "id": 4,
-          "gap_ppg": 14.9,
+          "gap_ppg": 14.8,
           "p10": -14.8,
           "p90": 43.4
         },
         {
           "id": 8,
-          "gap_ppg": 18.9,
+          "gap_ppg": 19,
           "p10": -10.3,
-          "p90": 47.3
+          "p90": 47.5
         },
         {
           "id": 6,
@@ -39110,5 +39110,5 @@
     2031,
     2032
   ],
-  "input_fingerprint": "30fa9ef3bb75fa5291f62234"
+  "input_fingerprint": "9bd5aedd77a8d6764380b04c"
 }
